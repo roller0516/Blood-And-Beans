@@ -1,0 +1,748 @@
+<title>LAST CAFE</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --soot:#12100E; --panel:#1B1712; --panel2:#241E17; --line:#3A3128;
+    --bone:#E8DCC8; --dim:#9B8E7C; --amber:#F0A73E; --amber-d:#8A5F22;
+    --toxic:#5FD3A6; --blood:#D9463C;
+    --disp:'Silkscreen','Courier New',monospace;
+    --body:'IBM Plex Sans KR',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--soot); color:var(--bone);
+    font-family:var(--body); font-size:15px; line-height:1.6;
+    display:flex; justify-content:center; padding:20px 14px 48px;
+  }
+  .cabinet{width:100%; max-width:900px; display:flex; flex-direction:column; gap:14px}
+
+  header{display:flex; align-items:baseline; gap:12px; flex-wrap:wrap}
+  h1{font-family:var(--disp); font-size:30px; letter-spacing:.06em; margin:0; color:var(--amber)}
+  .tagline{color:var(--dim); font-size:13px}
+
+  .hud{display:grid; grid-template-columns:repeat(4,1fr); gap:1px; background:var(--line); border:1px solid var(--line)}
+  .stat{background:var(--panel); padding:8px 10px}
+  .stat .k{font-family:var(--disp); font-size:9px; letter-spacing:.12em; color:var(--dim)}
+  .stat .v{font-family:var(--disp); font-size:20px; font-variant-numeric:tabular-nums; margin-top:2px}
+  .stat.phase-day .v{color:var(--amber)}
+  .stat.phase-night .v{color:var(--toxic)}
+
+  .timer{height:4px; background:var(--panel2); border:1px solid var(--line); border-top:0}
+  .timer i{display:block; height:100%; background:var(--amber); width:100%}
+  body.night .timer i{background:var(--toxic)}
+
+  .stage{position:relative; border:1px solid var(--line); background:#000; line-height:0}
+  canvas{width:100%; height:auto; aspect-ratio:16/9; image-rendering:pixelated; display:block}
+
+  .overlay{
+    position:absolute; inset:0; background:rgba(10,8,6,.94);
+    display:flex; flex-direction:column; justify-content:center;
+    padding:22px 26px; gap:11px; overflow-y:auto; line-height:1.6;
+  }
+  .overlay[hidden]{display:none}
+  .overlay h2{font-family:var(--disp); font-size:18px; margin:0; letter-spacing:.05em; color:var(--amber)}
+  body.night .overlay h2{color:var(--toxic)}
+  .overlay p{margin:0; font-size:13.5px; color:var(--dim); max-width:64ch}
+  .overlay p b{color:var(--bone); font-weight:600}
+
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{
+    font-size:12px; padding:4px 9px; background:var(--panel2); border:1px solid var(--line);
+    color:var(--dim); cursor:pointer; font-family:var(--body); text-align:left;
+  }
+  .chip:hover{border-color:var(--amber-d); color:var(--bone)}
+  .chip[aria-pressed="true"]{border-color:var(--amber); color:var(--bone); background:#2E2413}
+  .chip .r{font-family:var(--disp); font-size:9px; color:var(--amber); margin-left:6px}
+  .chip:focus-visible,button:focus-visible,input:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+
+  button.go{
+    align-self:flex-start; font-family:var(--disp); font-size:13px; letter-spacing:.08em;
+    background:var(--amber); color:#12100E; border:0; padding:9px 20px; cursor:pointer;
+  }
+  button.go:hover{background:#FFC163}
+  button.go[disabled]{background:#4A4136; color:#8A7F71; cursor:default}
+  body.night button.go{background:var(--toxic)}
+
+  input.nick{
+    font-family:var(--body); font-size:14px; background:var(--panel2); color:var(--bone);
+    border:1px solid var(--line); padding:7px 10px; max-width:240px;
+  }
+
+  .bar{display:flex; gap:1px; background:var(--line); border:1px solid var(--line); flex-wrap:wrap; min-height:2px}
+  .slot{background:var(--panel); padding:7px 10px; flex:1; min-width:130px; display:flex; gap:8px; align-items:baseline}
+  .slot .key{font-family:var(--disp); font-size:11px; color:var(--soot); background:var(--dim); padding:1px 5px}
+  .slot.armed .key{background:var(--amber)}
+  .slot .nm{font-size:12.5px; flex:1}
+  .slot .tg{font-size:11px; color:var(--amber)}
+  .slot.empty{color:#5C5347}
+  .slot.empty .nm{font-style:italic}
+
+  /* 순위표 */
+  .board{border:1px solid var(--line); background:var(--panel); display:flex; flex-direction:column}
+  .board .bh{
+    font-family:var(--disp); font-size:9px; letter-spacing:.12em; color:var(--dim);
+    padding:7px 10px; border-bottom:1px solid var(--line); display:flex; justify-content:space-between;
+  }
+  .row{
+    display:grid; grid-template-columns:26px 1fr auto auto; gap:10px; align-items:baseline;
+    padding:6px 10px; font-size:13px; border-bottom:1px solid #241E17;
+  }
+  .row:last-child{border-bottom:0}
+  .row .rk{font-family:var(--disp); font-size:11px; color:var(--dim)}
+  .row .dy{font-size:11.5px; color:var(--dim)}
+  .row .sc{font-family:var(--disp); font-size:13px; font-variant-numeric:tabular-nums}
+  .row.self{background:#221B12}
+  .row.self .rk{color:var(--amber)}
+  .row.self .sc{color:var(--amber)}
+  .row .tagme{font-family:var(--disp); font-size:8px; color:var(--soot); background:var(--amber); padding:1px 4px; margin-left:6px}
+  .row .tagbot{font-family:var(--disp); font-size:8px; color:var(--dim); border:1px solid var(--line); padding:0 4px; margin-left:6px}
+
+  .help{color:var(--dim); font-size:12.5px; display:flex; gap:16px; flex-wrap:wrap}
+  .help kbd{font-family:var(--disp); font-size:10px; background:var(--panel2); border:1px solid var(--line); padding:2px 5px; color:var(--bone)}
+  .log{font-size:12.5px; color:var(--dim); min-height:1.6em}
+  .log b{color:var(--amber)}
+  .warn{font-size:12.5px; color:var(--blood)}
+  footer{color:#6E6355; font-size:12px; border-top:1px solid var(--line); padding-top:10px}
+  footer b{color:var(--dim); font-weight:500}
+</style>
+
+<div class="cabinet">
+  <header>
+    <h1>LAST CAFE</h1>
+    <span class="tagline">핵전쟁 이후, 살아남은 사람들에게 커피를 파는 30일 — 기획서 MVP 프로토타입</span>
+  </header>
+
+  <div class="hud">
+    <div class="stat"><div class="k">DAY</div><div class="v" id="hDay">1</div></div>
+    <div class="stat phase-day" id="hPhaseBox"><div class="k">PHASE</div><div class="v" id="hPhase">대기</div></div>
+    <div class="stat"><div class="k">MY SALES</div><div class="v" id="hGold">0</div></div>
+    <div class="stat"><div class="k">RANK</div><div class="v" id="hRank">—</div></div>
+  </div>
+  <div class="timer"><i id="hTimer"></i></div>
+
+  <div class="stage">
+    <canvas id="screen"></canvas>
+    <div class="overlay" id="ov"></div>
+  </div>
+
+  <div class="bar" id="bar"></div>
+  <div class="log" id="log">&nbsp;</div>
+  <div class="help" id="help"></div>
+
+  <div class="board">
+    <div class="bh"><span>거리의 카페들</span><span id="bMode">—</span></div>
+    <div id="rows"></div>
+  </div>
+
+  <footer>
+    설계 근거는 <b>카페30일-기획서.md</b>. 이 프로토타입의 멀티플레이는 <b>비동기</b>입니다 —
+    같은 링크를 연 사람들이 각자 하루를 돌리고, 결산에서 결과를 공유 상태에 기록합니다.
+    남의 카페를 털면 그 사람이 실제로 메뉴판에 올려둔 레시피를 베껴옵니다.
+    같은 밤 같은 맵에서 서로를 마주치는 실시간 교전은 이 매체에서 불가능하며, 기획서 9장의 데디케이티드 서버 몫으로 남습니다.
+  </footer>
+</div>
+
+<script type="application/json" id="gs">__STATE__</script>
+<script>
+"use strict";
+const SRC_B64="__SRC_B64__";
+const W=320,H=180;
+const cv=document.getElementById('screen'),ctx=cv.getContext('2d');
+cv.width=W; cv.height=H; ctx.imageSmoothingEnabled=false;
+
+const C={floor:'#2A2118',floor2:'#302619',wall:'#191410',counter:'#8A5F22',counterTop:'#B98235',
+         bone:'#E8DCC8',amber:'#F0A73E',dim:'#6B6154',toxic:'#5FD3A6',toxicD:'#2A6B58',
+         blood:'#D9463C',ground:'#16211C',ground2:'#1A2620',zone:'#1E3028',crate:'#7A6438'};
+
+// 손님 시스템은 레시피 이름을 모른다. 태그만 대조한다.
+const TAGS=['달콤','쌉쌀','산미','고소','전전'];
+const RECIPES=[
+  {n:'묽은 드립',       t:'쌉쌀', r:'일반', m:1.5},
+  {n:'각설탕 라떼',     t:'달콤', r:'일반', m:1.5},
+  {n:'통조림 콘파냐',   t:'달콤', r:'고급', m:2.0},
+  {n:'재의 에스프레소', t:'쌉쌀', r:'고급', m:2.0},
+  {n:'우물물 콜드브루', t:'산미', r:'고급', m:2.0},
+  {n:'탄 보리 아메',    t:'고소', r:'희귀', m:2.6},
+  {n:'발효 예가체프',   t:'산미', r:'희귀', m:2.6},
+  {n:'벙커 헤이즐넛',   t:'고소', r:'희귀', m:2.6},
+  {n:'전전 블루마운틴', t:'전전', r:'전전', m:3.5},
+  {n:'전전 게이샤',     t:'전전', r:'전전', m:3.5}
+];
+const BASE_GOLD=10, MISMATCH=0.4, DAY_SEC=45, NIGHT_SEC=40, LAST_DAY=30;
+// 스타크래프트식 고정 시작 지점 — 매 판 이 중 하나가 각자의 카페 자리
+const SPOTS=[{x:26,y:150},{x:292,y:26},{x:292,y:154},{x:150,y:22}];
+
+// ── 공유 상태
+const S=JSON.parse(document.getElementById('gs').textContent);
+const ID_KEY='lastcafe:id', STASH='lastcafe:pending', TRIES='lastcafe:tries';
+let MYID=localStorage.getItem(ID_KEY)||'';
+let ME=null, MODE='solo', READONLY=false, api=null;
+
+function player(id){ return S.players.filter(function(p){return p.id===id;})[0]||null; }
+function freeSpot(){
+  const used={}; S.players.forEach(function(p){ used[p.spot]=1; });
+  for(let i=0;i<SPOTS.length;i++) if(!used[i]) return i;
+  return S.players.length%SPOTS.length;
+}
+function newPlayer(name){
+  return {id:MYID,name:name.slice(0,12),spot:freeSpot(),sales:0,day:1,
+          owned:[0],menu:[0,-1,-1],found:[],log:[],stock:0,bot:false};
+}
+function ranked(){
+  return S.players.slice().sort(function(a,b){ return b.sales-a.sales; });
+}
+function myRank(){
+  if(!ME) return '—';
+  const r=ranked(); for(let i=0;i<r.length;i++) if(r[i].id===ME.id) return (i+1)+' / '+r.length;
+  return '—';
+}
+
+// ── 페이지 자기복제: 공유 상태만 갈아끼운 완전한 문서를 만든다
+function pageSource(state){
+  const tpl=new TextDecoder().decode(Uint8Array.from(atob(SRC_B64),function(c){return c.charCodeAt(0);}));
+  // 주입 지점은 각각 최초 1회뿐이다. 전역 치환하면 아래 치환 코드 자체가 먹혀 다음 세대가 깨진다.
+  const json=JSON.stringify(state).split('<\/').join('<\\/');
+  return tpl.replace('__SRC_B64__',function(){ return SRC_B64; })
+            .replace('__STATE__',function(){ return json; });
+}
+
+// ── 입력
+const keys={}, pressed={};
+addEventListener('keydown',function(e){
+  if(e.target && (e.target.tagName==='INPUT')) return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(e.key)>=0) e.preventDefault();
+  if(!keys[e.code]) pressed[e.code]=true;
+  keys[e.code]=true;
+});
+addEventListener('keyup',function(e){ keys[e.code]=false; });
+function hit(c){ if(pressed[c]){ pressed[c]=false; return true; } return false; }
+function held(c){ return !!keys[c]; }
+
+// ── DOM
+const $=function(id){ return document.getElementById(id); };
+const ov=$('ov'), logEl=$('log');
+function say(h){ logEl.innerHTML=h; }
+const G={phase:'boot', t:0, daySales:0, bag:[], raid:null};
+
+function hud(){
+  $('hDay').textContent=ME?ME.day:'1';
+  $('hPhase').textContent=({boot:'대기',join:'개업',day:'낮 · 운영',dusk:'황혼',night:'밤 · 침투',settle:'결산',done:'종료'})[G.phase]||'';
+  $('hPhaseBox').className='stat '+(G.phase==='night'?'phase-night':'phase-day');
+  $('hGold').textContent=ME?Math.round(ME.sales):0;
+  $('hRank').textContent=myRank();
+  document.body.classList.toggle('night',G.phase==='night');
+  $('bMode').textContent=MODE==='shared'?(READONLY?'관전':'공유 · 링크를 아는 사람과 함께'):'혼자 연습 (기록 저장 안 됨)';
+  board();
+}
+function board(){
+  $('rows').innerHTML=ranked().map(function(p,i){
+    const mine=ME&&p.id===ME.id;
+    return '<div class="row'+(mine?' self':'')+'">'
+      +'<span class="rk">'+(i+1)+'</span>'
+      +'<span>'+esc(p.name)+(mine?'<span class="tagme">ME</span>':'')+(p.bot?'<span class="tagbot">BOT</span>':'')+'</span>'
+      +'<span class="dy">DAY '+p.day+'</span>'
+      +'<span class="sc">'+Math.round(p.sales)+'G</span></div>';
+  }).join('');
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c];}); }
+function timerBar(f){ $('hTimer').style.width=Math.max(0,Math.min(1,f))*100+'%'; }
+
+function bar(){
+  const b=$('bar');
+  if(G.phase==='day'){
+    b.innerHTML='<div class="slot armed"><span class="key">SPACE</span><span class="nm">기본 커피</span><span class="tg">'+BASE_GOLD+'G</span></div>'
+      + ME.menu.map(function(ri,i){
+        if(ri<0) return '<div class="slot empty"><span class="key">'+(i+1)+'</span><span class="nm">빈 메뉴판</span></div>';
+        const r=RECIPES[ri];
+        return '<div class="slot armed"><span class="key">'+(i+1)+'</span><span class="nm">'+r.n+'</span><span class="tg">'+r.t+' ×'+r.m+'</span></div>';
+      }).join('');
+    $('help').innerHTML='<span><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> 등록 메뉴로 접객</span><span><kbd>SPACE</kbd> 기본 커피</span><span>손님 태그와 맞는 메뉴를 내면 배수가 붙습니다</span>';
+  } else if(G.phase==='night'){
+    b.innerHTML='<div class="slot armed"><span class="key">가방</span><span class="nm">'+(G.bag.length?G.bag.map(function(x){return x.label;}).join(' · '):'비어 있음')+'</span></div>'
+      +'<div class="slot'+(N.hp>1?' armed':'')+'"><span class="key">HP</span><span class="nm">'+Array(N.hp+1).join('■')+Array(4-N.hp).join('□')+'</span></div>';
+    $('help').innerHTML='<span><kbd>WASD</kbd> 이동</span><span><kbd>SHIFT</kbd> 달리기 (소음 ↑)</span><span><kbd>E</kbd> 상자 · 남의 카페</span><span>시간 안에 내 카페(HOME)로 복귀해야 가방이 남습니다</span>';
+  } else { b.innerHTML=''; $('help').innerHTML=''; }
+}
+
+// ═══════════ 낮 ═══════════
+const D={cust:[],spawn:0,floats:[],stock:0,regulars:0};
+function startDay(){
+  G.phase='day'; G.t=DAY_SEC; G.daySales=0; G.bag=[]; G.raid=null;
+  D.cust=[]; D.spawn=1; D.floats=[]; D.regulars=0; D.stock=ME.stock||0;
+  ov.hidden=true; hud(); bar();
+  say('손님이 원하는 맛을 보고 메뉴를 고르세요.');
+}
+function spawnInterval(){ return Math.max(1.3, 2.6 - 0.08*D.regulars - 0.12*D.stock); }
+function updateDay(dt){
+  G.t-=dt; timerBar(G.t/DAY_SEC);
+  D.spawn-=dt;
+  if(D.spawn<=0 && D.cust.length<5){
+    D.spawn=spawnInterval();
+    D.cust.push({x:-12,tag:TAGS[(Math.random()*TAGS.length)|0],pat:11,max:11,state:'walk'});
+  }
+  for(let i=0;i<D.cust.length;i++){
+    const c=D.cust[i], tx=52+i*46;
+    if(c.x<tx-0.5) c.x=Math.min(tx,c.x+48*dt);
+    else { c.state='wait'; c.pat-=dt; }
+  }
+  const left=D.cust.filter(function(c){ return c.pat>0; });
+  if(left.length!==D.cust.length) say('손님이 기다리다 나갔습니다.');
+  D.cust=left;
+
+  let pick=-2;
+  if(hit('Space')) pick=-1;
+  for(let i=0;i<3;i++) if(hit('Digit'+(i+1))) pick=i;
+
+  if(pick>-2 && D.cust.length && D.cust[0].state==='wait'){
+    const c=D.cust[0];
+    let g=BASE_GOLD, txt='기본 커피', col=C.bone, ok=true;
+    if(pick>=0){
+      const ri=ME.menu[pick];
+      if(ri<0) ok=false;
+      else{
+        const r=RECIPES[ri];
+        if(r.t===c.tag){ g=BASE_GOLD*r.m; txt=r.t+' 적중 ×'+r.m; col=C.amber; D.regulars++; }
+        else{ g=BASE_GOLD*MISMATCH; txt='취향 불일치'; col=C.blood; }
+      }
+    }
+    if(ok){
+      ME.sales+=g; G.daySales+=g;
+      D.floats.push({x:c.x,y:96,v:'+'+Math.round(g)+'G',c:col,l:1.1,sub:txt});
+      D.cust.shift();
+    } else D.floats.push({x:c.x,y:96,v:'빈 슬롯',c:C.blood,l:.9,sub:''});
+    hud();
+  }
+  for(let i=0;i<D.floats.length;i++){ D.floats[i].l-=dt; D.floats[i].y-=14*dt; }
+  D.floats=D.floats.filter(function(f){ return f.l>0; });
+  if(G.t<=0) endDay();
+}
+function drawPerson(x,y,body,head){
+  ctx.fillStyle=body; ctx.fillRect(Math.round(x),Math.round(y),6,9);
+  ctx.fillStyle=head; ctx.fillRect(Math.round(x)+1,Math.round(y)-5,4,5);
+}
+function drawDay(){
+  ctx.fillStyle=C.wall; ctx.fillRect(0,0,W,46);
+  ctx.fillStyle='#3B322A'; ctx.fillRect(196,10,96,26);
+  ctx.fillStyle='#57493B'; ctx.fillRect(198,12,92,22);   // 창밖은 여전히 잿빛
+  ctx.fillStyle='#3B322A'; ctx.fillRect(242,10,3,26);
+  ctx.fillStyle=C.counter; ctx.fillRect(10,20,26,16);
+  ctx.fillStyle='#2A1D0E'; ctx.fillRect(12,22,22,14);
+  for(let y=46;y<H;y+=8) for(let x=0;x<W;x+=8){
+    ctx.fillStyle=(((x+y)/8)%2)?C.floor:C.floor2; ctx.fillRect(x,y,8,8);
+  }
+  ctx.fillStyle=C.counter; ctx.fillRect(0,120,W,16);
+  ctx.fillStyle=C.counterTop; ctx.fillRect(0,120,W,3);
+  drawPerson(150,142,'#4A3D2E',C.bone);
+
+  ctx.font='7px monospace'; ctx.textAlign='center';
+  for(let i=0;i<D.cust.length;i++){
+    const c=D.cust[i];
+    drawPerson(c.x,100,i?'#40382E':'#4E4234','#C9B79A');
+    if(c.state==='wait'){
+      ctx.fillStyle=i?C.dim:C.amber; ctx.fillText(c.tag,c.x+3,88);
+      const f=Math.max(0,c.pat/c.max);
+      ctx.fillStyle='#2A2118'; ctx.fillRect(c.x-6,92,18,2);
+      ctx.fillStyle=f>.35?C.toxic:C.blood; ctx.fillRect(c.x-6,92,18*f,2);
+    }
+  }
+  for(let i=0;i<D.floats.length;i++){
+    const f=D.floats[i];
+    ctx.globalAlpha=Math.min(1,f.l*2);
+    ctx.fillStyle=f.c; ctx.fillText(f.v,f.x+3,f.y);
+    if(f.sub){ ctx.fillStyle=C.dim; ctx.fillText(f.sub,f.x+3,f.y+8); }
+    ctx.globalAlpha=1;
+  }
+  ctx.textAlign='left';
+}
+
+// ═══════════ 밤 ═══════════
+const N={p:{x:26,y:150},hp:3,inv:0,crates:[],zomb:[],home:SPOTS[0],
+         zc:{x:160,y:92},zr:58,raid:0,target:null,raided:false,run:false};
+function dist(a,b){ return Math.hypot(a.x-b.x,a.y-b.y); }
+function others(){ return S.players.filter(function(p){ return p.id!==ME.id; }); }
+function startNight(){
+  G.phase='night'; G.t=NIGHT_SEC; G.bag=[]; G.raid=null;
+  N.home=SPOTS[ME.spot%SPOTS.length];
+  N.hp=3; N.inv=0; N.raid=0; N.raided=false; N.target=null;
+  N.p={x:N.home.x,y:N.home.y};
+  N.crates=[]; N.zomb=[];
+  for(let i=0;i<7;i++){
+    const a=Math.random()*Math.PI*2, d=Math.sqrt(Math.random())*N.zr;
+    N.crates.push({x:N.zc.x+Math.cos(a)*d, y:N.zc.y+Math.sin(a)*d, gone:false, q:1-d/N.zr});
+  }
+  for(let i=0;i<7;i++){
+    const a=Math.random()*Math.PI*2, d=Math.sqrt(Math.random())*N.zr;
+    N.zomb.push({x:N.zc.x+Math.cos(a)*d, y:N.zc.y+Math.sin(a)*d, dx:0, dy:0, wt:0});
+  }
+  ov.hidden=true; hud(); bar();
+  say('중앙 <b>좀비 구역</b>에 물자가 있습니다. 달리면 빨리 가지만 소리가 퍼집니다.');
+}
+function rollLoot(q){
+  if(Math.random()<0.42) return {kind:'stock',label:'원두'};
+  const pool=[];
+  for(let i=0;i<RECIPES.length;i++){
+    const r=RECIPES[i];
+    if(r.r==='전전' && q<=0.72) continue;   // 전전 레시피는 구역 중심부에서만
+    if(r.r==='희귀' && q<=0.40) continue;
+    pool.push(i);
+  }
+  const id=pool[(Math.random()*pool.length)|0];
+  return {kind:'recipe', id:id, label:RECIPES[id].n};
+}
+function stealFrom(p){
+  // 상대가 실제로 메뉴판에 올려둔 것 중 가장 비싼 레시피의 사본
+  const on=p.menu.filter(function(x){ return x>=0; });
+  if(!on.length) return -1;
+  return on.sort(function(a,b){ return RECIPES[b].m-RECIPES[a].m; })[0];
+}
+function updateNight(dt){
+  G.t-=dt; timerBar(G.t/NIGHT_SEC);
+  N.inv=Math.max(0,N.inv-dt);
+  N.run=held('ShiftLeft')||held('ShiftRight');
+  const sp=N.run?78:42;
+  let vx=0,vy=0;
+  if(held('KeyA')||held('ArrowLeft'))vx--;
+  if(held('KeyD')||held('ArrowRight'))vx++;
+  if(held('KeyW')||held('ArrowUp'))vy--;
+  if(held('KeyS')||held('ArrowDown'))vy++;
+  if(vx||vy){ const l=Math.hypot(vx,vy); N.p.x+=vx/l*sp*dt; N.p.y+=vy/l*sp*dt; }
+  N.p.x=Math.max(4,Math.min(W-4,N.p.x)); N.p.y=Math.max(8,Math.min(H-6,N.p.y));
+
+  const os=others();
+  for(let i=0;i<os.length;i++){
+    const pos=SPOTS[os[i].spot%SPOTS.length];
+    if(ME.found.indexOf(os[i].id)<0 && dist(N.p,pos)<26){
+      ME.found.push(os[i].id);
+      say('<b>'+esc(os[i].name)+'</b>의 카페를 발견했습니다. 위치는 앞으로도 기억됩니다.');
+    }
+  }
+
+  if(hit('KeyE')){
+    let target=null;
+    for(let i=0;i<N.crates.length;i++){ const c=N.crates[i]; if(!c.gone && dist(N.p,c)<11){ target=c; break; } }
+    if(target){
+      target.gone=true;
+      const L=rollLoot(target.q); G.bag.push(L); bar();
+      say(L.kind==='stock' ? '원두를 챙겼습니다. 다음 날 손님이 늘어납니다.'
+                           : '<b>'+L.label+'</b> 레시피를 손에 넣었습니다.');
+    }
+  }
+  // 습격: E 홀드로 메뉴판을 베낀다 (원본은 남는다 — 상대를 0으로 만들지 않는다)
+  let near=null;
+  for(let i=0;i<os.length;i++){
+    if(ME.found.indexOf(os[i].id)<0) continue;
+    if(dist(N.p,SPOTS[os[i].spot%SPOTS.length])<14){ near=os[i]; break; }
+  }
+  if(near && !N.raided && held('KeyE')){
+    N.target=near; N.raid+=dt;
+    if(N.raid>=1.6){
+      N.raided=true;
+      const id=stealFrom(near);
+      if(id<0){ say('<b>'+esc(near.name)+'</b>의 메뉴판은 비어 있었습니다.'); }
+      else{
+        G.bag.push({kind:'recipe',id:id,label:RECIPES[id].n});
+        G.raid={target:near.id,name:near.name,recipe:id};
+        bar(); say('<b>'+RECIPES[id].n+'</b> 사본을 베꼈습니다. 원본은 '+esc(near.name)+'에게 그대로 남습니다.');
+      }
+    }
+  } else if(N.raid>0) N.raid=Math.max(0,N.raid-dt*2);
+
+  const noise=N.run?55:22;
+  for(let i=0;i<N.zomb.length;i++){
+    const z=N.zomb[i], d=dist(z,N.p);
+    if(d<noise){
+      const a=Math.atan2(N.p.y-z.y,N.p.x-z.x);
+      z.x+=Math.cos(a)*30*dt; z.y+=Math.sin(a)*30*dt;
+    } else {
+      z.wt-=dt;
+      if(z.wt<=0){ z.wt=1+Math.random()*2; const a=Math.random()*Math.PI*2; z.dx=Math.cos(a); z.dy=Math.sin(a); }
+      z.x+=z.dx*11*dt; z.y+=z.dy*11*dt;
+      if(dist(z,N.zc)>N.zr){ z.x+=(N.zc.x-z.x)*dt; z.y+=(N.zc.y-z.y)*dt; }   // 구역 밖으로는 안 나간다
+    }
+    if(d<7 && N.inv<=0){
+      N.hp--; N.inv=1.3;
+      const a=Math.atan2(N.p.y-z.y,N.p.x-z.x);
+      N.p.x+=Math.cos(a)*14; N.p.y+=Math.sin(a)*14;
+      bar();
+      if(N.hp<=0){ endNight('death'); return; }
+      say('물렸습니다. 남은 체력 '+N.hp);
+    }
+  }
+  if(G.t<NIGHT_SEC-2 && dist(N.p,N.home)<12){ endNight('extract'); return; }
+  if(G.t<=0) endNight('timeout');
+}
+function drawNight(){
+  for(let y=0;y<H;y+=8) for(let x=0;x<W;x+=8){
+    ctx.fillStyle=(((x+y)/8)%2)?C.ground:C.ground2; ctx.fillRect(x,y,8,8);
+  }
+  ctx.fillStyle=C.zone; ctx.beginPath(); ctx.arc(N.zc.x,N.zc.y,N.zr,0,Math.PI*2); ctx.fill();
+  ctx.strokeStyle=C.toxicD; ctx.lineWidth=1; ctx.setLineDash([3,4]);
+  ctx.beginPath(); ctx.arc(N.zc.x,N.zc.y,N.zr,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]);
+
+  for(let i=0;i<N.crates.length;i++){
+    const c=N.crates[i];
+    ctx.fillStyle=c.gone?'#33291D':C.crate; ctx.fillRect(Math.round(c.x)-3,Math.round(c.y)-3,6,6);
+    if(!c.gone){ ctx.fillStyle='#A88A4E'; ctx.fillRect(Math.round(c.x)-3,Math.round(c.y)-3,6,1); }
+  }
+  ctx.font='7px monospace'; ctx.textAlign='center';
+  ctx.fillStyle=C.amber; ctx.fillRect(N.home.x-8,N.home.y-8,16,16);
+  ctx.fillStyle='#12100E'; ctx.fillRect(N.home.x-5,N.home.y-5,10,10);
+  ctx.fillStyle=C.amber; ctx.fillText('HOME',N.home.x,N.home.y-12);
+
+  // 남의 카페는 발견하기 전까지 그리지 않는다
+  const os=others();
+  for(let i=0;i<os.length;i++){
+    if(ME.found.indexOf(os[i].id)<0) continue;
+    const q=SPOTS[os[i].spot%SPOTS.length];
+    ctx.fillStyle=C.blood; ctx.fillRect(q.x-8,q.y-8,16,16);
+    ctx.fillStyle='#12100E'; ctx.fillRect(q.x-5,q.y-5,10,10);
+    ctx.fillStyle=C.blood; ctx.fillText(os[i].name.slice(0,6),q.x,q.y-12);
+  }
+
+  for(let i=0;i<N.zomb.length;i++) drawPerson(N.zomb[i].x-3,N.zomb[i].y-4,C.toxicD,C.toxic);
+  if(N.inv<=0 || Math.floor(N.inv*12)%2) drawPerson(N.p.x-3,N.p.y-4,'#4A3D2E',C.bone);
+
+  ctx.strokeStyle=N.run?'rgba(217,70,60,.5)':'rgba(95,211,166,.22)';
+  ctx.beginPath(); ctx.arc(N.p.x,N.p.y,N.run?55:22,0,Math.PI*2); ctx.stroke();
+
+  // 시야 제한 — 같은 맵인데 다른 게임처럼 보여야 한다
+  const g=ctx.createRadialGradient(N.p.x,N.p.y,10,N.p.x,N.p.y,88);
+  g.addColorStop(0,'rgba(4,8,7,0)'); g.addColorStop(.62,'rgba(4,8,7,.55)'); g.addColorStop(1,'rgba(4,8,7,.93)');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,H);
+
+  if(N.raid>0){
+    ctx.fillStyle='#2A2118'; ctx.fillRect(120,152,80,5);
+    ctx.fillStyle=C.blood; ctx.fillRect(120,152,80*Math.min(1,N.raid/1.6),5);
+    ctx.fillStyle=C.bone; ctx.fillText('메뉴판 베끼는 중',160,148);
+  }
+  ctx.textAlign='left';
+}
+
+// ═══════════ 진행 ═══════════
+function endDay(){
+  G.phase='dusk'; hud(); bar(); timerBar(1);
+  ov.hidden=false;
+  ov.innerHTML='<h2>황혼 — 오늘 매출 '+Math.round(G.daySales)+'G</h2>'
+    +'<p>밤에는 카페에 남을 수 없습니다. 좀비 구역에서 물자를 캐거나, 남의 카페를 털거나. '
+    +'<b>시간 안에 내 카페로 돌아오지 못하면 가방은 전부 사라집니다.</b></p>'
+    +'<button class="go" id="btnGo">밤으로 나간다</button>';
+  $('btnGo').onclick=startNight; $('btnGo').focus();
+}
+function endNight(how){
+  const kept=(how==='extract');
+  D.stock=0;
+  if(kept){
+    for(let i=0;i<G.bag.length;i++){
+      const b=G.bag[i];
+      if(b.kind==='stock') D.stock++;
+      else if(ME.owned.indexOf(b.id)<0) ME.owned.push(b.id);
+    }
+  } else G.raid=null;
+
+  G.phase='settle'; hud(); bar(); timerBar(1);
+  const msg = kept ? '가방을 지켜 돌아왔습니다.'
+            : how==='death' ? '좀비 구역에서 쓰러졌습니다. 가방은 전부 잃었습니다.'
+            : '해가 떴습니다. 복귀하지 못해 가방은 전부 사라졌습니다.';
+  const mine=ME.log.slice(-3).reverse();
+
+  ov.hidden=false;
+  ov.innerHTML='<h2>DAY '+ME.day+' 결산 — '+Math.round(G.daySales)+'G</h2>'
+    +'<p>'+msg+(kept&&G.raid?' <b>'+esc(G.raid.name)+'</b>의 '+RECIPES[G.raid.recipe].n+' 사본은 이제 내 것이기도 합니다.':'')+'</p>'
+    +(mine.length?'<p>'+mine.map(esc).join('<br>')+'</p>':'')
+    +'<p>순위는 아래 표에 공개되지만 남의 <b>레시피와 위치</b>는 공개되지 않습니다. 밤에 직접 찾아야 합니다.</p>'
+    +'<p>메뉴판에 올릴 레시피를 <b>최대 3개</b> 고르세요. 올린 것만 팔리고, 올린 것만 도둑맞습니다.</p>'
+    +'<div class="chips" id="chips"></div>'
+    +'<button class="go" id="btnGo">'+(ME.day>=LAST_DAY?'마지막 결산':'기록하고 DAY '+(ME.day+1)+'로')+'</button>'
+    +'<p class="warn" id="perr" hidden></p>';
+  renderChips();
+  $('btnGo').onclick=commitDay;
+}
+function renderChips(){
+  const el=$('chips'); if(!el) return;
+  el.innerHTML=ME.owned.map(function(id){
+    const r=RECIPES[id], on=(ME.menu.indexOf(id)>=0);
+    return '<button class="chip" aria-pressed="'+on+'" data-id="'+id+'">'+r.n
+      +' <span style="color:var(--dim)">'+r.t+'</span><span class="r">'+r.r+' ×'+r.m+'</span></button>';
+  }).join('');
+  const btns=el.querySelectorAll('.chip');
+  for(let i=0;i<btns.length;i++) btns[i].onclick=function(){
+    const id=+this.dataset.id, at=ME.menu.indexOf(id);
+    if(at>=0) ME.menu[at]=-1;
+    else{
+      const free=ME.menu.indexOf(-1);
+      if(free<0){ say('메뉴판이 가득 찼습니다. 하나를 내리고 올리세요.'); return; }
+      ME.menu[free]=id;
+    }
+    renderChips();
+  };
+}
+
+// 봇은 남들이 하루를 넘길 때마다 함께 하루를 넘긴다
+function advanceBots(state,upto){
+  state.players.forEach(function(p){
+    if(!p.bot) return;
+    while(p.day<upto){
+      const on=p.menu.filter(function(x){ return x>=0; });
+      const power=on.reduce(function(a,i){ return a+RECIPES[i].m; },0);
+      p.sales+=140+power*70+Math.random()*80;
+      p.day++;
+      if(Math.random()<0.5){
+        const id=(Math.random()*RECIPES.length)|0;
+        if(p.owned.indexOf(id)<0) p.owned.push(id);
+        const slot=p.menu.indexOf(-1);
+        if(slot>=0) p.menu[slot]=id;
+        else if(RECIPES[id].m>RECIPES[p.menu[0]].m) p.menu[0]=id;
+      }
+    }
+  });
+}
+// 내 하루 결과를 공유 상태에 반영한다. 충돌 후 재시도해도 같은 결과가 나와야 한다.
+function applyResult(state,res){
+  let me=state.players.filter(function(p){ return p.id===res.id; })[0];
+  if(!me){
+    const used={}; state.players.forEach(function(p){ used[p.spot]=1; });
+    let spot=res.spot; if(used[spot]!==undefined){ for(let i=0;i<SPOTS.length;i++) if(!used[i]){ spot=i; break; } }
+    me={id:res.id,name:res.name,spot:spot,sales:0,day:1,owned:[0],menu:[0,-1,-1],found:[],log:[],stock:0,bot:false};
+    state.players.push(me);
+  }
+  if(me.day>=res.day) return false;          // 이미 반영됨
+  me.name=res.name; me.sales=res.sales; me.day=res.day;
+  me.owned=res.owned; me.menu=res.menu; me.found=res.found; me.stock=res.stock||0;
+  if(res.raid){
+    const t=state.players.filter(function(p){ return p.id===res.raid.target; })[0];
+    if(t) t.log.push('DAY '+(res.day-1)+' 밤, '+res.name+'이(가) '+RECIPES[res.raid.recipe].n+'을(를) 베껴갔습니다.');
+  }
+  advanceBots(state,res.day);
+  return true;
+}
+async function commitDay(){
+  const btn=$('btnGo'); btn.disabled=true; btn.textContent='기록하는 중…';
+  const res={id:ME.id,name:ME.name,spot:ME.spot,sales:ME.sales,day:ME.day+1,
+             owned:ME.owned,menu:ME.menu,found:ME.found,stock:D.stock,raid:G.raid};
+  if(MODE!=='shared'||READONLY){
+    applyResult(S,res); ME=player(MYID); nextDay(); return;
+  }
+  sessionStorage.setItem(STASH,JSON.stringify(res));
+  const next=JSON.parse(JSON.stringify(S));
+  applyResult(next,res);
+  try{
+    await api.publish(pageSource(next));   // 성공하면 이 뷰는 새 버전으로 리로드된다
+  }catch(e){
+    const code=e&&e.code;
+    if(code==='conflict') return;          // 리로드가 승자 버전을 가져온다
+    sessionStorage.removeItem(STASH);
+    if(code==='not_writer'||code==='not_granted'||code==='not_declared'||code==='capability_disabled'){
+      READONLY=true; MODE='solo';
+      applyResult(S,res); ME=player(MYID);
+      say('쓰기 권한이 없어 <b>관전 모드</b>로 전환합니다. 이후 기록은 저장되지 않습니다.');
+      nextDay(); return;
+    }
+    btn.disabled=false; btn.textContent='다시 기록';
+    const p=$('perr'); if(p){ p.hidden=false; p.textContent='기록 실패 ('+(code||'unknown')+'). 다시 눌러 주세요.'; }
+  }
+}
+function nextDay(){
+  hud();
+  if(ME.day>LAST_DAY) return done();
+  startDay();
+}
+function done(){
+  G.phase='done'; hud(); bar();
+  const r=ranked(), win=r[0]&&r[0].id===ME.id;
+  ov.hidden=false;
+  ov.innerHTML='<h2>'+(win?'승리 — 마지막 카페는 내 것이다':''+esc(r[0]?r[0].name:'')+'의 커피가 더 팔렸다')+'</h2>'
+    +'<p>승패는 보유 골드가 아니라 <b>누적 판매 골드</b>로 갈립니다. 그래서 밤에 털려도 지표는 깎이지 않고, '
+    +'시설 투자와 방어가 서로 싸우지 않습니다.</p>';
+}
+
+// ═══════════ 부팅 ═══════════
+function joinScreen(){
+  G.phase='join'; hud(); bar(); timerBar(1);
+  ov.hidden=false;
+  ov.innerHTML='<h2>30일 뒤, 누가 더 많은 커피를 팔았는가</h2>'
+    +'<p>낮에는 카페를 지키고, 밤에는 좀비 구역으로 나갑니다. 매출을 올리는 건 <b>레시피</b>이고, '
+    +'레시피는 낮에는 절대 구할 수 없습니다.</p>'
+    +'<p>같은 링크를 연 사람은 모두 이 거리의 카페 주인입니다. 각자 자기 하루를 돌리고, 결산에서 결과가 공유됩니다. '
+    +'밤에 남의 카페를 찾아내면 그 사람이 <b>실제로 메뉴판에 올려둔 레시피</b>를 베껴올 수 있습니다.</p>'
+    +'<p><input class="nick" id="nick" maxlength="12" placeholder="카페 이름" autocomplete="off"></p>'
+    +'<button class="go" id="btnGo">개업한다</button>';
+  const nick=$('nick');
+  nick.value=localStorage.getItem('lastcafe:name')||'';
+  $('btnGo').onclick=function(){
+    const nm=(nick.value||'').trim()||'이름 없는 카페';
+    localStorage.setItem('lastcafe:name',nm);
+    if(!MYID){ MYID='p'+Math.random().toString(36).slice(2,9); localStorage.setItem(ID_KEY,MYID); }
+    ME=player(MYID)||newPlayer(nm);
+    ME.name=nm;
+    startDay();
+  };
+  nick.focus();
+}
+async function boot(){
+  api = (window.claude && window.claude.use) ? await window.claude.use('artifact') : null;
+  MODE = api ? 'shared' : 'solo';
+
+  // 충돌로 리로드된 경우, 아직 반영 안 된 내 결과를 다시 올린다
+  const raw=sessionStorage.getItem(STASH);
+  if(raw && api){
+    const res=JSON.parse(raw), tries=+(sessionStorage.getItem(TRIES)||0);
+    const mePub=player(res.id);
+    if(mePub && mePub.day>=res.day){ sessionStorage.removeItem(STASH); sessionStorage.removeItem(TRIES); }
+    else if(tries<3){
+      sessionStorage.setItem(TRIES,tries+1);
+      const next=JSON.parse(JSON.stringify(S));
+      applyResult(next,res);
+      try{ await api.publish(pageSource(next)); return; }
+      catch(e){ if(e&&e.code==='conflict') return; sessionStorage.removeItem(STASH); }
+    } else { sessionStorage.removeItem(STASH); sessionStorage.removeItem(TRIES); }
+  }
+  sessionStorage.removeItem(TRIES);
+
+  ME=MYID?player(MYID):null;
+  hud();
+  if(ME && !ME.bot){
+    if(ME.day>LAST_DAY) return done();
+    ov.hidden=false;
+    ov.innerHTML='<h2>DAY '+ME.day+' — '+esc(ME.name)+'</h2>'
+      +(ME.log.length?'<p>'+ME.log.slice(-3).reverse().map(esc).join('<br>')+'</p>':'<p>어젯밤 카페는 조용했습니다.</p>')
+      +'<button class="go" id="btnGo">문을 연다</button>';
+    $('btnGo').onclick=startDay; $('btnGo').focus();
+  } else joinScreen();
+}
+
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  if(G.phase==='day'){ updateDay(dt); if(G.phase==='day') drawDay(); }
+  else if(G.phase==='night'){ updateNight(dt); if(G.phase==='night') drawNight(); }
+  else if(G.phase==='boot'||G.phase==='join'){ ctx.fillStyle=C.wall; ctx.fillRect(0,0,W,H); }
+  requestAnimationFrame(loop);
+}
+boot(); requestAnimationFrame(loop);
+
+// 자체 점검: 태그 대조와 결과 반영이 깨지면 게임 전체가 무너진다
+(function selfCheck(){
+  function gold(r,tag){ return r.t===tag ? BASE_GOLD*r.m : BASE_GOLD*MISMATCH; }
+  console.assert(gold(RECIPES[8],'전전')===35,'전전 적중 배수');
+  console.assert(gold(RECIPES[8],'달콤')===4,'불일치는 기본가보다 낮아야 함');
+  console.assert(RECIPES.every(function(r){ return TAGS.indexOf(r.t)>=0; }),'레시피 태그는 손님 태그 풀 안');
+  for(let i=0;i<40;i++){
+    const L=rollLoot(0.1);
+    console.assert(L.kind!=='recipe'||(RECIPES[L.id].r!=='전전'&&RECIPES[L.id].r!=='희귀'),'외곽 상자에서 상위 레시피 금지');
+  }
+  // 결과 반영은 멱등이어야 한다 — 충돌 재시도로 매출이 두 번 더해지면 안 된다
+  const t={players:[{id:'x',name:'t',spot:0,sales:0,day:1,owned:[0],menu:[0,-1,-1],found:[],log:[],bot:false}]};
+  const res={id:'x',name:'t',spot:0,sales:200,day:2,owned:[0],menu:[0,-1,-1],found:[],raid:null};
+  console.assert(applyResult(t,res)===true,'첫 반영은 적용');
+  console.assert(applyResult(t,res)===false,'같은 결과 재반영은 무시');
+  console.assert(t.players[0].sales===200,'재시도로 매출이 중복 가산되면 안 됨');
+  // 훔치기는 상대가 실제로 올린 메뉴에서만
+  console.assert(stealFrom({menu:[-1,-1,-1]})===-1,'빈 메뉴판은 훔칠 것이 없음');
+  console.assert(stealFrom({menu:[0,8,-1]})===8,'가장 비싼 레시피를 베낌');
+  // 자기복제 소스가 플레이스홀더를 되살리는지
+  const src=pageSource({v:1,players:[]});
+  console.assert(src.indexOf('<!doctype html>')===0,'완전한 문서여야 함');
+  console.assert(src.indexOf('id="gs">{"v":1,"players":[]}')>0,'공유 상태가 주입되어야 함');
+  console.assert(src.indexOf('const SRC_B64="'+SRC_B64+'"')>0,'다음 세대도 자기복제 가능해야 함');
+})();
+</script>
