@@ -1,0 +1,1370 @@
+"use strict";
+/* ══════════ 팔레트 46색 / 11램프 (아트컨셉 v2.1 §3, 컨셉 아트 실측본) ══════════ */
+const R = {
+  soot :['#06060B','#10101A','#1C1C26','#2B2B33','#3C3F40'],
+  amber:['#331109','#562713','#78381A','#A95A2A','#E09A45','#FDCD6F'],
+  wood :['#2A2214','#453E23','#6B5733','#8D7A58'],
+  bone :['#4A443B','#6E6656','#A2957E','#E8DCC8'],
+  dusk :['#050710','#08101A','#0D1826','#121D29','#202D40','#3A4A60'],
+  rot  :['#24301C','#4A5A2A','#7A9A4A','#A8C46A'],
+  toxic:['#2A6B58','#5FD3A6'],
+  blood:['#2A0C0A','#5E1A12','#9B2E28','#D9463C'],
+  skin :['#4E3828','#7A5C42','#C9B79A','#E5D4B8'],
+  steel:['#1C2024','#343C44','#5E6A74','#9AA8B2'],
+  glass:['#26343A','#4A6A72','#8FBFC4']
+};
+const ALL = Object.keys(R).reduce((a,k)=>a.concat(R[k]),[]);
+
+/* ══════════ 아이소 프리미티브 (64×32, 2:1) ══════════ */
+const cv=document.getElementById('cv'), ctx=cv.getContext('2d');
+ctx.imageSmoothingEnabled=false;
+// 캔버스는 1280x720, 논리 좌표는 640x360. 에셋은 논리의 2배로 저장돼 있어서
+// 절반 크기로 그리면 디바이스 픽셀과 1:1로 떨어진다 — 축소도 확대도 없다.
+ctx.setTransform(2,0,0,2,0,0);
+const W=640,H=360, TW=64,TH=32, HW=32,HH=16, OX=320,OY=80;
+
+/* ── Codex imagegen 에셋 (Art/prep_assets.py 가 주입한다) ── */
+const ASSET_NAMES=[
+  'barrel',
+  'bean_shelf',
+  'cafe_table',
+  'cold_brew_tank',
+  'corpse',
+  'counter',
+  'drawer_chest',
+  'espresso_machine',
+  'grinder',
+  'guest_a',
+  'guest_b',
+  'guest_c',
+  'guest_d',
+  'metal_container',
+  'player_carry',
+  'player_idle',
+  'player_walk_0',
+  'player_walk_1',
+  'player_walk_2',
+  'player_walk_3',
+  'raider_walk_0',
+  'raider_walk_1',
+  'random_box',
+  'serving_station',
+  'steam_wand',
+  'tile_cafe_floor',
+  'tile_cafe_floor',
+  'tile_zone_floor',
+  'tile_zone_floor',
+  'wall_cafe',
+  'wall_ruined',
+  'zombie_walk_0',
+  'zombie_walk_1'
+];
+const ASSETS={};
+ASSET_NAMES.forEach(function(n){ ASSETS[n]='assets/'+n+'.png'; });
+const IMG={};
+Object.keys(ASSETS).forEach(function(k){ var i=new Image(); i.src=ASSETS[k]; IMG[k]=i; });
+function spr(k){ var i=IMG[k]; return (i&&i.complete&&i.naturalWidth)?i:null; }
+// (cx,cy)=발밑/바닥 중심. 그려졌으면 true.
+// anchor: 'foot' (기본) 인물 발이 타일 중심 / 'base' 소품 밑면 마름모가 타일 마름모에 겹침
+//         / 'mid' 타일 그림 자체
+function drawSpr(k,cx,cy,flip,anchor){
+  var i=spr(k); if(!i) return false;
+  var w=i.naturalWidth/2, h=i.naturalHeight/2;
+  var y = anchor==='mid'  ? cy-h/2
+        : anchor==='base' ? cy-h+HH        // 타일 아래 꼭짓점까지 내린다
+        : cy-h;
+  if(flip){ ctx.save(); ctx.translate(cx,0); ctx.scale(-1,1); ctx.drawImage(i,-w/2,y,w,h); ctx.restore(); }
+  else ctx.drawImage(i,cx-w/2,y,w,h);
+  return true;
+}
+// 인물 머리 위 UI(말풍선·게이지·프롬프트)가 붙는 기준 높이(논리 px).
+const CH_H=76;
+// 좀비·레이더의 대기 자세는 걷기 세트의 첫 프레임을 쓴다. 따로 생성한 idle은
+// 완전히 다른 캐릭터로 나와서(좀비=노인, 레이더=장비 없는 체형) 못 쓴다.
+const ASSET_OF={player:'player_idle',raider:'raider_walk_0',zombie:'zombie_walk_0',
+                guestA:'guest_a',guestB:'guest_b',guestC:'guest_c',guestD:'guest_c'};
+// 걷기 사이클. 프레임이 하나라도 없으면 idle + 호흡으로 폴백한다.
+const WALK_SET={
+  player:['player_walk_0','player_walk_1','player_walk_2','player_walk_3'],
+  zombie:['zombie_walk_0','zombie_walk_1'],
+  raider:['raider_walk_0','raider_walk_1']
+  // 손님 A 걷기는 뺐다 — 치비 비율이라 idle 및 손님 B·C와 안 맞는다
+};
+function walkFrame(key,frame){
+  const set=WALK_SET[key];
+  if(!set || frame<0) return null;
+  for(let i=0;i<set.length;i++) if(!spr(set[i])) return null;
+  return set[frame%set.length];
+}
+let camX=0, camY=0;
+const iso=(tx,ty,z)=>[(OX+(tx-ty)*HW-camX)|0,(OY+(tx+ty)*HH-(z||0)-camY)|0];
+const focus=(tx,ty)=>{ camX=((tx-ty)*HW)|0; camY=(((tx+ty)*HH)|0)-140; };
+
+// 2:1 다이아. size 64(풀) / 32(반). (cx,cy)=중심
+function diamond(c,cx,cy,size,col){
+  const rows=size/2, half=rows/2; c.fillStyle=col;
+  for(let r=0;r<rows;r++){
+    const hw=(r<half?(r+1):(rows-r))*2;
+    c.fillRect(cx-hw,cy-half+r,hw*2,1);
+  }
+}
+// 램프 두 단계를 잇는 체커 디더 (아트컨셉 §4-1). 면 경계에만.
+function ditherBand(c,x,y,w,h,col,phase){
+  c.fillStyle=col;
+  for(let j=0;j<h;j++) for(let i=0;i<w;i++)
+    if(((x+i+y+j+(phase||0))&1)===0) c.fillRect(x+i,y+j,1,1);
+}
+// 아이소 박스. 광원은 위 — 윗면 상위단 / 좌 중간 / 우 하위단 (§3 규칙 5)
+function box(c,cx,cy,size,h,ramp,lift){
+  const half=size/2, hh=size/4, L=ramp.length-1, up=lift||0;
+  const top=ramp[Math.min(L,3+up)], lt=ramp[Math.min(L,2+up)], rt=ramp[Math.max(0,1+up)];
+  c.fillStyle=lt; for(let i=0;i<half;i++) c.fillRect(cx-half+i,cy-h+(i>>1),1,h);
+  c.fillStyle=rt; for(let i=0;i<half;i++) c.fillRect(cx+i,cy-h+hh-((i+1)>>1),1,h);
+  // 면 경계 디더 — 좌/우면이 만나는 아래 모서리를 2px 섞는다
+  ditherBand(c,cx-2,cy-h+hh-2,4,Math.min(h,4),ramp[Math.max(0,up)],0);
+  diamond(c,cx,cy-h,size,top);
+  // 윗면 앞 모서리 1px 하이라이트
+  c.fillStyle=ramp[Math.min(L,4+up)]||top;
+  for(let i=0;i<half;i++) c.fillRect(cx-half+i,cy-h+(i>>1)-1,1,1);
+}
+function faceBand(c,cx,cy,size,h,side,x0,x1,yOff,hgt,col){
+  const half=size/2, hh=size/4; c.fillStyle=col;
+  for(let i=x0;i<x1;i++){
+    const x=side==='L'?cx-half+i:cx+i;
+    const t=side==='L'?cy-h+(i>>1):cy-h+hh-((i+1)>>1);
+    c.fillRect(x,t+yOff,1,hgt);
+  }
+}
+// 1px 도트 링 — 소음/구역 반경. 아이소 비율 그대로
+function ring(c,cx,cy,rTiles,col,alpha,dash){
+  const rx=rTiles*HW, n=Math.max(40,(rx*1.4)|0);
+  c.save(); c.globalAlpha=alpha; c.fillStyle=col;
+  for(let i=0;i<n;i++){
+    if(dash&&(i%7)>3) continue;
+    const a=i/n*Math.PI*2;
+    c.fillRect((cx+Math.cos(a)*rx)|0,(cy+Math.sin(a)*rx/2)|0,1,1);
+  }
+  c.restore();
+}
+/* ── 재질 (아트컨셉 §4-3) ── */
+function woodGrain(c,cx,cy,size,h){          // 결 1px 라인
+  c.fillStyle=R.wood[1];
+  const half=size/2, hh=size/4;
+  for(let k=1;k<4;k++){
+    const yo=(h*k/4)|0;
+    for(let i=2;i<half-2;i++) c.fillRect(cx-half+i,cy-h+(i>>1)+yo,1,1);
+  }
+}
+function metalSheen(c,cx,cy,size,h){         // 상단 하이라이트 + 하단 반사광
+  const half=size/2, hh=size/4;
+  c.fillStyle=R.steel[3];
+  for(let i=1;i<half-1;i++) c.fillRect(cx-half+i,cy-h+(i>>1)+1,1,1);
+  c.fillStyle=R.steel[0];
+  for(let i=1;i<half-1;i++) c.fillRect(cx-half+i,cy+(i>>1)-2,1,1);
+}
+function glassSheen(c,x,y,w,h){              // 대각 2px 하이라이트 1줄
+  c.fillStyle=R.glass[2];
+  for(let i=0;i<Math.min(w,h*2);i++) c.fillRect(x+i,y+((h-1)-(i>>1)),2,1);
+}
+
+/* ══════════ 3×5 도트 글리프 — 월드에 한글을 그리지 않는다 (§8) ══════════ */
+const GLY={
+ '0':['###','#.#','#.#','#.#','###'],'1':['.#.','##.','.#.','.#.','###'],
+ '2':['###','..#','###','#..','###'],'3':['###','..#','.##','..#','###'],
+ '4':['#.#','#.#','###','..#','..#'],'5':['###','#..','###','..#','###'],
+ '6':['###','#..','###','#.#','###'],'7':['###','..#','..#','..#','..#'],
+ '8':['###','#.#','###','#.#','###'],'9':['###','#.#','###','..#','###'],
+ '+':['...','.#.','###','.#.','...'],'-':['...','...','###','...','...'],
+ 'G':['###','#..','#.#','#.#','###'],'E':['###','#..','##.','#..','###'],
+ 'x':['...','#.#','.#.','#.#','...'],'!':['.#.','.#.','.#.','...','.#.'],
+ '?':['###','..#','.##','...','.#.'],' ':['...','...','...','...','...']
+};
+function dots(c,s,x,y,col,scale){
+  const S=scale||1; c.fillStyle=col;
+  for(let i=0;i<s.length;i++){
+    const g=GLY[s[i]]||GLY[' '];
+    for(let r=0;r<5;r++) for(let k=0;k<3;k++)
+      if(g[r][k]==='#') c.fillRect(x+i*4*S+k*S,y+r*S,S,S);
+  }
+}
+const dotsW=(s,S)=>s.length*4*(S||1)-(S||1);
+
+/* ══════════ 12×12 아이콘 — 맛 태그 / 스테이션 / 컨테이너 (§8) ══════════ */
+function icon(c,kind,x,y){
+  const P=(dx,dy,col)=>{ c.fillStyle=col; c.fillRect(x+dx,y+dy,1,1); };
+  const box2=(x0,y0,w,h,col)=>{ c.fillStyle=col; c.fillRect(x+x0,y+y0,w,h); };
+  switch(kind){
+    case 'Taste.Sweet':                                   // 각설탕
+      box2(2,3,8,7,R.bone[2]); box2(2,3,8,2,R.bone[3]);
+      box2(2,9,8,1,R.bone[1]); box2(3,4,3,2,R.bone[3]); break;
+    case 'Taste.Bitter':                                  // 커피콩
+      box2(3,2,6,8,R.amber[2]); box2(4,1,4,10,R.amber[2]);
+      box2(3,2,6,3,R.amber[3]); box2(5,2,2,8,R.amber[0]); break;
+    case 'Taste.Sour':                                    // 레몬
+      box2(3,3,6,6,R.amber[5]); box2(2,4,8,4,R.amber[5]);
+      box2(3,3,4,2,'#FFF0C0'); box2(4,8,4,1,R.amber[4]); break;
+    case 'Taste.Nutty':                                   // 견과
+      box2(4,2,4,2,R.wood[3]); box2(3,4,6,6,R.wood[2]);
+      box2(3,4,6,2,R.wood[3]); box2(4,8,4,1,R.wood[1]); break;
+    case 'Rare.PreWar':                                   // 봉인된 전전 캔
+      box2(3,2,6,8,R.steel[2]); box2(3,2,6,2,R.steel[3]);
+      box2(3,5,6,2,R.blood[3]); box2(3,9,6,1,R.steel[0]); break;
+    case 'st.empty':  box2(2,5,8,4,R.bone[0]); box2(2,5,8,1,R.bone[1]); break;
+    case 'st.busy':   box2(2,5,8,4,R.amber[2]); box2(2,5,8,1,R.amber[4]);
+                      box2(4,3,4,2,R.amber[5]); break;
+    case 'st.done':   box2(3,4,6,6,R.bone[3]); box2(3,4,6,2,'#FFFFFF');
+                      P(4,10,R.toxic[1]); P(5,11,R.toxic[1]); P(6,10,R.toxic[1]);
+                      P(7,9,R.toxic[1]); P(8,8,R.toxic[1]); break;
+    case 'st.burnt':  box2(3,4,6,6,R.soot[1]); box2(3,4,6,2,R.soot[3]);
+                      box2(4,1,1,3,R.blood[2]); box2(6,0,1,4,R.blood[3]);
+                      box2(8,1,1,3,R.blood[2]); break;
+  }
+}
+
+/* ══════════ 인물 40×64 (아트컨셉 v2.1 §5) ══════════
+   컨셉 시트(Art/concept/sheet_characters.png)의 디자인을 네이티브 크기로 옮긴 것.
+   램프 3개 이하 + 실루엣 1px 아웃라인, 광원은 위. */
+const CH={
+  player:{hair:R.bone,  skin:R.skin, cloth:R.wood,  accent:R.amber, apron:true,  bag:false},
+  raider:{hair:R.bone,  skin:R.skin, cloth:R.dusk,  accent:R.steel, apron:false, bag:true},
+  guestA:{hair:R.wood,  skin:R.skin, cloth:R.rot,   accent:R.wood,  apron:false, bag:true},
+  guestB:{hair:R.blood, skin:R.skin, cloth:R.blood, accent:R.wood,  apron:false, bag:true},
+  guestC:{hair:R.bone,  skin:R.skin, cloth:R.dusk,  accent:R.steel, apron:false, bag:true},
+  guestD:{hair:R.soot,  skin:R.skin, cloth:R.glass, accent:R.bone,  apron:false, bag:false},
+  zombie:{hair:R.rot,   skin:R.rot,  cloth:R.soot,  accent:R.toxic, apron:false, bag:false, dead:true}
+};
+// (cx,cy)=발밑. frame -1 대기 / 0..3 걷기 / 'search' 수색 / 'carry' 운반
+function actor(c,cx,cy,key,frame,flip,carry){
+  // Codex 에셋이 있으면 그걸 쓴다. 걷기 프레임이 없으므로 1px 상하 호흡으로 대신한다.
+  // 잔을 들고 있으면 운반 자세가 우선(운반 걷기 프레임은 없다)
+  var carrying = (key==='player' && carry==='cup' && spr('player_carry'));
+  var w = carrying ? null : walkFrame(key,frame);
+  var a = carrying ? 'player_carry' : (w || ASSET_OF[key]);
+  if(a && spr(a)){
+    c.save(); c.globalAlpha=.38; diamond(c,cx,cy,32,R.soot[0]); c.restore();
+    // 걷기 프레임이 있으면 그 안에 움직임이 들어 있으므로 호흡을 얹지 않는다
+    var bob = (!w && frame>=0) ? [0,-1,0,-1][frame&3] : 0;
+    drawSpr(a,cx,cy+bob,flip);
+    if(carry && carry!=='cup'){                       // 손에 든 원두 / 분쇄 원두
+      var col = carry==='beans'?R.wood:R.steel;
+      c.fillStyle=col[2]; c.fillRect(cx-20,cy-40,10,9);
+      c.fillStyle=col[3]; c.fillRect(cx-20,cy-40,10,3);
+    }
+    return;
+  }
+  const S=CH[key]||CH.player;
+  const hz = frame>=0 ? [0,-1,0,-1][frame&3] : 0;     // 걷기 상하 1px
+  const lean = S.dead?2:0;
+  const F=(x,y,w,h,col)=>{ c.fillStyle=col; c.fillRect((flip? cx-(x-cx)-w : x),y,w,h); };
+  const top=cy-64+hz;
+
+  // ── 그림자
+  c.save(); c.globalAlpha=.38; diamond(c,cx,cy,32,R.soot[0]); c.restore();
+
+  // ── 다리 (18 wide)
+  const legSpread = frame>=0 ? [5,2,5,2][frame&3] : 3;
+  const legL=R.soot, cl=S.cloth;
+  F(cx-9,cy-20,7,17,cl[1]); F(cx-9,cy-20,3,17,cl[2]);      // 왼다리(밝은쪽)
+  F(cx+2,cy-20,7,17,cl[0]); F(cx+2,cy-20,3,17,cl[1]);      // 오른다리
+  F(cx-10-((legSpread-3)>>1),cy-4,9,4,R.wood[0]);          // 신발
+  F(cx+1+((legSpread-3)>>1),cy-4,9,4,R.wood[1]);
+  F(cx-10,cy-1,20,1,R.soot[0]);
+
+  // ── 몸통 (24 wide × 24)
+  const ty=cy-44+lean;
+  F(cx-12,ty,24,25,cl[1]);
+  F(cx-12,ty,10,25,cl[2]);                                 // 좌면 밝게
+  F(cx+6,ty,6,25,cl[0]);                                   // 우면 어둡게
+  ditherBand(c,cx-3,ty,4,25,cl[2],0);                      // 면 경계 디더
+  if(S.apron){                                             // 앞치마 — 컨셉의 바리스타
+    F(cx-9,ty+7,18,18,R.rot[1]); F(cx-9,ty+7,7,18,R.rot[2]);
+    F(cx-9,ty+7,18,1,R.rot[3]);
+    F(cx-2,ty+15,5,2,R.wood[2]);                           // 허리끈 매듭
+  }
+  if(S.bag){ F(cx+8,ty+3,6,14,S.accent[1]); F(cx+8,ty+3,6,2,S.accent[2]); }
+  // 팔
+  const armSwing = frame>=0 ? [2,0,-2,0][frame&3] : 0;
+  F(cx-16,ty+3+armSwing,5,15,cl[2]);
+  F(cx+11,ty+3-armSwing,5,15,cl[0]);
+  F(cx-16,ty+16+armSwing,5,5,S.skin[2]);                   // 손
+  F(cx+11,ty+16-armSwing,5,5,S.skin[1]);
+
+  // ── 머리 20×22
+  const hy=cy-64+hz+lean*2;
+  F(cx-10,hy+2,20,20,S.skin[2]);
+  F(cx-10,hy+2,8,20,S.skin[3]);                            // 좌면 밝게
+  F(cx+6,hy+2,4,20,S.skin[1]);                             // 우면 어둡게
+  F(cx-10,hy,20,7,S.hair[2]);                              // 머리 위
+  F(cx-10,hy,20,3,S.hair[3]);
+  F(cx-11,hy+3,3,11,S.hair[2]); F(cx+8,hy+3,3,11,S.hair[1]);
+  if(S.dead){                                              // 좀비 — 독성 눈 + 상처
+    F(cx-7,hy+11,4,3,R.toxic[1]); F(cx+2,hy+11,4,3,R.toxic[1]);
+    F(cx-6,hy+12,2,1,'#FFFFFF');
+    F(cx-3,hy+17,7,2,R.rot[0]); F(cx+3,hy+6,4,3,R.blood[1]);
+  } else {
+    F(cx-7,hy+11,3,3,R.soot[0]); F(cx+3,hy+11,3,3,R.soot[0]);   // 눈
+    F(cx-6,hy+11,1,1,R.bone[3]); F(cx+4,hy+11,1,1,R.bone[3]);
+    F(cx-2,hy+17,5,1,R.skin[0]);                                // 입
+  }
+  // ── 실루엣 아웃라인 1px, 검정이 아니라 램프 최암부 (§4-2)
+  F(cx-11,hy,1,22,S.hair[0]); F(cx+10,hy,1,22,S.hair[0]);
+  F(cx-13,ty,1,25,cl[0]);     F(cx+12,ty,1,25,cl[0]);
+
+  // ── 손에 든 것
+  if(carry==='beans'){ F(cx-19,ty+12,9,9,R.wood[2]); F(cx-19,ty+12,9,3,R.wood[3]);
+                       F(cx-17,ty+15,2,2,R.amber[1]); }
+  if(carry==='ground'){ F(cx-19,ty+13,9,8,R.steel[2]); F(cx-19,ty+13,9,2,R.steel[3]);
+                        F(cx-17,ty+16,5,3,R.amber[0]); }
+  if(carry==='cup'){ F(cx-18,ty+13,8,8,R.bone[3]); F(cx-18,ty+13,8,2,'#FFFFFF');
+                     F(cx-16,ty+15,4,3,R.amber[1]); F(cx-10,ty+15,2,3,R.bone[2]); }
+}
+
+/* ══════════ 데이터 (기획서 v1.2 §8) ══════════ */
+const RECIPES=[
+  {n:'재의 에스프레소', t:'Taste.Bitter',    r:'일반', m:1.5},
+  {n:'각설탕 라떼',     t:'Taste.Sweet',     r:'일반', m:1.5},
+  {n:'레몬 콜드브루',   t:'Taste.Sour',      r:'고급', m:2.0},
+  {n:'견과 모카',       t:'Taste.Nutty',     r:'희귀', m:2.6},
+  {n:'봉인된 캔커피',   t:'Rare.PreWar',     r:'전전', m:3.2}
+];
+const TAGS=RECIPES.map(r=>r.t);
+const FACIL=[
+  {id:'seat', n:'좌석 증설', c:140, d:'대기 손님 +1 — 매출은 오르지만 동선이 더 겹칩니다'},
+  {id:'vault',n:'금고',      c:160, d:'습격당할 때 골드 도난 60% 감소'},
+  {id:'lock', n:'자물쇠',    c:110, d:'침입 지연 — 상대 습격 성공률 감소'},
+  {id:'pack', n:'배낭',      c:120, d:'가방 6칸 → 10칸, 검색 속도 35% 단축'}
+];
+const BASE=14, MISMATCH=.5, DAYS=5, DAY_SEC=70, NIGHT_SEC=60;
+
+const ME={name:'나',sales:0,gold:0,day:1,owned:[0],menu:[0,-1,-1],stock:0,regulars:0,fac:{},found:[]};
+const BOTS=[
+  {name:'세 번째 골목',  sales:0,gold:90,tier:1,menu:[1,2],knows:false},
+  {name:'재의 바리스타', sales:0,gold:90,tier:1,menu:[3,0],knows:false}
+];
+const G={phase:'boot',t:0,daySales:0,bag:[],sortie:'farm'};
+
+/* ══════════ 입력 ══════════ */
+const keys={}, pressed={};
+addEventListener('keydown',e=>{
+  if(e.target && e.target.tagName==='BUTTON') return;
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' '].indexOf(e.key)>=0) e.preventDefault();
+  if(!keys[e.code]) pressed[e.code]=true;
+  keys[e.code]=true;
+});
+addEventListener('keyup',e=>{ keys[e.code]=false; });
+const hit=c=>{ if(pressed[c]){ pressed[c]=false; return true; } return false; };
+const held=c=>!!keys[c];
+// 입력은 화면 기준으로 받고 타일 좌표로 회전해서 돌려준다.
+// 쿼터뷰에서 화면 오른쪽 = 타일 (+1,-1), 화면 아래 = 타일 (+1,+1).
+// 회전 없이 타일에 그대로 더하면 조작이 45도 돌아간다.
+function moveVec(){
+  let sx=0,sy=0;
+  if(held('KeyA')||held('ArrowLeft')) sx--;
+  if(held('KeyD')||held('ArrowRight')) sx++;
+  if(held('KeyW')||held('ArrowUp')) sy--;
+  if(held('KeyS')||held('ArrowDown')) sy++;
+  if(!sx && !sy) return [0,0];
+  return [sx+sy, sy-sx];
+}
+
+/* ══════════ UI ══════════ */
+const $=id=>document.getElementById(id);
+const ov=$('ov'), logEl=$('log');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]);
+const say=h=>{ logEl.innerHTML=h; };
+const PH={boot:'대기',day:'낮 · 운영',dusk:'황혼 · 준비',night:'밤 · 침투',settle:'결산'};
+function ranked(){
+  return [{name:ME.name,sales:ME.sales,me:true}]
+    .concat(BOTS.map(b=>({name:b.name,sales:b.sales,me:false})))
+    .sort((a,b)=>b.sales-a.sales);
+}
+const myRank=()=>ranked().findIndex(p=>p.me)+1;
+let lastPhase='';
+function hud(){
+  if(G.phase!==lastPhase){                    // 페이즈 전환 순간 CSS 플래시
+    lastPhase=G.phase;
+    const f=$('flash');
+    if(f){ f.classList.add('on'); setTimeout(()=>f.classList.remove('on'),40); }
+  }
+  $('hDay').textContent=ME.day; $('hPhase').textContent=PH[G.phase]||'';
+  $('hSales').textContent=Math.round(ME.sales); $('hGold').textContent=Math.round(ME.gold);
+  $('hRank').textContent=myRank();
+  document.body.classList.toggle('night',G.phase==='night');
+  $('rank').innerHTML=ranked().map((p,i)=>
+    '<div class="row'+(p.me?' self':'')+'"><span class="rk">'+(i+1)+'</span><span>'+esc(p.name)
+    +(p.me?'<span class="tagme">ME</span>':'')+'</span><span class="dy">DAY '+ME.day
+    +'</span><span class="sc">'+Math.round(p.sales)+'G</span></div>').join('');
+}
+const timerBar=f=>{ $('hTimer').style.width=Math.max(0,Math.min(1,f))*100+'%'; };
+
+/* ══════════════════ 낮 — 오버쿡식 제조 (기획서 v1.2 §6.1) ══════════════════
+   v1은 스테이션이 종류당 1대뿐이라 병렬이 원천 불가능했다. 한 잔을 끝내야
+   다음 잔을 시작할 수 있으니 오버쿡이 아니라 그냥 줄 서기였다.
+   v2에서 바꾼 것 둘:
+     1) 그라인더·머신을 2대씩 둬서 여러 잔이 항상 겹치게 한다
+     2) 레시피마다 거치는 공정을 다르게 해서, 무엇을 메뉴에 올리느냐가
+        곧 동선 설계가 되게 한다 */
+const FW=9, FD=6;
+
+// 공정별 소요 시간과 방치 허용 시간. 콜드브루는 오래 걸리지만 타지 않는다 —
+// "미리 걸어두고 그동안 다른 걸 한다"는 선택지를 만들기 위해서다.
+const PROC={
+  grind :{t:2.0, burn:5.0, ok:'분쇄',   bad:'과분쇄'},
+  brew  :{t:3.0, burn:4.5, ok:'추출',   bad:'탄 잔'},
+  cold  :{t:7.0, burn:1e9, ok:'냉침',   bad:''},
+  finish:{t:1.6, burn:6.0, ok:'마무리', bad:'식은 잔'}
+};
+// 레시피별 공정. 빈 배열이면 선반에서 꺼내는 즉시 완성이다.
+const STEPS={
+  'Taste.Bitter':['grind','brew'],            // 에스프레소 — 최단 공정
+  'Taste.Sweet' :['grind','brew','finish'],   // 라떼 — 스팀 한 단계 더
+  'Taste.Sour'  :['grind','cold'],            // 콜드브루 — 길지만 안 탄다
+  'Taste.Nutty' :['grind','brew','finish'],   // 모카
+  'Rare.PreWar' :[]                           // 봉인된 캔 — 조리 없음
+};
+const ST=[
+  {id:'shelf', type:'shelf',  tx:0, ty:0},
+  {id:'g1',    type:'grind',  tx:2, ty:0},
+  {id:'g2',    type:'grind',  tx:2, ty:2},
+  {id:'b1',    type:'brew',   tx:4, ty:0},
+  {id:'b2',    type:'brew',   tx:4, ty:2},
+  {id:'c1',    type:'cold',   tx:6, ty:0},
+  {id:'f1',    type:'finish', tx:6, ty:2},
+  {id:'serve', type:'serve',  tx:4, ty:4}
+];
+const COOK=ST.filter(s=>PROC[s.type]);
+const QUEUE=[[1.5,5],[3,5],[4.5,5],[6,5],[7.5,5]];
+
+const stepsOf = r => STEPS[RECIPES[r].t] || [];
+const isDone  = it => !!it && it.stage >= stepsOf(it.r).length;
+const nextProc= it => isDone(it) ? null : stepsOf(it.r)[it.stage];
+// 손에 든 것의 겉모습 — 원두 / 분쇄·중간 / 완성된 잔
+const carryLook = it => !it ? null : (isDone(it) ? 'cup' : (it.stage===0 ? 'beans' : 'ground'));
+
+function freshStations(){
+  const o={};
+  COOK.forEach(s=>{ o[s.id]={state:'idle', t:0, item:null}; });
+  return o;
+}
+const D={p:{x:3,y:3},dir:1,moving:false,carry:null,recipe:0,cust:[],spawn:0,floats:[],
+         st:freshStations(), served:[], flash:0};
+
+function maxCust(){ return ME.fac.seat?5:4; }
+function startDay(){
+  G.phase='day'; G.t=DAY_SEC; G.daySales=0;
+  D.p={x:3,y:3}; D.carry=null; D.cust=[]; D.spawn=1.2; D.floats=[]; D.served=[]; D.flash=0;
+  D.st=freshStations();
+  D.recipe=ME.menu.findIndex(v=>v>=0); if(D.recipe<0) D.recipe=0;
+  camX=0; camY=0; ov.hidden=true; hud(); bar();
+  say('<b>1/2/3</b> 으로 만들 메뉴를 고르고 <b>선반</b>에서 집으세요. 레시피마다 거치는 공정이 다릅니다.');
+}
+const spawnGap=()=>Math.max(2.0, 4.4-.10*ME.regulars-.12*ME.stock-(ME.fac.seat?.4:0));
+const stAt=(tx,ty)=>ST.find(s=>Math.abs(s.tx-tx)<1.1 && Math.abs(s.ty-ty)<1.1);
+
+function updateDay(dt){
+  G.t-=dt; timerBar(G.t/DAY_SEC);
+  D.flash=Math.max(0,D.flash-dt);
+
+  const v=moveVec(); D.moving=!!(v[0]||v[1]);
+  if(D.moving){
+    const l=Math.hypot(v[0],v[1]), sp=3.0;
+    D.p.x=Math.max(-0.4,Math.min(FW-1+0.4,D.p.x+v[0]/l*sp*dt));
+    D.p.y=Math.max(-0.4,Math.min(FD-1.2,D.p.y+v[1]/l*sp*dt));
+    const sdx=v[0]-v[1]; if(sdx) D.dir=sdx>0?1:-1;
+  }
+  for(let i=0;i<3;i++) if(hit('Digit'+(i+1)) && ME.menu[i]>=0){
+    D.recipe=i; say('만들 메뉴: <b>'+RECIPES[ME.menu[i]].n+'</b> ('+
+      (stepsOf(ME.menu[i]).map(k=>PROC[k].ok).join(' → ')||'조리 없음')+')'); bar();
+  }
+
+  // 모든 공정 스테이션이 동시에 돌아간다 — 이게 병렬성의 전부다
+  COOK.forEach(s=>{
+    const st=D.st[s.id];
+    if(st.state==='busy'){ st.t-=dt; if(st.t<=0){ st.state='done'; st.t=PROC[s.type].burn; } }
+    else if(st.state==='done'){
+      st.t-=dt;
+      if(st.t<=0){ st.state='burnt'; D.flash=.08;
+        say('<span class="bad">'+PROC[s.type].bad+' — 비우고 다시 하세요.</span>'); }
+    }
+  });
+
+  if(hit('KeyE')){ const s=stAt(D.p.x,D.p.y); if(s) interact(s); }
+
+  D.spawn-=dt;
+  if(D.spawn<=0 && D.cust.length<maxCust()){
+    D.spawn=spawnGap();
+    const pool=ME.menu.filter(v=>v>=0);
+    // 등록한 메뉴 쪽으로 손님이 몰리게 한다. 아니면 만들 수 없는 주문만 들어온다.
+    const tag = (pool.length && Math.random()<.7)
+      ? RECIPES[pool[(Math.random()*pool.length)|0]].t
+      : TAGS[(Math.random()*TAGS.length)|0];
+    D.cust.push({tx:10.5,ty:5,tag:tag,pat:24,max:24,
+                 skin:['guestA','guestB','guestC','guestD'][(Math.random()*4)|0],state:'walk'});
+  }
+  D.cust.forEach((c,i)=>{
+    const q=QUEUE[Math.min(i,QUEUE.length-1)];
+    if(c.tx>q[0]+.02){ c.tx=Math.max(q[0],c.tx-2.4*dt); c.state='walk'; }
+    else { c.tx=q[0]; c.state='wait'; c.pat-=dt; }
+  });
+  const kept=D.cust.filter(c=>c.pat>0);
+  if(kept.length!==D.cust.length) say('<span class="bad">손님이 기다리다 나갔습니다.</span>');
+  D.cust=kept;
+
+  if(D.served.length && D.cust.length && D.cust[0].state==='wait') sell();
+
+  D.floats.forEach(f=>{ f.l-=dt; f.y-=26*dt; });
+  D.floats=D.floats.filter(f=>f.l>0);
+  if(G.t<=0) endDay();
+}
+
+function interact(s){
+  if(s.type==='shelf'){
+    if(D.carry) return say('<span class="bad">손이 비어 있어야 합니다.</span>');
+    const r=ME.menu[D.recipe];
+    if(r<0) return say('<span class="bad">그 슬롯은 비어 있습니다. 1/2/3 으로 고르세요.</span>');
+    D.carry={r:r, stage:0}; bar();
+    return say(isDone(D.carry) ? '<b>'+RECIPES[r].n+'</b> — 조리 없이 바로 낼 수 있습니다.'
+                               : '<b>'+RECIPES[r].n+'</b> 시작 — '+PROC[nextProc(D.carry)].ok+' 부터');
+  }
+  if(s.type==='serve'){
+    if(!D.carry) return say('<span class="bad">낼 잔이 없습니다.</span>');
+    if(!isDone(D.carry)) return say('<span class="bad">아직 <b>'+PROC[nextProc(D.carry)].ok+'</b> 공정이 남았습니다.</span>');
+    D.served.push({recipe:D.carry.r}); D.carry=null; bar();
+    return say(D.cust.length?'':'잔을 올려뒀습니다. 손님이 오면 나갑니다.');
+  }
+  const st=D.st[s.id];
+  if(st.state==='burnt'){ st.state='idle'; st.item=null; D.flash=.05; bar(); return say('버렸습니다.'); }
+  if(st.state==='done'){
+    if(D.carry) return say('<span class="bad">손이 찼습니다.</span>');
+    D.carry=st.item; D.carry.stage++; st.item=null; st.state='idle'; bar();
+    return say(isDone(D.carry) ? '<b>'+RECIPES[D.carry.r].n+'</b> 완성 — 서빙대로'
+                               : '다음 공정: <b>'+PROC[nextProc(D.carry)].ok+'</b>');
+  }
+  if(st.state==='busy') return say('아직 <b>'+PROC[s.type].ok+'</b> 중입니다.');
+  if(!D.carry) return say('<span class="bad">넣을 게 없습니다.</span>');
+  if(isDone(D.carry)) return say('<span class="bad">이미 완성됐습니다. 서빙대로 가세요.</span>');
+  if(nextProc(D.carry)!==s.type)
+    return say('<span class="bad">이 공정이 아닙니다 — <b>'+PROC[nextProc(D.carry)].ok+'</b> 부터입니다.</span>');
+  st.item=D.carry; D.carry=null; st.state='busy'; st.t=PROC[s.type].t; bar();
+  say(PROC[s.type].ok+' 시작'+(PROC[s.type].burn<1e8?' — 다 되면 바로 빼세요':''));
+}
+
+function sell(){
+  const cup=D.served.shift(), c=D.cust.shift();
+  let g=BASE, sub='', col=R.bone[3];
+  const r=RECIPES[cup.recipe];
+  if(r.t===c.tag){ g=BASE*r.m; sub='x'+r.m; col=R.amber[5]; ME.regulars++;
+    say('<span class="hit">'+r.n+' 적중 — 단골 +1</span>'); }
+  else { g=BASE*MISMATCH; sub='-'; col=R.blood[3];
+    say('<span class="bad">취향 불일치 — '+Math.round(g)+'G</span>'); }
+  ME.sales+=g; ME.gold+=g; G.daySales+=g;
+  const p=iso(c.tx,c.ty,0);
+  D.floats.push({x:p[0],y:p[1]-CH_H-22,txt:'+'+Math.round(g)+'G',sub:sub,c:col,l:1.2});
+  hud(); bar();
+}
+
+// 색은 Codex 타일 에셋(tile_cafe_floor.png)에서 실측했다. 붉은 타일과 크림 타일의
+// 체커. 램프에서 멀어질수록 램프를 한 단씩 내려 식힌다 (아트컨셉 §6 조명 계단).
+function floorDay(tx,ty){
+  const even=((tx+ty)&1)===0;
+  if(tx>=FW-1) return even?R.soot[2]:R.soot[1];         // 문밖 — 잿빛
+  const d=Math.abs(tx-3)+Math.abs(ty-2);
+  return d<=2 ? (even?R.blood[2]:R.amber[5])
+       : d<=4 ? (even?R.blood[1]:R.amber[3])
+       : (even?R.amber[0]:R.amber[2]);
+}
+
+// 스테이션 에셋 — 앞에서부터 있는 것을 쓴다. 전용 에셋이 없으면 대체품으로 떨어진다.
+const ST_ASSET={shelf:['bean_shelf'], grind:['grinder'], brew:['espresso_machine'],
+                cold:['cold_brew_tank','metal_container'],
+                finish:['steam_wand','serving_station'], serve:['counter']};
+const stAsset=ty=>(ST_ASSET[ty]||[]).find(spr)||null;
+function drawStation(s,t){
+  const p=iso(s.tx,s.ty,0), st=D.st[s.id];
+  const A=stAsset(s.type);
+  if(A){
+    drawSpr(A,p[0],p[1],false,'base');
+    if(s.type==='serve') D.served.forEach(function(c,i){    // 올려둔 잔
+      var x=p[0]-14+i*11, y=p[1]-56;
+      ctx.fillStyle=R.bone[3]; ctx.fillRect(x,y,8,8);
+      ctx.fillStyle='#FFFFFF'; ctx.fillRect(x,y,8,2);
+      ctx.fillStyle=R.amber[1]; ctx.fillRect(x+2,y+3,4,3);
+    });
+    stationBadge(s,st,p[0],p[1]-(spr(A).naturalHeight/2)-26,t);
+    return;
+  }
+  // 에셋 없을 때 폴백
+  box(ctx,p[0],p[1],64,30,R.wood); woodGrain(ctx,p[0],p[1],64,30);
+  stationBadge(s,st,p[0],p[1]-60,t);
+}
+// 상태 아이콘 + 진행바 (§8 아이콘, §9 이펙트)
+function stationBadge(s,st,cx,iy,t){
+  if(!st) return;
+  icon(ctx,{idle:'st.empty',busy:'st.busy',done:'st.done',burnt:'st.burnt'}[st.state],cx-6,iy);
+  if(st.state==='busy'){
+    var f=1-st.t/PROC[s.type].t;
+    ctx.fillStyle=R.soot[0]; ctx.fillRect(cx-16,iy+14,32,4);
+    ctx.fillStyle=R.amber[5]; ctx.fillRect(cx-16,iy+14,(32*f)|0,4);
+  } else if(st.state==='done'){
+    if(PROC[s.type].burn>1e8){                          // 안 타는 공정은 게이지 대신 완료 표시만
+      ctx.fillStyle=R.toxic[1]; ctx.fillRect(cx-16,iy+14,32,4);
+    } else {
+      var g=st.t/PROC[s.type].burn;                     // 방치 게이지 — 다 닳으면 탄다
+      ctx.fillStyle=R.soot[0]; ctx.fillRect(cx-16,iy+14,32,4);
+      ctx.fillStyle=g>.4?R.toxic[1]:R.blood[3]; ctx.fillRect(cx-16,iy+14,(32*g)|0,4);
+    }
+  } else if(st.state==='burnt'){
+    for(var i=0;i<3;i++){                                // blood-3 연기 (§9)
+      var life=(t*.8+i*.33)%1;
+      ctx.globalAlpha=1-life; ctx.fillStyle=R.blood[i%2?3:2];
+      ctx.fillRect(cx-4+i*4,iy-((life*18)|0),3,3);
+    }
+    ctx.globalAlpha=1;
+  }
+  // 어떤 잔이 들어 있는지 — 맛 아이콘으로 (월드에 글자를 쓰지 않는다 §8)
+  if(st.item && st.state!=='burnt') icon(ctx,RECIPES[st.item.r].t,cx-6,iy-15);
+}
+
+function drawDay(t){
+  camX=0; camY=0;
+  ctx.fillStyle=R.soot[1]; ctx.fillRect(0,0,W,H);
+  for(let ty=0;ty<FD;ty++) for(let tx=0;tx<FW;tx++){
+    const p=iso(tx,ty,0); diamond(ctx,p[0],p[1],64,floorDay(tx,ty));
+  }
+  // 벽 2면 + 창 (창밖은 늘 잿빛)
+  for(let tx=0;tx<FW-1;tx++){ const p=iso(tx,-1,0); box(ctx,p[0],p[1],64,64,R.soot); }
+  for(let ty=-1;ty<FD;ty++){
+    const p=iso(-1,ty,0); box(ctx,p[0],p[1],64,64,R.soot);
+    // tx=-1 벽의 실내면은 '우측면'이다. 방(tx>=0)이 화면상 오른쪽-아래에 있으므로.
+    if(ty===1||ty===2){                                  // 창 — 밖은 늘 잿빛 폐허
+      faceBand(ctx,p[0],p[1],64,64,'R',2,30,14,34,R.wood[1]);
+      faceBand(ctx,p[0],p[1],64,64,'R',4,28,16,30,R.bone[1]);
+      faceBand(ctx,p[0],p[1],64,64,'R',4,28,16,2,R.bone[2]);
+      faceBand(ctx,p[0],p[1],64,64,'R',4,28,40,4,R.soot[3]);
+      faceBand(ctx,p[0],p[1],64,64,'R',15,17,16,30,R.wood[1]);
+    }
+  }
+
+  const q=[]; const push=(d,z,f)=>q.push({d:d,z:z,f:f});
+  ST.forEach(s=>push(s.tx+s.ty,0,()=>drawStation(s,t)));
+  // 출입구 — 손님은 여기로 들어온다. tx=FW-1 열은 문밖(잿빛)이다.
+  push(8+5,0,()=>{
+    const p=iso(FW-1,5,0);
+    ctx.fillStyle=R.soot[0]; ctx.fillRect(p[0]-13,p[1]-54,26,46);   // 어두운 문간
+    box(ctx,p[0]-15,p[1],16,58,R.wood);                             // 문설주
+    box(ctx,p[0]+15,p[1],16,58,R.wood);
+    ctx.fillStyle=R.wood[3]; ctx.fillRect(p[0]-20,p[1]-62,40,5);    // 상인방
+    ctx.fillStyle=R.wood[1]; ctx.fillRect(p[0]-20,p[1]-57,40,2);
+    ctx.fillStyle=R.amber[5]; ctx.fillRect(p[0]-2,p[1]-70,4,4);     // 문등
+    ctx.fillStyle=R.amber[3]; ctx.fillRect(p[0]-3,p[1]-66,6,2);
+  });
+  [[0,4],[7,1]].forEach(o=>push(o[0]+o[1],0,()=>{        // 테이블 — 장식
+    const p=iso(o[0],o[1],0);
+    if(drawSpr('cafe_table',p[0],p[1],false,'base')) return;
+    box(ctx,p[0],p[1],32,20,R.wood); woodGrain(ctx,p[0],p[1],32,20);
+    ctx.fillStyle=R.bone[3]; ctx.fillRect(p[0]-3,p[1]-26,6,5);
+  }));
+  push(D.p.x+D.p.y,1000,()=>{
+    const p=iso(D.p.x,D.p.y,0);
+    actor(ctx,p[0],p[1],'player',D.moving?((t*7)|0)&3:-1,D.dir<0,carryLook(D.carry));
+    const s=stAt(D.p.x,D.p.y);
+    if(s) dots(ctx,'E',p[0]-2,p[1]-CH_H-28,R.amber[5],2);  // 상호작용 프롬프트
+  });
+  D.cust.forEach((c,i)=>push(c.tx+c.ty,1000,()=>{
+    const p=iso(c.tx,c.ty,0);
+    actor(ctx,p[0],p[1],c.skin,c.state==='walk'?((t*7)|0)&3:-1,true,null);
+    if(c.state==='wait'){
+      const by=p[1]-CH_H-26;
+      ctx.fillStyle=R.soot[0]; ctx.fillRect(p[0]-9,by,18,16);        // 말풍선
+      ctx.fillStyle=R.bone[3]; ctx.fillRect(p[0]-8,by+1,16,14);
+      ctx.fillRect(p[0]-2,by+15,4,3);
+      icon(ctx,c.tag,p[0]-6,by+3);
+      const f=Math.max(0,c.pat/c.max);
+      ctx.fillStyle=R.soot[0]; ctx.fillRect(p[0]-14,p[1]-CH_H-6,28,4);
+      ctx.fillStyle=f>.35?(i?R.bone[1]:R.amber[5]):R.blood[3];
+      ctx.fillRect(p[0]-14,p[1]-CH_H-6,(28*f)|0,4);
+    }
+  }));
+  q.sort((a,b)=>(a.d-b.d)||(a.z-b.z)).forEach(o=>o.f());
+
+  D.floats.forEach(f=>{
+    ctx.globalAlpha=Math.min(1,f.l*2);
+    dots(ctx,f.txt,(f.x-dotsW(f.txt,2)/2)|0,f.y|0,f.c,2);
+    if(f.sub) dots(ctx,f.sub,(f.x-dotsW(f.sub,1)/2)|0,(f.y+14)|0,R.bone[1],1);
+    ctx.globalAlpha=1;
+  });
+  if(D.flash>0){ ctx.globalAlpha=.45; ctx.fillStyle=R.blood[2]; ctx.fillRect(0,0,W,H); ctx.globalAlpha=1; }
+}
+
+/* ══════════════════ 밤 — 타르코프식 루팅 (기획서 v1.2 §7.2) ══════════════════ */
+const MAP=26, HOME=[3.5,21.5], SPAWN=[5,21];
+const RIVAL=[[21.5,4.5],[21.5,21.5]];
+// 좀비는 맵에 고루 퍼져 있지 않다. 정해진 건물에만 스폰된다. (§7.2-4)
+const BLDG=[
+  {x:8, y:8, w:6,h:5, z:4, name:'A', rich:true},          // 좀비 있는 건물 = 좋은 전리품
+  {x:16,y:12,w:5,h:5, z:3, name:'B', rich:true},
+  {x:9, y:16,w:5,h:4, z:0, name:'C', rich:false}          // 빈 건물 — 서랍 몇 개가 전부
+];
+const N={p:{x:0,y:0},dir:1,moving:false,run:false,hp:3,inv:0,shake:0,
+         cont:[],zomb:[],open:null,hold:0,noise:0,raid:0,target:null};
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+const bagCap=()=>ME.fac.pack?10:6;
+const searchMul=()=>ME.fac.pack?0.65:1;
+
+function inBldg(b,x,y){ return x>=b.x && x<b.x+b.w && y>=b.y && y<b.y+b.h; }
+function rollSlots(kind){
+  // 한 컨테이너에서 나오는 아이템 수는 매번 랜덤이다. 빈 통도 나온다. (§7.2-3)
+  const spec={drawer:[1,3,1.1],crate:[2,6,1.6],corpse:[1,4,1.4],random:[1,1,4.5]}[kind];
+  const n=spec[0]+((Math.random()*(spec[1]-spec[0]+1))|0);
+  const slots=[];
+  for(let i=0;i<n;i++){
+    let item=null;
+    const roll=Math.random();
+    if(roll<0.30) item=null;                                // 빈 슬롯
+    else if(roll<0.68) item={kind:'stock',label:'원두'};
+    else {
+      const pool=[];
+      RECIPES.forEach((r,ix)=>{
+        if(r.r==='전전' && kind!=='random') return;         // 전전 레시피는 랜덤 박스에서만
+        if(r.r==='희귀' && kind==='drawer') return;
+        pool.push(ix);
+      });
+      const id=pool[(Math.random()*pool.length)|0];
+      item={kind:'recipe',id:id,label:RECIPES[id].n};
+    }
+    slots.push({item:item,rev:0,taken:false,moving:0});
+  }
+  return {slots:slots, time:spec[2], pick:-1};
+}
+function startNight(){
+  G.phase='night'; G.t=NIGHT_SEC; G.bag=[];
+  N.p={x:SPAWN[0],y:SPAWN[1]}; N.hp=3; N.inv=0; N.shake=0; N.open=null; N.hold=0; N.raid=0;
+  N.cont=[]; N.zomb=[];
+  BLDG.forEach(b=>{
+    const n=b.rich?4:2;
+    for(let i=0;i<n;i++){
+      const kind=b.rich ? (i===0?'crate':'drawer') : 'drawer';
+      N.cont.push(Object.assign({x:b.x+0.8+Math.random()*(b.w-1.6),
+                                 y:b.y+0.8+Math.random()*(b.h-1.6),
+                                 kind:kind,state:'new',bldg:b.name},rollSlots(kind)));
+    }
+    // 좀비는 건물에만 (§7.2-4)
+    for(let i=0;i<b.z;i++) N.zomb.push({x:b.x+Math.random()*b.w,y:b.y+Math.random()*b.h,
+      vx:0,vy:0,wt:0,chase:0,home:b});
+  });
+  // 거리의 컨테이너 + 시체 + 희귀 랜덤 박스
+  [['crate',13,6],['corpse',6,13],['crate',18,18],['random',12.5,12.5]].forEach(o=>{
+    N.cont.push(Object.assign({x:o[1],y:o[2],kind:o[0],state:'new',bldg:'-'},rollSlots(o[0])));
+  });
+  ov.hidden=true; hud(); bar();
+  say(G.sortie==='raid'
+    ? '남의 카페를 노립니다. 가까이서 <b>E</b>를 누르고 있으면 메뉴판을 베낍니다.'
+    : '건물 안에 좋은 물자가 있고, <b>좀비도 건물에만</b> 있습니다. <b>E</b>로 컨테이너를 엽니다.');
+}
+function bagAdd(it){
+  if(G.bag.length>=bagCap()) return false;
+  G.bag.push(it); bar(); return true;
+}
+function hurt(){
+  if(N.inv>0) return;
+  N.hp--; N.inv=1.4; N.shake=.3; N.open=null;
+  if(N.hp<=0){ say('<span class="bad">쓰러졌습니다. 가방을 전부 잃습니다.</span>'); G.bag=[]; endNight(false); }
+  else say('<span class="bad">좀비에게 당했습니다. HP '+N.hp+'</span>');
+  bar();
+}
+
+function updateNight(dt){
+  G.t-=dt; timerBar(G.t/NIGHT_SEC);
+  N.inv=Math.max(0,N.inv-dt); N.shake=Math.max(0,N.shake-dt);
+  N.noise=0;
+
+  const v=moveVec();
+  N.moving=!!(v[0]||v[1]);
+  // 검색 중에는 이동 불가. 움직이면 중단되고, 공개된 데까지는 유지된다. (§7.2-2)
+  if(N.open && N.moving){ N.open=null; say('수색을 중단했습니다. 공개된 슬롯은 남습니다.'); }
+
+  if(N.moving && !N.open){
+    N.run=held('ShiftLeft')||held('ShiftRight');
+    const l=Math.hypot(v[0],v[1]), sp=N.run?4.6:2.4;
+    N.p.x=Math.max(.6,Math.min(MAP-.6,N.p.x+v[0]/l*sp*dt));
+    N.p.y=Math.max(.6,Math.min(MAP-.6,N.p.y+v[1]/l*sp*dt));
+    const sdx=v[0]-v[1]; if(sdx) N.dir=sdx>0?1:-1;
+    N.noise=N.run?5.0:2.0;
+  }
+  focus(N.p.x,N.p.y);
+
+  // 남의 카페 발견
+  RIVAL.forEach((s,i)=>{
+    const b=BOTS[i];
+    if(ME.found.indexOf(b.name)<0 && dist(N.p,{x:s[0],y:s[1]})<2.2){
+      ME.found.push(b.name);
+      say('<b>'+esc(b.name)+'</b>의 카페를 발견했습니다. 위치는 계속 기억됩니다.');
+    }
+  });
+
+  // 근접 컨테이너 (§7.2-1) — 아웃라인은 손전등 반경 안에서만
+  let near=null;
+  N.cont.forEach(c=>{ const d=dist(N.p,c); if(d<1.5 && (!near||d<dist(N.p,near))) near=c; });
+
+  // 숫자키로 슬롯 선택 — 마우스 없이도 되게
+  if(N.open) for(let i=0;i<9;i++) if(hit('Digit'+(i+1))) pickSlot(i);
+
+  if(hit('KeyE')){
+    if(N.open) N.open=null;
+    else if(near && near.state!=='done'){ N.open=near; near.state='busy'; }
+    else if(dist(N.p,{x:HOME[0],y:HOME[1]})<2.0){ endNight(true); return; }
+  }
+
+  // 검색 프로그레스 — 슬롯이 순차로 공개된다 (§7.2-2)
+  if(N.open){
+    const c=N.open;
+    // 검색 중에는 소음이 발생한다. 단 가만히 보고만 있으면 조용하다.
+    if(c.slots.some(s=>s.rev<1) || (c.slots[c.pick] && c.slots[c.pick].moving>0))
+      N.noise=Math.max(N.noise,2.6);
+    // 슬롯 공개는 자동으로 계속된다 (§7.2-2)
+    const nxt=c.slots.find(s=>s.rev<1);
+    if(nxt) nxt.rev=Math.min(1,nxt.rev+dt/(c.time*searchMul()));
+
+    // 가방으로 옮기는 건 플레이어가 고른 것만. 진행도는 슬롯별로 남아서
+    // 중간에 다른 걸 골랐다 돌아와도 처음부터 다시 하지 않는다.
+    const mv=c.slots[c.pick];
+    if(mv && mv.rev>=1 && mv.item && !mv.taken){
+      mv.moving=Math.min(1,mv.moving+dt/(0.55*searchMul()));
+      if(mv.moving>=1){
+        if(bagAdd(mv.item)){ mv.taken=true;
+          say(mv.item.kind==='stock'?'원두를 챙겼습니다.':'<b>'+mv.item.label+'</b> 확보');
+        } else { mv.moving=0; say('<span class="bad">가방이 가득 찼습니다.</span>'); }
+        c.pick=-1;                                   // 하나 끝나면 다시 고르게 한다
+      }
+    }
+    if(!nxt && !c.slots.some(s=>s.item && !s.taken)){ c.state='done'; N.open=null; say('다 털었습니다.'); }
+  }
+
+  // 습격 — E 홀드로 메뉴판을 베낀다. 원본은 남는다 (§7.3)
+  let tgt=null;
+  RIVAL.forEach((s,i)=>{ if(dist(N.p,{x:s[0],y:s[1]})<2.0) tgt=BOTS[i]; });
+  N.target=tgt;
+  if(tgt && held('KeyE') && !N.open){
+    N.hold+=dt;
+    if(N.hold>=2.6){
+      N.hold=0;
+      const ri=tgt.menu.slice().sort((a,b)=>RECIPES[b].m-RECIPES[a].m)[0];
+      const steal=Math.round(tgt.gold*.35);
+      tgt.gold-=steal; ME.gold+=steal; tgt.knows=true;
+      if(ME.owned.indexOf(ri)<0 && bagAdd({kind:'recipe',id:ri,label:RECIPES[ri].n}))
+        say('<span class="ok">'+esc(tgt.name)+'의 <b>'+RECIPES[ri].n+'</b> 사본과 '+steal+'G를 챙겼습니다.</span>');
+      else say('<span class="ok">'+steal+'G를 털었습니다.</span>');
+      hud();
+    }
+  } else N.hold=0;
+
+  // 좀비 — 소리에 반응한다. 자기 건물 주변을 벗어나면 돌아간다
+  N.zomb.forEach(z=>{
+    const d=dist(N.p,z);
+    if(N.noise>0 && d<N.noise) z.chase=2.6;
+    z.chase=Math.max(0,z.chase-dt);
+    if(z.chase>0){
+      const l=Math.max(.001,d);
+      z.x+=(N.p.x-z.x)/l*1.5*dt; z.y+=(N.p.y-z.y)/l*1.5*dt;
+    } else {
+      z.wt-=dt;
+      if(z.wt<=0){ z.wt=1+Math.random()*2;
+        const b=z.home, cx=b.x+b.w/2, cy=b.y+b.h/2;
+        const a=Math.atan2(cy-z.y,cx-z.x)+(Math.random()-.5)*2.4;
+        z.vx=Math.cos(a)*.7; z.vy=Math.sin(a)*.7; }
+      z.x=Math.max(.5,Math.min(MAP-.5,z.x+z.vx*dt));
+      z.y=Math.max(.5,Math.min(MAP-.5,z.y+z.vy*dt));
+    }
+    if(d<.8) hurt();
+  });
+
+  // 루팅 UI 동기화 — N.open 이 바뀌는 경로가 여러 군데라 여기서 한 번에 맞춘다
+  if(N.open){ if(LOOT.forId!==N.open) openLoot(N.open); else updateLoot(N.open); }
+  else if(LOOT.forId) closeLoot();
+
+  if(G.t<=0){
+    const home=dist(N.p,{x:HOME[0],y:HOME[1]})<2.0;
+    if(!home){ say('<span class="bad">탈출 실패. 가방을 전부 잃습니다.</span>'); G.bag=[]; }
+    endNight(home);
+  }
+}
+
+function drawNight(t){
+  ctx.fillStyle=R.dusk[0]; ctx.fillRect(0,0,W,H);
+  ctx.save();
+  if(N.shake>0) ctx.translate((Math.random()*5-2)|0,(Math.random()*5-2)|0);
+
+  for(let ty=0;ty<MAP;ty++) for(let tx=0;tx<MAP;tx++){
+    const p=iso(tx,ty,0);
+    if(p[0]<-64||p[0]>W+64||p[1]<-64||p[1]>H+64) continue;
+    const even=((tx+ty)&1)===0;
+    const homeLit=Math.abs(tx+.5-HOME[0])+Math.abs(ty+.5-HOME[1])<3.2;
+    let col;
+    if(homeLit) col = even?R.amber[2]:R.dusk[4];        // 밤의 유일한 난색 = 내 카페
+    else if(BLDG.some(b=>inBldg(b,tx,ty))) col = even?R.dusk[4]:R.dusk[3];
+    else col = even?R.dusk[2]:R.dusk[1];
+    diamond(ctx,p[0],p[1],64,col);
+  }
+  const q=[]; const push=(d,z,f)=>q.push({d:d,z:z,f:f});
+
+  // 건물 외벽 — 좀비 있는 건물은 폐허 벽, 빈 건물은 낮은 벽
+  BLDG.forEach(b=>{
+    for(let i=0;i<b.w;i++){
+      push(b.x+i+b.y-1,0,()=>{ const p=iso(b.x+i,b.y-1,0); box(ctx,p[0],p[1],64,b.rich?56:34,R.dusk); });
+    }
+    for(let j=0;j<b.h;j++){
+      push(b.x-1+b.y+j,0,()=>{ const p=iso(b.x-1,b.y+j,0); box(ctx,p[0],p[1],64,b.rich?56:34,R.dusk); });
+    }
+  });
+  // 내 카페 + 남의 카페
+  push(HOME[0]+HOME[1],0,()=>{
+    const p=iso(HOME[0],HOME[1],0);
+    box(ctx,p[0],p[1],64,36,R.wood);
+    const m=iso(HOME[0],HOME[1],76); diamond(ctx,m[0],m[1],32,R.amber[5]);
+    ctx.fillStyle=R.amber[5]; ctx.fillRect(m[0],m[1]-14,2,14);
+  });
+  RIVAL.forEach((s,i)=>{
+    if(ME.found.indexOf(BOTS[i].name)<0) return;         // 발견 전에는 그리지 않는다
+    push(s[0]+s[1],0,()=>{
+      const p=iso(s[0],s[1],0); box(ctx,p[0],p[1],64,36,R.soot);
+      const m=iso(s[0],s[1],76); diamond(ctx,m[0],m[1],32,R.blood[3]);
+      ctx.fillStyle=R.blood[3]; ctx.fillRect(m[0],m[1]-14,2,14);
+    });
+  });
+  // 컨테이너 + 근접 아웃라인 3상태 (§7.2-1)
+  N.cont.forEach(c=>push(c.x+c.y,0,()=>{
+    const p=iso(c.x,c.y,0), d=dist(N.p,c);
+    const size=c.kind==='crate'?64:32;
+    let h=c.kind==='corpse'?10:(c.kind==='random'?30:24);
+    const CA={crate:'metal_container',drawer:'drawer_chest',random:'random_box'}[c.kind];
+    if(CA && spr(CA)){ drawSpr(CA,p[0],p[1],false,'base'); h=spr(CA).naturalHeight/2-HH; }
+    else {
+      box(ctx,p[0],p[1],size,h,c.kind==='corpse'?R.blood:(c.kind==='random'?R.steel:R.wood));
+      if(c.kind==='random'){ metalSheen(ctx,p[0],p[1],size,h);
+        dots(ctx,'?',p[0]-2,p[1]-h-9,R.toxic[1],2); }
+      if(c.kind==='drawer') woodGrain(ctx,p[0],p[1],size,h);
+    }
+    if(d<3.0){                                           // 손전등 반경 안에서만
+      const col = c.state==='done'?R.bone[1] : (c.state==='busy'?R.amber[5] : R.bone[3]);
+      const wpx = c.state==='done'?1:2;
+      const blink = c.state==='busy' && (((t*8)|0)&1);
+      if(!blink){
+        ctx.save(); ctx.globalAlpha=Math.max(.25,1-d/3.0);
+        const half=size/2, rows=size/2, hh=rows/2;
+        ctx.fillStyle=col;
+        for(let r=0;r<rows;r++){
+          const hw=(r<hh?(r+1):(rows-r))*2, y=p[1]-h-hh+r;
+          ctx.fillRect(p[0]-hw,y,wpx,1); ctx.fillRect(p[0]+hw-wpx,y,wpx,1);
+        }
+        ctx.restore();
+      }
+    }
+  }));
+  N.zomb.forEach(z=>push(z.x+z.y,1000,()=>{
+    const p=iso(z.x,z.y,0);
+    actor(ctx,p[0],p[1],'zombie',((t*(z.chase>0?7:3))|0)&3,(z.x-z.y)<(N.p.x-N.p.y),null);
+    if(z.chase>0) dots(ctx,'!',p[0]-2,p[1]-CH_H-18,R.blood[3],2);
+  }));
+  push(N.p.x+N.p.y,1000,()=>{
+    const p=iso(N.p.x,N.p.y,0);
+    const hurtFlash=N.inv>0 && ((t*14)|0)%2;
+    actor(ctx,p[0],p[1],hurtFlash?'zombie':'raider',
+          N.open?-1:(N.moving?((t*(N.run?12:7))|0)&3:-1),N.dir<0,null);
+    if(N.open){                                          // 수색 자세 표시
+      ctx.fillStyle=R.amber[5]; ctx.fillRect(p[0]-8,p[1]-CH_H-10,16,2);
+    }
+  });
+  q.sort((a,b)=>(a.d-b.d)||(a.z-b.z)).forEach(o=>o.f());
+
+  const pp=iso(N.p.x,N.p.y,0);
+  if(N.noise>0) ring(ctx,pp[0],pp[1],N.noise,N.run?R.blood[3]:R.toxic[1],N.run?.5:.22,false);
+  if(N.target && N.hold>0){
+    const f=Math.min(1,N.hold/2.6);
+    ctx.fillStyle=R.soot[0]; ctx.fillRect(240,H-30,160,8);
+    ctx.fillStyle=R.blood[3]; ctx.fillRect(240,H-30,(160*f)|0,8);
+  }
+  ctx.restore();
+
+  flashlight(pp[0],pp[1]-18);
+
+  const hd=dist(N.p,{x:HOME[0],y:HOME[1]});
+  if(hd<2.0 && !N.open){ dots(ctx,'E',pp[0]-2,pp[1]-CH_H-30,R.amber[5],2); }
+  homeGuide(t,hd);
+}
+// 손전등 — 하드 컷 3단 계단 (아트컨셉 §7). 그라디언트도, destination-out도 쓰지 않는다.
+// destination-out은 어둠만이 아니라 그 아래 씬까지 지워버린다.
+const FL_R=[112,172,242], FL_A=['rgba(5,7,16,.42)','rgba(5,7,16,.76)','rgba(5,7,16,.94)'];
+function flashlight(cx,cy){
+  const seg=(x0,x1,y,col)=>{ if(x1<=x0) return; ctx.fillStyle=col; ctx.fillRect(x0,y,x1-x0,1); };
+  for(let y=0;y<H;y++){
+    const dy=(y-cy)*2;                                  // 아이소 2:1 — 세로를 2배로 봐야 원이 된다
+    const hw=r=>{ const t=r*r-dy*dy; return t<=0?0:(Math.sqrt(t)|0); };
+    const w1=hw(FL_R[0]), w2=hw(FL_R[1]), w3=hw(FL_R[2]);
+    seg(0, Math.max(0,cx-w3), y, FL_A[2]);
+    seg(Math.max(0,cx-w3), Math.max(0,cx-w2), y, FL_A[1]);
+    seg(Math.max(0,cx-w2), Math.max(0,cx-w1), y, FL_A[0]);
+    seg(Math.min(W,cx+w1), Math.min(W,cx+w2), y, FL_A[0]);
+    seg(Math.min(W,cx+w2), Math.min(W,cx+w3), y, FL_A[1]);
+    seg(Math.min(W,cx+w3), W, y, FL_A[2]);
+  }
+}
+/* ══ 루팅 UI — 타르코프식 2패널 (기획서 §7.2) ══════════════════════
+   캔버스가 아니라 DOM/CSS다. 그리드·테두리·카운터는 CSS가 훨씬 싸고,
+   열 때 한 번 만들고 매 프레임에는 진행 바 폭만 갱신한다. */
+const LOOT = {el:null, box:null, bagCells:[], boxCells:[], forId:null};
+const KIND_LABEL = {crate:'금속 컨테이너', drawer:'서랍장', random:'랜덤 박스', corpse:'시체'};
+
+// 12×12 아이콘을 셀 안에 3배로 그린다 — 기존 icon() 재사용, 새 아트 없음
+function cellIcon(kind){
+  const cv2 = document.createElement('canvas');
+  cv2.width = cv2.height = 36;
+  const c2 = cv2.getContext('2d');
+  c2.imageSmoothingEnabled = false;
+  c2.setTransform(3,0,0,3,0,0);
+  icon(c2, kind, 0, 0);
+  return cv2;
+}
+function beanIcon(){
+  const cv2 = document.createElement('canvas');
+  cv2.width = cv2.height = 36;
+  const c2 = cv2.getContext('2d');
+  c2.setTransform(3,0,0,3,0,0);
+  c2.fillStyle = R.wood[2]; c2.fillRect(2,3,8,7);
+  c2.fillStyle = R.wood[3]; c2.fillRect(2,3,8,2);
+  c2.fillStyle = R.amber[1]; c2.fillRect(4,6,4,3);
+  return cv2;
+}
+function mkCell(cls, idx){
+  const d = document.createElement('div');
+  d.className = 'cell ' + cls;
+  const bar = document.createElement('div');
+  bar.className = 'bar';
+  bar.appendChild(document.createElement('i'));
+  d.appendChild(bar);
+  if(idx !== undefined){                       // 컨테이너 슬롯 — 번호 + 클릭 선택
+    const k = document.createElement('span');
+    k.className = 'k'; k.textContent = idx + 1;
+    d.appendChild(k);
+    d.onclick = function(){ pickSlot(idx); };
+  }
+  return d;
+}
+// 고르기 — 공개됐고 아직 안 챙긴 아이템만
+function pickSlot(i){
+  const c = N.open;
+  if(!c || !c.slots[i]) return;
+  const s = c.slots[i];
+  if(s.rev < 1 || !s.item || s.taken) return;
+  if(G.bag.length >= bagCap()){ say('<span class="bad">가방이 가득 찼습니다.</span>'); return; }
+  c.pick = (c.pick === i) ? -1 : i;             // 다시 누르면 취소
+  updateLoot(c);
+}
+function openLoot(c){
+  LOOT.el = LOOT.el || $('loot');
+  LOOT.box = c; LOOT.forId = c;
+  $('lootBoxTtl').textContent = KIND_LABEL[c.kind] || '컨테이너';
+  const bag = $('lootBagGrid'), boxg = $('lootBoxGrid');
+  bag.innerHTML = ''; boxg.innerHTML = '';
+  LOOT.bagCells = []; LOOT.boxCells = [];
+  for(let i=0;i<bagCap();i++){ const d=mkCell('empty'); bag.appendChild(d); LOOT.bagCells.push(d); }
+  c.slots.forEach(function(_,i){ const d=mkCell('hidden',i); boxg.appendChild(d); LOOT.boxCells.push(d); });
+  LOOT.el.hidden = false;
+  updateLoot(c);
+}
+function closeLoot(){ if(LOOT.el){ LOOT.el.hidden = true; } LOOT.forId = null; }
+
+function paint(cell, cls, node, barFrac, moving){
+  cell.className = 'cell ' + cls + (moving ? ' moving' : '');
+  // 아이콘/글자는 바뀔 때만 교체 (매 프레임 DOM 재생성 금지)
+  const want = node ? node.tagName : (cls === 'hidden' ? '?' : '');
+  if(cell.dataset.k !== cls + '|' + want){
+    cell.dataset.k = cls + '|' + want;
+    Array.prototype.slice.call(cell.childNodes).forEach(function(n){
+      const cn = n.className;
+      if(cn !== 'bar' && cn !== 'k') cell.removeChild(n);   // 진행바와 슬롯 번호는 남긴다
+    });
+    if(node) cell.insertBefore(node, cell.firstChild);
+    else if(cls === 'hidden') cell.insertBefore(document.createTextNode('?'), cell.firstChild);
+  }
+  const i = cell.querySelector('.bar i');
+  if(i) i.style.width = Math.round(Math.max(0, Math.min(1, barFrac || 0)) * 100) + '%';
+}
+function updateLoot(c){
+  if(!LOOT.el || LOOT.el.hidden) return;
+  // 내 가방
+  const cap = bagCap();
+  $('lootBagCap').textContent = G.bag.length + ' / ' + cap;
+  $('lootBagCap').className = 'cap' + (G.bag.length >= cap ? ' full' : '');
+  LOOT.bagCells.forEach(function(cell, i){
+    const it = G.bag[i];
+    if(!it) return paint(cell, 'empty', null, 0);
+    paint(cell, 'item' + (it.kind==='recipe' && RECIPES[it.id].r==='전전' ? ' rare' : ''),
+          it.kind==='stock' ? beanIcon() : cellIcon(RECIPES[it.id].t), 0);
+  });
+  // 컨테이너
+  const left = c.slots.filter(function(s){ return s.item && !s.taken; }).length;
+  $('lootBoxCap').textContent = left + ' / ' + c.slots.length;
+  $('lootBoxCap').className = 'cap';
+  c.slots.forEach(function(s, i){
+    const cell = LOOT.boxCells[i];
+    if(!cell) return;
+    if(s.rev < 1) return paint(cell, 'hidden', null, s.rev);          // 아직 가려짐
+    if(!s.item)   return paint(cell, 'empty', null, 0);               // 빈 통
+    if(s.taken)   return paint(cell, 'taken', null, 0);
+    const cls = 'item can'
+      + (s.item.kind==='recipe' && RECIPES[s.item.id].r==='전전' ? ' rare' : '')
+      + (c.pick === i ? ' pick' : '');
+    paint(cell, cls, s.item.kind==='stock' ? beanIcon() : cellIcon(RECIPES[s.item.id].t),
+          s.moving, c.pick === i);
+  });
+}
+
+// 탈출 지점 안내 — 화면 밖이면 가장자리에 방향과 남은 거리를 띄운다.
+// 시간 안에 못 돌아오면 가방을 전부 잃는다. 어디로 갈지 모르게 두면 그건 설계 결함이다.
+function homeGuide(t,hd){
+  const hp=iso(HOME[0],HOME[1],0), m=30;
+  const on = hp[0]>m && hp[0]<W-m && hp[1]>m && hp[1]<H-m;
+  if(on) return;                                    // 보이면 표식으로 충분하다
+  const cx=W/2, cy=H/2;
+  let dx=hp[0]-cx, dy=hp[1]-cy;
+  const k=Math.max(Math.abs(dx)/(cx-m), Math.abs(dy)/(cy-m)) || 1;
+  const x=(cx+dx/k)|0, y=(cy+dy/k)|0;
+  // 남은 시간이 촉박하면 붉게 점멸한다
+  const urgent = G.t<18;
+  const col = (urgent && (((t*5)|0)&1)) ? R.blood[3] : R.amber[5];
+  diamond(ctx,x,y,32,col);
+  ctx.fillStyle=R.soot[0]; diamond(ctx,x,y,16,R.soot[0]);
+  // 진행 방향 삼각형
+  const a=Math.atan2(dy,dx);
+  ctx.fillStyle=col;
+  for(let i=0;i<9;i++) ctx.fillRect((x+Math.cos(a)*(10+i))|0,(y+Math.sin(a)*(10+i)/2)|0,2,2);
+  const s=String(Math.round(hd));
+  dots(ctx,s,(x-dotsW(s,1)/2)|0,y+12,col,1);        // 남은 타일 거리
+}
+
+/* ══════════════════ 페이즈 전환 ══════════════════ */
+function endDay(){
+  G.phase='dusk'; hud(); bar(); timerBar(1);
+  BOTS.forEach(b=>{ b.sales += 70+Math.random()*70+b.tier*35; b.gold += 45+Math.random()*45; });
+  duskUI();
+}
+function duskUI(){
+  const menuBtns=ME.owned.map(ri=>{
+    const on=ME.menu.indexOf(ri)>=0;
+    return '<button class="chip" data-reg="'+ri+'" aria-pressed="'+on+'">'+RECIPES[ri].n
+      +'<span class="r">'+RECIPES[ri].t.split('.')[1]+' x'+RECIPES[ri].m+'</span></button>';
+  }).join('');
+  const facBtns=FACIL.map(f=>{
+    const has=ME.fac[f.id], can=ME.gold>=f.c;
+    return '<button class="chip" data-fac="'+f.id+'"'+(has||!can?' disabled':'')
+      +' aria-pressed="'+!!has+'" title="'+f.d+'">'+f.n
+      +'<span class="c">'+(has?'보유':f.c+'G')+'</span></button>';
+  }).join('');
+  const known=ME.found.length;
+  ov.innerHTML='<h2>DAY '+ME.day+' — 황혼</h2>'
+   +'<p>오늘 <b>'+Math.round(G.daySales)+'G</b> 판매. 보유 <b>'+Math.round(ME.gold)+'G</b> · 단골 '+ME.regulars+' · 원두 '+ME.stock+'</p>'
+   +'<div class="sec">메뉴판 — 3칸. 등록한 것만 팔리고, 등록한 것만 털립니다</div>'
+   +'<div class="chips">'+menuBtns+'</div>'
+   +'<div class="sec">시설 투자 — 키울수록 매출도 동선도 늘어납니다</div><div class="chips">'+facBtns+'</div>'
+   +'<div class="sec">출격</div><div class="chips">'
+     +'<button class="chip" data-s="farm" aria-pressed="'+(G.sortie==='farm')+'">좀비 구역 파밍<span class="c">중위험</span></button>'
+     +'<button class="chip" data-s="raid" aria-pressed="'+(G.sortie==='raid')+'"'+(known?'':' disabled')+'>남의 카페 습격<span class="c">'+(known?'고위험':'위치 미상')+'</span></button>'
+     +'<button class="chip" data-s="stay" aria-pressed="'+(G.sortie==='stay')+'">카페에 남는다<span class="c">무위험</span></button>'
+   +'</div><button class="go" id="goNight">출격</button>';
+  ov.hidden=false;
+  ov.querySelectorAll('[data-reg]').forEach(b=>b.onclick=()=>{
+    const ri=+b.dataset.reg, at=ME.menu.indexOf(ri);
+    if(at>=0) ME.menu[at]=-1;
+    else { const e=ME.menu.indexOf(-1); if(e<0){ say('<span class="bad">메뉴판이 가득 찼습니다.</span>'); return; } ME.menu[e]=ri; }
+    duskUI();
+  });
+  ov.querySelectorAll('[data-fac]').forEach(b=>b.onclick=()=>{
+    const f=FACIL.find(x=>x.id===b.dataset.fac);
+    if(ME.fac[f.id]||ME.gold<f.c) return;
+    ME.gold-=f.c; ME.fac[f.id]=true; say('<b>'+f.n+'</b> — '+f.d); hud(); duskUI();
+  });
+  ov.querySelectorAll('[data-s]').forEach(b=>b.onclick=()=>{ G.sortie=b.dataset.s; duskUI(); });
+  $('goNight').onclick=()=>{ if(G.sortie==='stay'){ G.bag=[]; endNight(true,true); } else startNight(); };
+}
+function endNight(extracted,stayed){
+  closeLoot();
+  const gained=[];
+  if(extracted) G.bag.forEach(x=>{
+    if(x.kind==='stock') ME.stock++;
+    else if(ME.owned.indexOf(x.id)<0){ ME.owned.push(x.id); gained.push(RECIPES[x.id].n); }
+  });
+  let raided=null;
+  BOTS.forEach(b=>{
+    if(ME.day<2 || stayed) return;
+    if(!b.knows && Math.random()<.35) b.knows=true;
+    if(!b.knows) return;
+    let p=.45; if(ME.fac.lock) p-=.22;
+    if(Math.random()<p){
+      const steal=Math.round(ME.gold*(ME.fac.vault?.16:.40));
+      ME.gold-=steal; b.gold+=steal; b.tier+=.5; raided={n:b.name,g:steal};
+    }
+  });
+  G.phase='settle'; hud(); settleUI(extracted,gained,raided,stayed);
+}
+function settleUI(extracted,gained,raided,stayed){
+  const rows=ranked().map((p,i)=>
+    '<div class="row'+(p.me?' self':'')+'"><span class="rk">'+(i+1)+'</span><span>'+esc(p.name)
+    +'</span><span class="dy">DAY '+ME.day+'</span><span class="sc">'+Math.round(p.sales)+'G</span></div>').join('');
+  const last=ME.day>=DAYS;
+  ov.innerHTML='<h2>'+(last?'최종 결산':'DAY '+ME.day+' — 결산')+'</h2>'
+   +'<p>오늘 판매 <b>'+Math.round(G.daySales)+'G</b> · 누적 <b>'+Math.round(ME.sales)+'G</b> · 보유 <b>'+Math.round(ME.gold)+'G</b></p>'
+   +(stayed?'<p>카페에 남아 밤을 지켰습니다. 얻은 것도 잃은 것도 없습니다.</p>'
+     :extracted?'<p>귀환 성공. '+(gained.length?'<b>'+gained.join(', ')+'</b> 확보.':'새 레시피는 없었습니다.')+'</p>'
+     :'<p style="color:#D9463C">귀환 실패. 가방을 전부 잃었습니다.</p>')
+   +(raided?'<p style="color:#D9463C"><b>'+esc(raided.n)+'</b>이(가) 내 카페를 털었습니다. −'+raided.g+'G'
+      +(ME.fac.vault?' (금고가 막아냈습니다)':'')+'</p>':'')
+   +'<div class="sec">순위 — 누적 판매 골드</div><div class="rank">'+rows+'</div>'
+   +'<button class="go" id="goNext">'+(last?'다시 시작':'DAY '+(ME.day+1)+' 시작')+'</button>';
+  ov.hidden=false;
+  $('goNext').onclick=()=>{ if(last){ location.reload(); return; } ME.day++; startDay(); };
+}
+
+function bar(){
+  const b=$('bar');
+  if(G.phase==='day'){
+    const it=D.carry;
+    const held = !it ? '빈손'
+      : RECIPES[it.r].n + (isDone(it) ? ' · 완성' : ' · 다음 ' + PROC[nextProc(it)].ok);
+    const busy=COOK.filter(s=>D.st[s.id].state!=='idle').length;
+    b.innerHTML='<div class="slot'+(it?' armed':'')+'"><span class="key">손</span><span class="nm">'+held+'</span></div>'
+      +'<div class="slot'+(busy?' armed':'')+'"><span class="key">가동</span><span class="nm">'+busy+' / '+COOK.length+' 스테이션</span></div>'
+      +'<div class="slot armed"><span class="key">서빙대</span><span class="nm">'+(D.served.length?D.served.length+'잔 대기':'비어 있음')+'</span></div>'
+      +ME.menu.map((ri,i)=>ri<0
+        ? '<div class="slot empty"><span class="key">'+(i+1)+'</span><span class="nm">빈 메뉴판</span></div>'
+        : '<div class="slot'+(i===D.recipe?' armed':'')+'"><span class="key">'+(i+1)+'</span><span class="nm">'
+          +RECIPES[ri].n+'</span><span class="tg">'+(stepsOf(ri).map(k=>PROC[k].ok).join('→')||'즉시')+'</span></div>').join('');
+    $('help').innerHTML='<span><kbd>WASD</kbd> 이동</span><span><kbd>E</kbd> 스테이션</span>'
+      +'<span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 만들 메뉴</span>'
+      +'<span>레시피마다 공정이 다릅니다. 그라인더·머신은 <b>2대</b>라 여러 잔을 겹칠 수 있습니다</span>';
+  } else if(G.phase==='night'){
+    b.innerHTML='<div class="slot armed"><span class="key">'+G.bag.length+'/'+bagCap()+'</span><span class="nm">'
+      +(G.bag.length?G.bag.map(x=>x.label).join(' · '):'가방이 비어 있음')+'</span></div>'
+      +'<div class="slot'+(N.hp<2?' hot':' armed')+'"><span class="key">HP</span><span class="nm">'
+      +'■'.repeat(Math.max(0,N.hp))+'□'.repeat(Math.max(0,3-N.hp))+'</span></div>';
+    $('help').innerHTML='<span><kbd>WASD</kbd> 이동</span><span><kbd>SHIFT</kbd> 달리기 · 소음↑</span>'
+      +'<span><kbd>E</kbd> 수색 / 습격 / 귀환</span>'
+      +'<span><b>수색 중에는 움직일 수 없습니다.</b></span>'
+      +'<span>탈출 지점은 <b>내 카페(HOME)</b> — 화면 밖이면 가장자리에 방향과 거리가 뜹니다</span>';
+  } else { b.innerHTML=''; $('help').innerHTML=''; }
+}
+
+/* ══════════════════ 루프 ══════════════════ */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.05,(now-last)/1000); last=now;
+  const t=now/1000;
+  if(G.phase==='day'){ updateDay(dt); drawDay(t); }
+  else if(G.phase==='night'){ updateNight(dt); drawNight(t); }
+  else drawDay(t);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+function intro(){
+  ov.innerHTML='<h2>BLOOD &amp; BEAN</h2>'
+   +'<p>핵전쟁 이후, 살아남은 사람들에게 커피를 파는 <b>'+DAYS+'일</b>. 낮에는 카페를 운영하고, 밤에는 좀비 구역에서 레시피를 훔쳐옵니다.</p>'
+   +'<p><b>승패는 하나뿐입니다 — 마지막 날 누적 판매 골드가 가장 높은 사람이 이깁니다.</b></p>'
+   +'<div class="sec">낮 — 오버쿡</div><p>메뉴를 고르는 게 아니라 <b>좁은 주방을 뛰어다니는</b> 게임입니다. '
+   +'<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>으로 만들 메뉴를 고르고 <kbd>WASD</kbd>로 이동, <kbd>E</kbd>로 조작. '
+   +'<b>레시피마다 거치는 공정이 다릅니다</b> — 에스프레소는 분쇄→추출, 라떼는 마무리가 더 붙고, '
+   +'콜드브루는 오래 걸리지만 타지 않습니다. <b>그라인더와 머신이 2대씩</b>이라 여러 잔을 동시에 굴려야 합니다. '
+   +'다 된 걸 방치하면 <b>탑니다</b>.</p>'
+   +'<div class="sec">밤 — 타르코프</div><p><kbd>E</kbd>로 컨테이너를 열면 내용물이 <b>가려진 채</b> 시작해 슬롯이 하나씩 공개됩니다. '
+   +'<b>수색 중에는 움직일 수 없고</b>, 소음이 좀비를 부릅니다. 좀비는 <b>건물에만</b> 있고, 좋은 물자도 거기 있습니다. '
+   +'시간 안에 <b>HOME</b>으로 못 돌아오면 가방을 전부 잃습니다.</p>'
+   +'<button class="go" id="goStart">개업</button>'
+   +'<button class="chip" id="goSkip" style="align-self:flex-start;margin-top:-4px">'
+   +'낮을 건너뛰고 밤부터 보기<span class="c">DEBUG</span></button>';
+  ov.hidden=false;
+  $('goStart').onclick=()=>startDay();
+  // 낮이 70초라 밤까지 가는 데 시간이 걸린다. 확인용 지름길.
+  $('goSkip').onclick=()=>{ ov.hidden=true; ME.found=[BOTS[0].name]; startNight(); };
+}
+hud(); bar(); intro();
+
+/* ══════════════════ 셀프 체크 ══════════════════ */
+(function selftest(){
+  const e=[];
+  const cols=new Set(ALL);
+  if(cols.size!==46) e.push('팔레트 '+cols.size+'색 (46 아님)');
+  if(ALL.length!==46) e.push('램프 색 합 '+ALL.length);
+  // 램프는 어두움 → 밝음 순이어야 한다 (§3 규칙 5)
+  Object.keys(R).forEach(k=>{
+    const lum=R[k].map(h=>parseInt(h.slice(1,3),16)+parseInt(h.slice(3,5),16)+parseInt(h.slice(5,7),16));
+    for(let i=1;i<lum.length;i++) if(lum[i]<=lum[i-1]) e.push(k+' 램프 '+i+'단이 더 어두움');
+  });
+  // 모든 손님 태그에 아이콘이 있어야 한다 — 월드에 한글을 그리지 않으므로
+  const probe=document.createElement('canvas'); probe.width=probe.height=16;
+  const pc=probe.getContext('2d',{willReadFrequently:true});
+  TAGS.forEach(tg=>{
+    pc.clearRect(0,0,16,16); icon(pc,tg,0,0);
+    const d=pc.getImageData(0,0,16,16).data;
+    let n=0; for(let i=3;i<d.length;i+=4) if(d[i]) n++;
+    if(n<20) e.push('아이콘 비어 있음: '+tg);
+  });
+  ['st.empty','st.busy','st.done','st.burnt'].forEach(k=>{
+    pc.clearRect(0,0,16,16); icon(pc,k,0,0);
+    const d=pc.getImageData(0,0,16,16).data;
+    let n=0; for(let i=3;i<d.length;i+=4) if(d[i]) n++;
+    if(n<10) e.push('아이콘 비어 있음: '+k);
+  });
+  // 다이아가 실제로 64×32 (2:1)
+  const pb=document.createElement('canvas'); pb.width=pb.height=64;
+  const bc=pb.getContext('2d',{willReadFrequently:true});
+  diamond(bc,32,32,64,'#ffffff');
+  const dd=bc.getImageData(0,0,64,64).data;
+  let wide=0, rows=0;
+  for(let y=0;y<64;y++){ let n=0; for(let x=0;x<64;x++) if(dd[(y*64+x)*4+3]) n++; if(n){rows++; if(n>wide)wide=n;} }
+  if(wide!==64||rows!==32) e.push('다이아 '+wide+'x'+rows+' (64x32 아님)');
+  // 캔버스가 640×360
+  if(cv.width!==1280||cv.height!==720) e.push('캔버스 '+cv.width+'x'+cv.height);
+  // 에셋을 file://에서 읽으면 메인 캔버스가 오염돼 getImageData가 막힌다.
+  // 셀프체크는 아래처럼 별도 프로브 캔버스에서만 픽셀을 읽는다.
+  // 에셋이 주입됐다면 이름이 매핑과 맞아야 한다 — 오타 나면 조용히 폴백돼서 안 보인다
+  const known=Object.keys(ASSETS);
+  if(known.length){
+    Object.keys(ASSET_OF).forEach(function(k){ if(known.indexOf(ASSET_OF[k])<0) e.push('에셋 없음: '+ASSET_OF[k]); });
+    Object.keys(ST_ASSET).forEach(function(ty){
+      if(!ST_ASSET[ty].some(function(n){ return known.indexOf(n)>=0; }))
+        e.push(ty+' 스테이션 에셋 없음'); });
+    Object.keys(WALK_SET).forEach(function(k){
+      var have=WALK_SET[k].filter(function(n){ return known.indexOf(n)>=0; }).length;
+      if(have>0 && have<WALK_SET[k].length)
+        e.push(k+' 걷기 프레임 '+have+'/'+WALK_SET[k].length+' — 일부만 있으면 재생 안 됨');
+    });
+  }
+  // 오버쿡 체인이 끊기지 않았는지 — 스테이션 4종이 모두 있어야 한 잔이 나온다
+  ['shelf','grind','brew','serve'].forEach(ty=>{ if(!ST.find(s=>s.type===ty)) e.push('스테이션 없음: '+ty); });
+  // 오버쿡의 전제 = 병렬. 종류당 1대뿐이면 여러 잔을 동시에 못 굴린다.
+  ['grind','brew'].forEach(ty=>{
+    if(ST.filter(s=>s.type===ty).length<2) e.push(ty+' 스테이션이 1대뿐 — 병렬 불가');
+  });
+  // 모든 레시피의 공정이 실제 스테이션으로 존재해야 한다
+  RECIPES.forEach(function(r){
+    (STEPS[r.t]||[]).forEach(function(k){
+      if(!PROC[k]) e.push(r.n+' 공정 정의 없음: '+k);
+      else if(!ST.find(s=>s.type===k)) e.push(r.n+' 공정 스테이션 없음: '+k);
+    });
+  });
+  // 방향키가 화면 기준으로 도는지. 회전이 빠지면 조작이 45도 어긋난다.
+  [['ArrowRight',1,0],['ArrowLeft',-1,0],['ArrowUp',0,-1],['ArrowDown',0,1]].forEach(function(t){
+    keys[t[0]]=true;
+    var v=moveVec(), sdx=v[0]-v[1], sdy=v[0]+v[1];   // 타일 -> 화면
+    keys[t[0]]=false;
+    if(Math.sign(sdx)!==t[1]||Math.sign(sdy)!==t[2])
+      e.push(t[0]+' 이동 방향 어긋남 ('+sdx+','+sdy+')');
+  });
+  // 좀비는 건물에만 스폰된다 (§7.2-4)
+  if(!BLDG.some(b=>b.z>0)) e.push('좀비 스폰 건물이 없음');
+  if(!BLDG.some(b=>b.z===0)) e.push('빈 건물이 없음');
+  const el=$('selftest');
+  el.textContent=e.length?('SELFTEST FAIL - '+e[0])
+    :'SELFTEST OK - 1280x720 / '+Object.keys(ASSETS).length+' ASSETS / '+ST.length+' STATIONS / OVERCOOKED+TARKOV';
+  el.className=e.length?'bad':'';
+  if(e.length) console.error(e);
+})();

@@ -1,5 +1,12 @@
 """BLOOD & BEAN — Codex imagegen 산출물을 게임 에셋으로 가공한다.
 
+  [주의] 현재 게임 에셋은 **PixelLab API(Art/pixellab_gen.py)** 로 생성한다.
+  이 스크립트는 Codex imagegen 시절의 파이프라인이고, 두 스크립트가 같은
+  Art/assets/ 에 쓰기 때문에 이걸 그냥 돌리면 PixelLab 산출물을 덮어쓴다.
+  여기 있는 팔레트·트림·양자화·배포 함수는 pixellab_gen.py 가 그대로 재사용하므로
+  지우지 말 것 — 진입점(main)만 쓰지 않는다.
+
+
 Codex는 각 에셋을 "배경 + 오브젝트 하나"로 생성하고, 경로를 Art/assets/MANIFEST.md
 표에 적어 둔다. (단색 마젠타 배경을 요청했지만 imagegen이 지키지 않아, 배경 제거는
 색 키잉이 아니라 플러드 필로 한다.) 이 스크립트가 하는 일:
@@ -8,12 +15,11 @@ Codex는 각 에셋을 "배경 + 오브젝트 하나"로 생성하고, 경로를
   2. 배경을 국소 허용치 플러드 필로 잘라 투명으로 만든다
   3. 내용물 바운딩 박스로 트림
   4. 에셋 종류별 목표 크기로 축소 (LANCZOS) 후 46색 팔레트로 양자화 — 다시 도트로 세운다
-  5. Art/assets/<name>.png 로 저장하고, base64를 Prototype/blood-and-beans.html 의
-     ASSETS 블록에 주입한다 (file:// 에서도 외부 이미지 없이 도는 단일 파일 유지)
+  5. Art/assets/<name>.png 로 저장하고, 게임이 읽는 Prototype/assets/ 로 복사한 뒤
+     Prototype/game.js 의 ASSET_NAMES 목록을 갱신한다
 
 실행: python Art/prep_assets.py
 """
-import base64
 import io as _io
 import os
 import re
@@ -24,8 +30,10 @@ from PIL import Image
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 ASSETS = os.path.join(HERE, "assets")
-MANIFEST = os.path.join(ASSETS, "MANIFEST.md")
-GAME = os.path.join(ROOT, "Prototype", "blood-and-beans.html")
+MANIFESTS = [os.path.join(ASSETS, n) for n in
+             ("MANIFEST.md", "MANIFEST_WALK.md", "MANIFEST_PROPS2.md", "MANIFEST_REST.md")]
+GAME_JS = os.path.join(ROOT, "Prototype", "game.js")
+GAME_ASSETS = os.path.join(ROOT, "Prototype", "assets")
 
 # 아트컨셉 v2.1 §3 — 46색 11램프
 RAMPS = {
@@ -50,20 +58,37 @@ TARGET_H = {
     "counter": 108, "grinder": 120, "espresso_machine": 128, "serving_station": 112,
     "bean_shelf": 168, "cafe_table": 104, "metal_container": 96,
     "drawer_chest": 96, "random_box": 92,
+    # 콜드탱크는 일부러 크게 — 가장 오래 걸리는 공정이라 멀리서도 구분돼야 한다
+    "cold_brew_tank": 152, "steam_wand": 116,
+    "guest_d": 146, "corpse": 74, "barrel": 104,
+    # 건물은 타일 1칸이지만 존의 랜드마크다 — 인물보다 확실히 크게
+    "cafe_home": 176, "cafe_rival": 176,
     "tile_cafe_floor": 64, "tile_zone_floor": 64,
+    # 걷기 프레임 — 대응 idle과 높이가 같아야 한다. 다르면 재생 중 키가 튄다.
+    "player_walk_0": 150, "player_walk_1": 150, "player_walk_2": 150, "player_walk_3": 150,
+    "zombie_walk_0": 150, "zombie_walk_1": 150,
+    "raider_walk_0": 152, "raider_walk_1": 152,
+    "guest_a_walk_0": 146,
 }
 DEFAULT_H = 128
 # 타일은 비율 유지가 아니라 정확한 크기여야 한다. 논리 64x32의 2배 = 128x64.
 # 생성 결과가 2:1이 아니면 바닥 이음새가 어긋난다.
-TARGET_WH = {"tile_cafe_floor": (128, 64), "tile_zone_floor": (128, 64)}
+# 타일은 정확히 2:1 이어야 이음새가 맞는다. 벽은 인접 타일 간격(64 device px)의
+# 2배 폭이라야 겹쳐 깔리면서 틈이 안 생긴다.
+TARGET_WH = {"tile_cafe_floor": (128, 64), "tile_zone_floor": (128, 64),
+             "wall_cafe": (128, 152), "wall_ruined": (128, 152)}
 
 
 def read_manifest():
-    """MANIFEST.md 의 | asset | temp_path | 표를 읽는다."""
-    if not os.path.exists(MANIFEST):
-        sys.exit("MANIFEST.md 가 없습니다: " + MANIFEST)
+    """MANIFEST*.md 의 | asset | temp_path | 표를 전부 읽는다."""
+    files = [f for f in MANIFESTS if os.path.exists(f)]
+    if not files:
+        sys.exit("MANIFEST 파일이 없습니다: " + ", ".join(MANIFESTS))
     rows = []
-    for line in _io.open(MANIFEST, encoding="utf-8"):
+    lines = []
+    for f in files:
+        lines.extend(_io.open(f, encoding="utf-8").readlines())
+    for line in lines:
         if not line.strip().startswith("|"):
             continue
         cells = [c.strip() for c in line.strip().strip("|").split("|")]
@@ -75,7 +100,12 @@ def read_manifest():
         path = path.strip("`").replace("\\\\", "\\")   # MANIFEST가 역슬래시를 이스케이프해 적는다
         if path.lower().endswith(".png"):
             rows.append((name, path))
-    return rows
+    # 같은 이름이 여러 매니페스트에 있으면 **나중 것이 이긴다** (재생성본이 최신이다).
+    # 이걸 안 하면 캐시가 옛 항목을 먼저 구워버려 재생성이 반영되지 않는다.
+    latest = {}
+    for name, path in rows:
+        latest[name] = path
+    return list(latest.items())
 
 
 def key_background(im, tol=26):
@@ -121,11 +151,14 @@ def key_background(im, tol=26):
     for y in range(h):
         base = y * w
         for x in range(w):
-            if bg[base + x]:
+            r, g, b = px[x, y]
+            # 플러드 필은 '둘러싸인' 배경에 못 닿는다 (예: 탱크 기둥 사이).
+            # 마젠타는 오브젝트에 쓰지 말라고 지시했으므로 색으로도 한 번 더 자른다.
+            magenta = r > 150 and b > 150 and g < 110 and abs(r - b) < 80
+            if bg[base + x] or magenta:
                 op[x, y] = (0, 0, 0, 0)
                 cut += 1
             else:
-                r, g, b = px[x, y]
                 op[x, y] = (r, g, b, 255)
     if cut < w * h * 0.25:
         raise ValueError("배경이 %.0f%%밖에 안 잘렸습니다 — 오브젝트가 테두리에 붙었을 수 있음" % (cut / (w * h) * 100))
@@ -186,25 +219,23 @@ def process(name, path):
     return im
 
 
-def inject(assets):
-    """base64를 게임 HTML의 ASSETS 블록에 주입 — 단일 파일 유지."""
-    if not os.path.exists(GAME):
-        print("  (게임 파일이 없어 주입은 건너뜁니다)")
-        return
-    src = _io.open(GAME, encoding="utf-8").read()
-    m = re.search(r"/\*ASSETS_START\*/.*?/\*ASSETS_END\*/", src, re.S)
-    if not m:
-        print("  (ASSETS 주입 지점이 없어 건너뜁니다)")
-        return
-    parts = []
+def publish(assets):
+    """PNG를 게임 폴더로 복사하고 game.js 의 ASSET_NAMES 목록을 맞춘다."""
+    os.makedirs(GAME_ASSETS, exist_ok=True)
     for name, im in assets:
-        buf = _io.BytesIO()
-        im.save(buf, "PNG", optimize=True)
-        b64 = base64.b64encode(buf.getvalue()).decode("ascii")
-        parts.append('"%s":"data:image/png;base64,%s"' % (name, b64))
-    blob = "/*ASSETS_START*/{" + ",\n".join(parts) + "}/*ASSETS_END*/"
-    _io.open(GAME, "w", encoding="utf-8").write(src[:m.start()] + blob + src[m.end():])
-    print("  게임에 %d개 주입 (%.0f KB)" % (len(assets), len(blob) / 1024))
+        im.save(os.path.join(GAME_ASSETS, name + ".png"))
+    if not os.path.exists(GAME_JS):
+        print("  (game.js 가 없어 목록 갱신은 건너뜁니다)")
+        return
+    src = _io.open(GAME_JS, encoding="utf-8").read()
+    m = re.search(r"const ASSET_NAMES=\[.*?\];", src, re.S)
+    if not m:
+        print("  (ASSET_NAMES 를 못 찾아 목록 갱신은 건너뜁니다)")
+        return
+    names = sorted(n for n, _ in assets)
+    decl = "const ASSET_NAMES=[\n  " + ",\n  ".join("'" + n + "'" for n in names) + "\n];"
+    _io.open(GAME_JS, "w", encoding="utf-8").write(src[:m.start()] + decl + src[m.end():])
+    print("  Prototype/assets/ 에 %d개 복사 + game.js 목록 갱신" % len(assets))
 
 
 def main():
@@ -214,13 +245,21 @@ def main():
     os.makedirs(ASSETS, exist_ok=True)
     done, failed = [], []
     for name, path in rows:
+        out = os.path.join(ASSETS, name + ".png")
+        # 플러드 필이 장당 수 초 걸린다. 원본이 그대로면 다시 하지 않는다.
+        # 다시 굽고 싶으면 Art/assets/<name>.png 를 지우면 된다.
+        if os.path.exists(out) and os.path.getmtime(out) >= os.path.getmtime(path):
+            im = Image.open(out).convert("RGBA")
+            done.append((name, im))
+            print("  --   %-18s %dx%d (캐시)" % (name, im.width, im.height))
+            continue
         try:
             im = process(name, path)
         except Exception as ex:
             failed.append((name, str(ex)))
             print("  FAIL %-18s %s" % (name, ex))
             continue
-        im.save(os.path.join(ASSETS, name + ".png"))
+        im.save(out)
         done.append((name, im))
         print("  ok   %-18s %dx%d" % (name, im.width, im.height))
 
@@ -236,7 +275,7 @@ def main():
             assert (im.width, im.height) == TARGET_WH[name],                 "%s: 타일이 %dx%d (2:1 아님)" % (name, im.width, im.height)
     print("\n%d개 성공 / %d개 실패" % (len(done), len(failed)))
     if done:
-        inject(done)
+        publish(done)
     if failed:
         print("실패:", ", ".join(n for n, _ in failed))
 

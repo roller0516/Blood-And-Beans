@@ -1,4 +1,7 @@
-# BLOOD & BEANS — 아트 컨셉
+# BLOOD & BEAN — 아트 컨셉 (v1.0 · 폐기됨)
+
+> **폐기된 버전입니다. 최신본은 [Blood&Bean_아트컨셉_v2.1.md](Blood&Bean_아트컨셉_v2.1.md).**
+> 320x180 / 32x16 타일 / 24색 저해상도 도트 안. v2.0에서 HD 도트(640x360)로 전환하며 폐기했습니다.
 
 > 2D 도트(픽셀 아트) · **쿼터뷰 단일 시점**. 이 문서는 그림을 그리기 전에 고정해야 하는 규격과 규칙만 다룹니다.
 > 근거는 [Blood&Bean_기획서_v1.0.md](Blood&Bean_기획서_v1.0.md), 규격 설명은 [art-bible.html](../기획/art-bible.html), 실제로 이 규격이 돌아가는 것은 [blood-and-beans.html](../기획/blood-and-beans.html)(플레이 가능한 프로토타입).

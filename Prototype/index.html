@@ -1,0 +1,56 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BLOOD &amp; BEAN</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=IBM+Plex+Sans+KR:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<div class="cab">
+
+<header>
+  <h1>BLOOD <span class="amp">&amp;</span> BEAN</h1>
+  <span class="mode">HD DOT / QUARTER VIEW / 640&times;360 / 64&times;32 / 46 COLORS</span>
+</header>
+
+<div class="hud">
+  <div class="stat"><div class="k">DAY</div><div class="v" id="hDay">1</div></div>
+  <div class="stat ph"><div class="k">PHASE</div><div class="v" id="hPhase">&mdash;</div></div>
+  <div class="stat"><div class="k">SALES</div><div class="v" id="hSales">0</div></div>
+  <div class="stat"><div class="k">GOLD</div><div class="v" id="hGold">0</div></div>
+  <div class="stat"><div class="k">RANK</div><div class="v" id="hRank">1</div></div>
+</div>
+<div class="timer"><i id="hTimer"></i></div>
+
+<div class="stage">
+  <canvas id="cv" width="1280" height="720"></canvas>
+  <div class="fx"></div>
+  <div class="flash" id="flash"></div>
+  <div class="loot" id="loot" hidden>
+    <div class="lootWrap">
+      <section class="lootPanel">
+        <header><span class="ttl" id="lootBagTtl">내 가방</span><span class="cap" id="lootBagCap"></span></header>
+        <div class="grid" id="lootBagGrid"></div>
+      </section>
+      <section class="lootPanel">
+        <header><span class="ttl" id="lootBoxTtl">컨테이너</span><span class="cap" id="lootBoxCap"></span></header>
+        <div class="grid" id="lootBoxGrid"></div>
+      </section>
+    </div>
+    <div class="lootHint">아이템을 <b>클릭</b>하거나 <kbd>1</kbd>~<kbd>9</kbd> 로 고르면 가방으로 옮깁니다 <span class="sep">·</span> <kbd>E</kbd> 닫기 <span class="sep">·</span> 움직이면 수색 중단</div>
+  </div>
+  <div class="ov" id="ov"></div>
+</div>
+
+<div class="bar" id="bar"></div>
+<div class="log" id="log"></div>
+<div class="help" id="help"></div>
+<div class="rank" id="rank"></div>
+
+<footer>
+  <span>BLOOD &amp; BEAN &mdash; 낮에 번 걸 밤에 지킨다</span>
+  <span id="selftest">SELFTEST ...</span>
+</footer>
+</div>
+
+<script src="engine.js"></script>
+<script src="game.js"></script>
+</body></html>
