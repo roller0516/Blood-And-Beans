@@ -7,6 +7,8 @@
 | guest_a | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-edc16e85-4d77-4871-9aa8-7f6423eb354a.png |
 | guest_b | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-961ee6c0-f0e0-4d7c-bdc1-7796f4a4a9b9.png |
 | guest_c | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-d662be36-e0cd-465c-a9cd-7eb6798643d9.png |
+| zombie_idle | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-bac348d2-0756-4f3d-851f-9e18ec4d84fe.png |
+| raider_idle | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-7cfb3855-ca67-4139-990c-eed0937bdd98.png |
 | counter | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-59608389-9966-43bb-8948-2512047388ac.png |
 | grinder | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-467dde80-a687-47d9-9edc-ad68c5d593d7.png |
 | espresso_machine | C:\Users\hope\.codex\generated_images\01a01e3d-58c0-7c23-9ccf-74560869ef1f\exec-f88edf72-d75d-4ec4-b670-724c6fb13ddc.png |
@@ -29,6 +31,3 @@
 - player_idle initial exec-91bce099-c4d1-4c4b-b8e5-6c21d03b36c2.png: rejected, black/brown glowing background.
 - zombie_idle initial exec-78127531-b7af-41a3-9793-ea27d871fe36.png: rejected, background brightness variation.
 - raider_idle initial exec-72540156-415d-45d7-95de-ddab662f30c7.png: rejected, green zombie skin.
-
-> zombie_idle / raider_idle 은 걷기 프레임과 완전히 다른 캐릭터로 나와서 제외했다.
-> 대기 자세는 각 걷기 세트의 첫 프레임을 쓴다 (game.js ASSET_OF).
