@@ -1,0 +1,62 @@
+name: EditMode tests
+
+# BB.Rules는 UnityEngine을 참조하지 않으므로 씬도 그래픽스도 없이 돈다.
+# PlayMode(팀 격리·페이즈 수명)는 여기서 돌리지 않는다 — 아키텍처_v1.0.md §5 4단계에서
+# 실제 Host/Client 세션이 필요하고, 그때 별도 워크플로로 추가한다.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'BloodAndBeans/Assets/**'
+      - 'BloodAndBeans/Packages/**'
+      - 'BloodAndBeans/ProjectSettings/**'
+      - '.github/workflows/editmode-tests.yml'
+  pull_request:
+    paths:
+      - 'BloodAndBeans/Assets/**'
+      - 'BloodAndBeans/Packages/**'
+      - 'BloodAndBeans/ProjectSettings/**'
+  workflow_dispatch:
+
+concurrency:
+  group: editmode-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  editmode:
+    name: BB.Tests.EditMode
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      # Library를 캐시하지 않으면 매번 전체 임포트라 실행이 몇 배로 길어진다.
+      - uses: actions/cache@v4
+        with:
+          path: BloodAndBeans/Library
+          key: Library-${{ hashFiles('BloodAndBeans/Packages/packages-lock.json') }}
+          restore-keys: Library-
+
+      - uses: game-ci/unity-test-runner@v4
+        id: tests
+        env:
+          # 저장소 Settings > Secrets에 한 번 넣어야 한다. UNITY_LICENSE는
+          # Unity Personal 라이선스 파일(.ulf)의 내용 전체다.
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: BloodAndBeans
+          # ProjectSettings/ProjectVersion.txt와 반드시 같아야 한다.
+          unityVersion: 6000.5.9f1
+          testMode: editmode
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          checkName: EditMode test results
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: editmode-results
+          path: ${{ steps.tests.outputs.artifactsPath }}
