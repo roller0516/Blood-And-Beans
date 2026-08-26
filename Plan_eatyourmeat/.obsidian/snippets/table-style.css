@@ -1,0 +1,17 @@
+/* 1. 표가 노트 폭을 벗어나 가로로 자유롭게 늘어나도록 해제 */
+.markdown-rendered table,
+.cm-table-widget table {
+    max-width: none !important;
+    width: max-content !important;
+}
+
+/* 2. 각 셀의 최대 너비를 제한하고, 해당 너비 도달 시 줄바꿈 */
+.markdown-rendered th,
+.markdown-rendered td,
+.cm-table-widget th,
+.cm-table-widget td,
+.cm-table-widget .cm-table-cell {
+    max-width: 300px !important;       /* 원하는 셀 최대 너비 지정 */
+    white-space: normal !important;    /* 300px 도달 시 자연스러운 줄바꿈 */
+    word-break: break-word !important; /* 긴 단어나 한글 텍스트 깨짐 방지 */
+}
