@@ -1,15 +1,15 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// One team's larder — what the night hauled back is what the day can sell (doc 2장).
+/// 한 팀의 재고 — 밤에 들고 온 것이 곧 낮에 팔 수 있는 것이다 (기획서 2장).
 ///
-/// This is the link that closed the core loop: before it existed, IngredientShelf handed
-/// out every ingredient forever and nothing a team dug up at night mattered.
+/// 코어 루프를 닫은 연결 고리다. 이것이 생기기 전에는 IngredientShelf가 모든 재료를
+/// 무한히 내줬고, 팀이 밤에 무엇을 캐 왔든 아무 의미가 없었다.
 ///
-/// 원두와 빵 베이스는 들어오지 않는다. 상비 재료라 선반이 무한으로 준다 (doc 7.1).
+/// 원두와 빵 베이스는 들어오지 않는다. 상비 재료라 선반이 무한으로 준다 (기획서 7.1).
 public class TeamStock : NetworkBehaviour
 {
-    /// Indexed by (int)Ingredient. Staple slots stay 0 and are never read.
+    /// (int)Ingredient로 인덱싱한다. 상비 재료 칸은 0으로 남고 읽히지 않는다.
     readonly NetworkList<int> counts = new();
 
     static readonly int Slots = System.Enum.GetValues(typeof(Ingredient)).Length;
@@ -18,7 +18,7 @@ public class TeamStock : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        counts.Clear();                       // a respawn must not stack a second table
+        counts.Clear();                       // 다시 스폰됐을 때 표가 두 벌 쌓이면 안 된다
         for (var i = 0; i < Slots; i++) counts.Add(0);
     }
 
@@ -37,7 +37,7 @@ public class TeamStock : NetworkBehaviour
         counts[slot] += 1;
     }
 
-    /// False when the larder is empty — that menu simply cannot be made today.
+    /// 재고가 없으면 false다. 그 메뉴는 오늘 만들 수 없다는 뜻이다.
     public bool TakeServer(Ingredient i)
     {
         if (!IsServer) return false;
@@ -48,8 +48,8 @@ public class TeamStock : NetworkBehaviour
         return true;
     }
 
-    /// Everything the team currently holds, for the 30% slice of the order forecast
-    /// (doc 5.5 rule 3). Allocates — called once per transition, not per frame.
+    /// 팀이 현재 보유한 전부. 주문 예보의 30% 몫에 쓴다 (기획서 5.5 규칙 3).
+    /// 할당이 발생한다. 매 프레임이 아니라 전환마다 한 번 호출된다.
     public void CopyHeldTo(System.Collections.Generic.List<Ingredient> outp)
     {
         for (var slot = 0; slot < counts.Count; slot++)

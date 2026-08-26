@@ -1,70 +1,95 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// One team's fog. Each team explores its own darkness — a rival clearing a path
-/// does not light it for you.
+/// 모든 캐릭터가 하나의 안개를 공유한다 (기획서 6.1-3/6.2 "개척자의 딜레마").
+/// 누가 개척하든 걷힌 칸은 전원에게 걷힌다.
 ///
-/// NOTE: design doc 6.1-3/6.2 specifies the opposite (fog shared by everyone, the
-/// "개척자의 딜레마"). Per-team was directed by the project owner on 2026-08-24 and
-/// overrides the document here.
-///
-/// Only the owning team's clients receive reveal cells.
+/// 걷힌 칸 집합을 인스턴스가 아니라 프로세스 하나에 둔다. 플레이어 오브젝트마다 셋을 들면
+/// SendTo.Everyone RPC라도 보낸 사람의 오브젝트 사본에서만 실행되어, 정작 내 Local()
+/// 인스턴스는 비어 있는 채로 남는다.
+[RequireComponent(typeof(PlayerTeam))]
 public class FogOfWar : NetworkBehaviour
 {
-    /// Injected by MatchDirector, not serialized: two FogOfWar components sit on one
-    /// GameObject and the team each belonged to was hidden in component order.
-    int teamId = -1;
     [SerializeField] float cellSize = 1f;
-    [SerializeField] int halfCells = 36;        // grid spans -36..36 world units
+    [SerializeField] int halfCells = 120;       // 격자 범위: 월드 좌표 -120~120
     [SerializeField] float revealRadius = 7f;
     [SerializeField] float sampleInterval = 0.15f;
 
-    readonly HashSet<int> local = new();
+    /// 판 전체가 공유하는 걷힌 칸. 도메인 리로드를 꺼도 이전 플레이가 새어 나오지 않도록
+    /// 플레이 진입 때 비운다.
+    static readonly HashSet<int> Revealed = new();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    static void ResetShared()
+    {
+        Revealed.Clear();
+        Changed = null;
+    }
+
+    /// 이번 샘플에서 새로 열린 칸. 매번 배열을 새로 만들지 않고 재사용한다.
+    readonly List<int> pending = new();
 
     float nextSample;
-
+    PlayerTeam playerTeam;
     MatchDirector director;
 
-    /// Bumped when the reveal guard changes, so a stale domain is easy to spot.
-    public const int GuardVersion = 2;
+    /// 시야 공개 규칙이 바뀔 때마다 올린다. 낡은 스냅샷을 덮어쓰지 않기 위한 값이다.
+    public const int GuardVersion = 3;
 
-    public int TeamId => teamId;
+    public int TeamId => playerTeam != null ? playerTeam.Team : -1;
     public int Side => halfCells * 2;
     public float CellSize => cellSize;
-    public int RevealedCount => local.Count;
-    public System.Action Changed;
+    public int RevealedCount => Revealed.Count;
+    public static System.Action Changed;
 
-    /// Called by MatchDirector during Awake, on every peer.
-    public void AssignTeam(int team) => teamId = team;
+    void Awake() => playerTeam = GetComponent<PlayerTeam>();
 
     public override void OnNetworkSpawn()
     {
-        director = MatchDirector.Find();
-        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
+        // 스폰 시점에는 매치 씬이 아직 없다. 직접 캐시하면 null로 굳어 밤마다 도는
+        // 안개 초기화(기획서 6.1)가 영영 걸리지 않는다.
+        MatchDirector.Bind(BindDirector);
+
+        // 늦게 합류해도 지금까지 개척된 안개를 그대로 물려받는다.
+        if (IsServer) SnapshotToOwnerServer();
         Changed?.Invoke();
     }
 
     public override void OnNetworkDespawn()
     {
-        if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
+        MatchDirector.Unbind(BindDirector);
+        BindDirector(null);
     }
 
-    /// Fog resets every night (doc 6.1). The local mirror is cleared by hand because
-    /// NetworkList does not raise OnListChanged back to the writer on Clear.
+    /// 판이 바뀌면 새 인스턴스로 다시 불린다. 시계 구독은 항상 한 곳에만 남긴다.
+    void BindDirector(MatchDirector next)
+    {
+        if (director == next) return;
+        if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
+
+        director = next;
+        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
+    }
+
+    /// 로컬 플레이어의 안개. 클라이언트에서는 이 인스턴스가 채워져야 한다.
+    public static FogOfWar Local()
+    {
+        var po = NetworkManager.Singleton?.LocalClient?.PlayerObject;
+        return po != null ? po.GetComponent<FogOfWar>() : null;
+    }
+
+    /// 안개는 매일 밤 초기화된다 (기획서 6.1).
     void OnPhaseEntered(Phase p)
     {
         if (!IsServer || p != Phase.Night) return;
-        local.Clear();
-        SendClearServer();
-        Changed?.Invoke();
+        FogClearRpc();
     }
 
-    public bool IsRevealed(Vector3 world) => local.Contains(CellIndex(world));
+    public bool IsRevealed(Vector3 world) => Revealed.Contains(CellIndex(world));
 
-    /// Direct cell lookup, so the fog view can walk the grid without round-tripping
-    /// every cell through a world position.
-    public bool IsRevealedCell(int index) => local.Contains(index);
+    /// 직접 셀 인덱스로 확인.
+    public bool IsRevealedCell(int index) => Revealed.Contains(index);
 
     public int CellIndex(Vector3 world)
     {
@@ -84,36 +109,26 @@ public class FogOfWar : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // Cached at spawn — this was a FindFirstObjectByType every frame.
         if (director == null || director.Phase.Current != Phase.Night) return;
+        if (TeamId < 0) return;
 
         if (Time.time < nextSample) return;
         nextSample = Time.time + sampleInterval;
 
-        foreach (var client in NetworkManager.ConnectedClientsList)
-        {
-            var player = client.PlayerObject;
-            if (player == null) continue;
-
-            // No team component yet means the team is not decided — revealing on a
-            // guess leaked a few frames of fog into every team's map.
-            var t = player.GetComponent<PlayerTeam>();
-            if (t == null || t.Team != teamId) continue;   // only your own team lifts your fog
-
-            RevealAround(player.transform.position);
-        }
+        RevealAround(transform.position);
     }
 
     void RevealAround(Vector3 centre)
     {
-        // Rent tier 1+ shrinks the reveal radius (doc 3.3, night column).
-        var ledger = director != null ? director.LedgerOf(teamId) : null;
+        // 임대료 미납 페널티에 따라 시야 범위 축소 적용.
+        var ledger = director != null ? director.LedgerOf(TeamId) : null;
         var radius = revealRadius * (ledger != null ? ledger.VisionScale : 1f);
         var steps = Mathf.CeilToInt(radius / cellSize);
         var origin = CellIndex(centre);
         var ox = origin % Side;
         var oz = origin / Side;
 
+        pending.Clear();
         for (int dz = -steps; dz <= steps; dz++)
         for (int dx = -steps; dx <= steps; dx++)
         {
@@ -122,47 +137,53 @@ public class FogOfWar : NetworkBehaviour
             if (x < 0 || z < 0 || x >= Side || z >= Side) continue;
 
             var idx = z * Side + x;
-            if (local.Contains(idx)) continue;
+            if (Revealed.Contains(idx)) continue;
             if (Vector3.Distance(centre, CellCentre(idx)) > radius) continue;
 
-            local.Add(idx);
-            SendCellServer(idx);
+            pending.Add(idx);
         }
+
+        if (pending.Count == 0) return;
+        ShareServer(pending.ToArray());
     }
 
-    public void SendSnapshotToClientServer(ulong clientId)
+    void ShareServer(int[] cells)
     {
-        if (!IsServer) return;
-        FogSnapshotRpc(new List<int>(local).ToArray(),
-            RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        var changed = false;
+        foreach (var cell in cells) changed |= Revealed.Add(cell);
+        if (changed) Changed?.Invoke();
+
+        // 대상은 어트리뷰트의 SendTo.Everyone이 정한다. 고정 대상 RPC에 RpcTarget을
+        // 넘기면 NGO가 RpcException(Target override is not allowed)으로 막는다.
+        FogCellsRpc(cells);
     }
 
-    void SendCellServer(int index)
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void FogCellsRpc(int[] cells, RpcParams p = default)
     {
-        foreach (var client in NetworkManager.ConnectedClientsList)
-            if (PlayerTeam.Of(client.ClientId) == teamId)
-                FogCellRpc(index, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+        var changed = false;
+        foreach (var cell in cells) changed |= Revealed.Add(cell);
+        if (changed) Changed?.Invoke();
     }
 
-    void SendClearServer()
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void FogClearRpc(RpcParams p = default)
     {
-        foreach (var client in NetworkManager.ConnectedClientsList)
-            if (PlayerTeam.Of(client.ClientId) == teamId)
-                FogSnapshotRpc(System.Array.Empty<int>(),
-                    RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+        Revealed.Clear();
+        Changed?.Invoke();
     }
 
-    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
-    void FogCellRpc(int index, RpcParams p = default)
-    {
-        if (local.Add(index)) Changed?.Invoke();
-    }
+    void SnapshotToOwnerServer() =>
+        FogSnapshotRpc(new List<int>(Revealed).ToArray(),
+            RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp));
 
     [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
     void FogSnapshotRpc(int[] cells, RpcParams p = default)
     {
-        local.Clear();
-        foreach (var cell in cells) local.Add(cell);
-        Changed?.Invoke();
+        // 덮어쓰지 않고 합친다. 스냅샷과 공개 RPC는 서로 다른 오브젝트에서 오므로 도착
+        // 순서가 보장되지 않고, 덮어쓰면 그 사이에 도착한 칸이 영영 사라진다.
+        var changed = false;
+        foreach (var cell in cells) changed |= Revealed.Add(cell);
+        if (changed) Changed?.Invoke();
     }
 }

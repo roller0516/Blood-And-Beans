@@ -1,20 +1,20 @@
 using System.Collections.Generic;
 
-/// Completion gauge judgement (design doc 5.2). Burnt = sold burnt (5.3 "판다").
+/// 완성 게이지 판정 (기획서 5.2). Burnt는 탄 것을 그대로 판 경우다 (5.3 "판다").
 public enum Gauge { Perfect, Good, Miss, Burnt }
 
-/// Bean grade substitution (7.2). Dessert ignores this entirely (5.6.2).
+/// 원두 등급 대체 (7.2). 디저트는 이 값을 아예 무시한다 (5.6.2).
 public enum BeanGrade { Normal, Blood }
 
-/// Final sale price, design doc 5.6.2:
-///   price = base x gauge x beanGrade x (1 + sum of popular bonuses)
-/// Stateless and UnityEngine-free so SalePriceSelfCheck can run it anywhere.
+/// 최종 판매가, 기획서 5.6.2:
+///   가격 = 기본가 x 게이지 x 원두등급 x (1 + 인기재료 보너스 합)
+/// 상태가 없고 UnityEngine에 의존하지 않아 SalePriceSelfCheck가 어디서든 돌릴 수 있다.
 public static class SalePrice
 {
     public const float PopularBonus = 0.30f;
 
-    // ponytail: doc 14장 #12 leaves the top-grade bean multiplier undecided.
-    // 1.5 is a placeholder; move to DT_Bean when the number lands.
+    // ponytail: 기획서 14장 #12에서 최상급 원두 배율이 미결정이다.
+    // 1.5는 임시값이다. 수치가 정해지면 DT_Bean으로 옮긴다.
     public const float BloodBeanMultiplier = 1.5f;
 
     public static float GaugeMultiplier(Gauge g) => g switch
@@ -25,8 +25,8 @@ public static class SalePrice
         _ => 0.3f,
     };
 
-    /// Counts how many popular ingredients the menu contains. Duplicates in the
-    /// menu are not a thing (menus are ingredient sets), so a flat scan is enough.
+    /// 메뉴에 인기 재료가 몇 개 들어 있는지 센다. 메뉴는 재료 집합이라 중복이
+    /// 없으므로 단순 순회로 충분하다.
     public static int PopularCount(IReadOnlyList<Ingredient> menu, IReadOnlyList<Ingredient> popular)
     {
         if (menu == null || popular == null) return 0;
@@ -37,8 +37,8 @@ public static class SalePrice
         return n;
     }
 
-    /// The one that matters. basePrice comes from the menu table; menu lists only
-    /// the forest ingredients (원두/빵 베이스 are always stocked, 7.1).
+    /// 핵심 계산. basePrice는 메뉴 표에서 오고, menu에는 숲 재료만 들어간다
+    /// (원두/빵 베이스는 항상 상비다, 7.1).
     public static int Calculate(
         int basePrice,
         Gauge gauge,
@@ -47,9 +47,9 @@ public static class SalePrice
         IReadOnlyList<Ingredient> menu,
         IReadOnlyList<Ingredient> popular)
     {
-        // Bonuses are summed and applied ONCE, not multiplied (5.6.2).
-        // ponytail: doc 14장 #15 — undecided whether BloodBean/UpgradePart can be
-        // popular at all. Counted as-is here; filter in Forecast if the rule says no.
+        // 보너스는 곱하지 않고 합산해서 한 번만 적용한다 (5.6.2).
+        // ponytail: 기획서 14장 #15 — 블러드빈/업그레이드 부품이 인기 재료가 될 수
+        // 있는지 미결정이다. 여기서는 그대로 센다. 안 된다면 Forecast에서 걸러라.
         var bonus = 1f + PopularCount(menu, popular) * PopularBonus;
         var bean = (!isDessert && grade == BeanGrade.Blood) ? BloodBeanMultiplier : 1f;
 

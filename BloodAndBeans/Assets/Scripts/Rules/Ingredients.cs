@@ -1,17 +1,17 @@
-/// Forest ingredients (design doc 7.1). Bean/BloodBean/Upgrade are heavy, Ice is light.
+/// 숲 재료 (기획서 7.1). 원두/블러드빈/업그레이드 부품은 무겁고, 얼음은 가볍다.
 public enum Ingredient
 {
     None = -1,
     Milk, Cream, Chocolate, Almond, Berry, Ice, BloodBean, UpgradePart,
 
-    // Cafe staples, always stocked, never farmed (doc 7.1).
+    // 카페 상비 재료. 항상 재고가 있고 숲에서 캐지 않는다 (기획서 7.1).
     Bean, BreadBase,
 }
 
 public static class Ingredients
 {
-    // ponytail: placeholder weights — doc 14장 #3 lists these as undecided.
-    // Only the ordering (ice light, bean/upgrade heavy) is specified so far.
+    // ponytail: 임시 무게값 — 기획서 14장 #3에서 미결정으로 남아 있다.
+    // 지금까지 확정된 것은 순서(얼음이 가볍고 원두/업그레이드가 무겁다)뿐이다.
     static readonly float[] Weight =
     {
         1.0f, // Milk

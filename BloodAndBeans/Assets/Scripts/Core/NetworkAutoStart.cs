@@ -3,10 +3,10 @@ using System.Reflection;
 using Unity.Netcode;
 using UnityEngine;
 
-/// Starts the main editor as Host and Multiplayer Play Mode virtual players as Client,
-/// so a 2-player session comes up without clicking anything.
-/// ponytail: reflection because UnityEngine.MultiplayerModule isn't referenced by Assembly-CSharp;
-/// swap to a direct reference if an asmdef ever pulls the module in.
+/// 메인 에디터는 Host로, Multiplayer Play Mode 가상 플레이어는 Client로 시작시킨다.
+/// 클릭 없이 2인 세션이 뜨게 하기 위한 것이다.
+/// ponytail: Assembly-CSharp가 UnityEngine.MultiplayerModule을 참조하지 않아 리플렉션을 쓴다.
+/// asmdef가 그 모듈을 끌어오게 되면 직접 참조로 바꾼다.
 public class NetworkAutoStart : MonoBehaviour
 {
     [SerializeField] bool enableAutoStart = true;
@@ -26,7 +26,7 @@ public class NetworkAutoStart : MonoBehaviour
     {
         var t = Type.GetType("Unity.Multiplayer.PlayMode.CurrentPlayer, UnityEngine.MultiplayerModule");
         var p = t?.GetProperty("IsMainEditor", BindingFlags.Public | BindingFlags.Static);
-        if (p == null) return true; // MPPM absent — behave like a normal single editor
+        if (p == null) return true; // MPPM이 없다 — 평범한 단일 에디터처럼 동작한다
         return (bool)p.GetValue(null);
     }
 }

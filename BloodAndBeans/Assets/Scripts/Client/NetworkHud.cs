@@ -1,12 +1,17 @@
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
 using UnityEngine.UI;
 
-/// Development connection controls, rendered with uGUI.
+/// 개발용 접속 조작 UI. uGUI로 그린다.
+/// 좌상단 개발 열의 첫 번째 패널이다. 아래에 `CheatHud`가 붙으므로 크기를 바꾸면
+/// 그쪽 `anchoredPosition`도 같이 옮겨야 한다.
 public class NetworkHud : MonoBehaviour
 {
+    [Header("레이아웃")]
+    [SerializeField] Vector2 anchoredPosition = new(12f, -12f);
+    [SerializeField] Vector2 size = new(180f, 180f);
+    [SerializeField] int sortingOrder = 20;
+
     Text status;
     Button host;
     Button client;
@@ -15,29 +20,14 @@ public class NetworkHud : MonoBehaviour
 
     void Awake()
     {
-        if (FindFirstObjectByType<EventSystem>() == null)
-            new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+        DevHud.EnsureEventSystem();
+        var panel = DevHud.MakePanel(transform, "Network HUD", sortingOrder, anchoredPosition, size);
 
-        var canvasObject = new GameObject("Network HUD", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
-        canvasObject.transform.SetParent(transform, false);
-        var canvas = canvasObject.GetComponent<Canvas>();
-        canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-        canvas.sortingOrder = 20;
-
-        var panel = new GameObject("Connection", typeof(RectTransform), typeof(VerticalLayoutGroup));
-        panel.transform.SetParent(canvasObject.transform, false);
-        var rect = (RectTransform)panel.transform;
-        rect.anchorMin = new Vector2(0f, 1f);
-        rect.anchorMax = new Vector2(0f, 1f);
-        rect.pivot = new Vector2(0f, 1f);
-        rect.anchoredPosition = new Vector2(12f, -12f);
-        rect.sizeDelta = new Vector2(180f, 180f);
-
-        status = MakeText(panel.transform, "Disconnected");
-        host = MakeButton(panel.transform, "Host", () => NetworkManager.Singleton?.StartHost());
-        client = MakeButton(panel.transform, "Client", () => NetworkManager.Singleton?.StartClient());
-        server = MakeButton(panel.transform, "Server", () => NetworkManager.Singleton?.StartServer());
-        shutdown = MakeButton(panel.transform, "Shutdown", () => NetworkManager.Singleton?.Shutdown());
+        status = DevHud.MakeText(panel, "Disconnected");
+        host = DevHud.MakeButton(panel, "Host", () => NetworkManager.Singleton?.StartHost());
+        client = DevHud.MakeButton(panel, "Client", () => NetworkManager.Singleton?.StartClient());
+        server = DevHud.MakeButton(panel, "Server", () => NetworkManager.Singleton?.StartServer());
+        shutdown = DevHud.MakeButton(panel, "Shutdown", () => NetworkManager.Singleton?.Shutdown());
     }
 
     void Update()
@@ -52,35 +42,5 @@ public class NetworkHud : MonoBehaviour
         status.text = !connected ? "Disconnected" :
             $"{(manager.IsHost ? "Host" : manager.IsServer ? "Server" : "Client")} · " +
             $"{(manager.IsServer ? manager.ConnectedClients.Count : 1)} client(s)";
-    }
-
-    static Text MakeText(Transform parent, string value)
-    {
-        var gameObject = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(LayoutElement));
-        gameObject.transform.SetParent(parent, false);
-        var text = gameObject.GetComponent<Text>();
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-        text.fontSize = 16;
-        text.color = Color.white;
-        text.text = value;
-        gameObject.GetComponent<LayoutElement>().preferredHeight = 28f;
-        return text;
-    }
-
-    static Button MakeButton(Transform parent, string label, UnityEngine.Events.UnityAction action)
-    {
-        var gameObject = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button), typeof(LayoutElement));
-        gameObject.transform.SetParent(parent, false);
-        gameObject.GetComponent<Image>().color = new Color(0.18f, 0.20f, 0.24f, 0.95f);
-        gameObject.GetComponent<LayoutElement>().preferredHeight = 32f;
-        var button = gameObject.GetComponent<Button>();
-        button.onClick.AddListener(action);
-        var text = MakeText(gameObject.transform, label);
-        text.alignment = TextAnchor.MiddleCenter;
-        var rect = text.rectTransform;
-        rect.anchorMin = Vector2.zero;
-        rect.anchorMax = Vector2.one;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
-        return button;
     }
 }

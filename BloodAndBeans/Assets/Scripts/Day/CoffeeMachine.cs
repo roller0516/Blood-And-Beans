@@ -1,9 +1,9 @@
 using UnityEngine;
 
-/// Short cook time (doc 5.1). Nothing else differs from the base.
+/// 제작 시간이 짧다 (기획서 5.1). 그 외에는 기반 클래스와 다르지 않다.
 public class CoffeeMachine : Station
 {
-    void Reset() => cookSeconds = 4f;   // ponytail: placeholder, doc 14장 has no timings
+    void Reset() => cookSeconds = 4f;   // ponytail: 임시값. 기획서 14장에 시간 표가 없다
 
     protected override bool AcceptsIngredient(Ingredient ingredient, int currentCount) =>
         currentCount == 0

@@ -1,0 +1,210 @@
+Created At: 2026-08-26T16:31:37+09:00
+Completed At: 2026-08-26T16:31:37+09:00
+
+				The command exited with code 0.
+				Output:
+				using System.Collections.Generic;
+using Unity.Netcode;
+using UnityEngine;
+
+/// 캐릭????명의 ?�개. 컴포?�트???�레?�어마다 ?�나??붙�?�? 걷힌 칸�? ?�?무�??�게
+/// **모두가 공유**?�다 (기획??6.1-3/6.2 "개척?�의 ?�레�? ?�복).
+/// ?�군가 개척??길�? ???�면?�서???�려 ?�고, ?�? ?�?�게???�린??
+///
+/// 밝�?�??�?� ??컴포?�트�??�유???�라?�언?�에게만 ?�달?�?�? ?�버가 모든 ?�라?�언?�의
+/// ?�스?�스???�같?� 집합???�기?�시�?주�?�?게임 ??모두가 같�? ?�야�?본다.
+[RequireComponent(typeof(PlayerTeam))]
+public class FogOfWar : NetworkBehaviour
+{
+    [SerializeField] float cellSize = 1f;
+    [SerializeField] int halfCells = 120;       // 격자 범위???�드 좌표 -120~120
+    [SerializeField] float revealRadius = 7f;
+    [SerializeField] float sampleInterval = 0.15f;
+
+    readonly HashSet<int> local = new();
+
+    /// ?�번 ?�플?�서 ?�로 ?�린 �? ?�???�만??배열???�시 만들지 ?�으?�고 ?�사?�한??
+    readonly List<int> pending = new();
+
+    float nextSample;
+
+    PlayerTeam playerTeam;
+    MatchDirector director;
+
+    /// ?�야 공개 가?�? 바�????�린?? ?�? ?�메?�을 ?�게 ?�아보기 ?�한 값이??
+    public const int GuardVersion = 3;
+
+    /// ?�?� ???�상 주입받�? ?�는?? ?�개가 캐릭?�에 붙었?�?�?�?캐릭?�의 ?�??�??�이??
+    public int TeamId => playerTeam != null ? playerTeam.Team : -1;
+    public int Side => halfCells * 2;
+    public float CellSize => cellSize;
+    public int RevealedCount => local.Count;
+    public System.Action Changed;
+
+    void Awake() => playerTeam = GetComponent<PlayerTeam>();
+
+    public override void OnNetworkSpawn()
+    {
+        director = MatchDirector.Find();
+        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
+        Changed?.Invoke();
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
+    }
+
+    /// 로컬 ?�레?�어???�개. ?�라?�언?�에?�는 ???�스?�스�?채워???�다.
+    public static FogOfWar Local()
+    {
+        var po = NetworkManager.Singleton?.LocalClient?.PlayerObject;
+        return po != null ? po.GetComponent<FogOfWar>() : null;
+    }
+
+    /// ?�???�개. 같�? ?� ?�스?�스???�용??같으므�??�무거나 ?�나�??�다.
+    /// ?�라?�언?�에???�기 ?�개�?채워???�으므�??�기 ?�???�만 ?�이 ?�다.
+    public static FogOfWar OfTeam(int team)
+    {
+        var nm = NetworkManager.Singleton;
+        if (nm == null || team < 0) return null;
+
+        if (!nm.IsServer)
+        {
+            var mine = Local();
+            return mine != null && mine.TeamId == team ? mine : null;
+        }
+
+        foreach (var client in nm.ConnectedClientsList)
+        {
+            var fog = FogOn(client);
+            if (fog != null && fog.TeamId == team) return fog;
+        }
+        return null;
+    }
+
+    static FogOfWar FogOn(NetworkClient client) =>
+        client?.PlayerObject != null ? client.PlayerObject.GetComponent<FogOfWar>() : null;
+
+    /// ?�개??매일 �?초기?�된??(기획??6.1). 로컬 ?�본???�으�?비우???�유???�버가
+    /// ?�기 집합??지?�도 ?�유?�에게는 ?�로 ?�려 줘야 ?�기 ?�문?�다.
+    void OnPhaseEntered(Phase p)
+    {
+        if (!IsServer || p != Phase.Night) return;
+        local.Clear();
+        SnapshotToOwnerServer();
+        Changed?.Invoke();
+    }
+
+    public bool IsRevealed(Vector3 world) => local.Contains(CellIndex(world));
+
+    /// ?�??직접 조회?�다. ?�개 ?�시가 격자�??�회?????�마다 ?�드 좌표�?거쳐 ?�아?�?
+    /// ?�아???�게 ?�기 ?�한 것이??
+    public bool IsRevealedCell(int index) => local.Contains(index);
+
+    public int CellIndex(Vector3 world)
+    {
+        var x = Mathf.Clamp(Mathf.FloorToInt(world.x / cellSize) + halfCells, 0, Side - 1);
+        var z = Mathf.Clamp(Mathf.FloorToInt(world.z / cellSize) + halfCells, 0, Side - 1);
+        return z * Side + x;
+    }
+
+    public Vector3 CellCentre(int index)
+    {
+        var x = index % Side - halfCells;
+        var z = index / Side - halfCells;
+        return new Vector3((x + 0.5f) * cellSize, 0f, (z + 0.5f) * cellSize);
+    }
+
+    void Update()
+    {
+        if (!IsServer) return;
+
+        // ?�폰 ??캐시?�다. ?�전?�는 �??�레??FindFirstObjectByType???�출?�다.
+        if (director == null || director.Phase.Current != Phase.Night) return;
+        if (TeamId < 0) return;     // ?�직 ?�리�?배정받�? 못했???????�개가 ?�다
+
+        if (Time.time < nextSample) return;
+        nextSample = Time.time + sampleInterval;
+
+        RevealAround(transform.position);
+    }
+
+    void RevealAround(Vector3 centre)
+    {
+        // ?�?�??�널??1?�계부???�야 반경??줄어?�다 (기획??3.3 �???�).
+        var ledger = director != null ? director.LedgerOf(TeamId) : null;
+        var radius = revealRadius * (ledger != null ? ledger.VisionScale : 1f);
+        var steps = Mathf.CeilToInt(radius / cellSize);
+        var origin = CellIndex(centre);
+        var ox = origin % Side;
+        var oz = origin / Side;
+
+        pending.Clear();
+        for (int dz = -steps; dz <= steps; dz++)
+        for (int dx = -steps; dx <= steps; dx++)
+        {
+            var x = ox + dx;
+            var z = oz + dz;
+            if (x < 0 || z < 0 || x >= Side || z >= Side) continue;
+
+            var idx = z * Side + x;
+            if (local.Contains(idx)) continue;
+            if (Vector3.Distance(centre, CellCentre(idx)) > radius) continue;
+
+            pending.Add(idx);
+        }
+
+        if (pending.Count == 0) return;
+        ShareServer(pending.ToArray());
+    }
+
+    void ShareServer(int[] cells)
+    {
+        var changed = false;
+        foreach (var cell in cells) changed |= local.Add(cell);
+        if (changed) Changed?.Invoke();
+
+        FogCellsRpc(cells, RpcTarget.Everyone);
+    }
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void FogCellsRpc(int[] cells, RpcParams p = default)
+    {
+        var changed = false;
+        foreach (var cell in cells) changed |= local.Add(cell);
+        if (changed) Changed?.Invoke();
+    }
+
+    /// 방에 ?�어??직후 ?�출?�다 (PlayerTeam???�리�?배정????. ?�? ?�른 ?�람?�이 걷어 ??    /// ?�개�?물려받�? ?�으�???� ?�어???�람�?검?� ?�면??본다.
+    public void JoinTeamServer()
+    {
+        if (!IsServer) return;
+
+        // ?�기 ?�신?� 건너?�다. OfTeam?� 먼�? 찾�? 것을 ?�려주�?�????�스?�스가 ?�올 ???�다.
+        foreach (var client in NetworkManager.ConnectedClientsList)
+        {
+            var mate = FogOn(client);
+            if (mate == null || ReferenceEquals(mate, this)) continue;
+            local.UnionWith(mate.local);
+            break;
+        }
+
+        SnapshotToOwnerServer();
+        Changed?.Invoke();
+    }
+
+    void SnapshotToOwnerServer() =>
+        FogSnapshotRpc(new List<int>(local).ToArray(),
+            RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp));
+
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void FogSnapshotRpc(int[] cells, RpcParams p = default)
+    {
+        local.Clear();
+        foreach (var cell in cells) local.Add(cell);
+        Changed?.Invoke();
+    }
+}
+

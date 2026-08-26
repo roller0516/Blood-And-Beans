@@ -3,35 +3,36 @@ using UnityEngine;
 
 public enum Judgement { Perfect, Good, Miss, Burnt }
 
-/// The needle that sweeps after cooking finishes (doc 5.2). Lives on the same
-/// GameObject as its Station.
+/// 제작이 끝난 뒤 움직이는 바늘 (기획서 5.2). 자기 Station과 같은 GameObject에 붙는다.
 ///
-/// The needle position is not synced — it is a pure function of server time, so
-/// every client draws the same needle and the server can judge the exact instant
-/// any client pressed F.
+/// 바늘 위치는 동기화하지 않는다. 서버 시간의 순수 함수이므로 모든 클라이언트가 같은
+/// 바늘을 그리고, 서버는 어떤 클라이언트가 F를 누른 정확한 순간을 판정할 수 있다.
 public class CompletionGauge : NetworkBehaviour
 {
-    [SerializeField] float window = 10f;        // completion stays hittable this long
+    [SerializeField] float window = 10f;        // 이 시간 동안 완성 판정을 칠 수 있다
     [SerializeField] float sweepsPerSecond = 1.4f;
-    [SerializeField] float perfectHalfWidth = 0.05f;   // distance from centre 0.5
+    [SerializeField] float perfectHalfWidth = 0.05f;   // 중앙 0.5로부터의 거리
     [SerializeField] float goodHalfWidth = 0.16f;
 
     readonly NetworkVariable<bool> active = new();
     readonly NetworkVariable<double> startedAt = new();
 
-    /// Server-side only. Station subscribes to learn how the bake turned out.
+    /// 서버 전용. Station이 구독해서 제작 결과를 받는다.
     public System.Action<Judgement> OnResult;
 
-    // ponytail: one F stops the oldest live gauge *of your own cafe*, so two of your
-    // machines finishing at once are resolved oldest-first. Add per-station targeting if
-    // that reads badly in play.
+    // ponytail: F 한 번은 *자기 카페의* 살아 있는 게이지 중 가장 오래된 것을 멈춘다.
+    // 내 기계 둘이 동시에 끝나면 오래된 것부터 처리된다. 플레이에서 어색하면 설비별
+    // 조준을 추가한다.
     //
-    // The candidate set is this cafe's own gauges. It used to be a static list holding
-    // every cafe's, which is how a player in cafe A judged cafe B's oven whenever B's
-    // gauge happened to be older (아키텍처_v1.0.md §1.2) — scoping the list removes the
-    // chance to get it wrong rather than filtering an over-broad one.
+    // 후보 집합은 이 카페의 게이지뿐이다. 예전에는 모든 카페의 게이지를 담은 static
+    // 리스트였고, 그래서 카페 B의 게이지가 더 오래됐을 때 카페 A의 플레이어가 B의 오븐을
+    // 판정했다 (아키텍처_v1.0.md §1.2). 지나치게 넓은 목록을 필터링하는 대신 목록 자체를
+    // 좁혀서 틀릴 여지를 없앴다.
     Cafe cafe;
-    MatchDirector director;
+
+    /// 조립 루트는 전역이 아니라 소속 카페에서 받는다. 설비마다 따로 찾으면 카페별로
+    /// 다른 답이 나올 여지가 생긴다 (아키텍처_v1.0.md §1.4).
+    MatchDirector Director => cafe != null ? cafe.Director : null;
 
     public bool Active => active.Value;
 
@@ -48,17 +49,16 @@ public class CompletionGauge : NetworkBehaviour
         startedAt.Value = NetworkManager.ServerTime.Time;
     }
 
-    /// The owning cafe, not its team id: MatchDirector assigns team ids in its own Awake
-    /// and the order between two Awakes is not something to depend on. The parent walk
-    /// works regardless of who ran first.
+    /// 팀 번호가 아니라 소유 카페를 들고 있는다. MatchDirector는 자기 Awake에서 팀 번호를
+    /// 배정하는데 두 Awake 사이의 순서에 기대면 안 된다. 부모를 거슬러 올라가는 방식은
+    /// 누가 먼저 실행되든 동작한다.
     void Awake()
     {
         cafe = Cafe.Of(this);
-        director = MatchDirector.Find();
     }
 
     int TeamId => cafe != null ? cafe.TeamId : -1;
-    bool IsDay => director != null && director.Phase.Current == Phase.Day;
+    bool IsDay => Director != null && Director.Phase.Current == Phase.Day;
 
     void Update()
     {
@@ -91,8 +91,8 @@ public class CompletionGauge : NetworkBehaviour
         return best;
     }
 
-    /// An `[Rpc(SendTo.Server)]` is callable by any client, so the team check has to be
-    /// here and not only in the caller's Update.
+    /// `[Rpc(SendTo.Server)]`는 어떤 클라이언트든 호출할 수 있으므로, 팀 검사는 호출부
+    /// Update뿐 아니라 반드시 여기에도 있어야 한다.
     [Rpc(SendTo.Server)]
     public void StopRpc(RpcParams p = default)
     {
@@ -115,7 +115,7 @@ public class CompletionGauge : NetworkBehaviour
              : Judgement.Miss;
     }
 
-    /// Doc 5.6.2. Burnt keeps its 0.3 here so the sale path has one number to read.
+    /// 기획서 5.6.2. 탄 것도 여기서 0.3을 유지한다. 판매 경로가 읽을 숫자를 하나로 두기 위해서다.
     public static float MultiplierOf(Judgement j) => j switch
     {
         Judgement.Perfect => 1.3f,

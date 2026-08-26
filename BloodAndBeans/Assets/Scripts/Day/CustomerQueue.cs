@@ -2,54 +2,54 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// Everything Economy needs to price one sale (doc 5.6.2). Day knows the gauge,
-/// the recipe and the customer; it does not know the rent, the forecast or the
-/// bean grade table, so it hands this over and stays out of the arithmetic.
+/// Economy가 판매 하나의 가격을 매기는 데 필요한 전부 (기획서 5.6.2). 낮은 게이지와
+/// 레시피와 손님을 알지만 임대료도 예보도 원두 등급표도 모른다. 그래서 이 값만 넘기고
+/// 계산에는 관여하지 않는다.
 public struct ServeInfo
 {
     public MenuId Menu;
     public Ingredient[] Recipe;
-    public float GaugeMultiplier;   // 1.3 / 1.0 / 0.7 / 0.3 (burnt)
+    public float GaugeMultiplier;   // 1.3 / 1.0 / 0.7 / 0.3 (탄 것)
     public bool Burnt;
     public Species Kind;
     public float SpeciesPriceWeight;
     public int BasePrice;
 }
 
-/// The waiting line (doc 5.5). Spawns customers, times them out, and validates a
-/// served item against an order by TAG only.
+/// 대기 줄 (기획서 5.5). 손님을 스폰하고, 인내심이 끝나면 내보내고, 서빙된 물건을
+/// 오직 태그로만 주문과 대조한다.
 public class CustomerQueue : NetworkBehaviour
 {
     [SerializeField] Customer customerPrefab;
     [SerializeField] GamePhase phase;
     [SerializeField] int maxWaiting = 4;
-    [SerializeField] float spawnSeconds = 8f;   // ponytail: placeholder, doc 14장 #1
+    [SerializeField] float spawnSeconds = 8f;   // ponytail: 임시값, 기획서 14장 #1
     [SerializeField] float slotSpacing = 1.5f;
 
-    // ponytail: burnt-sale patience hit is doc 14장 #6, still undecided.
+    // ponytail: 탄 것을 팔았을 때의 인내심 감소는 기획서 14장 #6, 아직 미결정이다.
     [SerializeField] float burntPatiencePenalty = 10f;
 
     readonly List<Customer> waiting = new();
     public IReadOnlyList<Customer> Waiting => waiting;
     double nextSpawn;
 
-    /// Economy subscribes to this. Day never computes a final price itself.
-    /// Per-queue, not static: with two cafes a static event booked every team's
-    /// sales into whichever till happened to subscribe.
+    /// Economy가 이 이벤트를 구독한다. 낮은 최종 가격을 직접 계산하지 않는다.
+    /// static이 아니라 대기열마다 하나씩 둔다. 카페가 둘일 때 static 이벤트는 모든 팀의
+    /// 판매를 먼저 구독한 계산대 하나에 몰아넣었다.
     public event System.Action<ServeInfo> Served;
 
     void Update()
     {
         if (!IsServer) return;
 
-        // Customers only exist during the day.
+        // 손님은 낮에만 존재한다.
         if (phase != null && phase.Current != Phase.Day) { ClearAll(); return; }
 
         for (int i = waiting.Count - 1; i >= 0; i--)
         {
             if (waiting[i] == null) { waiting.RemoveAt(i); continue; }
             if (waiting[i].Patience > 0f) continue;
-            Leave(i);                      // out of patience: leaves, revenue 0
+            Leave(i);                      // 인내심 소진: 나가고 매출 0
         }
 
         if (waiting.Count >= maxWaiting || planned.Count == 0) return;
@@ -65,8 +65,10 @@ public class CustomerQueue : NetworkBehaviour
         var c = Instantiate(customerPrefab, SlotPosition(waiting.Count), transform.rotation);
         c.NetworkObject.SpawnWithObservers = false;
         c.NetworkObject.Spawn();
-        var team = Cafe.Of(this)?.TeamId ?? -1;
-        MatchDirector.Find()?.ShowToTeamServer(c.NetworkObject, team);
+        // 소속 카페를 한 번 풀어서 팀 번호와 조립 루트를 같은 출처에서 받는다.
+        var myCafe = Cafe.Of(this);
+        var team = myCafe != null ? myCafe.TeamId : -1;
+        myCafe?.Director?.ShowToTeamServer(c.NetworkObject, team);
         waiting.Add(c);
 
         var next = planned.Dequeue();
@@ -77,8 +79,8 @@ public class CustomerQueue : NetworkBehaviour
 
     readonly System.Collections.Generic.Queue<(Species species, int menu)> planned = new();
 
-    /// The transition screen promises tomorrow's customer mix (doc 5.6), so the queue
-    /// has to actually serve that mix. Economy builds it; this consumes it in order.
+    /// 전환 화면은 내일의 손님 구성을 약속한다 (기획서 5.6). 그러니 대기열은 실제로 그
+    /// 구성대로 손님을 내보내야 한다. 구성은 Economy가 만들고 여기서는 순서대로 소비한다.
     public void SetDayPlanServer(Forecast forecast)
     {
         if (!IsServer) return;
@@ -117,8 +119,8 @@ public class CustomerQueue : NetworkBehaviour
         waiting[0].AddPatienceServer(Customer.PatienceOf(waiting[0].Kind) * 0.25f);
     }
 
-    /// Server-authoritative serving. Returns true when someone took the item.
-    /// Matching is by tag, never by menu name (doc 7.2).
+    /// 서버 권위 서빙. 누군가 물건을 받았으면 true를 돌려준다.
+    /// 대조는 태그로 하며 메뉴 이름으로는 절대 하지 않는다 (기획서 7.2).
     public bool TryServeServer(HeldItem item)
     {
         if (!IsServer || !item.IsProduct || item.Recipe == null) return false;
@@ -139,7 +141,7 @@ public class CustomerQueue : NetworkBehaviour
             BasePrice = Menus.BasePriceOf(item.Menu),
         });
 
-        // Selling something burnt sours the whole room (doc 5.3).
+        // 탄 것을 팔면 매장 전체 분위기가 나빠진다 (기획서 5.3).
         if (item.Burnt)
             foreach (var w in waiting)
                 if (w != null) w.AddPatienceServer(-burntPatiencePenalty);

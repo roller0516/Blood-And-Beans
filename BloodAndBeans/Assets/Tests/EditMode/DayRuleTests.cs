@@ -1,9 +1,8 @@
 using System.Collections.Generic;
 using NUnit.Framework;
 
-/// 기획서 5.2 / 5.6.1 / 5.6.2 / 7.1 / 7.2. Every expected number here is read off the
-/// design doc, not off the implementation — a test that agrees with the code by
-/// construction checks nothing.
+/// 기획서 5.2 / 5.6.1 / 5.6.2 / 7.1 / 7.2. 여기 기대값은 전부 구현이 아니라 기획서에서
+/// 읽어 온 것이다. 구조상 코드와 항상 일치하는 테스트는 아무것도 검증하지 못한다.
 public class DayRuleTests
 {
     static readonly Ingredient[] Popular = { Ingredient.Chocolate, Ingredient.Ice, Ingredient.Berry };

@@ -3,10 +3,9 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-/// Closes the books on the loop. The order in doc 2장 is Night -> Transition -> Day,
-/// so there is no Day->Transition edge: rent falls due when the day ends and hands over
-/// to night (3.2), and the forecast is drawn as the night ends so the transition screen
-/// has something to show for the day about to start (5.6).
+/// 루프의 장부를 마감한다. 기획서 2장의 순서는 밤 -> 전환 -> 낮이므로 낮에서 전환으로
+/// 가는 경계는 없다. 임대료는 낮이 끝나고 밤으로 넘어갈 때 청구되고 (3.2), 예보는 밤이
+/// 끝날 때 뽑아서 전환 화면이 곧 시작될 낮에 대해 보여 줄 것을 갖게 한다 (5.6).
 public class TransitionLedger : NetworkBehaviour
 {
     [SerializeField] int ordersPerDay = 8;
@@ -15,9 +14,9 @@ public class TransitionLedger : NetworkBehaviour
 
     Phase last = Phase.Night;
 
-    /// GamePhase bumps its day counter before it leaves Day, so by the time this
-    /// sees the edge the calendar already reads tomorrow. Track the day being
-    /// closed here instead of reading it back (doc 3.2: "그날의 임대료").
+    /// GamePhase는 낮을 빠져나가기 전에 날짜 카운터를 올린다. 그래서 여기가 경계를 볼
+    /// 때는 달력이 이미 내일을 가리킨다. 다시 읽어 오는 대신 마감 중인 날짜를 여기서
+    /// 따로 추적한다 (기획서 3.2: "그날의 임대료").
     int dayClosing = 1;
     MatchDirector director;
     GamePhase phase;
@@ -26,29 +25,30 @@ public class TransitionLedger : NetworkBehaviour
     public Forecast Tomorrow { get; private set; }
     public int TeamCount => director != null ? director.TeamCount : 0;
 
-    /// What the forecast panel shows. The forecast itself is server-only — clients get
-    /// these two summaries the moment it is drawn (5.6.3: the mix and the tags, nothing
-    /// about which box holds what).
+    /// 예보 패널이 보여 주는 값. 예보 자체는 서버 전용이고, 클라이언트는 예보가 뽑히는
+    /// 순간 이 두 요약만 받는다 (5.6.3: 손님 구성과 태그뿐, 어느 박스에 무엇이 들었는지는
+    /// 알려 주지 않는다).
     public int[] RaceCounts { get; private set; } = new int[6];
     public Ingredient[] PopularShown { get; private set; } = System.Array.Empty<Ingredient>();
 
-    /// The rent book itself belongs to the team, not to this component. This closes it.
+    /// 임대료 장부 자체는 이 컴포넌트가 아니라 팀이 소유한다. 여기서는 마감만 한다.
     public Rent RentOf(int team) => director?.LedgerOf(team)?.Rent;
 
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
 
-        director = MatchDirector.Find();
+        director = MatchDirector.Instance;
         phase = director != null ? director.Phase : null;
         board = FindFirstObjectByType<Scoreboard>();
 
-        // Respawn must not append a second set — CloseDay then indexes past Scoreboard.
+        // 다시 스폰됐을 때 두 번째 세트가 덧붙으면 안 된다. 그러면 CloseDay가 Scoreboard
+        // 범위를 넘겨 인덱싱한다.
         revenueAtDayStart.Clear();
         dayClosing = 1;
 
-        // No Penalties.ResetServer() any more: the ledgers are built fresh by
-        // MatchDirector.Awake, so there is no static left to clear.
+        // Penalties.ResetServer()는 더 이상 없다. 장부는 MatchDirector.Awake가 매번 새로
+        // 만들므로 비울 static이 남아 있지 않다.
         for (int i = 0; i < TeamCount; i++) revenueAtDayStart.Add(0);
     }
 
@@ -56,9 +56,9 @@ public class TransitionLedger : NetworkBehaviour
     {
         if (!IsServer || phase == null) return;
 
-        // End of day -> rent is due (3.2).
+        // 낮 종료 -> 임대료 청구 (3.2).
         if (last == Phase.Day && phase.Current != Phase.Day) CloseDay();
-        // Night is over -> draw what the transition screen will show (5.6).
+        // 밤 종료 -> 전환 화면이 보여 줄 내용을 뽑는다 (5.6).
         if (last == Phase.Night && phase.Current == Phase.Transition) DrawForecast();
         last = phase.Current;
     }
@@ -70,7 +70,7 @@ public class TransitionLedger : NetworkBehaviour
             var ledger = director.LedgerOf(team);
             if (ledger == null) continue;
 
-            // Only what was earned today pays today's rent; the rest is history.
+            // 오늘의 임대료는 오늘 번 것으로만 낸다. 나머지는 지난 기록이다.
             var earnedToday = (board != null ? board.RevenueOf(team) : 0) - revenueAtDayStart[team];
             ledger.Rent.Settle(dayClosing, earnedToday);
             ledger.ApplySettledPenalty();
@@ -81,8 +81,8 @@ public class TransitionLedger : NetworkBehaviour
         ApplyDayPenalties();
     }
 
-    /// Each team is punished for its own misses. Applying team 0's tier to every cafe
-    /// meant one team's debt broke the other team's dishes.
+    /// 각 팀은 자기 미납에 대해서만 벌을 받는다. 팀 0의 단계를 모든 카페에 적용하던 탓에
+    /// 한 팀의 빚이 다른 팀의 그릇을 깨뜨렸다.
     void ApplyDayPenalties()
     {
         for (var team = 0; team < TeamCount; team++)
@@ -112,7 +112,7 @@ public class TransitionLedger : NetworkBehaviour
         Tomorrow = forecasts.Length > 0 ? forecasts[0] : null;
         if (Tomorrow == null) return;
 
-        // The bonus only reaches a price if the till knows today's popular list (5.6.1).
+        // 계산대가 오늘의 인기 재료 목록을 알아야만 보너스가 가격에 반영된다 (5.6.1).
         foreach (var till in FindObjectsByType<SaleRegister>(FindObjectsSortMode.None))
             till.Popular = Tomorrow.Popular;
 
@@ -128,8 +128,8 @@ public class TransitionLedger : NetworkBehaviour
         }
     }
 
-    /// Fire-and-forget: the panel only lives for the 10s transition, so a client that
-    /// joins mid-transition simply sees the next one.
+    /// 보내고 잊는다. 패널은 10초짜리 전환 동안만 살아 있으므로, 전환 도중에 접속한
+    /// 클라이언트는 그냥 다음 예보를 보게 된다.
     [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
     void ForecastRpc(int[] raceCounts, int[] popular, RpcParams p = default)
     {
@@ -137,20 +137,20 @@ public class TransitionLedger : NetworkBehaviour
         PopularShown = System.Array.ConvertAll(popular, i => (Ingredient)i);
     }
 
-    /// What the forest offers tonight. Cafe staples are not listed here — Forecast adds
-    /// them for craftability and keeps them out of the popular draw (doc 7.1, 5.6.1).
-    /// ponytail: every forest ingredient regens until DT_Regen (doc 10장) exists.
+    /// 오늘 밤 숲이 내놓는 것. 카페 상비 재료는 여기 없다. Forecast가 제작 가능 판정을
+    /// 위해 따로 더해 주고 인기 재료 추첨에서는 제외한다 (기획서 7.1, 5.6.1).
+    /// ponytail: DT_Regen(기획서 10장)이 생기기 전까지는 모든 숲 재료가 리젠된다.
     static IReadOnlyList<Ingredient> RegenPool() => new[]
     {
         Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
         Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
     };
 
-    /// The 30% slice of the order mix looks at what teams actually hold (doc 5.5 rule 3).
-    /// Reads the real larders now that the night deposits into them; ReturnZone settles on
-    /// the phase event, which fires before this Update sees the new phase, so every deposit
-    /// has landed by the time the forecast is drawn.
-    /// Empty on the first night — Forecast falls back to the regen pool in that case.
+    /// 주문 구성의 30% 몫은 팀이 실제로 보유한 것을 본다 (기획서 5.5 규칙 3).
+    /// 이제 밤의 수확이 재고로 들어가므로 실제 재고를 읽는다. ReturnZone은 페이즈 이벤트에서
+    /// 정산하고 그 이벤트는 이 Update가 새 페이즈를 보기 전에 발생하므로, 예보를 뽑는 시점에는
+    /// 모든 입고가 끝나 있다.
+    /// 첫날 밤에는 비어 있고, 그 경우 Forecast가 리젠 풀로 대체한다.
     IReadOnlyList<Ingredient> HeldByTeam(int team)
     {
         var held = new List<Ingredient>();

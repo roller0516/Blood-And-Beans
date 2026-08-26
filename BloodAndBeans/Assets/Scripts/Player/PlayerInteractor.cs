@@ -2,13 +2,17 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// Keeps nearby interaction candidates; input is supplied by BB.Client.
+/// 주변의 상호작용 후보를 들고 있는다. 입력은 BB.Client가 넣어 준다.
 public class PlayerInteractor : NetworkBehaviour
 {
     readonly List<IInteractable> candidates = new();
     IInteractable current;
 
     public string Prompt => Nearest()?.Prompt ?? string.Empty;
+
+    /// 지금 상호작용 중인 대상. `BeginClient`와 `EndClient` 사이에만 있다. 어떤 박스를
+    /// 잡고 있는지 아는 유일한 지점이라 루팅 창을 여닫는 쪽이 여기를 읽는다.
+    public IInteractable Current => current;
 
     void OnTriggerEnter(Collider other)
     {

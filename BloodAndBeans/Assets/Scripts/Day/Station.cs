@@ -3,8 +3,8 @@ using UnityEngine;
 
 public enum StationState { Idle, Cooking, Gauge, Product }
 
-/// Ingredients in -> runs by itself -> completion gauge (doc 5.1).
-/// Coffee machine and oven differ only in cook time, so everything lives here.
+/// 재료 투입 -> 자동 진행 -> 완성 게이지 (기획서 5.1).
+/// 커피 머신과 오븐은 제작 시간만 다르므로 나머지는 전부 여기 있다.
 [RequireComponent(typeof(CompletionGauge))]
 public class Station : NetworkBehaviour, IInteractable
 {
@@ -14,7 +14,7 @@ public class Station : NetworkBehaviour, IInteractable
 
     public bool Disabled => disabled.Value;
 
-    /// Rent tier 2+ takes a machine out of service for the day (doc 3.3).
+    /// 임대료 페널티 2단계부터 그날 하루 기계 한 대가 멈춘다 (기획서 3.3).
     public void SetDisabledServer(bool value)
     {
         if (!IsServer) return;
@@ -28,8 +28,13 @@ public class Station : NetworkBehaviour, IInteractable
     readonly NetworkVariable<double> doneAt = new();
 
     CompletionGauge gauge;
-    MatchDirector director;
-    HeldItem product;      // server-side, waiting to be picked up
+    Cafe ownerCafe;
+
+    /// 조립 루트는 전역이 아니라 소속 카페에서 받는다. 설비마다 따로 찾으면 카페별로
+    /// 다른 답이 나올 여지가 생긴다 (아키텍처_v1.0.md §1.4).
+    MatchDirector Director =>
+        (ownerCafe != null ? ownerCafe : (ownerCafe = Cafe.Of(this)))?.Director;
+    HeldItem product;      // 서버 측. 누군가 집어 가기를 기다리는 완성품
 
     public StationState State => state.Value;
     public float Reach => reach;
@@ -50,7 +55,6 @@ public class Station : NetworkBehaviour, IInteractable
     public override void OnNetworkSpawn()
     {
         gauge = GetComponent<CompletionGauge>();
-        director = MatchDirector.Find();
         if (IsServer) gauge.OnResult += OnJudged;
     }
 
@@ -61,8 +65,8 @@ public class Station : NetworkBehaviour, IInteractable
 
     void Update()
     {
-        if (IsServer && director != null &&
-            ShouldBeginGauge(director.Phase.Current, state.Value, CookRemaining))
+        if (IsServer && Director != null &&
+            ShouldBeginGauge(Director.Phase.Current, state.Value, CookRemaining))
         {
             state.Value = StationState.Gauge;
             gauge.BeginServer();
@@ -73,18 +77,17 @@ public class Station : NetworkBehaviour, IInteractable
     public static bool ShouldBeginGauge(Phase phase, StationState stationState, float remaining) =>
         phase == Phase.Day && stationState == StationState.Cooking && remaining <= 0f;
 
-    /// One key, one RPC. What F means depends on the station and on what the player
-    /// is carrying, and only the server knows the second half.
+    /// 키 하나에 RPC 하나. F가 무엇을 뜻하는지는 설비와 플레이어가 들고 있는 것에 따라
+    /// 달라지는데, 뒤쪽 절반은 서버만 알고 있다.
     [Rpc(SendTo.Server)]
     public void UseRpc(RpcParams p = default)
     {
         var clientId = p.Receive.SenderClientId;
-        if (director == null || director.Phase.Current != Phase.Day) return;
+        if (Director == null || Director.Phase.Current != Phase.Day) return;
         if (!InReach(clientId)) return;
-        if (!Cafe.SameTeamServer(this, clientId)) return;     // not your machine
+        if (!Cafe.SameTeamServer(this, clientId)) return;     // 내 기계가 아니다
 
-        // A machine taken out of service still hands back whatever it already made,
-        // but accepts nothing new (doc 3.3).
+        // 멈춘 기계도 이미 만들어 둔 것은 돌려주지만 새로 받지는 않는다 (기획서 3.3).
         if (state.Value == StationState.Product) { TakeProduct(clientId); return; }
         if (disabled.Value) return;
         if (state.Value != StationState.Idle) return;
@@ -96,7 +99,7 @@ public class Station : NetworkBehaviour, IInteractable
         else if (loaded.Count > 0) Cook();
     }
 
-    /// First ingredient claims a dish — with none clean, no order can start (doc 5.3).
+    /// 첫 재료가 그릇 하나를 점유한다. 깨끗한 그릇이 없으면 주문을 시작할 수 없다 (기획서 5.3).
     void Insert(PlayerCarry carry)
     {
         var held = carry.Held;
@@ -113,8 +116,8 @@ public class Station : NetworkBehaviour, IInteractable
     {
         if (!CanCook()) return;
         state.Value = StationState.Cooking;
-        // Rent tier 1+ stretches every cook (doc 3.3, day column).
-        var ledger = director != null ? director.LedgerOf(Cafe.Of(this)?.TeamId ?? -1) : null;
+        // 임대료 페널티 1단계부터 모든 제작 시간이 늘어난다 (기획서 3.3 낮 항목).
+        var ledger = Director != null ? Director.LedgerOf(Cafe.Of(this)?.TeamId ?? -1) : null;
         var scale = ledger != null ? ledger.CraftSpeedScale : 1f;
         doneAt.Value = NetworkManager.ServerTime.Time + cookSeconds * scale;
     }
@@ -148,9 +151,9 @@ public class Station : NetworkBehaviour, IInteractable
         };
         state.Value = StationState.Product;
 
-        // "that customer" is not knowable here — the drink has no owner until it is
-        // served. ponytail: restores the head of the queue; revisit if orders ever
-        // get assigned to a station up front.
+        // 여기서는 "그 손님"을 알 수 없다. 음료는 서빙되기 전까지 주인이 없다.
+        // ponytail: 대기열 맨 앞 손님을 회복시킨다. 주문이 미리 설비에 배정되는 방식으로
+        // 바뀌면 다시 본다.
         if (j == Judgement.Perfect) Cafe.Of(this)?.Queue?.RestoreFrontServer();
     }
 
@@ -167,7 +170,7 @@ public class Station : NetworkBehaviour, IInteractable
         return c.PlayerObject != null ? c.PlayerObject.transform : null;
     }
 
-    /// Shared by every day-side prop — Day/ can't reuse Night/PlayerInteract.
+    /// 낮 쪽 설비가 공통으로 쓴다. Day/는 Night/PlayerInteract를 재사용할 수 없다.
     public static bool LocalPlayerNear(Transform t, float reach)
     {
         var nm = NetworkManager.Singleton;

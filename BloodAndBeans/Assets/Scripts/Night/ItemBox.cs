@@ -2,24 +2,23 @@ using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// A forest loot box (doc 6.5). Scene-placed, so it spawns with the scene.
+/// 숲의 전리품 박스 (기획서 6.5). 씬에 배치되므로 씬과 함께 스폰된다.
 ///
-/// Contents are first-come, but opening and reveal state are private to each team.
+/// 내용물은 선착순이지만 개봉 여부와 공개 상태는 팀별로 분리된다.
 ///
-/// **All timing is server-side.** The client says "I am holding F on this box" and nothing
-/// else; opening and taking happen when the *server* clock says the hold was paid for.
-/// It used to be the owner that measured the hold and then announced completion, which
-/// made the entire night loot loop free (아키텍처_v1.0.md §1.1).
+/// **모든 시간 측정은 서버가 한다.** 클라이언트는 "이 박스에서 F를 누르고 있다"만 말하고,
+/// 개봉과 담기는 *서버* 시계가 홀드 시간이 채워졌다고 판단할 때 일어난다. 예전에는 소유자가
+/// 홀드를 재고 완료를 통보해서 밤 파밍 루프 전체가 공짜였다 (아키텍처_v1.0.md §1.1).
 public class ItemBox : NetworkBehaviour, IInteractable
 {
-    [SerializeField] int tier = 1;              // 1..3
+    [SerializeField] int tier = 1;              // 1~3
     [SerializeField] float openSeconds = 0.6f;
     [SerializeField] float takeSeconds = 0.2f;
-    [SerializeField] float revealDelay = 1.5f;  // hidden slots uncover after this
+    [SerializeField] float revealDelay = 1.5f;  // 이 시간이 지나면 가려진 칸이 드러난다
     [SerializeField] float reach = 2.5f;
-    [SerializeField] bool temporary;            // spilled pile, not a forest box
+    [SerializeField] bool temporary;            // 숲 박스가 아니라 쏟아진 더미
 
-    readonly List<int> slots = new();             // server only
+    readonly List<int> slots = new();             // 서버 전용
     bool[] openedByTeam = System.Array.Empty<bool>();
     double[] revealAtByTeam = System.Array.Empty<double>();
 
@@ -30,6 +29,9 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
     readonly HoldTimer hold = new();
     readonly List<ulong> holders = new();
+
+    /// 잡고 있는 사람이 고른 칸 (기획서 6.5.1). 서버 전용이며 홀드가 끝나면 지운다.
+    readonly Dictionary<ulong, int> selectedByClient = new();
 
     MatchDirector director;
 
@@ -52,17 +54,17 @@ public class ItemBox : NetworkBehaviour, IInteractable
         player?.GetComponent<PlayerInteract>()?.EndBoxClient();
     }
 
-    /// Boxes only exist for a player once the fog over them is gone (doc 6.1-2).
-    /// Fog is per team, so "is this box visible" only means anything relative to a
-    /// viewer. A pile you just dropped is in plain sight either way.
+    /// 박스는 그 위의 안개가 걷힌 뒤에야 플레이어에게 존재한다 (기획서 6.1-2).
+    /// 안개가 팀별이므로 "이 박스가 보이는가"는 보는 사람을 지정해야만 의미가 있다.
+    /// 방금 쏟아진 더미는 어느 쪽이든 그대로 드러나 있다.
     public bool ClearedFor(int team)
     {
         if (temporary) return true;
-        var f = director != null ? director.FogOf(team) : null;
+        var f = FogOfWar.Local();
         return f == null || f.IsRevealed(transform.position);
     }
 
-    /// Slots past this index start hidden and uncover on a timer (doc 6.5.2).
+    /// 이 인덱스 뒤의 칸은 가려진 채로 시작해 타이머가 지나면 드러난다 (기획서 6.5.2).
     int VisibleCount => Tier switch { 1 => localSlots.Length, 2 => localSlots.Length - 1, _ => 2 };
 
     public bool Revealed =>
@@ -70,7 +72,7 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
     public override void OnNetworkSpawn()
     {
-        director = MatchDirector.Find();
+        director = MatchDirector.Instance;
         if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
         if (!IsServer) return;
         openedByTeam = new bool[director != null ? director.TeamCount : 1];
@@ -82,13 +84,15 @@ public class ItemBox : NetworkBehaviour, IInteractable
     {
         if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
         hold.CancelAll();
+        selectedByClient.Clear();
     }
 
-    /// A spilled pile lasts the night and no longer (doc 6.7). Every box drops its holds
-    /// at a phase boundary — a hold must not survive the night that started it.
+    /// 쏟아진 더미는 그날 밤까지만 존재한다 (기획서 6.7). 모든 박스는 페이즈가 바뀌면
+    /// 진행 중인 홀드를 버린다. 홀드가 시작된 밤보다 오래 살아남으면 안 된다.
     void OnPhaseEntered(Phase p)
     {
         hold.CancelAll();
+        selectedByClient.Clear();
         if (!IsServer) return;
         if (!temporary && p == Phase.Night) { ResetNightServer(); return; }
         if (temporary && p != Phase.Night && NetworkObject != null && NetworkObject.IsSpawned)
@@ -103,7 +107,7 @@ public class ItemBox : NetworkBehaviour, IInteractable
         for (var i = 0; i < holders.Count; i++) Tick(holders[i]);
     }
 
-    /// One held key: pay the open time once, then one item per take time.
+    /// 키 하나를 계속 누르는 동안: 개봉 시간을 한 번 치르고, 그 뒤로 담기 시간마다 하나씩.
     void Tick(ulong clientId)
     {
         if (director == null || director.Phase.Current != Phase.Night)
@@ -118,39 +122,58 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
         if (!OpenedFor(team))
         {
-            // Rent tier 2+ slows opening (doc 3.3). Read with the *holder's* team.
+            // 임대료 페널티 2단계부터 개봉이 느려진다 (기획서 3.3). *잡고 있는 사람의* 팀으로 읽는다.
             if (!hold.TryConsume(clientId, now, RequiredSecondsFor(team))) return;
 
             openedByTeam[team] = true;
             revealAtByTeam[team] = now + revealDelay;
             SendTeamStateServer(team);
-            return;                              // the take clock starts from here
+            return;                              // 담기 시계는 여기서부터 시작한다
         }
 
         if (hold.TryConsume(clientId, now, takeSeconds)) TakeOne(clientId, team);
     }
 
-    /// Takes the first remaining uncovered slot. Picking a specific slot is UI work
-    /// (doc 6.5.1). ponytail: first-available until the box window exists.
+    /// 고른 칸을 가져간다 (기획서 6.5.1). 고르지 않았거나 고른 칸이 담을 수 없게 됐으면
+    /// 담을 수 있는 첫 칸으로 되돌린다 — 내용물은 팀 간 선착순이라 고른 칸이 남의 손에
+    /// 사라질 수 있고, 그때 홀드가 아무 일도 안 하면 원인을 알 수 없다.
     void TakeOne(ulong clientId, int team)
     {
         var inv = InventoryOf(clientId);
         if (inv == null) return;
 
-        for (var i = 0; i < slots.Count; i++)
-        {
-            if (slots[i] == (int)Ingredient.None) continue;
-            if (!IsSlotVisibleFor(i, team)) continue; // can't grab what hasn't uncovered yet
+        selectedByClient.TryGetValue(clientId, out var selected);
+        var index = EffectiveSlotServer(selected, team);
+        if (index < 0) return;                    // 남은 칸이 아직 하나도 안 드러났다
 
-            inv.AddServer((Ingredient)slots[i]);
-            slots[i] = (int)Ingredient.None;
-            SendOpenedTeamsServer();
-            return;
-        }
+        inv.AddServer((Ingredient)slots[index]);
+        slots[index] = (int)Ingredient.None;
+        SendOpenedTeamsServer();
     }
 
-    /// Called by PlayerInteract on the server. Fog and distance are checked here so a
-    /// client cannot register a hold on a box it is nowhere near.
+    /// 서버에서 PlayerInteract가 호출한다. 값 검사는 `EffectiveSlotServer`가 하므로
+    /// 범위를 벗어난 값이 와도 담을 수 있는 첫 칸으로 떨어질 뿐이다.
+    public void SelectSlotServer(ulong clientId, int index)
+    {
+        if (!IsServer) return;
+        selectedByClient[clientId] = index;
+    }
+
+    /// 서버 권위. 이 팀이 지금 이 칸을 담을 수 있는가.
+    bool IsTakableFor(int index, int team) =>
+        index >= 0 && index < slots.Count &&
+        slots[index] != (int)Ingredient.None && IsSlotVisibleFor(index, team);
+
+    int EffectiveSlotServer(int selected, int team)
+    {
+        if (IsTakableFor(selected, team)) return selected;
+        for (var i = 0; i < slots.Count; i++)
+            if (IsTakableFor(i, team)) return i;
+        return -1;
+    }
+
+    /// 서버에서 PlayerInteract가 호출한다. 안개와 거리를 여기서 검사해야 클라이언트가
+    /// 근처에도 없는 박스에 홀드를 등록하지 못한다.
     public void BeginHoldServer(ulong clientId)
     {
         if (!IsServer) return;
@@ -163,17 +186,18 @@ public class ItemBox : NetworkBehaviour, IInteractable
     {
         if (!IsServer) return;
         hold.Cancel(clientId);
+        selectedByClient.Remove(clientId);
     }
 
-    /// A dash breaks off an open in progress but leaves half of it (doc 6.6).
+    /// 대시를 맞으면 진행 중인 개봉이 끊기지만 절반은 남는다 (기획서 6.6).
     public void HalveHoldServer(ulong clientId)
     {
         if (!IsServer) return;
         hold.Halve(clientId, NetworkManager.ServerTime.Time);
     }
 
-    /// Display only. The authoritative progress lives in `hold` on the server; showing
-    /// the holder their own elapsed time does not need to be replicated.
+    /// 표시 전용. 권위 있는 진행도는 서버의 `hold`에 있다. 잡고 있는 본인에게 자기
+    /// 경과 시간을 보여 주는 것은 복제할 필요가 없다.
     public float RequiredSecondsFor(int team)
     {
         if (IsServer ? OpenedFor(team) : localOpened) return takeSeconds;
@@ -181,8 +205,8 @@ public class ItemBox : NetworkBehaviour, IInteractable
         return openSeconds * (ledger != null ? ledger.BoxOpenScale : 1f);
     }
 
-    /// Fills a pile with exactly what was spilled, already open — a dropped bag hides
-    /// nothing (doc 6.7).
+    /// 쏟아진 그대로를 담아 더미를 만든다. 이미 열린 상태다. 떨어뜨린 가방은 아무것도
+    /// 숨기지 않는다 (기획서 6.7).
     public void SeedServer(IEnumerable<Ingredient> contents)
     {
         if (!IsServer) return;
@@ -229,8 +253,23 @@ public class ItemBox : NetworkBehaviour, IInteractable
             (OpenedFor(team) && NetworkManager.ServerTime.Time >= revealAtByTeam[team]);
     }
 
-    /// Visible to a client either because the slot was never hidden, or the timer ran out.
+    /// 애초에 가려지지 않았거나 타이머가 끝났으면 클라이언트에게 보인다.
     public bool IsSlotVisible(int index) => index < VisibleCount || Revealed;
+
+    /// 표시 전용. 서버의 `IsTakableFor`와 같은 규칙을 복제된 상태로 본다. 담을 칸을
+    /// 정하는 것은 서버이고, 클라이언트는 어디에 커서를 그릴지에만 이 값을 쓴다.
+    public bool IsTakable(int index) =>
+        index >= 0 && index < localSlots.Length &&
+        localSlots[index] != (int)Ingredient.None && IsSlotVisible(index);
+
+    /// 표시 전용. 서버의 `EffectiveSlotServer`와 같은 되돌림 규칙이다.
+    public int EffectiveSlot(int selected)
+    {
+        if (IsTakable(selected)) return selected;
+        for (var i = 0; i < localSlots.Length; i++)
+            if (IsTakable(i)) return i;
+        return -1;
+    }
 
     public Ingredient SlotContent(int index) =>
         index < 0 || index >= localSlots.Length ? Ingredient.None : (Ingredient)localSlots[index];

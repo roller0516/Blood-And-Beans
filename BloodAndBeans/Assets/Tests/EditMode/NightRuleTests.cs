@@ -145,7 +145,7 @@ public class NightRuleTests
     [Test]
     public void ThePenaltyShiftsExactlyOneBand()
     {
-        // 3.3 tier 3. 구간 폭이 제각각이라(0.5/0.3/0.2/0.3/0.3/0.4) 비율에 상수를 더하는
+        // 3.3 3단계. 구간 폭이 제각각이라(0.5/0.3/0.2/0.3/0.3/0.4) 비율에 상수를 더하는
         // 방식은 어떤 곳에서는 두 칸을 건너뛰고 가벼울 때는 한 칸도 못 간다.
         for (var ratio = 0f; ratio <= 2.5f; ratio += 0.05f)
         {

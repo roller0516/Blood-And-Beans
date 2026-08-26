@@ -2,11 +2,11 @@ using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-/// The till. Day/ announces a serve, this turns it into money and books it.
-/// Kept as its own file so Day/ never has to know Economy/ exists (see 스크립트 구조.md).
+/// 계산대. Day/가 서빙을 알리면 여기서 금액으로 바꿔 장부에 올린다.
+/// Day/가 Economy/의 존재를 알 필요가 없도록 별도 파일로 둔다 (스크립트 구조.md 참고).
 public class SaleRegister : NetworkBehaviour
 {
-    // team comes from the cafe this till belongs to, so the two can never disagree
+    // 팀은 이 계산대가 속한 카페에서 가져온다. 그래야 둘이 어긋날 수 없다
 
     static readonly Ingredient[] NoPopular = new Ingredient[0];
 
@@ -39,19 +39,19 @@ public class SaleRegister : NetworkBehaviour
 
         var recipe = info.Recipe ?? NoPopular;
 
-        // Dessert is anything built on bread, and it ignores bean grade entirely (5.6.2).
+        // 빵 베이스로 만든 것은 전부 디저트이고, 원두 등급을 완전히 무시한다 (5.6.2).
         var isDessert = recipe.Contains(Ingredient.BreadBase);
         var grade = recipe.Contains(Ingredient.BloodBean) ? BeanGrade.Blood : BeanGrade.Normal;
 
         var price = SalePrice.Calculate(
             info.BasePrice, GaugeOf(info), grade, isDessert, recipe, Popular);
 
-        // Species weighting is the customer's own multiplier (5.5), not part of 5.6.2.
+        // 종족 가중치는 손님 고유의 배율이고 (5.5), 5.6.2 공식의 일부가 아니다.
         LastSale = Mathf.RoundToInt(price * Mathf.Max(0f, info.SpeciesPriceWeight));
         board?.AddSale(team, LastSale);
     }
 
-    /// ServeInfo carries the multiplier; SalePrice wants the verdict that produced it.
+    /// ServeInfo는 배율을 들고 오지만 SalePrice가 원하는 것은 그 배율을 만든 판정이다.
     static Gauge GaugeOf(ServeInfo info) =>
         info.Burnt ? Gauge.Burnt :
         info.GaugeMultiplier >= 1.3f ? Gauge.Perfect :

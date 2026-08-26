@@ -140,7 +140,7 @@ public class EconomyRuleTests
     [Test]
     public void BasicMenuStaysUnderTwentyPercentOfOrders()
     {
-        // 5.5 rule 4. 기본 메뉴는 상비 재료만으로 만들어지는 핫 아메리카노다 — 레시피가
+        // 5.5 규칙 4. 기본 메뉴는 상비 재료만으로 만들어지는 핫 아메리카노다 — 레시피가
         // 원두를 포함한 채로 넘어오므로 "빈 집합"이 아니라 "상비뿐"으로 판정해야 한다.
         var menus = AllMenus();
         var basic = new List<int>();
@@ -165,7 +165,7 @@ public class EconomyRuleTests
     [Test]
     public void EveryOrderIsCraftableFromTonightsPool()
     {
-        // 5.5 rule 1. 오늘 밤 캘 수 없는 재료가 필요한 주문을 예보할 수는 없다.
+        // 5.5 규칙 1. 오늘 밤 캘 수 없는 재료가 필요한 주문을 예보할 수는 없다.
         var pool = new[] { Ingredient.Milk, Ingredient.Ice };
         var menus = AllMenus();
 

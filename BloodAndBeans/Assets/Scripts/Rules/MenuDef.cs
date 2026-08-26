@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-/// Menu identity. The customer system never sees these — it matches tags only (doc 7.2).
+/// 메뉴 식별자. 손님 시스템은 이 값을 보지 않고 태그만 대조한다 (기획서 7.2).
 public enum MenuId
 {
     None = -1,
@@ -31,11 +31,11 @@ public readonly struct MenuDef
     }
 }
 
-/// The 10 menus of doc 7.2 as ingredient sets. Both Day/ and Economy/ read this.
+/// 기획서 7.2의 메뉴 10종을 재료 집합으로 표현한 표. Day/와 Economy/가 함께 읽는다.
 public static class Menus
 {
-    // ponytail: prices are placeholders (doc 14장 has no price table). The only fixed
-    // constraint is that americano must not keep up with rent — move to DT_Menu later.
+    // ponytail: 가격은 임시값이다 (기획서 14장에 가격표가 없다). 확정된 제약은
+    // 아메리카노만으로는 임대료를 감당할 수 없어야 한다는 것뿐이다. 나중에 DT_Menu로 옮긴다.
     public static readonly MenuDef[] All =
     {
         new(MenuId.HotAmericano,  30, Ingredient.Bean),
@@ -50,8 +50,8 @@ public static class Menus
         new(MenuId.BerryTart,     70, Ingredient.BreadBase, Ingredient.Berry),
     };
 
-    /// Blood bean is a bean substitution, not its own menu (doc 7.2).
-    /// The grade multiplier it earns is Economy's business, not the menu table's.
+    /// 블러드빈은 별도 메뉴가 아니라 원두 대체재다 (기획서 7.2).
+    /// 등급 배율은 메뉴 표가 아니라 Economy가 맡는다.
     public static Ingredient Normalize(Ingredient i) =>
         i == Ingredient.BloodBean ? Ingredient.Bean : i;
 
@@ -69,7 +69,7 @@ public static class Menus
         _ => MenuTag.None,
     };
 
-    /// Hot is the default temperature — ice is what makes a drink cold (doc 7.1).
+    /// 기본 온도는 뜨거움이다. 음료를 차갑게 만드는 것은 얼음이다 (기획서 7.1).
     public static MenuTag TagsOf(IEnumerable<Ingredient> parts)
     {
         var tags = MenuTag.None;
@@ -78,8 +78,8 @@ public static class Menus
         return tags;
     }
 
-    /// Set match, ignoring order. Returns None when the combination isn't a menu —
-    /// which is legal: it still has tags, it just has no base price.
+    /// 순서를 무시한 집합 비교. 메뉴가 아닌 조합이면 None을 돌려준다 —
+    /// 이건 정상이다. 태그는 그대로 있고 기본가만 없을 뿐이다.
     public static MenuId Match(IEnumerable<Ingredient> parts)
     {
         var got = parts.Select(Normalize).OrderBy(i => (int)i).ToArray();
