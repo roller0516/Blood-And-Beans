@@ -12,6 +12,10 @@ public class PlayerMove : NetworkBehaviour
 {
     [SerializeField] float speed = 5f;
 
+    /// 캐릭터가 가는 쪽으로 도는 속도(초당 도). 3인칭 카메라가 되면서 캐릭터의 앞이
+    /// 화면에서 읽히게 됐다 - 예전 고정 탑다운에서는 아무도 회전을 보지 않았다.
+    [SerializeField] float turnDegreesPerSecond = 720f;
+
     /// 서버가 쓰고 소유자가 읽는다. 무게 밴드는 TeamLedger에서 나오는데 그 원장은 서버
     /// 전용이라(MatchDirector.LedgerOf) 클라이언트가 스스로 계산할 수 없다. 소유자가 다른
     /// 속도로 예측하면 매 프레임 어긋나 화해가 위치를 계속 당긴다.
@@ -65,9 +69,21 @@ public class PlayerMove : NetworkBehaviour
     /// 그 자체가 떨림이 된다.
     ///
     /// transform 대입이 아니라 CharacterController다. 대입은 벽과 설비를 그냥 통과했다.
-    /// y는 건드리지 않는다. 평면 탑다운이라 중력도 접지 처리도 쓰지 않는다.
-    void StepMove(Vector2 input, float load) =>
-        controller.Move(new Vector3(input.x, 0f, input.y) * (speed * load * Time.deltaTime));
+    /// y는 건드리지 않는다. 평면이라 중력도 접지 처리도 쓰지 않는다.
+    void StepMove(Vector2 input, float load)
+    {
+        var direction = new Vector3(input.x, 0f, input.y);
+        controller.Move(direction * (speed * load * Time.deltaTime));
+
+        // 회전은 이동과 무관하다. 입력이 이미 월드 방향이라 서버와 소유자가 같은 결과를
+        // 얻고, 회전이 이동식에 끼어들지 않으므로 예측 화해도 흔들리지 않는다.
+        if (direction.sqrMagnitude <= 0.0001f) return;
+
+        transform.rotation = Quaternion.RotateTowards(
+            transform.rotation,
+            Quaternion.LookRotation(direction.normalized, Vector3.up),
+            turnDegreesPerSecond * Time.deltaTime);
+    }
 
     public void SetInputClient(Vector2 input)
     {

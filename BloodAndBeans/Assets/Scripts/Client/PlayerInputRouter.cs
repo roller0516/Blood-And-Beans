@@ -3,9 +3,24 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 /// 디바이스 입력을 소유한다. BB.Game은 의도만 전달받는다.
+///
+/// **이동 입력은 여기서 카메라 기준으로 돌려 월드 방향으로 만든다.** 카메라가 플레이어를
+/// 중심으로 도는 3인칭이 되면서(폴 가이즈식) 스틱의 위쪽이 화면의 위쪽을 뜻하게 됐다.
+/// 회전을 여기서 끝내는 이유는 권위 때문이다 — `PlayerMove`는 받은 벡터를 그대로 월드
+/// 방향으로 쓰고 서버와 소유자가 같은 식을 돌린다. 카메라를 아는 것은 클라이언트뿐이므로
+/// 서버가 카메라를 몰라도 되도록 이미 돌아간 값을 보낸다.
 public class PlayerInputRouter : NetworkBehaviour
 {
     [SerializeField] InputActionAsset actions;
+
+    /// 카메라가 도는 동안에도 방향을 다시 보내기 위한 최소 변화량. 매 프레임 보내면
+    /// 스틱을 쥐고만 있어도 RPC가 프레임 수만큼 나간다.
+    [SerializeField] float resendThreshold = 0.02f;
+
+    /// 이동 입력을 돌릴 기준. 비면 `Camera.main`을 한 번 찾아 캐시한다.
+    Transform cameraBasis;
+
+    Vector2 sentInput;
 
     PlayerMove movement;
     PlayerInteractor interaction;
@@ -56,8 +71,57 @@ public class PlayerInputRouter : NetworkBehaviour
         buryAction.performed -= OnBury;
     }
 
-    void OnMove(InputAction.CallbackContext context) =>
-        movement?.SetInputClient(context.ReadValue<Vector2>());
+    void OnMove(InputAction.CallbackContext context) => Send(context.ReadValue<Vector2>());
+
+    /// 스틱을 쥔 채 카메라만 돌 때도 방향이 따라와야 한다. 입력 콜백은 값이 바뀔 때만
+    /// 오므로 그것만으로는 카메라 회전이 반영되지 않는다.
+    void Update()
+    {
+        if (!IsOwner || moveAction == null) return;
+
+        var raw = moveAction.ReadValue<Vector2>();
+        if (raw.sqrMagnitude <= 0.0001f) return;
+        Send(raw);
+    }
+
+    /// 화면 기준 입력을 월드 방향으로 돌려 보낸다.
+    void Send(Vector2 raw)
+    {
+        if (movement == null) return;
+
+        var world = ToWorld(raw);
+
+        // 같은 값을 다시 보내지 않는다. 놓는 순간(0,0)은 반드시 보낸다 — 멈춤이 늦으면
+        // 캐릭터가 계속 미끄러진다.
+        if (world.sqrMagnitude > 0.0001f && (world - sentInput).sqrMagnitude < resendThreshold * resendThreshold)
+            return;
+
+        sentInput = world;
+        movement.SetInputClient(world);
+    }
+
+    Vector2 ToWorld(Vector2 raw)
+    {
+        if (raw.sqrMagnitude <= 0.0001f) return Vector2.zero;
+
+        // 늦게 생기는 참조라 없을 때만 한 번 찾는다 (AGENTS.md 참조와 결합도).
+        if (cameraBasis == null)
+        {
+            var main = Camera.main;
+            if (main == null) return raw;          // 카메라가 아직 없으면 월드 기준 그대로
+            cameraBasis = main.transform;
+        }
+
+        // 카메라의 수평 방향만 쓴다. 내려다보는 각이 섞이면 앞으로 가는 양이 각도에 따라 준다.
+        var forward = cameraBasis.forward;
+        forward.y = 0f;
+        if (forward.sqrMagnitude < 0.0001f) return raw;
+        forward.Normalize();
+
+        var right = new Vector3(forward.z, 0f, -forward.x);
+        var world = right * raw.x + forward * raw.y;
+        return new Vector2(world.x, world.z);
+    }
 
     void OnInteractStarted(InputAction.CallbackContext _) => interaction?.BeginClient();
     void OnInteractCanceled(InputAction.CallbackContext _) => interaction?.EndClient();
