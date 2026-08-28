@@ -44,7 +44,7 @@ public class CameraGroup : DevConsoleGroup
         if (camera == null) camera = Object.FindAnyObjectByType<MatchCameraDirector>();
 
         var found = camera != null;
-        current.text = !found ? "매치 씬 아님" : Label(camera.View);
+        current.text = !found ? "매치 씬 아님" : ViewName(camera.View);
         quarterButton.SetEnabled(found && camera.View != MatchCameraDirector.PlayerView.Quarter);
         tppButton.SetEnabled(found && camera.View != MatchCameraDirector.PlayerView.ThirdPerson);
     }
@@ -54,6 +54,6 @@ public class CameraGroup : DevConsoleGroup
         if (camera != null) camera.SetView(view);
     }
 
-    static string Label(MatchCameraDirector.PlayerView view) =>
+    static string ViewName(MatchCameraDirector.PlayerView view) =>
         view == MatchCameraDirector.PlayerView.Quarter ? "쿼터뷰" : "TPP";
 }

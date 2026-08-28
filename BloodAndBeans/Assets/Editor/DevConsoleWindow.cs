@@ -30,6 +30,7 @@ public class DevConsoleWindow : EditorWindow
         new PhaseCheatGroup(),
         new TeamCheatGroup(),
         new CameraGroup(),
+        new LookSensitivityGroup(),
     };
 
     // 매치 씬은 재생보다 늦게 로드된다. 찾을 때까지만 찾고 찾은 뒤에는 안 찾는다.

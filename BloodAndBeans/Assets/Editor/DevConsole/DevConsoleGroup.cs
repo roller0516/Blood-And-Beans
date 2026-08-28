@@ -79,6 +79,23 @@ public abstract class DevConsoleGroup
         return field;
     }
 
+    /// 라벨 + 소수 입력 칸 한 줄.
+    protected static FloatField FloatRow(VisualElement parent, string label, float value)
+    {
+        var row = new VisualElement();
+        row.AddToClassList("row");
+
+        var name = new Label(label);
+        name.AddToClassList("row__label");
+        var field = new FloatField { value = value };
+        field.AddToClassList("row__field");
+
+        row.Add(name);
+        row.Add(field);
+        parent.Add(row);
+        return field;
+    }
+
     /// 버튼을 가로로 늘어놓는 줄. 버튼은 이 줄 안에서 폭을 나눠 가진다.
     protected static VisualElement ButtonRow(VisualElement parent)
     {
