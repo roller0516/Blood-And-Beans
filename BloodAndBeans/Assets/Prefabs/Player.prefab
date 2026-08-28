@@ -27,6 +27,8 @@ GameObject:
   - component: {fileID: 6501194065979185811}
   - component: {fileID: 2123157177272441995}
   - component: {fileID: 2165227626761312326}
+  - component: {fileID: 1047751068655922265}
+  - component: {fileID: 5691773687724022461}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -207,6 +209,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   capacity: 20
   pilePrefab: {fileID: 4209126486982702748, guid: 6114f4e0a76d11344ade99e290dbdc8d, type: 3}
+  buriedBagPrefab: {fileID: 7637260236126393840, guid: 98b9ec48a6968974396952141a318dad, type: 3}
+  pileSpacing: 1.2
 --- !u!114 &2236160023173509838
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -239,6 +243,7 @@ MonoBehaviour:
   spillShare: 0.1
   spillAtLoad: 0.8
   spawnProtectionSeconds: 15
+  dashBlockedAtLoad: 0.6
   dashDistance: 3.5
   dashSeconds: 0.18
   recoil: 0.7
@@ -419,3 +424,144 @@ MonoBehaviour:
   snapDistance: 2
   correctionRate: 12
   historySeconds: 1
+--- !u!96 &1047751068655922265
+TrailRenderer:
+  serializedVersion: 4
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 1
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RayTracingAccelStructBuildFlagsOverride: 0
+  m_RayTracingAccelStructBuildFlags: 1
+  m_SmallMeshCulling: 1
+  m_ForceMeshLod: -1
+  m_MeshLodSelectionBias: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_Materials:
+  - {fileID: 2100000, guid: 869737dc239462b41ac2122315ab0b59, type: 2}
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_GlobalIlluminationMeshLod: 0
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+  m_MaskInteraction: 0
+  m_Time: 0.22
+  m_PreviewTimeScale: 1
+  m_Parameters:
+    serializedVersion: 3
+    widthMultiplier: 1
+    widthCurve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 0.55
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+    colorGradient:
+      serializedVersion: 2
+      key0: {r: 1, g: 1, b: 1, a: 1}
+      key1: {r: 1, g: 1, b: 1, a: 1}
+      key2: {r: 0, g: 0, b: 0, a: 0}
+      key3: {r: 0, g: 0, b: 0, a: 0}
+      key4: {r: 0, g: 0, b: 0, a: 0}
+      key5: {r: 0, g: 0, b: 0, a: 0}
+      key6: {r: 0, g: 0, b: 0, a: 0}
+      key7: {r: 0, g: 0, b: 0, a: 0}
+      ctime0: 0
+      ctime1: 65535
+      ctime2: 0
+      ctime3: 0
+      ctime4: 0
+      ctime5: 0
+      ctime6: 0
+      ctime7: 0
+      atime0: 0
+      atime1: 65535
+      atime2: 0
+      atime3: 0
+      atime4: 0
+      atime5: 0
+      atime6: 0
+      atime7: 0
+      m_Mode: 0
+      m_ColorSpace: -1
+      m_NumColorKeys: 2
+      m_NumAlphaKeys: 2
+    numCornerVertices: 0
+    numCapVertices: 2
+    alignment: 0
+    textureMode: 0
+    textureScale: {x: 1, y: 1}
+    shadowBias: 0.5
+    generateLightingData: 0
+  m_MinVertexDistance: 0.05
+  m_Autodestruct: 0
+  m_Emitting: 0
+  m_ApplyActiveColorSpace: 1
+--- !u!114 &5691773687724022461
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7db9e91aee1d4c242b6b960f6724b727, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::DashVisuals
+  trail: {fileID: 1047751068655922265}
+  look: {fileID: 6501194065979185811}
+  hitFlash: {r: 1, g: 1, b: 1, a: 1}
+  spillFlash: {r: 1, g: 0.65, b: 0.15, a: 1}
+  flashSeconds: 0.16
+  impactPrefab: {fileID: 4045632256721089961, guid: 97ec92bf46081e344b3580de515f5d0a, type: 3}
+  impactLifetime: 2
+  shakeOnLand: 0.1
+  shakeOnTaken: 0.28
+  shakeOnSpill: 0.45

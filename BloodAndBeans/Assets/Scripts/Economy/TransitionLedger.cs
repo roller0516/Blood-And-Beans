@@ -20,7 +20,15 @@ public class TransitionLedger : NetworkBehaviour
     int dayClosing = 1;
     MatchDirector director;
     GamePhase phase;
-    Scoreboard board;
+
+    /// 마지막 날을 이미 마감했는가. 마지막 낮은 페이즈가 바뀌지 않고 끝나므로
+    /// (`GamePhase`가 `finished`만 세우고 멈춘다) 경계 감지로는 잡히지 않는다.
+    bool closedFinalDay;
+
+    /// 판 하나짜리 매출판. 예전에는 `FindFirstObjectByType`으로 아무거나 하나를 집었는데,
+    /// 매출판이 카페마다 있던 탓에 한 팀의 장부만 읽거나 아예 null로 굳어 임대료가
+    /// 매일 전액 미납이 됐다.
+    Scoreboard Board => director != null ? director.Board : null;
 
     public Forecast Tomorrow { get; private set; }
     public int TeamCount => director != null ? director.TeamCount : 0;
@@ -40,7 +48,7 @@ public class TransitionLedger : NetworkBehaviour
 
         director = MatchDirector.Instance;
         phase = director != null ? director.Phase : null;
-        board = FindFirstObjectByType<Scoreboard>();
+        closedFinalDay = false;
 
         // 다시 스폰됐을 때 두 번째 세트가 덧붙으면 안 된다. 그러면 CloseDay가 Scoreboard
         // 범위를 넘겨 인덱싱한다.
@@ -58,6 +66,14 @@ public class TransitionLedger : NetworkBehaviour
 
         // 낮 종료 -> 임대료 청구 (3.2).
         if (last == Phase.Day && phase.Current != Phase.Day) CloseDay();
+
+        // 마지막 낮은 페이즈가 바뀌지 않는다. `GamePhase.Update`가 `finished`만 세우고
+        // 멈추므로 위의 경계 감지가 영영 걸리지 않아 그날 임대료가 공짜였다.
+        else if (!closedFinalDay && phase.Finished && last == Phase.Day)
+        {
+            closedFinalDay = true;
+            CloseDay();
+        }
         // 밤 종료 -> 전환 화면이 보여 줄 내용을 뽑는다 (5.6).
         if (last == Phase.Night && phase.Current == Phase.Transition) DrawForecast();
         last = phase.Current;
@@ -71,10 +87,12 @@ public class TransitionLedger : NetworkBehaviour
             if (ledger == null) continue;
 
             // 오늘의 임대료는 오늘 번 것으로만 낸다. 나머지는 지난 기록이다.
-            var earnedToday = (board != null ? board.RevenueOf(team) : 0) - revenueAtDayStart[team];
+            var board = Board;
+            var revenue = board != null ? board.RevenueOf(team) : 0;
+            var earnedToday = revenue - revenueAtDayStart[team];
             ledger.Rent.Settle(dayClosing, earnedToday);
             ledger.ApplySettledPenalty();
-            revenueAtDayStart[team] = board != null ? board.RevenueOf(team) : 0;
+            revenueAtDayStart[team] = revenue;
         }
         dayClosing++;
 

@@ -14,6 +14,10 @@ public class IngredientShelf : NetworkBehaviour, IInteractable
         Ingredient.Bean, Ingredient.BreadBase, Ingredient.Milk,
         Ingredient.Cream, Ingredient.Chocolate, Ingredient.Almond,
         Ingredient.Berry, Ingredient.Ice,
+
+        // 3등급 박스에서만 나오는 중심부 보상 (기획서 6.3). 여기 없으면 밤에 캐 와도
+        // 꺼낼 수가 없어 팀 재고에 영원히 잠긴다.
+        Ingredient.BloodBean, Ingredient.UpgradePart,
     };
     [SerializeField] float reach = 2.5f;
 

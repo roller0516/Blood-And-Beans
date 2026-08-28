@@ -19,6 +19,27 @@ public static class LootSlots
     /// 상자 하나가 담는 최대 *종류* 수. 개수 상한이 아니다.
     public const int MaxTypes = 5;
 
+    /// 등급이 정하는 슬롯 수 범위 (기획서 6.5.2).
+    ///
+    /// | 등급 | 슬롯 수 |
+    /// |---|---|
+    /// | 1등급 | 2~3 |
+    /// | 2등급 | 3~4 |
+    /// | 3등급 | 4~5 |
+    ///
+    /// **등급마다 고정이 아니라 범위인 것이 요점이다.** 고정이면 등급을 보는 순간 칸 수까지
+    /// 알게 돼, 안개를 뚫고 중심부까지 갈지 판단하는 데 아무 도박이 남지 않는다.
+    ///
+    /// 칸은 개수가 아니라 *종류* 기준이므로 상한은 `MaxTypes`를 넘지 않는다 (기획서 6.5.5).
+    public static void SlotRangeFor(int tier, out int min, out int max)
+    {
+        min = tier switch { <= 1 => 2, 2 => 3, _ => 4 };
+        max = tier switch { <= 1 => 3, 2 => 4, _ => 5 };
+
+        if (max > MaxTypes) max = MaxTypes;
+        if (min > max) min = max;
+    }
+
     /// 아이템 목록을 종류별로 접고, 종류가 `MaxTypes`를 넘으면 상자를 쪼갠다.
     /// 12종류를 버리면 5/5/2로 임시 상자 세 개가 된다.
     ///

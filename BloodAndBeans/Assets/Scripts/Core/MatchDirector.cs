@@ -62,6 +62,10 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     public GamePhase Phase => phase;
     public int TeamCount => teamCount;
 
+    /// 판 전체의 매출판. 이 오브젝트에 함께 붙어 있고 씬 오브젝트라 모든 클라이언트에
+    /// 복제된다 — 매출만 공개라는 기획서 3.1을 만족하는 유일한 자리다.
+    public Scoreboard Board { get; private set; }
+
     /// 이 오브젝트가 설 때까지 기다리는 쪽에 한 번 알린다. 플레이어는 타이틀 씬에서
     /// 스폰되고 매치 씬은 그 뒤에 로드되므로, 스폰 시점에 `Instance`를 캐시하면 영영
     /// null이다 — 시계 구독도 함께 빠져 밤마다 도는 초기화가 전부 죽는다.
@@ -91,6 +95,10 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         if (Instance != this) return;
 
         phase = GetComponent<GamePhase>();
+        Board = GetComponent<Scoreboard>();
+        if (Board == null)
+            Debug.LogError($"{name}: {nameof(Scoreboard)}가 같은 오브젝트에 없다. "
+                         + "매출과 임대료 정산이 전부 0이 된다.", this);
 
         // 좌석 권위는 런처 씬에 있고 이 씬보다 먼저 존재한다. 씬 로드 때 한 번만 푼다.
         //seating = MatchSeating.Find();

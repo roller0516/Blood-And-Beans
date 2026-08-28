@@ -30,6 +30,27 @@ public class ItemBox : NetworkBehaviour, IInteractable
     /// 있던 개수를 그대로 옮긴다.
     [SerializeField] Vector2Int stackSize = new(1, 3);
 
+    /// 어느 등급에서나 나오는 흔한 재료.
+    [SerializeField] Ingredient[] commonPool =
+    {
+        Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
+        Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
+    };
+
+    /// 3등급 박스에만 들어가는 중심부 보상 (기획서 6.3: 업그레이드 재료·블러드 빈).
+    /// 이것이 없으면 숲 중앙까지 들어갈 이유가 없고, `BeanGrade.Blood` 가격 분기도
+    /// 영영 도달하지 않는다.
+    [SerializeField] Ingredient[] rarePool =
+    {
+        Ingredient.BloodBean, Ingredient.UpgradePart,
+    };
+
+    /// 중심부 보상이 나오기 시작하는 등급.
+    [SerializeField] int rareFromTier = 3;
+
+    /// 그 등급에서 중심부 보상이 차지하는 칸 수.
+    [SerializeField] int rareSlots = 1;
+
     /// 서버 전용 내용물. 팀 간 선착순이라 모두가 같은 목록을 판다.
     readonly List<LootStack> stacks = new();
 
@@ -315,19 +336,29 @@ public class ItemBox : NetworkBehaviour, IInteractable
     {
         stacks.Clear();
 
-        // 티어가 높을수록 종류가 많다. 상한은 상자 칸 수와 같다.
-        var types = Mathf.Min(tier switch { 1 => 3, 2 => 4, _ => 5 }, LootSlots.MaxTypes);
-        var pool = new List<Ingredient>
-        {
-            Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
-            Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
-        };
+        // 등급이 칸 수를 정한다 (기획서 6.5.2). 고정이 아니라 범위라 같은 등급이라도
+        // 밤마다 달라진다.
+        LootSlots.SlotRangeFor(tier, out var minTypes, out var maxTypes);
+        var types = Random.Range(minTypes, maxTypes + 1);
 
-        for (var i = 0; i < types && pool.Count > 0; i++)
+        // 3등급이면 중심부 보상을 먼저 몇 칸 채우고 나머지를 흔한 재료로 메운다.
+        var rare = tier >= rareFromTier ? Mathf.Clamp(rareSlots, 0, types) : 0;
+        DrawInto(rarePool, rare);
+        DrawInto(commonPool, types - stacks.Count);
+    }
+
+    /// 풀에서 서로 다른 종류를 `count`칸만큼 뽑는다. 같은 종류가 두 칸이 되면 안 된다 —
+    /// 칸 제한이 개수가 아니라 종류 기준이기 때문이다 (`LootSlots.MaxTypes`).
+    void DrawInto(Ingredient[] pool, int count)
+    {
+        if (pool == null || count <= 0) return;
+
+        var remaining = new List<Ingredient>(pool);
+        for (var i = 0; i < count && remaining.Count > 0; i++)
         {
-            var pick = Random.Range(0, pool.Count);
-            stacks.Add(new LootStack(pool[pick], Random.Range(stackSize.x, stackSize.y + 1)));
-            pool.RemoveAt(pick);                               // 같은 종류가 두 칸이 되면 안 된다
+            var pick = Random.Range(0, remaining.Count);
+            stacks.Add(new LootStack(remaining[pick], Random.Range(stackSize.x, stackSize.y + 1)));
+            remaining.RemoveAt(pick);
         }
     }
 

@@ -8,8 +8,8 @@ using UnityEngine.UIElements;
 /// 들어 있는지는 모른다. 실제 내용은 <see cref="DevConsoleGroup"/> 구현들이 가진다.
 ///
 /// 에디터 창이라 씬 배선이 필요 없고, 게임 화면을 가리지 않으며, 빌드에 섞이지 않는다.
-/// 런타임 HUD(`NetworkHud`, `CheatHud`)는 그대로 두었다 — 빌드한 클라이언트와 MPPM 가상
-/// 플레이어에는 이 창이 없다.
+/// 접속과 치트를 만지는 유일한 창이다 — 화면을 덮던 런타임 HUD는 지웠다. MPPM 가상
+/// 플레이어에는 이 창이 없으므로, 가상 플레이어 쪽 조작은 메인 에디터에서 한다.
 ///
 /// <b>그룹을 더하려면</b> `Editor/DevConsole/Groups/`에 <see cref="DevConsoleGroup"/> 구현을
 /// 만들고 아래 <see cref="groups"/>에 한 줄 더한다. 같은 `Tab` 이름이면 그 탭에 얹히고,
@@ -24,11 +24,8 @@ public class DevConsoleWindow : EditorWindow
     const double RefreshInterval = 0.1;
 
     /// 배열 순서가 곧 탭 순서이자 탭 안에서의 그룹 순서다.
-    /// "시작"이 첫 탭이다 — 재생 전에 유일하게 할 수 있는 일이고, 나머지는 매치가 떠야
-    /// 의미가 생긴다.
     readonly DevConsoleGroup[] groups =
     {
-        new BootGroup(),
         new SessionGroup(),
         new PhaseCheatGroup(),
         new TeamCheatGroup(),

@@ -1,7 +1,7 @@
 using Unity.Netcode;
 using UnityEngine.UIElements;
 
-/// 접속 조작. 런타임 `NetworkHud`가 하던 일을 에디터에서도 할 수 있게 옮긴 것이다.
+/// 접속 조작. Host/Client/Server로 뜨고 끊는다.
 public class SessionGroup : DevConsoleGroup
 {
     public override string Tab => "접속";

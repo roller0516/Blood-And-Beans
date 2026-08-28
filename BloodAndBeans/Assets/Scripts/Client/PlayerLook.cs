@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,6 +14,7 @@ public class PlayerLook : NetworkBehaviour
     [SerializeField, Range(0f, 1f)] float tintStrength = 1f;
 
     PlayerTeam playerTeam;
+    Tween flash;
 
     void Awake() => playerTeam = GetComponent<PlayerTeam>();
 
@@ -24,7 +26,24 @@ public class PlayerLook : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        flash?.Kill();
+        flash = null;
         if (playerTeam != null) playerTeam.TeamChanged -= Apply;
+    }
+
+    /// 잠깐 다른 색으로 물들였다가 팀 색으로 되돌린다. 대시에 맞은 순간을 알리는 데 쓴다.
+    ///
+    /// 연출을 시키는 것은 `DashVisuals`지만 이 메서드는 여기 있다. 되돌릴 색을 아는 것은
+    /// 팀 색을 소유한 이쪽뿐이고, 밖에서 되돌리게 하면 팀 배정이 바뀌는 순간 어긋난다.
+    public void FlashClient(Color color, float seconds)
+    {
+        flash?.Kill();
+
+        var team = TeamColors.Of(playerTeam.Team);
+        flash = DOVirtual.Color(color, team, Mathf.Max(0.01f, seconds),
+                                c => TeamColors.TintWith(gameObject, c, tintStrength))
+                         .SetLink(gameObject)
+                         .OnKill(() => Apply(playerTeam.Team));
     }
 
     void Apply(int team) => TeamColors.Tint(gameObject, team, tintStrength);

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Steamworks;
 using Steamworks.Data;
 using Unity.Netcode;
@@ -37,6 +38,10 @@ public class SteamLobby : MonoBehaviour
 
     /// 매치가 끝나면 돌아올 곳.
     [SerializeField] string titleScene = "Title";
+
+    /// 전투 씬 이름. 이 판의 게임 씬이 무엇인지 아는 유일한 자리다 —
+    /// `NetworkAutoStart`가 "지금 그 씬에서 재생했는가"를 판단할 때 되읽는다.
+    public string GameScene => gameScene;
 
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
@@ -145,11 +150,22 @@ public class SteamLobby : MonoBehaviour
     void Awake()
     {
         if (seating == null)
-            Debug.LogError($"{name}: {nameof(seating)}가 비어 있다. 방 정원을 알 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(seating)}가 비어 있다. 방 정원을 알 수 없다.", this);
         if (steamTransport == null)
-            Debug.LogError($"{name}: {nameof(steamTransport)}가 비어 있다. 방에 접속할 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(steamTransport)}가 비어 있다. 방에 접속할 수 없다.", this);
 
         occupancy = new int[Mathf.Max(1, TeamCount)];
+    }
+
+    /// 스팀 세션을 연다. `GameManager`의 부팅 사슬이 부르며, Awake에서 스스로 열지 않는다 —
+    /// 무엇이 언제 초기화되는지를 호출 순서가 아니라 코드 한 줄로 읽게 하기 위해서다.
+    ///
+    /// Facepunch의 `SteamClient.Init`은 동기다. 그래도 한 프레임 양보하고 여는 이유는,
+    /// 스팀이 꺼져 있을 때 예외가 나기까지 걸리는 시간이 그대로 씬 첫 프레임을 붙잡기
+    /// 때문이다. 여기서 기다리는 것은 스팀이 아니라 프레임이다.
+    public async UniTask InitializeAsync()
+    {
+        await UniTask.Yield();
         InitializeSteam();
     }
 
@@ -200,7 +216,7 @@ public class SteamLobby : MonoBehaviour
             // 스팀이 꺼져 있거나 로그인되지 않은 상태다. 게임을 죽일 이유는 없고, 방 흐름만
             // 잠근 채 로컬 테스트 경로를 남겨 둔다.
             Status = $"스팀에 연결하지 못했다: {e.Message}";
-            Debug.LogWarning($"{name}: {Status}", this);
+            CDebug.LogWarning($"{name}: {Status}", this);
         }
     }
 

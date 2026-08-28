@@ -71,7 +71,15 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
     void Awake()
     {
-        bodyRenderers = GetComponentsInChildren<Renderer>(true);
+        // 소각 연출의 Renderer는 빼 둔다. 여기 섞이면 적에게 숨기려고 끈 상태 그대로라
+        // 정작 불을 붙인 적에게 불이 보이지 않는다.
+        var all = GetComponentsInChildren<Renderer>(true);
+        var body = new List<Renderer>(all.Length);
+        foreach (var r in all)
+            if (burnEffect == null || !r.transform.IsChildOf(burnEffect.transform))
+                body.Add(r);
+        bodyRenderers = body.ToArray();
+
         SetShown(false);                 // 모르는 동안은 감춘다
     }
 
@@ -227,6 +235,10 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     void BurnEffectRpc()
     {
         if (burnEffect == null) return;
+
+        // 연출은 누구에게나 보인다. 본체 Renderer와 달리 팀으로 가리지 않는다 — 불을 붙인
+        // 적도, 가방을 잃은 주인도 무슨 일이 있었는지 봐야 한다.
+        foreach (var r in burnEffect.GetComponentsInChildren<Renderer>(true)) r.enabled = true;
 
         // 이 오브젝트는 곧 despawn된다. 연출을 떼어 내지 않으면 불이 붙는 프레임에 같이
         // 사라진다. 떼어 낸 뒤에는 아무도 소유하지 않으므로 재생 길이만큼만 살려 둔다.

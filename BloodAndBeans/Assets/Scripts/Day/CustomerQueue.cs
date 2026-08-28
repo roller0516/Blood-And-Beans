@@ -21,7 +21,6 @@ public struct ServeInfo
 public class CustomerQueue : NetworkBehaviour
 {
     [SerializeField] Customer customerPrefab;
-    [SerializeField] GamePhase phase;
     [SerializeField] int maxWaiting = 4;
     [SerializeField] float spawnSeconds = 8f;   // ponytail: 임시값, 기획서 14장 #1
     [SerializeField] float slotSpacing = 1.5f;
@@ -33,6 +32,17 @@ public class CustomerQueue : NetworkBehaviour
     public IReadOnlyList<Customer> Waiting => waiting;
     double nextSpawn;
 
+    Cafe ownerCafe;
+    GamePhase clock;
+
+    /// 시계를 지연 해석한다. 예전에는 `[SerializeField] GamePhase`였는데, 이 컴포넌트는
+    /// 런타임에 스폰되는 카페 프리팹 안에 있어서 씬 오브젝트를 직렬화 참조로 가질 수 없다.
+    /// 프리팹에는 `{fileID: 0}`이 박혔고, 그래서 "손님은 낮에만" 가드가 통째로 죽어 있었다 —
+    /// 전환 10초 동안 손님이 미리 나와 인내심을 까먹었다.
+    /// 조립 루트는 설비들과 같은 통로(소속 카페)에서 받는다 (아키텍처_v1.0.md §1.4).
+    GamePhase Clock => clock != null ? clock
+        : (clock = (ownerCafe != null ? ownerCafe : (ownerCafe = Cafe.Of(this)))?.Director?.Phase);
+
     /// Economy가 이 이벤트를 구독한다. 낮은 최종 가격을 직접 계산하지 않는다.
     /// static이 아니라 대기열마다 하나씩 둔다. 카페가 둘일 때 static 이벤트는 모든 팀의
     /// 판매를 먼저 구독한 계산대 하나에 몰아넣었다.
@@ -42,8 +52,10 @@ public class CustomerQueue : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        // 손님은 낮에만 존재한다.
-        if (phase != null && phase.Current != Phase.Day) { ClearAll(); return; }
+        // 손님은 낮에만 존재한다. 시계를 아직 못 찾았으면 낮이라고 단정하지 않는다 —
+        // 모를 때 손님을 내보내는 쪽이 이 가드가 없던 예전 동작이다.
+        var now = Clock;
+        if (now == null || now.Current != Phase.Day) { ClearAll(); return; }
 
         for (int i = waiting.Count - 1; i >= 0; i--)
         {

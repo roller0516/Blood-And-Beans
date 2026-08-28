@@ -39,7 +39,17 @@ public static class TeamColors
     /// 투명도는 팀 색이 아니라 원래 머티리얼 것을 쓴다. 유리를 불투명하게 만들면 안 된다.
     public static void Tint(GameObject root, int team, float strength)
     {
-        if (root == null || !TryGet(team, out var color)) return;
+        if (TryGet(team, out var color)) TintWith(root, color, strength);
+    }
+
+    /// 팀 색. 팔레트 밖이면 흰색이다. 잠깐 다른 색으로 물들였다가 되돌릴 때 목표값이 된다.
+    public static Color Of(int team) => TryGet(team, out var color) ? color : Color.white;
+
+    /// 팀과 무관한 임의의 색으로 물들인다. 피격 번쩍임처럼 한순간만 다른 색이 필요할 때
+    /// 쓴다 — 되돌리는 책임은 부르는 쪽에 있다.
+    public static void TintWith(GameObject root, Color color, float strength)
+    {
+        if (root == null) return;
 
         var block = new MaterialPropertyBlock();
         foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))

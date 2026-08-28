@@ -1,3 +1,4 @@
+using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -37,6 +38,21 @@ public class DashHarass : NetworkBehaviour
 
     double nextDash;                             // 서버 측 값. 절대 클라이언트에서 받지 않는다
 
+    /// 다음 대시가 가능해지는 서버 시각. 소유자만 읽고 서버만 쓴다 — 남의 쿨다운을 알
+    /// 이유가 없고, 클라이언트가 쓸 수 있으면 쿨다운이 없는 것과 같다.
+    readonly NetworkVariable<double> nextDashAt = new(0d,
+        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+
+    /// 돌진이 시작됐다. 인자는 돌진이 지속되는 시간이다. 위치와 방향은 싣지 않는다 —
+    /// NetworkTransform이 이미 보내고 있고, 두 경로가 어긋나면 잔상이 몸과 따로 논다.
+    public event Action<float> DashStarted;
+
+    /// 이 플레이어가 상대를 맞혔다. 맞은 자리와, 그 대시로 상대의 재료가 쏟아졌는지.
+    public event Action<Vector3, bool> HitLanded;
+
+    /// 이 플레이어가 맞았다. 밀려나는 방향과, 자기 재료가 쏟아졌는지.
+    public event Action<Vector3, bool> TookHit;
+
     CharacterController controller;
     PlayerMove move;
     PlayerInventory inventory;
@@ -67,6 +83,18 @@ public class DashHarass : NetworkBehaviour
 
     /// 표시 전용. 무게 때문에 대시가 막혔는지 소유자에게 알려 준다. 판정은 서버가 다시 한다.
     public bool BlockedByLoad => inventory != null && inventory.LoadRatio >= dashBlockedAtLoad;
+
+    /// 표시 전용. 남은 쿨다운(초). 소유자 외에는 0이다 — 복제 권한이 소유자뿐이라
+    /// 남의 화면에서는 애초에 값이 오지 않는다.
+    public float CooldownRemaining
+    {
+        get
+        {
+            if (!IsSpawned) return 0f;
+            var left = nextDashAt.Value - NetworkManager.ServerTime.Time;
+            return left > 0d ? (float)left : 0f;
+        }
+    }
 
     /// PlayerMove보다 뒤에 실행되므로 여기서 위치를 밀면 이번 프레임의 입력이 덮인다.
     /// 돌진과 넉백이 같은 자리에서 위치를 소유한다.
@@ -147,11 +175,25 @@ public class DashHarass : NetworkBehaviour
 
         if (NetworkManager.ServerTime.Time < nextDash) return;
         nextDash = NetworkManager.ServerTime.Time + cooldown;
+        nextDashAt.Value = nextDash;
 
         dashDirection = move.FacingServer;
         dashEnd = Time.time + dashSeconds;
         dashHitResolved = false;
+
+        DashStartedRpc(dashSeconds);
     }
+
+    // --- 연출 알림. 판정은 위에서 이미 끝났고, 아래는 그리기 위한 통지뿐이다 ---
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void DashStartedRpc(float seconds) => DashStarted?.Invoke(seconds);
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void HitLandedRpc(Vector3 at, bool spilled) => HitLanded?.Invoke(at, spilled);
+
+    [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
+    void TookHitRpc(Vector3 direction, bool spilled) => TookHit?.Invoke(direction, spilled);
 
     /// 첫 밤 전체와 이후 밤의 첫 15초에는 피해 효과가 없다 (기획서 4장 Night 0, 6.4).
     bool HarassAllowedServer()
@@ -166,7 +208,10 @@ public class DashHarass : NetworkBehaviour
         var inv = victim.GetComponent<PlayerInventory>();
         var load = inv != null ? inv.LoadRatio : 0f;
 
-        if (inv != null && load >= spillAtLoad) inv.DropShareServer(spillShare, victim.transform.position);
+        // 재료가 쏟아졌는지는 연출이 갈리는 기준이다. 밀리기만 한 것과 수확을 흘린 것은
+        // 맞은 사람에게 전혀 다른 사건이다 (기획서 6.6).
+        var spilled = inv != null && load >= spillAtLoad;
+        if (spilled) inv.DropShareServer(spillShare, victim.transform.position);
         victim.GetComponent<PlayerInteract>()?.InterruptServer();
 
         var dir = victim.transform.position - transform.position;
@@ -175,14 +220,19 @@ public class DashHarass : NetworkBehaviour
 
         // 무겁게 들고 있을수록 오래 휘청인다. 상한은 1초다 (기획서 6.6).
         victim.GetComponent<DashHarass>()
-             ?.HitServer(dir * knockback, Mathf.Lerp(0.4f, 1f, Mathf.Clamp01(load)));
+             ?.HitServer(dir * knockback, Mathf.Lerp(0.4f, 1f, Mathf.Clamp01(load)), spilled);
 
         // 부딪힌 반작용. 맞은 방향의 반대로 튕기되 넘어지지는 않는다.
         PushServer(-dir * recoil, recoilSeconds, recoilSeconds, topple: false);
+
+        HitLandedRpc(victim.transform.position, spilled);
     }
 
-    void HitServer(Vector3 push, float stunSeconds) =>
+    void HitServer(Vector3 push, float stunSeconds, bool spilled)
+    {
         PushServer(push, stunSeconds, KnockSeconds, topple: true);
+        TookHitRpc(push.sqrMagnitude > 0.0001f ? push.normalized : Vector3.forward, spilled);
+    }
 
     /// 서버가 플레이어를 밀어내는 단 하나의 경로. 미끄러지는 동안 조작은 죽는다.
     void PushServer(Vector3 push, float lockSeconds, float slideSeconds, bool topple)

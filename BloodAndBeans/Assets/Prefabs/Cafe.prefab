@@ -267,6 +267,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Cafe
   ShowTopMostFoldoutHeaderGroup: 1
+  teamTintStrength: 0.35
 --- !u!1 &264959630304601462
 GameObject:
   m_ObjectHideFlags: 0
@@ -1819,7 +1820,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::IngredientShelf
   ShowTopMostFoldoutHeaderGroup: 1
-  offer: 0800000009000000000000000100000002000000030000000400000005000000
+  offer: 08000000090000000000000001000000020000000300000004000000050000000600000007000000
   reach: 2.5
 --- !u!1 &3377401709651805027
 GameObject:
@@ -3177,8 +3178,8 @@ MeshRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5002994428459497817}
   m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 1
@@ -3194,7 +3195,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 0}
+  - {fileID: 2100000, guid: 3f3e870987b946b45be9567d0c89adfd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -3232,6 +3233,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ReturnZone
   ShowTopMostFoldoutHeaderGroup: 1
   radius: 5
+  missedReturnLoss: 0.5
 --- !u!1 &5009330870810881285
 GameObject:
   m_ObjectHideFlags: 0
@@ -4318,7 +4320,6 @@ GameObject:
   - component: {fileID: 5660803631463244006}
   - component: {fileID: 5443559314968101949}
   - component: {fileID: 2737626604428793901}
-  - component: {fileID: 8429169853347303260}
   - component: {fileID: 4151856092055359088}
   - component: {fileID: 7077173097769926682}
   m_Layer: 8
@@ -4371,24 +4372,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerQueue
   ShowTopMostFoldoutHeaderGroup: 1
   customerPrefab: {fileID: 397695399714067981, guid: 5a9856f8fdef19a45906100835701fb8, type: 3}
-  phase: {fileID: 0}
   maxWaiting: 4
   spawnSeconds: 8
   slotSpacing: 1.5
   burntPatiencePenalty: 10
---- !u!114 &8429169853347303260
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7432659168480402945}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c55dde2b431ad304db6a51e2b1d9f962, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::Scoreboard
-  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!114 &4151856092055359088
 MonoBehaviour:
   m_ObjectHideFlags: 0

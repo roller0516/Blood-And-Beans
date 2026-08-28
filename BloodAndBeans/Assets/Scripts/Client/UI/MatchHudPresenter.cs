@@ -73,7 +73,7 @@ public sealed class MatchHudPresenter
         {
             text.AppendLine(inventory.HasBag
                 ? $"짐 {inventory.LoadRatio * 100f:0}% · 속도 {inventory.CurrentSpeedMultiplier * 100f:0}%"
-                    + (dash != null && dash.BlockedByLoad ? " · 대시 불가(과적)" : "")
+                    + DashLabel()
                 : "가방을 묻어 뒀다 · 회수하지 않으면 수확 전량 소실");
         }
         else if (phase.Current == Phase.Transition && ledger != null)
@@ -104,6 +104,17 @@ public sealed class MatchHudPresenter
         var prompt = interactor != null ? interactor.Prompt : null;
         if (!string.IsNullOrEmpty(prompt)) text.AppendLine($"\n[F] {prompt}");
         return text.ToString();
+    }
+
+    /// 대시를 지금 쓸 수 있는가. 못 쓴다면 이유가 무게인지 쿨다운인지까지 적는다 —
+    /// 이유가 없으면 대시가 고장 난 것처럼 보인다.
+    string DashLabel()
+    {
+        if (dash == null) return string.Empty;
+        if (dash.BlockedByLoad) return " · 대시 불가(과적)";
+
+        var left = dash.CooldownRemaining;
+        return left > 0f ? $" · 대시 {left:0.0}s" : " · 대시 준비";
     }
 
     /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `MatchHudScreen`의 일이고,

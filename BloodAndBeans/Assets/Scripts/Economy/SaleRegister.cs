@@ -20,9 +20,11 @@ public class SaleRegister : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
-        board = FindFirstObjectByType<Scoreboard>();
 
+        // 전역에서 하나만 집으면 안 된다. 매출판이 카페마다 있던 시절 이 조회가 아무
+        // 카페의 것이나 잡아서, 모든 팀의 판매가 한 팀 장부에만 쌓였다.
         var cafe = Cafe.Of(this);
+        board = cafe != null ? cafe.Board : null;
         team = cafe != null ? cafe.TeamId : 0;
         queue = cafe != null ? cafe.Queue : null;
         if (queue != null) queue.Served += Book;

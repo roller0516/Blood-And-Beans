@@ -26,8 +26,10 @@ public class Cafe : NetworkBehaviour
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
 
-    /// 매출판. 카페 프리팹에 붙어 있어서 씬에서 이을 수 없다 — HUD가 여기서 받아 간다.
-    public Scoreboard Board { get; private set; }
+    /// 매출판. 판에 하나뿐이고 카페가 소유하지 않는다 (기획서 3.1: 재료·설비·캐릭터는
+    /// 비공개지만 *매출은 공개*다). 카페는 상대 팀에 복제되지 않으므로, 매출판을 카페에
+    /// 매달면 남의 매출을 볼 방법이 영영 없다 — 순위표가 자기 팀만 보이고 나머지는 0이 된다.
+    public Scoreboard Board => director != null ? director.Board : null;
 
     /// 이 카페의 게이지 캐시. 모든 카페의 게이지를 한꺼번에 담던 static 리스트를 대체한다.
     /// 그 리스트 때문에 한 팀이 다른 팀의 오븐을 멈출 수 있었다 (아키텍처_v1.0.md §1.2).
@@ -47,7 +49,6 @@ public class Cafe : NetworkBehaviour
         Dishes = GetComponentInChildren<Dish>(true);
         Queue = GetComponentInChildren<CustomerQueue>(true);
         Stock = GetComponentInChildren<TeamStock>(true);
-        Board = GetComponentInChildren<Scoreboard>(true);
         Gauges = GetComponentsInChildren<CompletionGauge>(true);
     }
 

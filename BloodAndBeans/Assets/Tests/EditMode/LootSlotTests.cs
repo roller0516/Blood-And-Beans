@@ -67,6 +67,46 @@ public class LootSlotTests
         Assert.AreEqual(0, LootSlots.RevealedCount(99d, 100d, 1f, 5), "개봉 전은 음수가 아니라 0이다");
     }
 
+    // --- 등급별 슬롯 수 (기획서 6.5.2) ---
+
+    [Test]
+    public void BoxGradeDecidesHowManySlots()
+    {
+        LootSlots.SlotRangeFor(1, out var min, out var max);
+        Assert.AreEqual(2, min, "1등급 하한");
+        Assert.AreEqual(3, max, "1등급 상한");
+
+        LootSlots.SlotRangeFor(2, out min, out max);
+        Assert.AreEqual(3, min, "2등급 하한");
+        Assert.AreEqual(4, max, "2등급 상한");
+
+        LootSlots.SlotRangeFor(3, out min, out max);
+        Assert.AreEqual(4, min, "3등급 하한");
+        Assert.AreEqual(5, max, "3등급 상한");
+    }
+
+    [Test]
+    public void EveryGradeIsARangeNotAFixedCount()
+    {
+        // 고정 값으로 되돌아가면 이 테스트가 먼저 깨진다.
+        for (var tier = 1; tier <= 3; tier++)
+        {
+            LootSlots.SlotRangeFor(tier, out var min, out var max);
+            Assert.Less(min, max, $"{tier}등급이 고정 칸 수가 됐다");
+        }
+    }
+
+    [Test]
+    public void SlotCountNeverExceedsTheTypeLimit()
+    {
+        LootSlots.SlotRangeFor(9, out var min, out var max);
+        Assert.LessOrEqual(max, LootSlots.MaxTypes, "칸 제한은 종류 기준 5개다");
+        Assert.LessOrEqual(min, max);
+
+        LootSlots.SlotRangeFor(0, out min, out max);
+        Assert.AreEqual(2, min, "등급 0은 1등급으로 본다");
+    }
+
     // --- 귀환 정산 (기획서 5장) ---
 
     [Test]
