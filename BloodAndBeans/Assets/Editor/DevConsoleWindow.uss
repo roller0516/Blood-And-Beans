@@ -1,0 +1,226 @@
+/* Blood & Beans 개발 콘솔 — FLAT.
+   그림자 없음, 둥근 모서리 없음, 테두리 장식 없음, 전환 애니메이션 없음.
+   위계는 오직 여백 · 글자 크기 · 단색 면으로만 만든다.
+   색과 간격은 전부 여기 모아 둔다 — C#에는 배치만 있고 생김새는 없다. */
+
+:root {
+    --bg: #191919;
+    --surface: #232323;
+    --surface-alt: #2c2c2c;
+    --divider: #333333;
+
+    --text: #e4e4e4;
+    --muted: #7d7d7d;
+
+    --accent: #4c7dff;
+    --good: #3fa66b;
+    --danger: #c1443f;
+}
+
+.root {
+    flex-grow: 1;
+    background-color: var(--bg);
+}
+
+.scroll { flex-grow: 1; }
+
+/* ── 상단 바 ─────────────────────────────────────── */
+.topbar {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 12px;
+    background-color: var(--accent);
+}
+
+.brand {
+    color: #ffffff;
+    font-size: 11px;
+    -unity-font-style: bold;
+    letter-spacing: 2px;
+}
+
+.pill {
+    color: #ffffff;
+    font-size: 10px;
+    -unity-font-style: bold;
+    letter-spacing: 1px;
+    padding: 2px 8px;
+    background-color: rgba(0, 0, 0, 0.25);
+}
+
+.pill--live { background-color: var(--good); }
+.pill--off { background-color: rgba(0, 0, 0, 0.25); }
+
+/* ── 탭 줄 ───────────────────────────────────────
+   납작한 띠. 선택 표시는 밑줄 한 줄로만 한다. */
+.tabbar {
+    flex-direction: row;
+    align-items: stretch;
+    background-color: var(--surface-alt);
+    min-height: 26px;
+}
+
+.tabstrip {
+    flex-grow: 1;
+}
+
+/* 탭이 세로로 접히지 않고 한 줄로 이어져야 넘침 판정이 성립한다. */
+.tabstrip .unity-scroll-view__content-container {
+    flex-direction: row;
+}
+
+.tab {
+    height: 26px;
+    padding: 0 14px;
+    margin: 0;
+    font-size: 11px;
+    color: var(--muted);
+    background-color: transparent;
+    border-width: 0;
+    border-radius: 0;
+    border-bottom-width: 2px;
+    border-bottom-color: transparent;
+    flex-shrink: 0;
+}
+
+.tab:hover { color: var(--text); }
+
+.tab--on {
+    color: var(--text);
+    background-color: var(--surface);
+    border-bottom-color: var(--accent);
+}
+
+/* 기본은 숨김. 탭 줄이 창보다 넓을 때만 코드가 켠다(RefreshTabOverflow).
+   기본을 보임으로 두면 레이아웃이 아직 안 돈 첫 프레임에 화살표가 잠깐 떴다 사라진다. */
+.arrow {
+    display: none;
+    width: 22px;
+    height: 26px;
+    margin: 0;
+    padding: 0;
+    font-size: 14px;
+    color: var(--text);
+    background-color: var(--divider);
+    border-width: 0;
+    border-radius: 0;
+    flex-shrink: 0;
+}
+
+.arrow:hover { background-color: #3f3f3f; }
+
+/* ── 탭 내용 ─────────────────────────────────────── */
+.page {
+    background-color: var(--surface);
+    padding: 12px;
+}
+
+/* ── 묶음 ────────────────────────────── */
+.group {
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom-width: 1px;
+    border-bottom-color: rgba(255, 255, 255, 0.07);
+}
+
+.group__title {
+    color: var(--muted);
+    font-size: 10px;
+    -unity-font-style: bold;
+    margin-bottom: 2px;
+}
+
+/* ── 행 ─────────────────────────────────────────── */
+.row {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: 3px;
+    padding-bottom: 3px;
+}
+
+.row__label { color: var(--muted); font-size: 11px; }
+.row__value { color: var(--text); font-size: 11px; }
+
+/* 숫자 입력 칸. 라벨과 같은 줄에 붙되 폭은 고정한다 — 창을 좁혀도 라벨을 밀지 않는다. */
+.row__field {
+    width: 64px;
+    margin-right: 0;
+    margin-left: 0;
+}
+
+.row__field .unity-base-field__input { font-size: 11px; }
+
+.buttons {
+    flex-direction: row;
+    margin-top: 8px;
+}
+
+/* ── 버튼 ───────────────────────────────────────
+   단색 면. 테두리도 라운드도 없다. 상태 구분은 채움색으로만 한다. */
+.btn {
+    flex-grow: 1;
+    height: 26px;
+    margin-right: 1px;
+    padding: 0 8px;
+    font-size: 11px;
+    color: var(--text);
+    background-color: var(--surface-alt);
+    border-width: 0;
+    border-radius: 0;
+}
+
+.btn:hover:enabled { background-color: #3a3a3a; }
+.btn:active:enabled { background-color: #444444; }
+.btn:disabled { color: #545454; background-color: #202020; }
+
+.btn--primary { background-color: var(--accent); color: #ffffff; }
+.btn--primary:hover:enabled { background-color: #5f8cff; }
+
+.btn--danger { background-color: var(--danger); color: #ffffff; }
+.btn--danger:hover:enabled { background-color: #d0524d; }
+
+/* ── 페이즈 ─────────────────────────────────────── */
+.phase {
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.phase__name {
+    color: var(--text);
+    font-size: 16px;
+    -unity-font-style: bold;
+}
+
+.phase__time { color: var(--muted); font-size: 11px; }
+
+/* 납작한 막대. 높이만 있고 라운드는 없다. */
+.track {
+    height: 4px;
+    background-color: #141414;
+}
+
+/* 폭과 색은 남은 시간·페이즈에 따라 코드에서 채운다. */
+.track__fill {
+    height: 4px;
+    background-color: var(--accent);
+}
+
+/* ── 안내문 ─────────────────────────────────────── */
+.hint {
+    color: var(--muted);
+    font-size: 11px;
+    white-space: normal;
+    padding: 24px 16px;
+    -unity-text-align: middle-center;
+}
+
+.warn {
+    color: #c9a227;
+    font-size: 10px;
+    white-space: normal;
+    margin-top: 8px;
+}

@@ -104,6 +104,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FogRenderer
   fogColor: {r: 0.05, g: 0.06, b: 0.1, a: 0.96}
-  texelsPerCell: 3
-  edgeSoftness: 1.5
-  blurCells: 2.5
+  fogShader: {fileID: 4800000, guid: 2c3d67480167f0d4eac0a4599cd0cca7, type: 3}
+  blurLevel: 1.5
+  edgeSoftness: 0.35

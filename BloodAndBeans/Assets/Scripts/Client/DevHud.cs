@@ -1,3 +1,4 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.EventSystems;
@@ -48,12 +49,13 @@ public static class DevHud
         return rect;
     }
 
-    public static Text MakeText(Transform parent, string value)
+    /// 폰트는 지정하지 않는다. TMP가 `TMP_Settings.defaultFontAsset`을 쓴다 — 개발용 HUD가
+    /// 자기 폰트 애셋을 들고 다닐 이유는 없고, 프로젝트 기본값이 바뀌면 같이 따라가야 한다.
+    public static TMP_Text MakeText(Transform parent, string value)
     {
-        var gameObject = new GameObject("Label", typeof(RectTransform), typeof(Text), typeof(LayoutElement));
+        var gameObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI), typeof(LayoutElement));
         gameObject.transform.SetParent(parent, false);
-        var text = gameObject.GetComponent<Text>();
-        text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        var text = gameObject.GetComponent<TextMeshProUGUI>();
         text.fontSize = FontSize;
         text.color = Color.white;
         text.text = value;
@@ -74,7 +76,7 @@ public static class DevHud
         button.onClick.AddListener(action);
 
         var text = MakeText(gameObject.transform, label);
-        text.alignment = TextAnchor.MiddleCenter;
+        text.alignment = TextAlignmentOptions.Center;
         var rect = text.rectTransform;
         rect.anchorMin = Vector2.zero;
         rect.anchorMax = Vector2.one;

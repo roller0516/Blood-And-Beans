@@ -1,64 +1,77 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// 박스 앞에서 F 홀드: 처음 홀드는 개봉이고, 계속 누르면 하나씩 담는다 (기획서 6.5.1).
-/// 개봉은 짧고, 시간이 드는 쪽은 담기다.
+/// 박스 앞에서 F 홀드: 게이지를 채우면 루팅 창이 열리고, 그 뒤로는 창에서 칸을 눌러 담는다
+/// (기획서 6.5.1).
 ///
-/// 이 클래스는 더 이상 홀드가 끝났는지 판단하지 않는다. "이 박스를 누르기 시작했다"와
-/// "뗐다"만 보고하고 나머지 시간은 서버가 잰다. 소유자가 자기 홀드를 재던 탓에 밤 파밍
-/// 루프가 공짜였다 (아키텍처_v1.0.md §1.1). 또한 어떤 박스를 붙잡고 있는지 아는 유일한
-/// 지점이라, 대시 중단 처리가 여기를 필요로 한다.
+/// 이 클래스는 홀드가 끝났는지 판단하지 않는다. "이 박스를 누르기 시작했다", "뗐다",
+/// "이 칸을 눌렀다"만 보고하고 나머지는 서버가 잰다. 소유자가 자기 홀드를 재던 탓에 밤
+/// 파밍 루프가 공짜였다 (아키텍처_v1.0.md §1.1). 또한 어떤 박스를 붙잡고 있는지 아는
+/// 유일한 지점이라, 대시 중단 처리가 여기를 필요로 한다.
 public class PlayerInteract : NetworkBehaviour
 {
-    ItemBox held;           // 소유자 측: 서버에 알린 대상
-    ItemBox serverHeld;     // 서버 측 진실. 대시 중단 처리에 쓴다
+    /// 소유자 측: 서버에 알린 대상. F를 놓아도 루팅 세션이 살아 있으므로 여기서 놓지 않는다.
+    /// 창을 여닫는 `MatchFlow`가 이 참조와 `ItemBox.Opened`만 보고 판단한다.
+    ItemBox held;
 
-    /// 소유자 측: 담으려고 고른 칸 (기획서 6.5.1). 권위 있는 값은 서버가 박스에 들고 있고
-    /// 이쪽은 커서를 그리고 다음 칸을 계산하기 위한 것이다.
-    int selected;
+    ItemBox serverHeld;     // 서버 측 진실. 대시 중단과 칸 담기가 여기로 간다
 
-    public int SelectedSlot => selected;
+    /// 캐스팅을 시작한 시각. 게이지 표시는 표시 전용이라 로컬에서 잰다 — 권위 있는
+    /// 진행도는 서버의 `HoldTimer`에 있다.
+    float castStart;
+    bool casting;
+
+    /// 지금 루팅 창을 띄워야 할 박스. 세션이 닫히면 `ItemBox.Opened`가 false가 된다.
+    public ItemBox LootBox => held;
+
+    /// 개봉 게이지 진행도(0~1). 표시 전용이다.
+    public float CastProgress01
+    {
+        get
+        {
+            if (!casting || held == null || held.Opened) return 0f;
+            var required = Mathf.Max(held.RequiredSecondsFor(PlayerTeam.Local()), 0.01f);
+            return Mathf.Clamp01((Time.time - castStart) / required);
+        }
+    }
 
     public void BeginBoxClient(ItemBox box)
     {
-        if (!IsOwner || box == null || held == box) return;
-        EndBoxClient();
-        held = box;
-        selected = 0;       // 박스마다 처음부터 고른다. 서버도 값이 없으면 첫 칸으로 본다
-        if (held != null) HoldBeginRpc(held.NetworkObject);
+        if (!IsOwner || box == null) return;
+
+        if (held != box)
+        {
+            if (held != null) CloseBoxRpc();
+            held = box;
+        }
+
+        castStart = Time.time;
+        casting = true;
+        HoldBeginRpc(held.NetworkObject);
     }
 
+    /// F를 놓았다. 캐스팅만 끝난다 — 이미 열린 창은 이동하거나 맞을 때까지 유지된다.
     public void EndBoxClient()
     {
-        if (!IsOwner || held == null) return;
-        HoldEndRpc();
-        held = null;
+        if (!IsOwner) return;
+        casting = false;
+        if (held != null) HoldEndRpc();
     }
 
-    /// 담을 칸을 옮긴다 (기획서 6.5.1). 담을 수 있는 칸 사이에서만 돌고 끝에서 되돌아온다.
-    /// 못 담는 칸에 커서가 서면 홀드가 고장 난 것처럼 보이기 때문이다.
-    ///
-    /// 출발점은 지금 커서가 아니라 *실제로 담기는 칸*이다. 고른 칸이 남의 손에 사라진
-    /// 뒤에도 커서만 그대로면 한 번 눌러도 화면이 움직이지 않는다.
-    public void MoveSelectionClient(int delta)
+    /// 루팅 창에서 칸을 눌렀다. 담을 수 있는지는 서버가 다시 판단한다.
+    public void TakeSlotClient(int index)
     {
-        if (!IsOwner || held == null || delta == 0) return;
+        if (!IsOwner || held == null || !held.Opened) return;
+        TakeSlotRpc(index);
+    }
 
-        var count = held.SlotCount;
-        if (count <= 0) return;
-
-        var from = held.EffectiveSlot(selected);
-        if (from < 0) return;                   // 지금 담을 수 있는 칸이 하나도 없다
-
-        for (var step = 1; step <= count; step++)
-        {
-            var index = ((from + delta * step) % count + count) % count;
-            if (!held.IsTakable(index)) continue;
-
-            selected = index;
-            SelectSlotRpc(index);
-            return;
-        }
+    /// 창을 스스로 닫는다(다른 박스로 옮기거나 UI를 닫을 때). 세션은 서버가 지운다.
+    public void CloseBoxClient()
+    {
+        if (!IsOwner || held == null) return;
+        CloseBoxRpc();
+        held = null;
+        casting = false;
     }
 
     public override void OnNetworkDespawn()
@@ -78,24 +91,29 @@ public class PlayerInteract : NetworkBehaviour
         var target = no.GetComponent<ItemBox>();
         if (target == null) return;
 
-        ReleaseServer();
+        if (serverHeld != target) ReleaseServer();
         serverHeld = target;
         target.BeginHoldServer(OwnerClientId);
     }
 
-    /// 고른 칸을 서버에 알린다. `HoldBeginRpc`와 같은 이유로 발신자가 소유자인지 검사한다 —
-    /// 없으면 아무 클라이언트나 남의 담기 대상을 바꿀 수 있다.
     [Rpc(SendTo.Server)]
-    void SelectSlotRpc(int index, RpcParams p = default)
+    void HoldEndRpc(RpcParams p = default)
     {
         if (p.Receive.SenderClientId != OwnerClientId) return;
-        if (serverHeld == null) return;
+        if (serverHeld != null) serverHeld.EndHoldServer(OwnerClientId);
+    }
 
-        serverHeld.SelectSlotServer(OwnerClientId, index);
+    /// 담을 칸을 서버에 알린다. `HoldBeginRpc`와 같은 이유로 발신자가 소유자인지 검사한다 —
+    /// 없으면 아무 클라이언트나 남의 상자를 대신 털 수 있다.
+    [Rpc(SendTo.Server)]
+    void TakeSlotRpc(int index, RpcParams p = default)
+    {
+        if (p.Receive.SenderClientId != OwnerClientId) return;
+        if (serverHeld != null) serverHeld.TakeStackServer(OwnerClientId, index);
     }
 
     [Rpc(SendTo.Server)]
-    void HoldEndRpc(RpcParams p = default)
+    void CloseBoxRpc(RpcParams p = default)
     {
         if (p.Receive.SenderClientId != OwnerClientId) return;
         ReleaseServer();
@@ -103,16 +121,15 @@ public class PlayerInteract : NetworkBehaviour
 
     void ReleaseServer()
     {
-        if (serverHeld != null) serverHeld.CancelHoldServer(OwnerClientId);
+        if (serverHeld != null) serverHeld.CancelSessionServer(OwnerClientId);
         serverHeld = null;
     }
 
-    /// 대시를 맞으면 진행 중인 개봉이 끊기지만 진행도는 절반이 남는다 (기획서 6.6).
-    /// 진행도는 이제 박스가 들고 있으므로 중단 처리도 박스로 간다.
+    /// 대시를 맞으면 파밍이 취소된다 (기획서: 이동하거나 피격당하면 상자 UI가 즉시 닫힘).
+    /// 진행도를 절반 남기지 않는다 — 다시 열려면 캐스팅부터 처음이다.
     public void InterruptServer()
     {
         if (!IsServer || serverHeld == null) return;
-        serverHeld.HalveHoldServer(OwnerClientId);
+        serverHeld.CancelSessionServer(OwnerClientId);
     }
-
 }

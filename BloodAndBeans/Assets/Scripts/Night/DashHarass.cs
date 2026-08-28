@@ -15,6 +15,10 @@ public class DashHarass : NetworkBehaviour
     [SerializeField] float spillAtLoad = 0.8f;
     [SerializeField] float spawnProtectionSeconds = 15f;
 
+    /// 가방이 이 비율 이상 차면 대시를 쓸 수 없다. 무게를 비우려면 가방을 묻어야 하고,
+    /// 그것이 기동성과 수확을 맞바꾸는 선택지다.
+    [SerializeField] float dashBlockedAtLoad = 0.6f;
+
     [Header("돌진")]
     // ponytail: 거리·시간도 기획서 미결정이다. 걷는 속도(5)의 약 4배로 잡은 임시값이다.
     [SerializeField] float dashDistance = 3.5f;
@@ -35,6 +39,7 @@ public class DashHarass : NetworkBehaviour
 
     CharacterController controller;
     PlayerMove move;
+    PlayerInventory inventory;
 
     Vector3 dashDirection;
     float dashEnd;
@@ -57,7 +62,11 @@ public class DashHarass : NetworkBehaviour
     {
         controller = GetComponent<CharacterController>();
         move = GetComponent<PlayerMove>();
+        inventory = GetComponent<PlayerInventory>();
     }
+
+    /// 표시 전용. 무게 때문에 대시가 막혔는지 소유자에게 알려 준다. 판정은 서버가 다시 한다.
+    public bool BlockedByLoad => inventory != null && inventory.LoadRatio >= dashBlockedAtLoad;
 
     /// PlayerMove보다 뒤에 실행되므로 여기서 위치를 밀면 이번 프레임의 입력이 덮인다.
     /// 돌진과 넉백이 같은 자리에서 위치를 소유한다.
@@ -131,6 +140,11 @@ public class DashHarass : NetworkBehaviour
         var phase = MatchDirector.Instance?.Phase;
         if (phase == null || phase.Current != Phase.Night) return;
         if (Time.time < stunEnd) return;                         // 경직 중에는 돌진하지 않는다
+
+        // 가방이 무거우면 대시가 없다. 서버가 판정한다 — 소유자에게 맡기면 무게 제한이
+        // 없는 것과 같다.
+        if (inventory != null && inventory.LoadRatio >= dashBlockedAtLoad) return;
+
         if (NetworkManager.ServerTime.Time < nextDash) return;
         nextDash = NetworkManager.ServerTime.Time + cooldown;
 

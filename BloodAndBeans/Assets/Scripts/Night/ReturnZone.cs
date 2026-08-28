@@ -8,6 +8,9 @@ public class ReturnZone : NetworkBehaviour
 {
     [SerializeField] float radius = 4f;
 
+    /// 가방은 메고 있지만 소환 위치 밖에서 밤이 끝났을 때 잃는 비율 (기획서: 일부(n%) 소실).
+    [SerializeField, Range(0f, 1f)] float missedReturnLoss = 0.5f;
+
     Cafe cafe;
     MatchDirector director;
 
@@ -54,12 +57,19 @@ public class ReturnZone : NetworkBehaviour
             var inv = player.GetComponent<PlayerInventory>();
             if (inv == null) continue;
 
-            // 구역에 못 들어오면 절반을 잃는다. 완전 소실이라 아무도 주울 수 없다 (6.8).
-            if (Vector3.Distance(player.transform.position, transform.position) > radius)
+            var inZone = Vector3.Distance(player.transform.position, transform.position) <= radius;
+            if (!inZone) SnapToZoneServer(player);
+
+            // 정산은 세 갈래다 (기획서 5장 귀환 룰).
+            // 소환 위치 O + 가방 O → 전량 귀환.
+            // 소환 위치 X + 가방 O → 일부 소실. 완전 소실이라 아무도 주울 수 없다 (6.8).
+            // 가방 X (묻어 두고 회수하지 않음) → 위치와 무관하게 전량 소실.
+            if (!inv.HasBag)
             {
-                inv.LoseHalfServer();
-                SnapToZoneServer(player);
+                inv.ClearServer();
+                continue;
             }
+            if (!inZone) inv.LoseShareServer(missedReturnLoss);
 
             var haul = inv.DrainServer();
             if (stock == null) continue;

@@ -1,12 +1,13 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// 방 목록 화면. 목록 줄은 방 개수만큼 런타임에 만들어야 해서 행 프리팹을 하나 들고 있다.
 public sealed class RoomListScreen : UIScreen
 {
-    [SerializeField] Text status;
+    [SerializeField] TMP_Text status;
     [SerializeField] RectTransform rows;
     [SerializeField] Button rowPrefab;
     [SerializeField] Button refreshButton;
@@ -47,7 +48,7 @@ public sealed class RoomListScreen : UIScreen
             var row = Instantiate(rowPrefab, rows);
             row.gameObject.SetActive(true);
 
-            var label = row.GetComponentInChildren<Text>();
+            var label = row.GetComponentInChildren<TMP_Text>();
             if (label != null) label.text = $"{room.Name}  {room.Members}/{room.Capacity}";
 
             UIButtons.Wire(row, () => onSelectRoom?.Invoke(index));

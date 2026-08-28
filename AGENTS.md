@@ -148,6 +148,35 @@
 - 주석으로 나쁜 구조를 정당화하지 않는다. 주석은 코드가 무엇을 하는지가 아니라 결정 이유, 네트워크 권한, Unity 제약을 설명한다.
 - 주석과 XML 문서 주석(`///`)은 모두 한글로 쓴다. 타입명, API명, 기획서 참조 표기(`doc 5.6.2`)처럼 원문이 식별자인 것만 원문을 유지한다.
 
+## 명명 규칙
+
+### UI 타입은 접두사 `UI`를 붙인다
+
+화면·팝업·위젯처럼 **UI를 소유하는 타입은 이름 앞에 `UI`를 붙인다.** 파일명도 타입명과 같게 맞춘다. Unity는 `MonoBehaviour`의 클래스명과 파일명이 다르면 컴포넌트를 붙이지 못한다.
+
+- `UIBoxLootPopup`, `UIMatchHudScreen`, `UISettingsPopup`, `UIRoomListScreen`
+- ~~`BoxLootPopup`~~, ~~`MatchHudScreen`~~, ~~`SettingsPopup`~~
+
+적용 대상은 uGUI 계층을 직접 들고 있거나 `UIView`·`UIScreen`·`UIPopup`을 상속하는 타입이다. 게임 규칙과 복제 상태를 읽어 문자열·값을 만들기만 하는 프레젠터(`MatchHudPresenter`)와 순수 규칙 타입에는 붙이지 않는다 — 접두사는 "이 타입이 화면을 소유한다"는 표시이며, 붙일수록 좋은 장식이 아니다.
+
+### UI 텍스트는 TextMeshPro를 쓴다
+
+**새 UI 텍스트는 예외 없이 TextMeshPro다.** legacy `UnityEngine.UI.Text`를 새로 만들지 않는다.
+
+- 필드와 참조 타입은 `TMP_Text`를 쓴다. `TextMeshProUGUI`는 실제로 붙일 컴포넌트를 지정할 때만 쓴다 — 그래야 나중에 다른 TMP 구현으로 바꿔도 참조가 그대로다.
+- 정렬은 `TextAnchor`가 아니라 `TextAlignmentOptions`다.
+- `Button`, `Image`, `LayoutGroup` 등 나머지 uGUI 컴포넌트는 그대로 쓴다. 바뀌는 것은 텍스트뿐이다.
+- BB.Client와 BB.Editor asmdef가 `Unity.TextMeshPro`를 참조한다. 새 asmdef에서 TMP를 쓰면 참조를 추가한다.
+
+**한글 폰트 애셋을 반드시 지정한다.** TMP 기본 폰트 애셋(LiberationSans SDF)에는 한글 글리프가 없어서, 폰트를 지정하지 않으면 UI의 한글이 통째로 사라진다. legacy `Text`는 시스템 폰트로 폴백해서 이 문제가 드러나지 않았다.
+
+- 프로젝트 폰트는 `Assets/Art/Fonts/Pretendard-Regular.otf`(SIL OFL 1.1, 상업 사용 가능)다. 라이선스 전문을 같은 폴더의 `Pretendard-OFL.txt`로 함께 둔다 — OFL은 사본 배포 시 라이선스 동봉을 요구한다.
+- TMP 폰트 애셋은 `Tools > Blood & Beans > 한글 TMP 폰트 애셋 만들기`로 만든다. 이 명령이 아틀라스를 **Dynamic**으로 굽고 TMP 기본 폰트로 등록한다. 한글은 완성형만 11,172자라 정적으로 구우면 아틀라스가 수십 MB가 되고 그러고도 빠진 글자가 남는다.
+- Dynamic 아틀라스는 원본 폰트 파일이 프로젝트에 남아 있어야 동작한다. `.otf`를 지우지 않는다.
+- 런타임에 텍스트를 만드는 코드는 폰트를 지정하지 않아도 된다. TMP가 기본 폰트 애셋을 쓴다. 화면별로 다른 폰트가 필요할 때만 `[SerializeField] TMP_FontAsset`을 열어 둔다.
+
+**기존 타입 개명은 별도 커밋으로 한다.** 이 규칙이 생겼다는 이유로 관련 없는 파일을 일괄 정리하지 않는다(위 「프로젝트 기준」). 개명할 때는 `.cs`와 `.cs.meta`를 함께 옮겨 GUID를 보존한다 — GUID가 바뀌면 프리팹과 씬의 스크립트 참조가 전부 Missing Script가 된다. 가능하면 Unity Editor에서 이름을 바꾼다.
+
 ## SOLID 적용 원칙
 
 모든 신규 코드와 구조 변경은 SOLID를 기준으로 검토한다. 단, SOLID를 명분으로 현재 요구보다 큰 추상화 계층을 미리 만들지 않는다.

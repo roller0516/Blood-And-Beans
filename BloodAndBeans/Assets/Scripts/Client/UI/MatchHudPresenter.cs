@@ -22,6 +22,7 @@ public sealed class MatchHudPresenter
     PlayerInventory inventory;
     PlayerInteractor interactor;
     PlayerInteract boxHold;
+    DashHarass dash;
 
     /// 로컬 플레이어의 상호작용 컴포넌트. 여기서 이미 한 번 풀어 두므로 루팅 창을
     /// 여닫는 `MatchFlow`가 같은 것을 다시 찾지 않는다.
@@ -69,7 +70,12 @@ public sealed class MatchHudPresenter
         var board = cafe != null ? cafe.Board : null;
 
         if (phase.Current == Phase.Night && inventory != null)
-            text.AppendLine($"짐 {inventory.LoadRatio * 100f:0}% · 속도 {inventory.CurrentSpeedMultiplier * 100f:0}%");
+        {
+            text.AppendLine(inventory.HasBag
+                ? $"짐 {inventory.LoadRatio * 100f:0}% · 속도 {inventory.CurrentSpeedMultiplier * 100f:0}%"
+                    + (dash != null && dash.BlockedByLoad ? " · 대시 불가(과적)" : "")
+                : "가방을 묻어 뒀다 · 회수하지 않으면 수확 전량 소실");
+        }
         else if (phase.Current == Phase.Transition && ledger != null)
         {
             text.AppendLine("내일의 손님");
@@ -100,6 +106,10 @@ public sealed class MatchHudPresenter
         return text.ToString();
     }
 
+    /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `MatchHudScreen`의 일이고,
+    /// 여기는 값만 넘긴다. HUD 글자 덩어리에 섞으면 오른쪽 열에 붙어 시선에서 벗어난다.
+    public float CastProgress01 => boxHold != null ? boxHold.CastProgress01 : 0f;
+
     static string TeamLabel(int team) => team < 0 ? "팀 배정 대기" : $"Team {team}";
 
     /// 로컬 플레이어가 바뀔 때만 컴포넌트를 다시 푼다. 갱신마다 `GetComponent`를 부르면
@@ -117,5 +127,6 @@ public sealed class MatchHudPresenter
         inventory = player != null ? player.GetComponent<PlayerInventory>() : null;
         interactor = player != null ? player.GetComponent<PlayerInteractor>() : null;
         boxHold = player != null ? player.GetComponent<PlayerInteract>() : null;
+        dash = player != null ? player.GetComponent<DashHarass>() : null;
     }
 }

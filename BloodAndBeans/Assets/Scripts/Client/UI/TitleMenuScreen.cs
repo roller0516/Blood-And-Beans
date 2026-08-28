@@ -1,4 +1,5 @@
 using System;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,7 +10,7 @@ using UnityEngine.UI;
 /// enum을 같이 고쳐야 했다. 이제 화면 하나가 프리팹 하나다.
 public sealed class TitleMenuScreen : UIScreen
 {
-    [SerializeField] Text heading;
+    [SerializeField] TMP_Text heading;
     [SerializeField] Button lobbyButton;
     [SerializeField] Button settingsButton;
     [SerializeField] Button quitButton;

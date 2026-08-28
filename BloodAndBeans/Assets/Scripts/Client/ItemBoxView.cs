@@ -14,6 +14,6 @@ public class ItemBoxView : MonoBehaviour
 
     void Update()
     {
-        if (box != null && view != null) view.enabled = box.ClearedFor(PlayerTeam.Local());
+        if (box != null && view != null) view.enabled = box.Cleared;
     }
 }

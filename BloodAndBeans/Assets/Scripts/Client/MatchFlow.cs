@@ -16,8 +16,9 @@ public sealed class MatchFlow : MonoBehaviour
     [SerializeField] float refreshInterval = 0.1f;
 
     MatchHudPresenter presenter;
+    MatchHudScreen hud;
 
-    /// 루팅 창을 띄운 박스. 홀드가 끝나면 닫는다.
+    /// 루팅 창을 띄운 박스. 서버가 세션을 닫으면 같이 닫는다.
     ItemBox lootBox;
     bool lootOpen;
 
@@ -44,25 +45,33 @@ public sealed class MatchFlow : MonoBehaviour
             return;
         }
 
+        hud = screen;
         presenter = new MatchHudPresenter(screen, phase, ledger, refreshInterval);
     }
 
     void Update()
     {
         presenter?.Tick(Time.unscaledTime);
+
+        // 게이지는 0.6초 남짓이라 HUD 갱신 주기(0.1초)로 그리면 여섯 칸짜리 계단이 된다.
+        // 문자열을 만들지 않는 스케일 대입 하나라 매 프레임 불러도 된다.
+        if (hud != null && presenter != null) hud.SetCastProgress(presenter.CastProgress01);
+
         SyncLootPopup();
     }
 
-    /// 박스 홀드를 시작하면 루팅 창을 열고, 놓거나 다른 박스로 옮기면 닫는다
-    /// (기획서 7.2-2). 어떤 박스를 잡고 있는지는 `PlayerInteractor`가 이미 알고 있으므로
-    /// 여기서 씬을 다시 뒤지지 않는다.
+    /// 개봉 게이지가 다 차면 창을 열고, 서버가 세션을 닫으면(이동·피격·밤 종료) 닫는다.
+    /// F를 놓는 것으로는 닫히지 않는다 — 창은 캐스팅이 아니라 세션에 붙어 있다.
+    ///
+    /// 어떤 박스를 열었는지는 `PlayerInteract`가 이미 알고 있으므로 여기서 씬을 다시
+    /// 뒤지지 않는다.
     void SyncLootPopup()
     {
-        // 밤이 끝나면 서버가 홀드를 취소한다(`ItemBox.OnPhaseEntered`). 클라이언트가 F를
-        // 붙잡고 있어도 담기는 더 이상 일어나지 않으므로 창도 같이 내린다.
         var night = phase != null && phase.IsSpawned && phase.Current == Phase.Night;
-        var current = night ? presenter?.Interactor?.Current as ItemBox : null;
-        var box = current != null ? current : null;   // 파괴된 박스는 없는 것으로 본다
+        var candidate = night ? presenter?.BoxHold?.LootBox : null;
+
+        // 파괴된 박스와 아직 열리지 않은 박스는 창을 띄우지 않는다.
+        var box = candidate != null && candidate.Opened ? candidate : null;
         if (ReferenceEquals(box, lootBox)) return;
 
         lootBox = box;
@@ -77,7 +86,7 @@ public sealed class MatchFlow : MonoBehaviour
         var popup = ui.PushPopup<BoxLootPopup>();
         if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
 
-        popup.Bind(box, presenter.BoxHold);
+        popup.Bind(box, presenter.BoxHold, hud != null ? hud.BagAnchor : null);
         lootOpen = true;
     }
 }

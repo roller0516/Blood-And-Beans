@@ -1,9 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
-/// 무엇을 들고 있고 그 대가가 무엇인지 (기획서 6.7).
-/// 칸 제한도 무게 제한도 없다. 얼마든지 더 담을 수 있고, 대신 기어간다.
+/// 밤에 들고 다니는 가방 (기획서 6.7). 개인 인벤토리는 없다 — 여기 담긴 것은 전부
+/// 팀의 것이고, 귀환하면 그대로 팀 재고가 된다 (`ReturnZone`).
+///
+/// 칸 제한도 무게 제한도 없다. 얼마든지 더 담을 수 있고, 대신 기어간다. 무게가 일정
+/// 비율을 넘으면 대시도 못 쓴다 (`DashHarass`).
 ///
 /// 아이템을 총합 숫자가 아니라 개별로 추적한다. 기획서 6.6이 적재분의 일부를 주울 수 있는
 /// 더미로 바닥에 흘리게 하는데, 기록하지 않은 것은 흘릴 수 없기 때문이다.
@@ -13,12 +16,24 @@ public class PlayerInventory : NetworkBehaviour
     [SerializeField] float capacity = 20f;
     [SerializeField] ItemBox pilePrefab;
 
+    /// 땅에 묻는 가방. 비워야 대시를 쓸 수 있으므로 기동성과 맞바꾸는 선택이다.
+    [SerializeField] BuriedBag buriedBagPrefab;
+
+    /// 쪼개진 임시 상자를 벌려 놓는 간격. 겹쳐 놓으면 하나만 집을 수 있다.
+    [SerializeField] float pileSpacing = 1.2f;
+
     readonly NetworkList<int> items = new(null,
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
     readonly NetworkVariable<float> carried = new(0f,
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
+    /// 가방을 지금 메고 있는가. 묻어 두면 false다. 밤이 끝날 때 이 값이 정산을 가른다
+    /// (가방 미소지는 소환 위치와 무관하게 전량 소실).
+    readonly NetworkVariable<bool> hasBag = new(true,
+        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+
     MatchDirector director;
+    GamePhase subscribedPhase;
 
     // 흘린 더미를 발밑에 맞출 때 캡슐 치수가 필요하다. 스폰 시점에 한 번만 찾는다.
     CharacterController controller;
@@ -37,13 +52,39 @@ public class PlayerInventory : NetworkBehaviour
     // 무게 밴드 이동(기획서 3.3)이 적용되지 않는다.
     public override void OnNetworkSpawn() => MatchDirector.Bind(BindDirector);
 
-    public override void OnNetworkDespawn() => MatchDirector.Unbind(BindDirector);
+    public override void OnNetworkDespawn()
+    {
+        MatchDirector.Unbind(BindDirector);
+        if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
+        subscribedPhase = null;
+    }
 
-    void BindDirector(MatchDirector next) => director = next;
+    /// 같은 인스턴스로 두 번 불려도 되게 짠다 (`MatchDirector.Bind` 계약).
+    void BindDirector(MatchDirector next)
+    {
+        director = next;
+        var phase = next != null ? next.Phase : null;
+        if (phase == subscribedPhase) return;
+
+        if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
+        subscribedPhase = phase;
+        if (subscribedPhase != null) subscribedPhase.PhaseEntered += OnPhaseEntered;
+    }
+
+    /// 가방을 잃어버리거나 소각당했더라도 다음 밤이 시작되면 다시 기본 지급된다.
+    void OnPhaseEntered(Phase p)
+    {
+        if (!IsServer || p != Phase.Night) return;
+        ClearServer();
+        hasBag.Value = true;
+    }
 
     public float Carried => carried.Value;
     public float LoadRatio => carried.Value / capacity;
     public int Count => items.Count;
+
+    /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.
+    public bool HasBag => hasBag.Value;
 
     /// 임대료 페널티 3단계는 밴드를 정확히 한 칸 불리하게 옮긴다 (기획서 3.3 밤 항목).
     /// 무게→속도 표 자체는 BB.Rules의 `LoadBands`에 있어 씬 없이 기획서 6.7과 대조할 수 있다.
@@ -56,22 +97,34 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    public void AddServer(Ingredient item)
+    public bool AddServer(Ingredient item) => AddServer(item, 1);
+
+    /// 칸 하나를 통째로 받는다. 상자 칸은 같은 종류가 쌓여 있으므로 한 번에 여럿이 온다.
+    ///
+    /// 받았는지 여부를 돌려준다. 조용히 무시하면 안 된다 — 상자는 칸을 비운 뒤에 이걸
+    /// 부르므로, 가방을 묻은 채로 칸을 누르면 재료가 어디에도 없이 사라진다.
+    public bool AddServer(Ingredient item, int count)
     {
-        if (!IsServer) return;
-        items.Add((int)item);
-        carried.Value += Ingredients.WeightOf(item);
+        if (!IsServer || !hasBag.Value || item == Ingredient.None || count <= 0) return false;
+
+        for (var i = 0; i < count; i++)
+        {
+            items.Add((int)item);
+            carried.Value += Ingredients.WeightOf(item);
+        }
+        return true;
     }
 
-    /// 밤이 끝날 때 복귀 구역에 없으면 적재의 절반을 잃는다 (기획서 6.8).
+    /// 밤이 끝날 때 복귀 구역 밖에 있으면 적재의 일부를 잃는다 (기획서 6.8).
     /// 완전 소실이라 아무도 주울 수 없다.
-    public void LoseHalfServer()
+    public void LoseShareServer(float share)
     {
         if (!IsServer) return;
 
         var remaining = new List<Ingredient>();
         foreach (var item in items) remaining.Add((Ingredient)item);
-        RandomLoss.TakeHalf(remaining, new System.Random(Random.Range(int.MinValue, int.MaxValue)));
+        RandomLoss.TakeShare(remaining, share,
+            new System.Random(Random.Range(int.MinValue, int.MaxValue)));
 
         items.Clear();
         carried.Value = 0f;
@@ -82,41 +135,58 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
+    public void ClearServer()
+    {
+        if (!IsServer) return;
+        items.Clear();
+        carried.Value = 0f;
+    }
+
     /// 적재 80% 이상인 상대를 대시로 밀면 일부가 바닥에 쏟아진다 (기획서 6.6).
     /// 쏟아진 것은 누구나 열 수 있는 임시 박스가 된다 (기획서 6.5.4).
     public void DropShareServer(float share, Vector3 at)
     {
         if (!IsServer) return;
 
-        SpawnPileServer(TakeOutServer(carried.Value * Mathf.Clamp01(share)), at);
+        SpawnPilesServer(TakeOutServer(carried.Value * Mathf.Clamp01(share)), at);
     }
 
-    /// 더미를 바닥에 놓는다. 평면 탑다운이라 중력이 없어(PlayerMove) 스폰 높이가 곧 최종
-    /// 높이다. 플레이어 위치는 캡슐 *중심*이므로 그대로 쓰면 더미가 가슴 높이에 뜬 채
-    /// 영영 내려오지 않는다.
+    /// 쏟아진 것을 임시 상자로 만든다. 상자 하나는 *종류* 5개까지라서 종류가 넘치면
+    /// 여러 개로 쪼개진다 (12종류 → 5/5/2).
     ///
-    /// 발밑 높이와 더미 반높이를 둘 다 실제 콜라이더에서 읽는다. 캡슐이나 더미 프리팹
-    /// 크기를 바꿔도 따라오게 하려는 것이다. 손으로 맞춘 상수는 조용히 어긋난다.
-    void SpawnPileServer(List<Ingredient> dropped, Vector3 at)
+    /// 평면 탑다운이라 중력이 없어(PlayerMove) 스폰 높이가 곧 최종 높이다. 플레이어 위치는
+    /// 캡슐 *중심*이므로 그대로 쓰면 더미가 가슴 높이에 뜬 채 영영 내려오지 않는다.
+    /// 발밑 높이와 더미 반높이를 둘 다 실제 콜라이더에서 읽는다 — 손으로 맞춘 상수는
+    /// 캡슐이나 프리팹 크기를 바꾸는 순간 조용히 어긋난다.
+    void SpawnPilesServer(List<Ingredient> dropped, Vector3 at)
     {
-        if (dropped.Count == 0 || pilePrefab == null) return;
-
-        // 위치를 Instantiate 인자로 넘겨야 한다. 생성 후 transform으로 옮기면
-        // Physics.autoSyncTransforms가 false라 아래 bounds가 낡은 값을 준다.
-        var pile = Instantiate(pilePrefab, at, Quaternion.identity);
-
-        var body = pile.GetComponent<Collider>();
-        if (body == null)
-            Debug.LogError($"{pilePrefab.name}에 Collider가 없다. 더미를 바닥에 맞출 수 없다.", pilePrefab);
-        else
+        if (dropped == null || dropped.Count == 0) return;
+        if (pilePrefab == null)
         {
-            var feet = at.y - (controller.height * 0.5f - controller.center.y);
-            pile.transform.position += Vector3.up * (feet - body.bounds.min.y);
+            Debug.LogError($"{name}: pilePrefab이 비어 있다. 쏟아진 재료가 사라진다.", this);
+            return;
         }
 
-        pile.NetworkObject.Spawn();
-        pile.SeedServer(dropped);
+        var boxes = LootSlots.Pack(dropped);
+        for (var i = 0; i < boxes.Count; i++)
+        {
+            // 위치를 Instantiate 인자로 넘겨야 한다. 생성 후 transform으로 옮기면
+            // Physics.autoSyncTransforms가 false라 아래 bounds가 낡은 값을 준다.
+            var spot = at + Vector3.right * (i * pileSpacing);
+            var pile = Instantiate(pilePrefab, spot, Quaternion.identity);
+
+            var body = pile.GetComponent<Collider>();
+            if (body == null)
+                Debug.LogError($"{pilePrefab.name}에 Collider가 없다. 더미를 바닥에 맞출 수 없다.", pilePrefab);
+            else
+                pile.transform.position += Vector3.up * (FeetY(at) - body.bounds.min.y);
+
+            pile.NetworkObject.Spawn();
+            pile.SeedServer(boxes[i]);
+        }
     }
+
+    float FeetY(Vector3 at) => at.y - (controller.height * 0.5f - controller.center.y);
 
     /// 가방 전체를 넘기고 비운다. 밤의 수확은 복귀 구역에서 팀 재고가 되므로
     /// (기획서 2장), 돌려받은 목록의 소유권은 호출자에게 있다.
@@ -131,13 +201,59 @@ public class PlayerInventory : NetworkBehaviour
         return taken;
     }
 
+    /// 잘못 담았거나 버릴 때: 가방에 있던 것이 전부 그 자리에 임시 상자로 쏟아진다.
+    /// 가방 자체는 그대로 메고 있다 — 버리는 것은 내용물이지 가방이 아니다.
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void DumpRpc()
     {
         var phase = director != null ? director.Phase : null;
         if (phase == null || phase.Current != Phase.Night || items.Count == 0) return;
 
-        SpawnPileServer(DrainServer(), transform.position);
+        SpawnPilesServer(DrainServer(), transform.position);
+    }
+
+    /// 서 있는 자리에 가방을 묻는다 (기획서: 무게를 비워 대시를 쓰기 위한 선택).
+    /// 묻은 가방은 아군에게만 표시되고, 적이 찾아내면 소각당한다 (`BuriedBag`).
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void BuryRpc()
+    {
+        var phase = director != null ? director.Phase : null;
+        if (phase == null || phase.Current != Phase.Night || !hasBag.Value) return;
+
+        if (buriedBagPrefab == null)
+        {
+            Debug.LogError($"{name}: buriedBagPrefab이 비어 있다. 가방을 묻을 수 없다.", this);
+            return;
+        }
+
+        var at = transform.position;
+        var bag = Instantiate(buriedBagPrefab, at, Quaternion.identity);
+
+        var body = bag.GetComponent<Collider>();
+        if (body == null)
+            // 콜라이더가 없으면 `PlayerInteractor`의 트리거 후보에 잡히지 않아 아무도 회수도
+            // 소각도 할 수 없고, 접지 보정도 걸리지 않아 가슴 높이에 뜬 채로 남는다.
+            Debug.LogError($"{buriedBagPrefab.name}에 Collider가 없다. 가방을 찾을 수도 "
+                         + "바닥에 맞출 수도 없다.", buriedBagPrefab);
+        else
+            bag.transform.position += Vector3.up * (FeetY(at) - body.bounds.min.y);
+
+        // 팀을 먼저 심고 스폰한다. 스폰 뒤에 쓰면 그 값은 다음 틱의 델타로 가고, 적
+        // 클라이언트는 팀 미상(-1) 상태로 스폰을 받아 그동안 가방을 그대로 렌더한다.
+        // 숨기는 것이 유일한 목적인 오브젝트라 한 틱 노출이면 기능이 없는 것과 같다.
+        bag.SeedServer(team != null ? team.Team : -1, DrainServer());
+        bag.NetworkObject.Spawn();
+        hasBag.Value = false;
+    }
+
+    /// 묻어 둔 가방을 도로 멘다. 내용물은 보존된다.
+    public void RetrieveServer(List<Ingredient> contents)
+    {
+        if (!IsServer) return;
+
+        hasBag.Value = true;
+        if (contents == null) return;
+        for (var i = 0; i < contents.Count; i++) AddServer(contents[i]);
     }
 
     /// 최소 `weight`만큼 빠질 때까지 아이템을 덜어내고 그 목록을 돌려준다.

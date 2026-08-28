@@ -9,14 +9,13 @@ public class PlayerInputRouter : NetworkBehaviour
 
     PlayerMove movement;
     PlayerInteractor interaction;
-    PlayerInteract boxHold;
+    PlayerInventory inventory;
     DashHarass dash;
     InputAction moveAction;
     InputAction interactAction;
     InputAction dashAction;
     InputAction dumpAction;
-    InputAction previousSlotAction;
-    InputAction nextSlotAction;
+    InputAction buryAction;
 
     public override void OnNetworkSpawn()
     {
@@ -24,17 +23,16 @@ public class PlayerInputRouter : NetworkBehaviour
 
         movement = GetComponent<PlayerMove>();
         interaction = GetComponent<PlayerInteractor>();
-        boxHold = GetComponent<PlayerInteract>();
+        inventory = GetComponent<PlayerInventory>();
         dash = GetComponent<DashHarass>();
         moveAction = actions.FindAction("Player/Move", true);
         interactAction = actions.FindAction("Player/Interact", true);
         dashAction = actions.FindAction("Player/Jump", true);
         dumpAction = actions.FindAction("Player/Crouch", true);
 
-        // 박스 칸 고르기는 액션 애셋에 이미 있고 쓰이지 않던 Previous/Next를 쓴다
-        // (키보드 1/2, 게임패드 D-Pad 좌/우). 새 바인딩을 만들지 않았다.
-        previousSlotAction = actions.FindAction("Player/Previous", true);
-        nextSlotAction = actions.FindAction("Player/Next", true);
+        // 가방 묻기는 액션 애셋에 이미 있고 쓰이지 않던 Sprint를 쓴다 (키보드 Left Shift,
+        // 게임패드 좌스틱 누르기). 새 바인딩을 만들지 않았다.
+        buryAction = actions.FindAction("Player/Sprint", true);
 
         moveAction.performed += OnMove;
         moveAction.canceled += OnMove;
@@ -42,8 +40,7 @@ public class PlayerInputRouter : NetworkBehaviour
         interactAction.canceled += OnInteractCanceled;
         dashAction.performed += OnDash;
         dumpAction.performed += OnDump;
-        previousSlotAction.performed += OnPreviousSlot;
-        nextSlotAction.performed += OnNextSlot;
+        buryAction.performed += OnBury;
         actions.FindActionMap("Player", true).Enable();
     }
 
@@ -56,8 +53,7 @@ public class PlayerInputRouter : NetworkBehaviour
         interactAction.canceled -= OnInteractCanceled;
         dashAction.performed -= OnDash;
         dumpAction.performed -= OnDump;
-        previousSlotAction.performed -= OnPreviousSlot;
-        nextSlotAction.performed -= OnNextSlot;
+        buryAction.performed -= OnBury;
     }
 
     void OnMove(InputAction.CallbackContext context) =>
@@ -67,6 +63,5 @@ public class PlayerInputRouter : NetworkBehaviour
     void OnInteractCanceled(InputAction.CallbackContext _) => interaction?.EndClient();
     void OnDash(InputAction.CallbackContext _) => dash?.DashRpc();
     void OnDump(InputAction.CallbackContext _) => interaction?.DumpClient();
-    void OnPreviousSlot(InputAction.CallbackContext _) => boxHold?.MoveSelectionClient(-1);
-    void OnNextSlot(InputAction.CallbackContext _) => boxHold?.MoveSelectionClient(1);
+    void OnBury(InputAction.CallbackContext _) => inventory?.BuryRpc();
 }

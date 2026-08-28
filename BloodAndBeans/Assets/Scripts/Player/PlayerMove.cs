@@ -30,6 +30,10 @@ public class PlayerMove : NetworkBehaviour
     /// 항상 월드 +Z다. 대시 돌진처럼 "바라보는 쪽"이 필요한 서버 판정은 여기를 쓴다.
     public Vector3 FacingServer => facing;
 
+    /// 서버가 관측한 "지금 움직이고 있는가". 파밍 캔슬(이동하면 상자 창이 닫힘)의 판단
+    /// 근거다. 클라이언트가 "안 움직였다"고 말하게 두면 그 규칙이 없는 것과 같다.
+    public bool MovingServer => IsServer && serverInput.sqrMagnitude > 0.0001f;
+
     void Awake()
     {
         controller = GetComponent<CharacterController>();

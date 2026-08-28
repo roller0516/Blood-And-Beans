@@ -41,17 +41,49 @@ public class GamePhase : NetworkBehaviour
         _ => Phase.Night,
     };
 
+    /// 개발 치트가 목표로 삼은 날짜. `NoSkipTarget`이면 치트가 걸려 있지 않다.
+    /// 서버에만 있는 값이라 복제하지 않는다.
+    int skipToDay = NoSkipTarget;
+    const int NoSkipTarget = 0;
+
     public override void OnNetworkSpawn()
     {
         if (!IsServer) return;
         day.Value = 1;
         finished.Value = false;   // 다시 스폰된 루프가 영구 종료 상태로 남으면 안 된다
+        skipToDay = NoSkipTarget; // 이전 매치의 치트가 새 판까지 따라오면 안 된다
         Enter(Phase.Night);
+    }
+
+    /// 개발 치트. 지금 페이즈를 즉시 마감한다. 전이·날짜 증가·종료 판정은 아래 정규 경로가
+    /// 그대로 하므로 임대료 정산(전환)과 `PhaseEntered` 구독자가 실제 진행과 똑같이 돈다.
+    /// 전이 규칙을 여기서 다시 쓰면 두 벌이 갈라진다.
+    public void EndPhaseNowServer()
+    {
+        if (!IsServer || finished.Value) return;
+        endsAt.Value = NetworkManager.ServerTime.Time;
+    }
+
+    /// 개발 치트. 날짜가 하나 넘어갈 때까지 페이즈를 연달아 마감한다.
+    /// 밤에서 누르면 전환과 낮을 지나 다음 밤까지 간다.
+    public void SkipToNextDayServer()
+    {
+        if (!IsServer || finished.Value) return;
+        skipToDay = day.Value + 1;
     }
 
     void Update()
     {
         if (!IsServer || finished.Value) return;
+
+        // 치트가 걸려 있으면 목표 날짜에 닿을 때까지 매 프레임 마감을 당긴다. 전이는 어디까지나
+        // 아래 정규 경로가 한 프레임에 하나씩 처리한다.
+        if (skipToDay != NoSkipTarget)
+        {
+            if (day.Value >= skipToDay) skipToDay = NoSkipTarget;
+            else endsAt.Value = NetworkManager.ServerTime.Time;
+        }
+
         if (NetworkManager.ServerTime.Time < endsAt.Value) return;
 
         // 낮이 끝나면 날짜를 넘긴다. 마지막 날이면 판을 종료한다.

@@ -20,6 +20,12 @@ public class FogOfWar : NetworkBehaviour
     /// 플레이 진입 때 비운다.
     static readonly HashSet<int> Revealed = new();
 
+    /// 격자 규격. 걷힌 칸 집합이 이미 프로세스 하나를 쓰므로 규격도 하나여야 같은 월드
+    /// 좌표가 같은 칸으로 떨어진다. 모든 플레이어가 같은 프리팹이라 값도 같다.
+    /// 인스턴스가 깨어날 때 자기 직렬화 값을 심고, 로컬 플레이어 없이 묻는 쪽이 이걸 쓴다.
+    static float sharedCellSize = 1f;
+    static int sharedHalfCells = 120;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetShared()
     {
@@ -41,9 +47,42 @@ public class FogOfWar : NetworkBehaviour
     public int Side => halfCells * 2;
     public float CellSize => cellSize;
     public int RevealedCount => Revealed.Count;
-    public static System.Action Changed;
 
-    void Awake() => playerTeam = GetComponent<PlayerTeam>();
+    /// 이번에 새로 걷힌 칸만 넘긴다. null이면 전체가 뒤집혔다는 뜻이다(밤 초기화, 재바인딩).
+    /// 표현 쪽이 매번 판 전체를 다시 그리지 않게 하려고 목록을 준다. 넘긴 리스트는 다음
+    /// 호출에서 재사용하므로 구독자는 콜백 안에서 복사해야 한다.
+    public static System.Action<IReadOnlyList<int>> Changed;
+
+    /// 알림용 스크래치. 매 샘플마다 배열을 새로 만들지 않는다.
+    static readonly List<int> justAdded = new();
+
+    /// 실제로 새로 들어간 칸만 추려서 알린다. 이미 걷힌 칸을 다시 받아도 리페인트하지 않는다.
+    static void AddAndNotify(int[] cells)
+    {
+        justAdded.Clear();
+        foreach (var cell in cells)
+            if (Revealed.Add(cell)) justAdded.Add(cell);
+
+        if (justAdded.Count > 0) Changed?.Invoke(justAdded);
+    }
+
+    void Awake()
+    {
+        playerTeam = GetComponent<PlayerTeam>();
+        sharedCellSize = cellSize;
+        sharedHalfCells = halfCells;
+    }
+
+    /// 로컬 플레이어 없이도 답한다. 서버 판정이 `Local()`에 기대면 안 된다 — 로컬 플레이어가
+    /// 아직 스폰되지 않았거나(씬 전환) 애초에 없으면(전용 서버) 검사가 통째로 열려 버려서,
+    /// 안개 밖 상자를 누구나 여는 상태가 된다. 걷힌 칸은 어차피 전원이 공유한다(6.1-3).
+    public static bool IsRevealedShared(Vector3 world)
+    {
+        var side = sharedHalfCells * 2;
+        var x = Mathf.Clamp(Mathf.FloorToInt(world.x / sharedCellSize) + sharedHalfCells, 0, side - 1);
+        var z = Mathf.Clamp(Mathf.FloorToInt(world.z / sharedCellSize) + sharedHalfCells, 0, side - 1);
+        return Revealed.Contains(z * side + x);
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -53,7 +92,7 @@ public class FogOfWar : NetworkBehaviour
 
         // 늦게 합류해도 지금까지 개척된 안개를 그대로 물려받는다.
         if (IsServer) SnapshotToOwnerServer();
-        Changed?.Invoke();
+        Changed?.Invoke(null);
     }
 
     public override void OnNetworkDespawn()
@@ -149,9 +188,7 @@ public class FogOfWar : NetworkBehaviour
 
     void ShareServer(int[] cells)
     {
-        var changed = false;
-        foreach (var cell in cells) changed |= Revealed.Add(cell);
-        if (changed) Changed?.Invoke();
+        AddAndNotify(cells);
 
         // 대상은 어트리뷰트의 SendTo.Everyone이 정한다. 고정 대상 RPC에 RpcTarget을
         // 넘기면 NGO가 RpcException(Target override is not allowed)으로 막는다.
@@ -159,18 +196,13 @@ public class FogOfWar : NetworkBehaviour
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
-    void FogCellsRpc(int[] cells, RpcParams p = default)
-    {
-        var changed = false;
-        foreach (var cell in cells) changed |= Revealed.Add(cell);
-        if (changed) Changed?.Invoke();
-    }
+    void FogCellsRpc(int[] cells, RpcParams p = default) => AddAndNotify(cells);
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
     void FogClearRpc(RpcParams p = default)
     {
         Revealed.Clear();
-        Changed?.Invoke();
+        Changed?.Invoke(null);
     }
 
     void SnapshotToOwnerServer() =>
@@ -182,8 +214,6 @@ public class FogOfWar : NetworkBehaviour
     {
         // 덮어쓰지 않고 합친다. 스냅샷과 공개 RPC는 서로 다른 오브젝트에서 오므로 도착
         // 순서가 보장되지 않고, 덮어쓰면 그 사이에 도착한 칸이 영영 사라진다.
-        var changed = false;
-        foreach (var cell in cells) changed |= Revealed.Add(cell);
-        if (changed) Changed?.Invoke();
+        AddAndNotify(cells);
     }
 }

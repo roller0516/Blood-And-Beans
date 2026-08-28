@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -12,7 +13,7 @@ public class NetworkHud : MonoBehaviour
     [SerializeField] Vector2 size = new(180f, 180f);
     [SerializeField] int sortingOrder = 20;
 
-    Text status;
+    TMP_Text status;
     Button host;
     Button client;
     Button server;

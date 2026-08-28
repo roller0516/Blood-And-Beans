@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -9,17 +10,17 @@ using UnityEngine.UI;
 /// 팀 버튼과 참가자 줄만 행 프리팹으로 찍어 낸다.
 public sealed class RoomScreen : UIScreen
 {
-    [SerializeField] Text roomTitle;
-    [SerializeField] Text status;
+    [SerializeField] TMP_Text roomTitle;
+    [SerializeField] TMP_Text status;
     [SerializeField] RectTransform teamRow;
     [SerializeField] Button teamButtonPrefab;
     [SerializeField] RectTransform memberRows;
-    [SerializeField] Text memberRowPrefab;
+    [SerializeField] TMP_Text memberRowPrefab;
     [SerializeField] Button startButton;
     [SerializeField] Button leaveButton;
 
     readonly List<Button> teamButtons = new();
-    readonly List<Text> teamLabels = new();
+    readonly List<TMP_Text> teamLabels = new();
     readonly List<GameObject> spawnedMembers = new();
 
     Action<int> onSelectTeam;
@@ -48,7 +49,7 @@ public sealed class RoomScreen : UIScreen
             button.gameObject.SetActive(true);
             UIButtons.Wire(button, () => onSelectTeam?.Invoke(index));
             teamButtons.Add(button);
-            teamLabels.Add(button.GetComponentInChildren<Text>());
+            teamLabels.Add(button.GetComponentInChildren<TMP_Text>());
         }
         builtTeamCount = teamCount;
     }

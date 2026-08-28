@@ -1,4 +1,5 @@
 using Unity.Netcode;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,9 +27,9 @@ public class CheatHud : MonoBehaviour
     MatchSeating seating;
     Button teamCountButton;
     Button seatButton;
-    Text teamCountLabel;
-    Text seatLabel;
-    Text status;
+    TMP_Text teamCountLabel;
+    TMP_Text seatLabel;
+    TMP_Text status;
     float nextRefresh;
 
     // 마지막으로 그린 값. 바뀌지 않았으면 문자열을 새로 만들지 않는다.
@@ -56,9 +57,9 @@ public class CheatHud : MonoBehaviour
         teamCountButton = DevHud.MakeButton(panel, "팀 수", CycleTeamCount);
         seatButton = DevHud.MakeButton(panel, "다음 입장", CycleForcedSeat);
 
-        // 라벨은 버튼 자식 Text 하나뿐이다. 한 번만 풀어서 캐시한다.
-        teamCountLabel = teamCountButton.GetComponentInChildren<Text>();
-        seatLabel = seatButton.GetComponentInChildren<Text>();
+        // 라벨은 버튼 자식 텍스트 하나뿐이다. 한 번만 풀어서 캐시한다.
+        teamCountLabel = teamCountButton.GetComponentInChildren<TMP_Text>();
+        seatLabel = seatButton.GetComponentInChildren<TMP_Text>();
         Refresh();
     }
 
