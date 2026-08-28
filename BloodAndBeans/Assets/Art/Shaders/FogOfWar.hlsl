@@ -15,6 +15,14 @@
 
 #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/DeclareDepthTexture.hlsl"
 
+/// 안개를 칠하기 전의 화면. Full Screen Pass Renderer Feature는 기존 색 위에 블렌드하지
+/// 않고 새 타깃에 그리므로, 셰이더가 직접 합성해야 한다. 이걸 빼면 화면이 통째로 안개색
+/// (알파가 0이면 초기화되지 않은 흰색)으로 덮인다.
+/// URP의 "URP Sample Buffer / Blit Source" 노드가 쓰는 것과 같은 경로다
+/// (UniversalSampleBufferNode.cs: LOAD_TEXTURE2D_X_LOD(_BlitTexture, pixelCoords, 0)).
+/// Renderer Feature의 Fetch Color Buffer가 켜져 있어야 이 텍스처가 채워진다.
+TEXTURE2D_X(_BlitTexture);
+
 TEXTURE2D(_BB_FogMask);
 SAMPLER(sampler_BB_FogMask);
 
@@ -36,7 +44,9 @@ float BB_FogMaskSample(float2 uv, float lod)
 
 void BB_FogOfWar_float(float2 ScreenUV, out float3 Color, out float Alpha)
 {
-    Color = _BB_FogColor.rgb;
+    // 합성은 여기서 끝낸다. 출력 알파는 항상 1이다 — 이 패스가 화면을 그대로 대체한다.
+    float3 scene = LOAD_TEXTURE2D_X_LOD(_BlitTexture, uint2(ScreenUV * _ScreenSize.xy), 0).rgb;
+    Alpha = 1.0;
 
     float rawDepth = SampleSceneDepth(ScreenUV);
 
@@ -75,7 +85,7 @@ void BB_FogOfWar_float(float2 ScreenUV, out float3 Color, out float Alpha)
     float revealed = smoothstep(0.5 - _BB_FogSoftness, 0.5 + _BB_FogSoftness, m);
     if (isSky || outside) revealed = 0.0;
 
-    Alpha = _BB_FogColor.a * (1.0 - revealed);
+    Color = lerp(scene, _BB_FogColor.rgb, _BB_FogColor.a * (1.0 - revealed));
 }
 
 #endif

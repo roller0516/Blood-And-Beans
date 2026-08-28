@@ -19,6 +19,12 @@ using UnityEngine;
 public class ItemBox : NetworkBehaviour, IInteractable
 {
     [SerializeField] int tier = 1;              // 1~3
+
+    /// 이 자리에서 뽑힐 등급의 가중치 (기획서 6.3: 바깥 1등급 위주 / 중간 2등급 / 중심 3등급).
+    /// 등급은 매 밤 리롤되지만 *어떤 등급이 잘 나오는가*는 자리가 정한다. 링 배치는
+    /// `ForestMapBuilder`가 하고 이 값을 심는다 — 여기서 중심까지의 거리를 다시 재면
+    /// 맵 모양이 바뀔 때마다 두 곳을 같이 고쳐야 한다.
+    [SerializeField] Vector3Int tierWeights = new(1, 0, 0);
     [SerializeField] float openSeconds = 0.6f;
 
     /// 칸 하나가 정체를 드러내는 간격 (기획서: 스킵 없이 1초 간격, 5칸이면 5초).
@@ -76,8 +82,13 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
     readonly List<ulong> scratch = new();
 
+    /// 오늘 밤 이 상자의 등급. 열지 않아도 전원이 안다 — 기획서 6.5.2가 "등급은 원거리에서
+    /// 형태·재질·색·발광으로 구분된다"고 정했으므로, 표현이 등급을 알아야 한다. 예전에는
+    /// 등급이 루팅 세션 RPC에만 실려서 상자를 연 사람만 알았고, 나머지에게는 씬에 구워 둔
+    /// 초기값이 보였다 — 매 밤 리롤(6.3)과 어긋난다.
+    readonly NetworkVariable<int> netTier = new();
+
     // --- 복제된 표시용 상태. 이 클라이언트의 세션 하나만 담는다 ---
-    int localTier;
     int[] localItems = System.Array.Empty<int>();
     int[] localCounts = System.Array.Empty<int>();
     bool localOpened;
@@ -85,7 +96,7 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
     MatchDirector director;
 
-    public int Tier => localTier > 0 ? localTier : tier;
+    public int Tier => netTier.Value > 0 ? netTier.Value : tier;
 
     /// 이 클라이언트의 루팅 세션이 열려 있는가. 창을 여닫는 유일한 기준이다.
     public bool Opened => localOpened;
@@ -120,6 +131,7 @@ public class ItemBox : NetworkBehaviour, IInteractable
         if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
         if (!IsServer) return;
         if (!temporary) ResetNightServer();
+        else netTier.Value = tier;                 // 쏟아진 더미는 리롤하지 않는다
     }
 
     public override void OnNetworkDespawn()
@@ -246,7 +258,14 @@ public class ItemBox : NetworkBehaviour, IInteractable
         // 가방을 받은 뒤에야 칸을 비운다. 반대로 하면 가방을 묻어 둔 채 칸을 누르는 것만으로
         // 재료가 어디에도 없이 사라지고, 내용물이 팀 간 선착순이라 남의 몫까지 같이 없어진다.
         var inv = InventoryOf(clientId);
-        if (inv == null || !inv.AddServer(stack.Item, stack.Count)) return;
+        if (inv == null || !inv.AddServer(stack.Item, stack.Count))
+        {
+            // 조용히 무시하면 창은 칸이 그대로인 채 남고, 누른 사람은 왜 안 담기는지
+            // 알 수 없다. 대부분은 가방을 묻어 둔 상태다 (`PlayerInventory.HasBag`).
+            CDebug.LogWarning($"{name}: 클라이언트 {clientId}의 담기를 거절했다. " +
+                (inv == null ? "인벤토리를 찾지 못했다." : "가방이 없다 — 묻어 뒀다."), this);
+            return;
+        }
 
         stacks[index] = new LootStack(stack.Item, 0);
 
@@ -362,10 +381,23 @@ public class ItemBox : NetworkBehaviour, IInteractable
         }
     }
 
+    /// 자리의 가중치로 등급을 뽑는다. 가중치가 전부 0인 상자는 씬에 구워 둔 등급을 지킨다 —
+    /// 실수로 0을 심었을 때 조용히 1등급으로 눕지 않게 한다.
+    int RollTier()
+    {
+        var total = tierWeights.x + tierWeights.y + tierWeights.z;
+        if (total <= 0) return Mathf.Clamp(tier, 1, 3);
+
+        var pick = Random.Range(0, total);
+        if (pick < tierWeights.x) return 1;
+        return pick < tierWeights.x + tierWeights.y ? 2 : 3;
+    }
+
     void ResetNightServer()
     {
         if (!IsServer || temporary) return;
-        tier = Random.Range(1, 4);
+        tier = RollTier();
+        netTier.Value = tier;
         CloseAllSessionsServer();
         Fill();
     }
@@ -414,7 +446,7 @@ public class ItemBox : NetworkBehaviour, IInteractable
             }
         }
 
-        BoxStateRpc(tier, open, session.OpenedAt, items, counts,
+        BoxStateRpc(open, session.OpenedAt, items, counts,
             RpcTarget.Single(clientId, RpcTargetUse.Temp));
     }
 
@@ -426,10 +458,9 @@ public class ItemBox : NetworkBehaviour, IInteractable
     }
 
     [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
-    void BoxStateRpc(int shownTier, bool isOpened, double openedAt, int[] items, int[] counts,
+    void BoxStateRpc(bool isOpened, double openedAt, int[] items, int[] counts,
         RpcParams p = default)
     {
-        localTier = shownTier;
         localOpened = isOpened;
         localOpenedAt = openedAt;
         localItems = items ?? System.Array.Empty<int>();

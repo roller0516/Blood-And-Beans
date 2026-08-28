@@ -76,6 +76,14 @@ public sealed class BoxLootPopup : UIPopup
     RectTransform bagAnchor;
     RectTransform flyLayer;
 
+    /// 로컬 플레이어의 가방. 묻어 두면 서버가 담기를 전부 거절하는데(`PlayerInventory.
+    /// AddServer`), 그 사실이 화면에 없으면 눌러도 아무 일이 없는 창으로만 보인다.
+    PlayerInventory bag;
+
+    /// 가방 아이콘의 원래 크기. 펀치가 겹치면 DOTween이 부풀어 있는 값을 다음 펀치의
+    /// 시작값으로 잡아, 담을 때마다 아이콘이 조금씩 커진 채로 남는다.
+    Vector3 bagScale = Vector3.one;
+
     /// 마지막으로 그린 상태. 이것과 같으면 다시 그리지 않는다.
     int lastRevealed = -1;
     int lastSignature = -1;
@@ -88,11 +96,13 @@ public sealed class BoxLootPopup : UIPopup
 
     /// `MatchFlow`가 열려 있는 상자와 로컬 플레이어를 넘겨 준다. `bag`은 아이템이 빨려
     /// 들어갈 HUD의 가방 아이콘이며 없으면 연출만 생략된다.
-    public void Bind(ItemBox value, PlayerInteract holder, RectTransform bag)
+    public void Bind(ItemBox value, PlayerInteract holder, RectTransform anchor)
     {
         box = value;
         interact = holder;
-        bagAnchor = bag;
+        bagAnchor = anchor;
+        bag = holder != null ? holder.GetComponent<PlayerInventory>() : null;
+        if (anchor != null) bagScale = anchor.localScale;
         lastRevealed = -1;
         lastSignature = -1;
     }
@@ -102,6 +112,7 @@ public sealed class BoxLootPopup : UIPopup
         box = null;
         interact = null;
         bagAnchor = null;
+        bag = null;
     }
 
     void Update()
@@ -120,11 +131,15 @@ public sealed class BoxLootPopup : UIPopup
     /// 내용물이 바뀌었는지만 알면 된다. 남의 손에 칸이 비면 이 값이 달라진다.
     int Signature()
     {
-        var hash = box.SlotCount;
+        var hash = box.SlotCount * 2 + (HasBag ? 1 : 0);
         for (var i = 0; i < box.SlotCount; i++)
             hash = hash * 397 ^ ((int)box.SlotItem(i) * 31 + box.SlotCountAt(i));
         return hash;
     }
+
+    /// 가방을 메고 있는가. 참조가 없으면(연출 생략 상태) 막지 않는다 — 담기 판정은
+    /// 어차피 서버가 한다.
+    bool HasBag => bag == null || bag.HasBag;
 
     void Render(int revealed)
     {
@@ -133,8 +148,10 @@ public sealed class BoxLootPopup : UIPopup
         for (var i = 0; i < slots; i++) if (box.SlotCountAt(i) > 0) remaining++;
 
         if (label != null)
-            label.text = $"전리품 ({remaining}/{slots})" +
-                (revealed < slots ? "   ·   공개 중…" : "");
+            label.text = !HasBag
+                ? "가방을 묻어 뒀다 — 담을 수 없다"
+                : $"전리품 ({remaining}/{slots})" +
+                  (revealed < slots ? "   ·   공개 중…" : "");
 
         for (var i = 0; i < cells.Length; i++)
         {
@@ -161,7 +178,7 @@ public sealed class BoxLootPopup : UIPopup
             cell.Icon.enabled = sprite != null;
             cell.Body.enabled = sprite == null;
 
-            cell.Frame.raycastTarget = takable;
+            cell.Frame.raycastTarget = takable && HasBag;
         }
     }
 
@@ -177,7 +194,7 @@ public sealed class BoxLootPopup : UIPopup
     /// 남아 있는 것으로 드러난다.
     void OnCellClicked(int index)
     {
-        if (box == null || interact == null) return;
+        if (box == null || interact == null || !HasBag) return;
         if (!box.IsSlotRevealed(index) || box.SlotCountAt(index) <= 0) return;
 
         interact.TakeSlotClient(index);
@@ -188,6 +205,10 @@ public sealed class BoxLootPopup : UIPopup
     void FlyToBag(Cell cell)
     {
         if (bagAnchor == null || flyLayer == null) return;
+
+        // 창이 닫히면 필드가 비므로 지역 변수로 잡아 둔다. 트윈은 창보다 오래 산다.
+        var anchor = bagAnchor;
+        var scale = bagScale;
 
         var ghost = new GameObject("Ghost", typeof(RectTransform), typeof(Image));
         var rect = (RectTransform)ghost.transform;
@@ -201,13 +222,19 @@ public sealed class BoxLootPopup : UIPopup
         image.raycastTarget = false;
 
         DOTween.Sequence()
-            .Append(rect.DOMove(bagAnchor.position, flySeconds).SetEase(Ease.InQuad))
+            .Append(rect.DOMove(anchor.position, flySeconds).SetEase(Ease.InQuad))
             .Join(rect.DOScale(0.2f, flySeconds).SetEase(Ease.InQuad))
             // 펀치는 시퀀스 밖에서 새로 나는 트윈이라 시퀀스의 SetUpdate를 물려받지 않는다.
             // 직접 걸지 않으면 시간 배율이 0일 때 아이템만 날아가고 가방은 반응하지 않는다.
-            .AppendCallback(() => bagAnchor
-                .DOPunchScale(Vector3.one * bagPunchScale, bagPunchSeconds, 1, 0.5f)
-                .SetUpdate(true))
+            .AppendCallback(() =>
+            {
+                // 앞선 펀치를 끝내고 원래 크기로 되돌린 뒤에 친다. 겹쳐 치면 부풀어 있는
+                // 값이 다음 펀치의 시작값이 돼서 아이콘이 영구히 커진다.
+                anchor.DOKill();
+                anchor.localScale = scale;
+                anchor.DOPunchScale(Vector3.one * bagPunchScale, bagPunchSeconds, 1, 0.5f)
+                    .SetUpdate(true);
+            })
             .OnComplete(() => Destroy(ghost))
             .SetUpdate(true);       // 팝업이 떠 있는 동안 시간 배율이 어떻든 돈다
     }
