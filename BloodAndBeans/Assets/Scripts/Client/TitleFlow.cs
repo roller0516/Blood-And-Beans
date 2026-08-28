@@ -7,8 +7,6 @@ using UnityEngine;
 /// "누가 Presenter를 소유하는가"에 답이 없어졌다. 씬 오브젝트인 여기가 소유한다.
 public sealed class TitleFlow : MonoBehaviour
 {
-    [SerializeField] UIManager ui;
-
     [Header("표시")]
     [SerializeField] string gameTitle = "Blood & Beans";
 
@@ -16,9 +14,10 @@ public sealed class TitleFlow : MonoBehaviour
 
     void Awake()
     {
-        if (ui == null)
+        // 없으면 `Instance`가 만든다. 씬에 UIManager를 놓거나 잇지 않아도 된다.
+        if (UIManager.Instance == null)
         {
-            Debug.LogError($"{name}: UIManager가 연결되지 않았다. 화면을 열 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(UIManager)}를 얻지 못했다. 화면을 열 수 없다.", this);
             enabled = false;
             return;
         }
@@ -28,13 +27,13 @@ public sealed class TitleFlow : MonoBehaviour
         var lobby = FindAnyObjectByType<SteamLobby>();
         if (lobby == null)
         {
-            Debug.LogError($"{name}: {nameof(SteamLobby)}가 없다. 런처 씬을 거치지 않고 타이틀을 "
+            CDebug.LogError($"{name}: {nameof(SteamLobby)}가 없다. 런처 씬을 거치지 않고 타이틀을 "
                          + "직접 실행했다는 뜻이다.", this);
             enabled = false;
             return;
         }
 
-        presenter = new TitlePresenter(ui, lobby, gameTitle, HideAllUI, QuitApplication);
+        presenter = new TitlePresenter(UIManager.Instance, lobby, gameTitle, HideAllUI, QuitApplication);
     }
 
     /// UIManager가 팀 수를 아는 시점(로비 준비 후)에 첫 화면을 연다.
@@ -42,11 +41,18 @@ public sealed class TitleFlow : MonoBehaviour
 
     void OnDisable() => presenter?.Disable();
 
-    /// 매치에 접속되면 로비 UI는 통째로 물러난다. 화면 하나하나를 내리는 대신 루트를
-    /// 끄는 이유는, 돌아올 때 스택을 그대로 되살리기 위해서다.
+    /// 매치에 접속되면 로비 UI는 물러난다.
+    ///
+    /// 루트 오브젝트를 끄지 않는다. UIManager는 게임매니저와 함께 살아남아 매치 씬에서도
+    /// 같은 오브젝트를 쓰므로, 여기서 끄면 매치 HUD가 꺼진 루트에 올라타 영영 안 보인다.
+    /// 스택만 비우고, 타이틀로 돌아오면 `TitlePresenter.Enable`이 첫 화면을 다시 연다.
     void HideAllUI()
     {
-        if (ui != null) ui.gameObject.SetActive(false);
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        ui.UnloadPopups();
+        ui.ClearScreens();
     }
 
     void QuitApplication()

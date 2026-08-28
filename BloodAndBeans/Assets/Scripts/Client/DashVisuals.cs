@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -30,17 +31,17 @@ public class DashVisuals : MonoBehaviour
     [SerializeField] float impactLifetime = 2f;
 
     [Header("화면 흔들림")]
-    /// 내 화면만 흔든다. 맞은 쪽이 맞힌 쪽보다 세고, 재료를 흘렸으면 가장 세다.
+    /// 흔들림을 쏘는 곳. 가상 카메라의 `CinemachineImpulseListener`가 받는다 — 카메라를
+    /// 직접 밀면 시네머신이 다음 프레임에 되돌려 놓는다.
+    [SerializeField] CinemachineImpulseSource impulse;
+
+    /// 맞은 쪽이 맞힌 쪽보다 세고, 재료를 흘렸으면 가장 세다.
     [SerializeField] float shakeOnLand = 0.10f;
     [SerializeField] float shakeOnTaken = 0.28f;
     [SerializeField] float shakeOnSpill = 0.45f;
 
     DashHarass dash;
     NetworkObject netObject;
-
-    /// 카메라는 매치 씬에 있고 플레이어보다 늦게 잡힌다. 처음 필요할 때 한 번만 찾고
-    /// 그 뒤로는 다시 찾지 않는다 — 흔들림은 사건 한 번이지 주기 실행이 아니다.
-    TopDownCamera view;
 
     void Awake()
     {
@@ -110,7 +111,6 @@ public class DashVisuals : MonoBehaviour
 
     void Shake(float amount)
     {
-        if (view == null) view = FindAnyObjectByType<TopDownCamera>();
-        if (view != null) view.Shake(amount);
+        if (impulse != null) impulse.GenerateImpulseWithForce(amount);
     }
 }

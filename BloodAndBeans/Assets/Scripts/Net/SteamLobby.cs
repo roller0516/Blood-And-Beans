@@ -24,8 +24,23 @@ public class SteamLobby : MonoBehaviour
     /// 480은 Valve의 Spacewar 테스트 앱이다. 실제 앱 ID를 받으면 여기만 바꾼다.
     [SerializeField] uint steamAppId = 480;
 
+    [Header("팀")]
+    /// 이 판의 팀 수. 카페는 정확히 이 수만큼 스폰된다.
+    [SerializeField, Min(1)] int teams = 4;
+
+    /// 기획서 10장이 지원하는 최대 팀 수. 치트 툴은 이 위로 올릴 수 없다.
+    [SerializeField, Min(1)] int maxTeams = 4;
+
+    /// 한 팀에 앉힐 수 있는 인원. 방 정원(팀 수 × 이 값)의 출처이기도 하다.
+    [SerializeField, Min(1)] int playersPerTeam = 2;
+
+    /// 정원이 차서 접속을 거절할 때 클라이언트에게 보내는 사유.
+    [SerializeField] string roomFullMessage = "고른 팀도 다른 팀도 자리가 없다.";
+
     [Header("연결")]
-    [SerializeField] MatchSeating seating;
+    /// 스팀 트랜스포트. `NetworkManager` 프리팹에 함께 있어 Inspector로는 이을 수 없고,
+    /// 매니저가 선 뒤에 한 번만 푼다 (`ResolveTransports`). 같은 프리팹에 두는 구성이라면
+    /// 여기 이어 두면 되고, 그때는 찾지 않는다.
     [SerializeField] SteamFacepunchTransport steamTransport;
 
     /// 스팀을 쓰지 않는 로컬 테스트(MPPM 가상 플레이어, 같은 PC 2인)용 트랜스포트.
@@ -128,8 +143,12 @@ public class SteamLobby : MonoBehaviour
     /// 방 목록·대기실·상태 중 무엇이든 바뀌었다. 화면은 매 프레임 새로 그리는 대신 이걸 듣는다.
     public event Action Changed;
 
-    public int TeamCount => seating != null ? seating.TeamCount : 1;
-    public int PlayersPerTeam => seating != null ? seating.PlayersPerTeam : 1;
+    /// 이 판의 좌석 권위. 이 컴포넌트가 소유한다 — 접속 승인은 게임 씬보다 먼저 걸려
+    /// 있어야 하고, 씬을 넘어 사는 것은 여기뿐이다.
+    public MatchSeating Seating { get; private set; }
+
+    public int TeamCount => Seating != null ? Seating.TeamCount : 1;
+    public int PlayersPerTeam => Seating != null ? Seating.PlayersPerTeam : 1;
 
     /// 한 방에 들어갈 수 있는 인원. 팀 수 × 팀당 인원이며 출처는 `MatchSeating` 하나뿐이다.
     public int RoomCapacity => TeamCount * PlayersPerTeam;
@@ -149,10 +168,7 @@ public class SteamLobby : MonoBehaviour
 
     void Awake()
     {
-        if (seating == null)
-            CDebug.LogError($"{name}: {nameof(seating)}가 비어 있다. 방 정원을 알 수 없다.", this);
-        if (steamTransport == null)
-            CDebug.LogError($"{name}: {nameof(steamTransport)}가 비어 있다. 방에 접속할 수 없다.", this);
+        Seating = new MatchSeating(teams, maxTeams, playersPerTeam, roomFullMessage);
 
         occupancy = new int[Mathf.Max(1, TeamCount)];
     }
@@ -227,10 +243,33 @@ public class SteamLobby : MonoBehaviour
         var manager = NetworkManager.Singleton;
         if (subscribedToNetwork || manager == null) return;
 
+        ResolveTransports(manager);
+
         manager.OnServerStarted += LoadGameSceneServer;
         manager.OnServerStopped += OnNetworkStopped;
         manager.OnClientStopped += OnNetworkStopped;
+
+        // 접속 승인은 StartHost보다 먼저 걸려 있어야 한다. 좌석표가 씬 오브젝트였을 때는
+        // 스스로 구독했지만, 이제 소유자인 이쪽이 같은 시점에 함께 건다.
+        Seating?.Subscribe(manager);
+
         subscribedToNetwork = true;
+    }
+
+    /// 트랜스포트는 `NetworkManager` 프리팹 쪽에 있다. 프리팹이 갈려 있어 직렬화로 이을 수
+    /// 없으므로 매니저가 선 뒤 한 번만 찾는다 — 매니저가 뜨는 것은 프레임 수와 무관한
+    /// 사건 한 번이다 (AGENTS.md 참조와 결합도).
+    ///
+    /// 로컬 트랜스포트는 매니저가 기본으로 들고 있는 것을 그대로 쓴다. "스팀을 쓰지 않을 때
+    /// 쓰는 것"이 곧 그 기본값이라, 이름으로 다시 찾을 이유가 없다.
+    void ResolveTransports(NetworkManager manager)
+    {
+        if (localTransport == null) localTransport = manager.NetworkConfig.NetworkTransport;
+        if (steamTransport == null) steamTransport = manager.GetComponentInChildren<SteamFacepunchTransport>(true);
+
+        if (steamTransport == null)
+            CDebug.LogError($"{name}: {nameof(SteamFacepunchTransport)}를 찾지 못했다. "
+                          + "방에 접속할 수 없다.", this);
     }
 
     void UnsubscribeFromNetwork()
@@ -241,6 +280,7 @@ public class SteamLobby : MonoBehaviour
         manager.OnServerStarted -= LoadGameSceneServer;
         manager.OnServerStopped -= OnNetworkStopped;
         manager.OnClientStopped -= OnNetworkStopped;
+        Seating?.Unsubscribe();
         subscribedToNetwork = false;
     }
 
@@ -605,7 +645,7 @@ public class SteamLobby : MonoBehaviour
             manager.NetworkConfig.NetworkTransport = localTransport;
 
         // 좌석표는 런처와 함께 살아남으므로 씬을 다시 불러도 저절로 비지 않는다.
-        if (seating != null) seating.ResetForNewMatch();
+        Seating?.ResetForNewMatch();
 
         Changed?.Invoke();
 

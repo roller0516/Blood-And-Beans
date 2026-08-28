@@ -9,13 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2955370099576955331}
-  - component: {fileID: 4485942133717133385}
-  - component: {fileID: 6248543663474289719}
-  - component: {fileID: 8969901128822317217}
-  - component: {fileID: 2344663873584256646}
-  - component: {fileID: 6574351110180459303}
-  - component: {fileID: 8699979773155404405}
-  - component: {fileID: 3300655341046723139}
+  - component: {fileID: 8710312067557501213}
   m_Layer: 0
   m_Name: GameManager
   m_TagString: Untagged
@@ -35,147 +29,12 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 2348279432182107851}
+  - {fileID: 9076905288279117202}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &4485942133717133385
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 593a2fe42fa9d37498c96f9a383b6521, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkManager
-  NetworkManagerExpanded: 0
-  NetworkConfig:
-    ProtocolVersion: 0
-    NetworkTransport: {fileID: 6248543663474289719}
-    PlayerPrefab: {fileID: 8382456007198119544, guid: 2586057437b33bd4da37edf9803d4719, type: 3}
-    Prefabs:
-      NetworkPrefabsLists:
-      - {fileID: 11400000, guid: e7ae0aca760a23a46b69eb4dfa742e4d, type: 2}
-    TickRate: 60
-    ClientConnectionBufferTimeout: 10
-    ConnectionApproval: 1
-    ConnectionData: 
-    EnableTimeResync: 0
-    TimeResyncInterval: 30
-    EnsureNetworkVariableLengthSafety: 0
-    EnableSceneManagement: 1
-    ForceSamePrefabs: 1
-    RecycleNetworkIds: 1
-    NetworkIdRecycleDelay: 120
-    RpcHashSize: 0
-    LoadSceneTimeOut: 120
-    SpawnTimeout: 10
-    EnableNetworkLogs: 1
-    NetworkTopology: 0
-    UseCMBService: 0
-    AutoSpawnPlayerPrefabClientSide: 1
-    NetworkProfilingMetrics: 1
-    OldPrefabList: []
-  RunInBackground: 1
-  LogLevel: 1
---- !u!114 &6248543663474289719
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 6960e84d07fb87f47956e7a81d71c4e6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Transports.UTP.UnityTransport
-  m_ProtocolType: 0
-  m_UseWebSockets: 0
-  m_UseEncryption: 0
-  m_MaxPacketQueueSize: 128
-  m_MaxPayloadSize: 6144
-  m_HeartbeatTimeoutMS: 500
-  m_ConnectTimeoutMS: 1000
-  m_MaxConnectAttempts: 60
-  m_DisconnectTimeoutMS: 30000
-  ConnectionData:
-    Address: 127.0.0.1
-    Port: 7777
-    WebSocketPath: 
-    ServerListenAddress: 127.0.0.1
-    ClientBindPort: 0
-  DebugSimulator:
-    PacketDelayMS: 0
-    PacketJitterMS: 0
-    PacketDropRate: 0
---- !u!114 &8969901128822317217
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b2a3a3d5e668a544e8b15adacb520eee, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::NetworkAutoStart
-  enableAutoStart: 0
-  lobby: {fileID: 8699979773155404405}
---- !u!114 &2344663873584256646
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 63dea54cb4a90324f87508615676d4f7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Game::SteamFacepunchTransport
-  targetSteamId: 0
---- !u!114 &6574351110180459303
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70c46806e90ce904c9e26a591ecb60a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Game::MatchSeating
-  teams: 4
-  maxTeams: 4
-  playersPerTeam: 2
-  roomFullMessage: "\uACE0\uB978 \uD300\uB3C4 \uB2E4\uB978 \uD300\uB3C4 \uC790\uB9AC\uAC00
-    \uC5C6\uB2E4."
---- !u!114 &8699979773155404405
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4800625740739427606}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0c5b15ae3be07b0428eb0c0bfb46b1b6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Game::SteamLobby
-  steamAppId: 480
-  seating: {fileID: 6574351110180459303}
-  steamTransport: {fileID: 2344663873584256646}
-  localTransport: {fileID: 6248543663474289719}
-  gameScene: Battle_01
-  titleScene: Title
-  roomListLimit: 32
-  roomNameFormat: "{0}\uC758 \uBC29"
---- !u!114 &3300655341046723139
+--- !u!114 &8710312067557501213
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -187,4 +46,137 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8baad8ebf7ebf5543bb285883ed9b15c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Game::GameManager
-  lobby: {fileID: 8699979773155404405}
+  lobby: {fileID: 3687760559577981321}
+--- !u!1 &7570223165073603286
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2348279432182107851}
+  - component: {fileID: 3687760559577981321}
+  - component: {fileID: 3191545989837230399}
+  m_Layer: 0
+  m_Name: Lobby
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2348279432182107851
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7570223165073603286}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2955370099576955331}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3687760559577981321
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7570223165073603286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0c5b15ae3be07b0428eb0c0bfb46b1b6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Game::SteamLobby
+  steamAppId: 480
+  teams: 4
+  maxTeams: 4
+  playersPerTeam: 2
+  roomFullMessage: "\uACE0\uB978 \uD300\uB3C4 \uB2E4\uB978 \uD300\uB3C4 \uC790\uB9AC\uAC00
+    \uC5C6\uB2E4."
+  steamTransport: {fileID: 0}
+  localTransport: {fileID: 0}
+  gameScene: Battle_01
+  titleScene: Title
+  roomListLimit: 32
+  roomNameFormat: "{0}\uC758 \uBC29"
+--- !u!114 &3191545989837230399
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7570223165073603286}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b2a3a3d5e668a544e8b15adacb520eee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::NetworkAutoStart
+  enableAutoStart: 0
+  lobby: {fileID: 3687760559577981321}
+--- !u!1001 &2522986795237195998
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 2955370099576955331}
+    m_Modifications:
+    - target: {fileID: 6141588526853581962, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_Name
+      value: UIManager
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+--- !u!4 &9076905288279117202 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+  m_PrefabInstance: {fileID: 2522986795237195998}
+  m_PrefabAsset: {fileID: 0}

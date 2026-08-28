@@ -25,19 +25,28 @@ using UnityEngine.SceneManagement;
 /// 2. 팀별 원장은 판마다 새로 만들어야 한다. 판을 넘어 살아남으면 지난 판의 빚을 끌고 온다.
 public class MatchDirector : MonoSingleton<MatchDirector>
 {
+    [Header("맵")]
+    /// 맵의 원점. 숲과 카페 구역이 모두 여기를 기준으로 놓인다.
+    [SerializeField] Vector3 cafeOrigin = Vector3.zero;
+
+    /// 밤 숲의 크기. 씬의 `Ground`와 같아야 팀이 지형 위에 선다.
+    [SerializeField] Vector2 forestSize = new(60f, 60f);
+
+    /// 스폰을 모서리에서 숲 안쪽으로 들여놓는 거리. 0이면 지형 가장자리에 반쯤 걸쳐 선다.
+    [SerializeField] float spawnInset = 6f;
+
     [Header("카페")]
     [SerializeField] Cafe cafePrefab;
 
-    /// 카페를 X축으로 늘어놓는 간격. 씬에 손으로 놓던 배치를 대신하는 규칙이라
-    /// 맵 크기에 맞춰 조정해야 한다.
-    [SerializeField] float cafeSpacing = 40f;
-    [SerializeField] float centerGap = 60f;
-    [SerializeField] Vector3 cafeOrigin = Vector3.zero;
+    /// 카페 구역 격자의 한 칸. 카페 하나가 이 칸 가운데에 선다.
+    [SerializeField] Vector2 cafeCell = new(46f, 40f);
 
-    [Header("밤")]
-    /// 밤 시작 지점이 놓이는 원의 반지름. 숲 가장자리와 같아야 팀이 맵 가장자리에서
-    /// 출발해 가운데로 들어온다.
-    [SerializeField] float nightSpawnRadius = 30f;
+    /// 숲 오른쪽 끝과 카페 구역 사이의 빈 거리.
+    ///
+    /// 이 값이 좁으면 낮에 카페를 비추는 화면 가장자리에 숲 지형이 걸린다. 카페 뷰의
+    /// 검은 배경은 마스크가 아니라 "주변에 아무것도 없음"으로 만들어지므로, 이 간격이
+    /// 곧 그 검정의 근거다.
+    [SerializeField] float cafeAreaGap = 60f;
 
     /// 배치할 때 지면 위로 띄우는 높이. transform 원점이 캡슐 중심이므로(CharacterController
     /// center 0, height 2) 캡슐 반높이와 같아야 발이 지면에 닿는다. 크면 공중에 뜬 채로 남는다.
@@ -100,16 +109,16 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             Debug.LogError($"{name}: {nameof(Scoreboard)}가 같은 오브젝트에 없다. "
                          + "매출과 임대료 정산이 전부 0이 된다.", this);
 
-        // 좌석 권위는 런처 씬에 있고 이 씬보다 먼저 존재한다. 씬 로드 때 한 번만 푼다.
-        //seating = MatchSeating.Find();
-        if (MatchSeating.Instance == null)
+        // 좌석 권위는 `GameManager`와 함께 살고 이 씬보다 먼저 존재한다. 씬 로드 때 한 번만 푼다.
+        var seating = GameManager.Seating;
+        if (seating == null)
         {
-            Debug.LogError($"{name}: {nameof(MatchSeating)}가 없다. 런처 씬을 거치지 않고 "
-                         + "게임 씬을 직접 실행했다는 뜻이다. 팀 수를 알 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(MatchSeating)}가 없다. {nameof(GameManager)}가 "
+                          + "서지 않았다는 뜻이다. 팀 수를 알 수 없다.", this);
             return;
         }
 
-        ApplyTeamCount(MatchSeating.Instance.TeamCount);
+        ApplyTeamCount(seating.TeamCount);
 
         if (fogPlanePrefab != null) Instantiate(fogPlanePrefab);
 
@@ -196,35 +205,46 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         }
     }
 
-    /// 팀 수가 몇이든 원점을 중심으로 대칭이 되게 늘어놓되, 숲 영역(centerGap)과 겹치지 않게 밀어낸다.
+    /// 팀이 서는 숲 모서리이자 카페가 놓이는 격자 칸. 부호는 (x, z)다.
+    ///
+    /// 대각선부터 채운다. 2팀에게 이웃한 두 모서리를 주면 한쪽이 상대 카페 구역에 더
+    /// 가까워져 시작부터 거리 유불리가 생긴다.
+    static readonly Vector2[] Corners =
+    {
+        new(-1f,  1f),   // 좌상
+        new( 1f, -1f),   // 우하
+        new( 1f,  1f),   // 우상
+        new(-1f, -1f),   // 좌하
+    };
+
+    static Vector2 CornerOf(int team) => Corners[Mathf.Abs(team) % Corners.Length];
+
+    /// 카페는 숲 오른쪽 바깥의 2×2 격자에 선다. 팀이 출발하는 모서리와 같은 칸에 두어
+    /// "이 모서리에서 나가 이 카페로 돌아온다"가 맵에서 그대로 읽히게 한다.
     Vector3 CafePosition(int team)
     {
-        float offset = (team - (teamCount - 1) * 0.5f) * cafeSpacing;
-        if (team < teamCount / 2f)
-            offset -= centerGap * 0.5f;
-        else
-            offset += centerGap * 0.5f;
+        var corner = CornerOf(team);
+        var areaCenter = cafeOrigin
+                       + Vector3.right * (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
 
-        return cafeOrigin + Vector3.right * offset;
+        return areaCenter + new Vector3(corner.x * cafeCell.x * 0.5f, 0f, corner.y * cafeCell.y * 0.5f);
     }
 
-    /// 밤의 시작 지점 (기획서: 밤에는 모든 팀이 같은 숲에 선다). 팀 수만큼 원 둘레를
-    /// 균등하게 나눠 맵 가장자리에 세우므로, 어느 팀도 다른 팀보다 숲 중앙에 가깝지 않다.
-    /// 팀 0이 -X에서 시작해 카페 배치 순서와 방향이 같다.
+    /// 밤의 시작 지점 (기획서: 밤에는 모든 팀이 같은 숲에 선다). 팀마다 숲의 한 모서리를
+    /// 받으므로 어느 팀도 다른 팀보다 숲 중앙에 가깝지 않다.
+    ///
     /// `slot`은 팀 안에서의 자리 번호다. 같은 점에 두 명을 놓으면 CharacterController끼리
     /// 겹친 채 시작해 서로 밀어낸다.
     public Vector3 NightSpawnPosition(int team, int slot)
     {
-        var angle = Mathf.PI + Mathf.PI * 2f * team / Mathf.Max(1, teamCount);
-        var radial = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
+        var corner = CornerOf(team);
+        var edge = new Vector3(corner.x * (forestSize.x * 0.5f - spawnInset), 0f,
+                               corner.y * (forestSize.y * 0.5f - spawnInset));
 
-        // 원 둘레를 따라 벌린다. 반지름 방향으로 벌리면 뒷사람이 숲 밖으로 밀려난다.
-        var tangent = new Vector3(-radial.z, 0f, radial.x);
+        // 모서리에서 숲 안쪽으로 나란히 선다. 바깥으로 벌리면 뒷사람이 지형 밖으로 나간다.
+        var inward = new Vector3(-corner.x, 0f, -corner.y).normalized;
 
-        return cafeOrigin
-             + radial * nightSpawnRadius
-             + tangent * (slot * spawnSlotSpacing)
-             + Vector3.up * spawnHeight;
+        return cafeOrigin + edge + inward * (slot * spawnSlotSpacing) + Vector3.up * spawnHeight;
     }
 
     /// 낮·전환의 시작 지점. 자기 팀 카페 위다. 팀이 없거나 카페가 아직 없으면 null.

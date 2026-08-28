@@ -279,6 +279,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &109416756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -451,6 +455,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &125731541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -623,6 +631,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &194730961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -843,6 +855,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &271540810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -892,8 +908,8 @@ Camera:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   serializedVersion: 2
-  m_ClearFlags: 1
-  m_BackGroundColor: {r: 0.19215687, g: 0.3019608, b: 0.4745098, a: 0}
+  m_ClearFlags: 2
+  m_BackGroundColor: {r: 0, g: 0, b: 0, a: 1}
   m_projectionMatrixMode: 1
   m_GateFitMode: 2
   m_FOVAxisMode: 0
@@ -914,11 +930,11 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.3
-  far clip plane: 1000
+  near clip plane: 0.1
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
-  orthographic size: 5
+  orthographic size: 10
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2
@@ -943,7 +959,7 @@ Transform:
   m_GameObject: {fileID: 330585543}
   serializedVersion: 2
   m_LocalRotation: {x: 0.5, y: 0, z: 0, w: 0.8660254}
-  m_LocalPosition: {x: 0, y: 14, z: -8}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -1002,11 +1018,29 @@ MonoBehaviour:
   m_GameObject: {fileID: 330585543}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2252933cdf1b8ab45afb77e58abf8ebc, type: 3}
+  m_Script: {fileID: 11500000, guid: 72ece51f2901e7445ab60da3685d6b5f, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TopDownCamera
-  offset: {x: 0, y: 7, z: -3}
-  pitch: 70
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineBrain
+  ShowDebugText: 0
+  ShowCameraFrustum: 1
+  IgnoreTimeScale: 0
+  WorldUpOverride: {fileID: 0}
+  ChannelMask: -1
+  UpdateMethod: 2
+  BlendUpdateMethod: 1
+  LensModeOverride:
+    Enabled: 0
+    DefaultMode: 2
+  DefaultBlend:
+    Style: 1
+    Time: 2
+    CustomCurve:
+      serializedVersion: 2
+      m_Curve: []
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  CustomBlends: {fileID: 0}
 --- !u!1 &410087039
 GameObject:
   m_ObjectHideFlags: 0
@@ -1294,6 +1328,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &462427871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1306,56 +1344,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9937e0e5784099ae6b4e539227e4df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::ItemBoxView
---- !u!1 &463358207
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 463358209}
-  - component: {fileID: 463358208}
-  m_Layer: 0
-  m_Name: UI
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &463358208
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 463358207}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51c655ab4feaded4fb1a61a4016c16b3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::UIManager
-  prefabs:
-  - {fileID: 2476152581766435423, guid: ced11f225f55a8748bc9ecfa51321731, type: 3}
-  - {fileID: 1740028463110000006, guid: 0eb2b1f9e663fea4d87bcfe4ddfd6ecc, type: 3}
-  screenBaseOrder: 100
-  popupBaseOrder: 500
-  orderStep: 10
---- !u!4 &463358209
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 463358207}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1825769255}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &500636056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1461,11 +1449,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69c33fecb12d54f46b3165cb69b13fa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Game::MatchDirector
-  cafePrefab: {fileID: 1497946502227984900, guid: a2a006269a980ef489aee772b3fa146e, type: 3}
-  cafeSpacing: 40
-  centerGap: 60
   cafeOrigin: {x: 0, y: 0, z: 0}
-  nightSpawnRadius: 30
+  forestSize: {x: 60, y: 60}
+  spawnInset: 6
+  cafePrefab: {fileID: 1497946502227984900, guid: a2a006269a980ef489aee772b3fa146e, type: 3}
+  cafeCell: {x: 46, y: 40}
+  cafeAreaGap: 60
   spawnHeight: 1
   spawnSlotSpacing: 2
   fogPlanePrefab: {fileID: 900764007414461499, guid: a006ed7a1e020ba42b2fa8fba7c74853, type: 3}
@@ -1642,6 +1631,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &523830467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1814,6 +1807,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &567411297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1858,7 +1855,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FogRenderer
   fogColor: {r: 0.05, g: 0.06, b: 0.1, a: 0.96}
-  fogShader: {fileID: 4800000, guid: 2c3d67480167f0d4eac0a4599cd0cca7, type: 3}
   blurLevel: 1.5
   edgeSoftness: 0.35
 --- !u!23 &626719331
@@ -2255,6 +2251,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &898546339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2427,6 +2427,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &938771324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2599,6 +2603,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1004518801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2771,6 +2779,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1091257487
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2943,6 +2955,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1150652909
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3115,6 +3131,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1206162158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3127,6 +3147,58 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9937e0e5784099ae6b4e539227e4df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::ItemBoxView
+--- !u!1 &1307295432
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1307295434}
+  - component: {fileID: 1307295433}
+  m_Layer: 0
+  m_Name: Cameras
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1307295433
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1307295432}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 556ae68645465a441a4328435051b38c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::MatchCameraDirector
+  nightCamera: {fileID: 1919786191}
+  dayCamera: {fileID: 1723222160}
+  activePriority: 20
+  idlePriority: 0
+  cafeOffset: {x: 0, y: 14, z: -8}
+  view: {fileID: 330585545}
+--- !u!4 &1307295434
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1307295432}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1919786194}
+  - {fileID: 1723222162}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1596484109
 GameObject:
   m_ObjectHideFlags: 0
@@ -3287,6 +3359,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1596484116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3459,6 +3535,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1687637891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3471,6 +3551,106 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9937e0e5784099ae6b4e539227e4df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::ItemBoxView
+--- !u!1 &1723222159
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1723222162}
+  - component: {fileID: 1723222160}
+  - component: {fileID: 1723222161}
+  m_Layer: 0
+  m_Name: DayCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1723222160
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723222159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 1
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 60
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!114 &1723222161
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723222159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
+--- !u!4 &1723222162
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1723222159}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5, y: -0, z: -0, w: 0.8660254}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1307295434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1825769253
 GameObject:
   m_ObjectHideFlags: 0
@@ -3500,7 +3680,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e284c57e464d39044bf4faec4b8a75c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::MatchFlow
-  ui: {fileID: 463358208}
+  uiPrefab: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
   phase: {fileID: 500636059}
   ledger: {fileID: 500636061}
   refreshInterval: 0.1
@@ -3516,8 +3696,7 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 463358209}
+  m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1883656851
@@ -3680,6 +3859,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &1883656858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3692,6 +3875,126 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef9937e0e5784099ae6b4e539227e4df, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::ItemBoxView
+--- !u!1 &1919786190
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1919786194}
+  - component: {fileID: 1919786191}
+  - component: {fileID: 1919786192}
+  - component: {fileID: 1919786193}
+  m_Layer: 0
+  m_Name: NightCamera
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1919786191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919786190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 1
+    m_Value: 20
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 60
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!114 &1919786192
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919786190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b617507da6d07e749b7efdb34e1173e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineFollow
+  TrackerSettings:
+    BindingMode: 4
+    PositionDamping: {x: 0, y: 0, z: 0}
+    AngularDampingMode: 0
+    RotationDamping: {x: 0, y: 0, z: 0}
+    QuaternionDamping: 0
+  FollowOffset: {x: 0, y: 14, z: -8}
+--- !u!114 &1919786193
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919786190}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 00b2d199b96b516448144ab30fb26aed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineImpulseListener
+  ApplyAfter: 2
+  ChannelMask: 1
+  Gain: 1
+  Use2DDistance: 0
+  UseCameraSpace: 1
+  SignalCombinationMode: 0
+  ReactionSettings:
+    m_SecondaryNoise: {fileID: 0}
+    AmplitudeGain: 1
+    FrequencyGain: 1
+    Duration: 1
+    m_NoiseOffsets: {x: 0, y: 0, z: 0}
+--- !u!4 &1919786194
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1919786190}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.5, y: -0, z: -0, w: 0.8660254}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1307295434}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2021703813
 GameObject:
   m_ObjectHideFlags: 0
@@ -3852,6 +4155,10 @@ MonoBehaviour:
   reach: 2.5
   temporary: 0
   stackSize: {x: 1, y: 3}
+  commonPool: 000000000100000002000000030000000400000005000000
+  rarePool: 0600000007000000
+  rareFromTier: 3
+  rareSlots: 1
 --- !u!114 &2021703820
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3876,3 +4183,4 @@ SceneRoots:
   - {fileID: 500636058}
   - {fileID: 626719333}
   - {fileID: 1825769255}
+  - {fileID: 1307295434}

@@ -1,4 +1,5 @@
 using Cysharp.Threading.Tasks;
+using Unity.Netcode;
 using UnityEngine;
 
 /// 씬을 넘어 살아남는 영속 오브젝트이자 부팅 순서의 주인. 접속(`NetworkManager`),
@@ -18,6 +19,13 @@ public class GameManager : PersistentMonoSingleton<GameManager>
     /// `Assets/Resources/` 아래의 프리팹 이름. 타입 이름과 같아야 한다.
     const string PrefabName = nameof(GameManager);
 
+    /// 접속 계층의 프리팹. 게임매니저와 **다른 프리팹**이다.
+    ///
+    /// 프리팹의 루트는 하나뿐인데 NGO가 `NetworkManager`의 중첩을 금지한다
+    /// (`"NetworkManager cannot be nested."`). 한 프리팹에 두면 둘 중 하나는 반드시
+    /// 상대의 자식이 되므로, 서로 독립시키려면 프리팹부터 갈라야 한다.
+    const string NetworkPrefabName = "NetworkManager";
+
     /// 같은 오브젝트의 방·세션. 부팅 사슬이 깨우는 대상이다.
     [SerializeField] SteamLobby lobby;
 
@@ -25,25 +33,37 @@ public class GameManager : PersistentMonoSingleton<GameManager>
     /// 한 번 깜빡였다가 고쳐지지 않는다.
     public bool IsReady { get; private set; }
 
+    /// 이 판의 좌석 권위. 소유자는 `SteamLobby`이고 여기서는 통로만 연다 — 플레이어와
+    /// 매치 씬은 로비를 직접 알 이유가 없고, 세션 단위로 하나뿐인 것을 찾을 자리는 여기다.
+    public static MatchSeating Seating =>
+        Instance != null && Instance.lobby != null ? Instance.lobby.Seating : null;
+
     /// `BeforeSceneLoad`는 어떤 씬 오브젝트의 `Awake`보다도 먼저 돈다. 그래서 `MatchDirector`가
     /// `Awake`에서 `MatchSeating`을 찾는 것이 실행 순서에 기대지 않고 항상 성립한다.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void CreateIfMissing()
     {
-        // 씬에 손으로 놓아 둔 것이 있으면 두 번 만들지 않는다.
-        if (Instance != null) return;
+        // 접속 계층이 먼저다. `SteamLobby`는 깨어나면서 `NetworkManager.Singleton`을 찾고,
+        // 좌석표의 접속 승인은 누가 붙기 전에 걸려 있어야 한다.
+        Create(NetworkPrefabName, NetworkManager.Singleton != null);
+        Create(PrefabName, Instance != null);
+    }
 
-        var prefab = Resources.Load<GameObject>(PrefabName);
+    /// 씬에 손으로 놓아 둔 것이 있으면 두 번 만들지 않는다.
+    /// 싱글턴 등록과 `DontDestroyOnLoad`는 각 프리팹 루트의 컴포넌트가 알아서 한다.
+    static void Create(string prefabName, bool alreadyExists)
+    {
+        if (alreadyExists) return;
+
+        var prefab = Resources.Load<GameObject>(prefabName);
         if (prefab == null)
         {
-            CDebug.LogError($"Resources/{PrefabName}을 찾을 수 없다. "
-                          + "NetworkManager도 좌석 배정도 없이 시작한다.");
+            CDebug.LogError($"Resources/{prefabName}을 찾을 수 없다. 그 계층 없이 시작한다.");
             return;
         }
 
-        // 싱글턴 등록과 DontDestroyOnLoad는 기반 클래스의 Awake가 한다.
-        var created = Instantiate(prefab);
-        created.name = prefab.name;   // "(Clone)"을 떼어 로그에서 프리팹과 같은 이름으로 보이게 한다
+        // "(Clone)"을 떼어 로그에서 프리팹과 같은 이름으로 보이게 한다.
+        Instantiate(prefab).name = prefab.name;
     }
 
     protected override void Awake()

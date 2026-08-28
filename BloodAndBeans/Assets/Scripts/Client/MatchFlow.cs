@@ -6,8 +6,6 @@ using UnityEngine;
 /// 이들이 이 씬에 같이 놓여 있어서 찾을 이유가 없기 때문이다.
 public sealed class MatchFlow : MonoBehaviour
 {
-    [SerializeField] UIManager ui;
-
     [Header("복제 상태")]
     [SerializeField] GamePhase phase;
     [SerializeField] TransitionLedger ledger;
@@ -24,21 +22,25 @@ public sealed class MatchFlow : MonoBehaviour
 
     void Start()
     {
+        // 없으면 `Instance`가 만든다. 여기서 만들지 않으므로 씬 배선도 필요 없다.
+        var ui = UIManager.Instance;
         if (ui == null)
         {
-            Debug.LogError($"{name}: UIManager가 연결되지 않았다. 매치 HUD를 열 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(UIManager)}를 얻지 못했다. 매치 HUD를 열 수 없다.", this);
             enabled = false;
             return;
         }
 
         if (phase == null)
         {
-            Debug.LogError($"{name}: {nameof(GamePhase)}가 연결되지 않았다. HUD가 빈 채로 뜬다.", this);
+            CDebug.LogError($"{name}: {nameof(GamePhase)}가 연결되지 않았다. HUD가 빈 채로 뜬다.", this);
             enabled = false;
             return;
         }
 
-        var screen = ui.PushScreen<MatchHudScreen>();
+        // Push가 아니라 Replace다. UIManager가 영속이라 타이틀의 화면이 스택에 그대로
+        // 남아 있고, 그 위에 얹으면 매치가 끝나고 돌아갈 때 그 화면이 되살아난다.
+        var screen = ui.ReplaceScreen<MatchHudScreen>();
         if (screen == null)
         {
             enabled = false;
@@ -47,6 +49,17 @@ public sealed class MatchFlow : MonoBehaviour
 
         hud = screen;
         presenter = new MatchHudPresenter(screen, phase, ledger, refreshInterval);
+    }
+
+    /// 매치 씬이 내려갈 때 자기 화면과 팝업을 치운다. UIManager는 씬과 함께 죽지 않으므로
+    /// 여기서 치우지 않으면 타이틀로 돌아가서도 매치 HUD가 스택에 남는다.
+    void OnDestroy()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        ui.UnloadPopups();
+        ui.ClearScreens();
     }
 
     void Update()
@@ -67,6 +80,9 @@ public sealed class MatchFlow : MonoBehaviour
     /// 뒤지지 않는다.
     void SyncLootPopup()
     {
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
         var night = phase != null && phase.IsSpawned && phase.Current == Phase.Night;
         var candidate = night ? presenter?.BoxHold?.LootBox : null;
 

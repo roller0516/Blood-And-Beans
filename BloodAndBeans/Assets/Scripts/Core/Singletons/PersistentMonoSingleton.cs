@@ -33,14 +33,11 @@ public abstract class PersistentMonoSingleton<T> : MonoBehaviour where T : MonoB
         if (instance == null)
         {
             instance = this as T;
-            if (transform.parent == null)
-            {
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Debug.LogWarning($"[{typeof(T).Name}] PersistentMonoSingleton은 최상위(Root) 오브젝트여야 DontDestroyOnLoad가 정상 동작합니다.");
-            }
+
+            // 자기 자신이 아니라 루트를 넘긴다. Unity의 DontDestroyOnLoad는 루트에만
+            // 동작해서, 자식에게 부르면 경고만 내고 아무 일도 하지 않는다. 이미 영속인
+            // 루트 밑이면 이 호출은 무해하다.
+            DontDestroyOnLoad(transform.root.gameObject);
         }
         else if (instance != this)
         {

@@ -33,11 +33,11 @@ public class PlayerTeam : NetworkBehaviour
         // 플레이어는 타이틀 씬에서 스폰되고 매치 씬은 그 뒤에 로드되므로, 스폰 시점에
         // 매치 씬 오브젝트를 찾으면 없다. 찾을 수 없는 것을 팀 0으로 때우면 정원 초과와
         // 무소속이 전부 팀 0의 카페 열쇠가 된다.
-        var seating = MatchSeating.Instance;
+        var seating = GameManager.Seating;
         if (seating == null)
         {
-            Debug.LogError($"{name}: {nameof(MatchSeating)}가 없다. 런처 씬을 거치지 않았다는 "
-                         + "뜻이고, 이 플레이어는 팀을 받을 수 없다.", this);
+            CDebug.LogError($"{name}: {nameof(MatchSeating)}가 없다. {nameof(GameManager)}가 "
+                          + "서지 않았다는 뜻이고, 이 플레이어는 팀을 받을 수 없다.", this);
             return;
         }
 

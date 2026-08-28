@@ -218,7 +218,7 @@ public class DevConsoleWindow : EditorWindow
                 var director = MatchDirector.Instance;
                 clock = director != null ? director.Phase : null;
             }
-            if (seating == null) seating = MatchSeating.Instance;
+            if (seating == null) seating = GameManager.Seating;
         }
 
         if (EditorApplication.timeSinceStartup < nextRefresh) return;
