@@ -22,6 +22,10 @@ public class PlayerInputRouter : NetworkBehaviour
 
     Vector2 sentInput;
 
+    /// 지난 프레임의 차단 상태. 전환을 봐야 멈춤을 한 번만 보낸다 — 매 프레임 (0,0)을
+    /// 보내면 창을 열어 둔 내내 이동 RPC가 프레임 수만큼 나간다.
+    bool inputBlocked;
+
     PlayerMove movement;
     PlayerInteractor interaction;
     PlayerInventory inventory;
@@ -71,13 +75,34 @@ public class PlayerInputRouter : NetworkBehaviour
         buryAction.performed -= OnBury;
     }
 
-    void OnMove(InputAction.CallbackContext context) => Send(context.ReadValue<Vector2>());
+    /// 조작을 막는 UI가 떠 있는가 (`UIManager.PlayerInputBlocked`). 설정 팝업이 그렇고,
+    /// 상자 루팅 창은 아니다 — 기획서 6.5.5의 이동 취소가 이동 입력으로 발동한다.
+    ///
+    /// 여기서 한 번에 막는다. 액션마다 따로 판단하면 새 액션을 붙일 때 이 검사를 빠뜨린
+    /// 것이 조용한 구멍으로 남는다.
+    static bool Blocked => UIManager.Instance != null && UIManager.Instance.PlayerInputBlocked;
+
+    void OnMove(InputAction.CallbackContext context)
+    {
+        if (Blocked) return;
+        Send(context.ReadValue<Vector2>());
+    }
 
     /// 스틱을 쥔 채 카메라만 돌 때도 방향이 따라와야 한다. 입력 콜백은 값이 바뀔 때만
     /// 오므로 그것만으로는 카메라 회전이 반영되지 않는다.
     void Update()
     {
         if (!IsOwner || moveAction == null) return;
+
+        // 창이 열리는 순간 멈춘다. 누르고 있던 키의 입력 콜백은 이미 지나갔으므로
+        // 여기서 끊지 않으면 창을 여는 동안 캐릭터가 그대로 걸어간다.
+        var blocked = Blocked;
+        if (blocked != inputBlocked)
+        {
+            inputBlocked = blocked;
+            if (blocked) Send(Vector2.zero);
+        }
+        if (blocked) return;
 
         var raw = moveAction.ReadValue<Vector2>();
         if (raw.sqrMagnitude <= 0.0001f) return;
@@ -123,9 +148,31 @@ public class PlayerInputRouter : NetworkBehaviour
         return new Vector2(world.x, world.z);
     }
 
-    void OnInteractStarted(InputAction.CallbackContext _) => interaction?.BeginClient();
+    void OnInteractStarted(InputAction.CallbackContext _)
+    {
+        if (Blocked) return;
+        interaction?.BeginClient();
+    }
+
+    /// 뗀 것은 막지 않는다. 누른 채로 창이 열렸다면 그 홀드는 이미 시작돼 있고, 여기서
+    /// 끊지 않으면 창을 닫을 때까지 F를 누르고 있는 상태로 남는다.
     void OnInteractCanceled(InputAction.CallbackContext _) => interaction?.EndClient();
-    void OnDash(InputAction.CallbackContext _) => dash?.DashRpc();
-    void OnDump(InputAction.CallbackContext _) => interaction?.DumpClient();
-    void OnBury(InputAction.CallbackContext _) => inventory?.BuryRpc();
+
+    void OnDash(InputAction.CallbackContext _)
+    {
+        if (Blocked) return;
+        dash?.DashRpc();
+    }
+
+    void OnDump(InputAction.CallbackContext _)
+    {
+        if (Blocked) return;
+        interaction?.DumpClient();
+    }
+
+    void OnBury(InputAction.CallbackContext _)
+    {
+        if (Blocked) return;
+        inventory?.BuryRpc();
+    }
 }

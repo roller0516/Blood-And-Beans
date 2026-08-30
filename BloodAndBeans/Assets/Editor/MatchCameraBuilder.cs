@@ -31,13 +31,43 @@ public static class MatchCameraBuilder
     /// 오프셋이라 카메라를 돌려도 어깨 쪽이 따라 바뀌지 않는다.
     static readonly Vector3 TppShoulder = new(0.6f, 0f, 0f);
 
+    /// 카메라가 장애물에서 유지하는 거리. 어깨 오프셋이 디오클루더보다 뒤에(Aim 뒤에)
+    /// 걸리므로 그 폭보다 넉넉해야 한다 — 벽에 딱 붙여 세우면 옆으로 민 만큼 다시 벽
+    /// 안으로 들어간다.
+    const float TppCameraRadius = 0.75f;
+
+    /// 카메라를 밀어낼 레이어. Default만 본다. 카페는 팀별 레이어(CafeTeam0~3)에 있고
+    /// 남의 팀 카페는 컬링으로 보이지 않는데(TeamVision), 그것까지 넣으면 화면에 없는
+    /// 벽이 카메라를 당긴다.
+    static readonly LayerMask TppOccluders = 1 << 0;
+
     /// 위아래로 볼 수 있는 각도. 아래로 조금 넘겨야 발밑의 상자가 보인다.
     static readonly Vector2 TppPitchRange = new(-15f, 55f);
     const float TppPitchStart = 10f;
 
-    /// 마우스 입력에 곱해지는 값. 세로가 음수인 것은 반전이다(마우스를 내리면 위를 본다).
-    /// 개발 콘솔 「치트 → 마우스 감도」에서 재생 중에 바꿔 보고, 정한 값을 여기 적는다.
-    static readonly Vector2 TppLookGain = new(1f, -0.5f);
+    /// TPP 화각. 예전에는 쿼터뷰에서 그대로 복사했는데, 쿼터뷰를 멀리서 좁게 잡으면서
+    /// 갈라섰다 — 두 시점은 이제 프레이밍 자체가 다르다.
+    const float TppFieldOfView = 60f;
+
+    /// 쿼터뷰가 내려다보는 각. 로스트아크처럼 지형과 발밑이 같이 읽히는 높이다.
+    const float QuarterPitch = 55f;
+
+    /// 쿼터뷰의 거리. 캐릭터보다 주변 지형이 주인공이 되는 거리다.
+    const float QuarterRadius = 16f;
+
+    /// 쿼터뷰 화각. 멀리서 좁게 잡아야 원근이 눌려 쿼터뷰로 읽힌다 — 같은 거리라도
+    /// 화각이 넓으면 화면 가장자리가 벌어져 3인칭에 가까워진다.
+    const float QuarterFieldOfView = 38f;
+
+    /// 쿼터뷰는 마우스가 없어서 실제로 쓰이는 각은 QuarterPitch 하나뿐이다. 범위는 그
+    /// 값이 잘리지 않게만 열어 둔다.
+    static readonly Vector2 QuarterPitchRange = new(5f, 80f);
+
+    /// 마우스 입력에 곱해지는 값. 세로가 음수인 것이 반전 없음이다 — 궤도의 세로 축은
+    /// 값이 커질수록 카메라가 위로 올라가 내려다보므로(`CinemachineOrbitalFollow`),
+    /// 마우스를 올려 위를 보려면 축 값이 줄어야 한다.
+    /// 개발 콘솔 「치트 → 마우스 감도」와 설정 팝업에서 배수를 바꿔 보고, 정한 값을 여기 적는다.
+    static readonly Vector2 TppLookGain = new(3f, -1.5f);
 
     [MenuItem(MenuPath)]
     static void Build()
@@ -62,8 +92,8 @@ public static class MatchCameraBuilder
         if (camera == null) camera = Find(director.transform);
         if (camera == null) camera = Create(director.transform);
 
-        ConfigureTpp(camera, nightCamera, so.FindProperty("idlePriority").intValue, inputActions);
-        var frozen = FreezeQuarterView(nightCamera);
+        ConfigureTpp(camera, so.FindProperty("idlePriority").intValue, inputActions);
+        var frozen = ConfigureQuarter(nightCamera);
 
         tppProperty.objectReferenceValue = camera;
         so.ApplyModifiedPropertiesWithoutUndo();
@@ -98,16 +128,14 @@ public static class MatchCameraBuilder
     /// 그대로 따르도록 만들어져 있어서, 플레이어를 이동 방향으로 돌리는 이 프로젝트에서는
     /// (`PlayerMove.StepMove`) 마우스가 끼어들 자리가 없다 — 화면이 고정된 것처럼 보인다.
     /// 궤도는 마우스가 축을 직접 돌리고, 어깨 너머 구도는 Aim 뒤의 오프셋으로 만든다.
-    static void ConfigureTpp(CinemachineCamera camera, CinemachineCamera nightCamera,
-                             int idlePriority, InputActionEntry[] inputActions)
+    static void ConfigureTpp(CinemachineCamera camera, int idlePriority,
+                             InputActionEntry[] inputActions)
     {
         // 우선순위는 `MatchCameraDirector`가 매 전환마다 다시 정한다. 여기서는 재생 전에
         // 이 카메라가 브레인을 뺏지 않도록 쉬는 값으로만 둔다.
         camera.Priority = idlePriority;
 
-        // 렌즈는 쿼터뷰에서 그대로 가져온다. 시점을 바꿀 때 화각까지 같이 바뀌면
-        // 무엇 때문에 느낌이 달라졌는지 구분할 수 없다.
-        if (nightCamera != null) camera.Lens = nightCamera.Lens;
+        camera.Lens.FieldOfView = TppFieldOfView;
 
         Remove<CinemachineThirdPersonFollow>(camera.gameObject);
 
@@ -131,6 +159,35 @@ public static class MatchCameraBuilder
         var offset = Ensure<CinemachineCameraOffset>(camera.gameObject);
         offset.ApplyAfter = CinemachineCore.Stage.Aim;
         offset.Offset = TppShoulder;
+
+        // 마우스 감도는 설정 팝업이 이 컴포넌트를 통해 만진다. 카메라를 다시 세워도
+        // 붙어 있어야 한다 — 없으면 팝업의 감도 줄이 통째로 사라진다.
+        Ensure<LookSensitivity>(camera.gameObject);
+
+        // 벽이 끼면 카메라를 앞으로 당긴다. 언리얼 스프링암의 bDoCollisionTest 자리다.
+        // 없으면 나무와 카페 벽을 그냥 통과한다. 쿼터뷰는 붙이지 않는다 — 위에서 내려다보는
+        // 각이라 막힐 일이 드물고, 나무마다 카메라가 내려오면 그게 더 산만하다.
+        var deoccluder = Ensure<CinemachineDeoccluder>(camera.gameObject);
+        deoccluder.CollideAgainst = TppOccluders;
+        deoccluder.TransparentLayers = 0;
+        deoccluder.IgnoreTag = string.Empty;
+        deoccluder.MinimumDistanceFromTarget = 0.3f;
+
+        // 이 구조체에는 필드 초기화가 없어서 AddComponent 직후 Enabled가 false다. 통째로 넣는다.
+        deoccluder.AvoidObstacles = new CinemachineDeoccluder.ObstacleAvoidance
+        {
+            Enabled = true,
+            DistanceLimit = 0f,
+            MinimumOcclusionTime = 0f,
+            CameraRadius = TppCameraRadius,
+
+            // 궤도를 따라 앞으로 당긴다. 스프링암과 같은 해법이라 시점 비교의 기준이 흔들리지 않는다.
+            Strategy = CinemachineDeoccluder.ObstacleAvoidance.ResolutionStrategy.PullCameraForward,
+            MaximumEffort = 4,
+            SmoothingTime = 0f,
+            Damping = 0.4f,
+            DampingWhenOccluded = 0.2f,
+        };
 
         // 대시 연출의 화면 흔들림은 임펄스로 온다(`DashVisuals`). 리스너가 없으면 이 시점만
         // 조용해서, 시점을 비교하는 도중에 연출이 사라진 것처럼 보인다.
@@ -205,21 +262,37 @@ public static class MatchCameraBuilder
 
     // ── 쿼터뷰 ────────────────────────────────────────────────────
 
-    /// 쿼터뷰에서 마우스를 떼어 낸다. 궤도 축은 마지막 값에 그대로 멈춰 서므로 결과는
-    /// "플레이어를 따라다니는 고정 각도"다 — 각도를 바꾸려면 궤도 컴포넌트의
-    /// Vertical Axis Value를 고친다.
+    /// 쿼터뷰를 세우고 마우스를 떼어 낸다. 궤도 축은 여기서 넣은 값에 그대로 멈춰 서므로
+    /// 결과는 "고정 각도로 따라다니는 카메라"다 — 각을 바꾸려면 위 상수를 고치고 다시 돈다.
     ///
-    /// 꺼 두지 않고 지운다. 비활성 컴포넌트로 남겨 두면 언젠가 누가 다시 켜고, 그때부터
-    /// 쿼터뷰가 조용히 마우스를 따라 돈다. 입력 배선 자체는 TPP 쪽으로 옮겨 뒀다.
-    static bool FreezeQuarterView(CinemachineCamera nightCamera)
+    /// 입력 컨트롤러는 꺼 두지 않고 지운다. 비활성 컴포넌트로 남겨 두면 언젠가 누가 다시
+    /// 켜고, 그때부터 쿼터뷰가 조용히 마우스를 따라 돈다. 배선 자체는 TPP로 옮겨 뒀다.
+    ///
+    /// 가로 축은 건드리지 않는다. 이동 입력이 카메라 기준이라(`PlayerInputRouter.ToWorld`)
+    /// 요를 돌리면 WASD가 가리키는 월드 방향까지 같이 돌아간다 — 각도가 아니라 조작이 바뀐다.
+    static bool ConfigureQuarter(CinemachineCamera camera)
     {
-        if (nightCamera == null) return false;
+        if (camera == null) return false;
 
-        var controller = nightCamera.GetComponent<CinemachineInputAxisController>();
+        camera.Lens.FieldOfView = QuarterFieldOfView;
+
+        var orbit = camera.GetComponent<CinemachineOrbitalFollow>();
+        if (orbit != null)
+        {
+            orbit.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
+            orbit.Radius = QuarterRadius;
+
+            orbit.VerticalAxis.Range = QuarterPitchRange;
+            orbit.VerticalAxis.Center = QuarterPitch;
+            orbit.VerticalAxis.Value = QuarterPitch;
+        }
+
+        EditorUtility.SetDirty(camera);
+
+        var controller = camera.GetComponent<CinemachineInputAxisController>();
         if (controller == null) return false;
 
         Object.DestroyImmediate(controller);
-        EditorUtility.SetDirty(nightCamera);
         return true;
     }
 

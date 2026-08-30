@@ -84,6 +84,9 @@ public class DashHarass : NetworkBehaviour
     /// 표시 전용. 무게 때문에 대시가 막혔는지 소유자에게 알려 준다. 판정은 서버가 다시 한다.
     public bool BlockedByLoad => inventory != null && inventory.LoadRatio >= dashBlockedAtLoad;
 
+    /// 표시 전용. 쿨다운 전체 길이(초). HUD가 남은 시간을 비율로 그리는 데 쓴다.
+    public float Cooldown => cooldown;
+
     /// 표시 전용. 남은 쿨다운(초). 소유자 외에는 0이다 — 복제 권한이 소유자뿐이라
     /// 남의 화면에서는 애초에 값이 오지 않는다.
     public float CooldownRemaining

@@ -80,6 +80,9 @@ public class PlayerInventory : NetworkBehaviour
     }
 
     public float Carried => carried.Value;
+
+    /// 표시 전용. 가방 용량(KG). 적재량을 비율만이 아니라 절대값으로도 보여 준다.
+    public float Capacity => capacity;
     public float LoadRatio => carried.Value / capacity;
     public int Count => items.Count;
 
@@ -186,7 +189,11 @@ public class PlayerInventory : NetworkBehaviour
         }
     }
 
-    float FeetY(Vector3 at) => at.y - (controller.height * 0.5f - controller.center.y);
+    /// 발이 실제로 닿는 높이. 캡슐 바닥에서 `skinWidth`를 더 뺀다 — CharacterController는
+    /// 늘 그만큼 떠서 서고(`PlayerMove.OnNetworkSpawn`이 접지 높이에 더해 주는 값과 같은
+    /// 것이다), 그 여유분을 빼지 않으면 바닥에 놓는 물건이 전부 8cm 떠 보인다.
+    float FeetY(Vector3 at) =>
+        at.y - (controller.height * 0.5f - controller.center.y) - controller.skinWidth;
 
     /// 가방 전체를 넘기고 비운다. 밤의 수확은 복귀 구역에서 팀 재고가 되므로
     /// (기획서 2장), 돌려받은 목록의 소유권은 호출자에게 있다.

@@ -26,6 +26,9 @@ public class Cafe : NetworkBehaviour
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
 
+    /// 이 팀의 복귀 구역. 밤이 끝난 뒤 자기 귀환 결과를 읽는 통로다 (`MatchFlow`).
+    public ReturnZone Zone { get; private set; }
+
     /// 매출판. 판에 하나뿐이고 카페가 소유하지 않는다 (기획서 3.1: 재료·설비·캐릭터는
     /// 비공개지만 *매출은 공개*다). 카페는 상대 팀에 복제되지 않으므로, 매출판을 카페에
     /// 매달면 남의 매출을 볼 방법이 영영 없다 — 순위표가 자기 팀만 보이고 나머지는 0이 된다.
@@ -50,6 +53,7 @@ public class Cafe : NetworkBehaviour
         Queue = GetComponentInChildren<CustomerQueue>(true);
         Stock = GetComponentInChildren<TeamStock>(true);
         Gauges = GetComponentsInChildren<CompletionGauge>(true);
+        Zone = GetComponentInChildren<ReturnZone>(true);
     }
 
     /// 서버가 Spawn 직전에 부른다. NetworkBehaviour가 준비되기 전 NetworkVariable을 쓰면

@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: ForestGrassBlade
-  m_Shader: {fileID: 4800000, guid: 9abb32516e47d9944856c73a3c6908fb, type: 3}
+  m_Shader: {fileID: 4800000, guid: 4cd863b72c3216f488473ee50c70e7a6, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -37,6 +37,9 @@ Material:
     - _GrassCurving: 0.1
     - _GrassHeight: 0.7
     - _GrassHeightRandomness: 0.5
+    - _GrassTrampleRadius: 1.6
+    - _GrassTrampleSquash: 0.5
+    - _GrassTrampleStrength: 1
     - _GrassWidth: 0.25
     - _GrassWidthRandomness: 0.25
     - _RandomNormal: 0.2

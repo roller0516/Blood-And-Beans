@@ -40,6 +40,11 @@ public class PlayerInteractor : NetworkBehaviour
 
     public void EndClient()
     {
+        // 잡고 있던 대상이 홀드 도중 디스폰될 수 있다(가방을 다 파내면 서버가 바로 없앤다).
+        // `current`는 인터페이스 참조라 `?.`가 Unity의 파괴 판정을 타지 않으므로, 여기서
+        // 직접 걸러야 스폰되지 않은 NetworkBehaviour에 RPC를 보내지 않는다.
+        if (current is NetworkBehaviour target && (target == null || !target.IsSpawned)) current = null;
+
         current?.EndInteractionClient();
         current = null;
     }

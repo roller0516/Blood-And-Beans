@@ -35,6 +35,12 @@ public class ItemBoxView : MonoBehaviour
     /// 발광을 켜기 시작하는 등급.
     [SerializeField] int glowFromTier = 3;
 
+    /// 상호작용 테두리 색. 등급 발광과 같은 셸을 쓰지만 색은 갈라야 한다 — 기획서 6.5.2가
+    /// 3등급 발광을 "금보라"로 정해 뒀으므로 머티리얼 색 자체를 흰색으로 바꿀 수는 없다.
+    /// 1을 넘는 값은 블룸에 실리라고 둔 것이다(등급 색도 같은 범위를 쓴다).
+    [SerializeField, ColorUsage(true, true)]
+    Color highlightColor = new Color(1.5f, 1.5f, 1.5f, 1f);
+
     /// 본체를 이 높이(월드 유닛)로 맞춘다. Kenney 모델은 팩마다 크기 기준이 달라서
     /// (survival-kit 상자는 한 변 0.25) 그대로 끼우면 등급마다 크기가 튄다. 메시 경계로
     /// 정규화하면 어떤 모델을 물려도 상자가 같은 크기로 보인다.
@@ -44,6 +50,20 @@ public class ItemBoxView : MonoBehaviour
     MeshFilter bodyMesh;
     MeshFilter glowMesh;
     int appliedTier;
+
+    /// 셰이더의 테두리 색 프로퍼티. 이름 해석은 한 번만 한다.
+    static readonly int GlowColorId = Shader.PropertyToID("_GlowColor");
+
+    MaterialPropertyBlock glowBlock;
+
+    /// 지금 셸에 칠해 둔 색이 상호작용 색인가. 매 프레임 블록을 다시 쓰면 등급 발광
+    /// 상태에서도 계속 덮어써서 SRP 배칭이 깨진다 — 바뀔 때만 건드린다.
+    bool highlightTinted;
+
+    /// 상호작용 범위 안에 있는 로컬 플레이어 콜라이더 수. bool이 아니라 세는 이유는
+    /// 플레이어 하나가 트리거를 여럿 물릴 수 있어서다 — 하나가 빠질 때 나머지를 무시하면
+    /// 테두리가 붙은 채로 남는다.
+    int nearbyLocal;
 
     void Awake()
     {
@@ -107,6 +127,52 @@ public class ItemBoxView : MonoBehaviour
         }
 
         // 발광은 안개와 무관하다 (기획서 6.5.2). 위치만 알려 주고 내용은 알려 주지 않는다.
-        if (glow != null) glow.enabled = tier >= glowFromTier;
+        // 상호작용 테두리는 같은 셸을 재사용하되 안개 게이트를 건다 — 안 걷힌 자리의
+        // 상자 위치를 테두리가 대신 알려 주면 안개를 둔 의미가 없다.
+        if (glow == null) return;
+
+        var highlighted = nearbyLocal > 0 && cleared;
+        glow.enabled = tier >= glowFromTier || highlighted;
+        Tint(highlighted);
+    }
+
+    /// 상호작용 중이면 흰 테두리, 아니면 머티리얼의 등급 색으로 되돌린다. 3등급 상자
+    /// 앞에 서면 금보라가 잠시 흰색이 된다 — 지금 무엇을 잡을 수 있는지가 등급 표시보다
+    /// 급한 정보고, 등급은 앞에 선 시점에 이미 형태와 재질로 읽힌다 (기획서 6.5.2).
+    void Tint(bool highlighted)
+    {
+        if (highlighted == highlightTinted) return;
+        highlightTinted = highlighted;
+
+        glowBlock ??= new MaterialPropertyBlock();
+        glow.GetPropertyBlock(glowBlock);
+        if (highlighted) glowBlock.SetColor(GlowColorId, highlightColor);
+        else glowBlock.Clear();          // 비우면 머티리얼 값(금보라)으로 돌아간다
+        glow.SetPropertyBlock(glowBlock);
+    }
+
+    // ponytail: 사거리 안의 상자가 전부 켜진다. 프롬프트는 가장 가까운 하나만 뜨므로
+    // 상자가 겹쳐 놓인 자리에서는 테두리 둘에 프롬프트 하나가 된다. 거슬리면
+    // PlayerInteractor가 "가장 가까운 대상"을 알려 주는 경로를 따로 낸다.
+    void OnTriggerEnter(Collider other)
+    {
+        if (IsLocalPlayer(other)) nearbyLocal++;
+    }
+
+    void OnTriggerExit(Collider other)
+    {
+        if (IsLocalPlayer(other) && nearbyLocal > 0) nearbyLocal--;
+    }
+
+    /// 상자가 꺼졌다 켜지는 동안의 Exit는 오지 않는다. 세어 둔 값을 비워야 테두리가
+    /// 아무도 없는 자리에 남지 않는다.
+    void OnDisable() => nearbyLocal = 0;
+
+    /// 로컬 플레이어의 상호작용 사거리인지 본다. 소유자 검사를 빼면 남의 캐릭터가
+    /// 지나갈 때도 켜져서, 테두리가 적의 위치를 알려 주는 신호가 된다.
+    static bool IsLocalPlayer(Collider other)
+    {
+        var interactor = other.GetComponentInParent<PlayerInteractor>();
+        return interactor != null && interactor.IsOwner;
     }
 }

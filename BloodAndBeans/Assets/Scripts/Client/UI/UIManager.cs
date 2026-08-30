@@ -57,6 +57,10 @@ public sealed class UIManager : MonoSingleton<UIManager>
 
     public UIPopup CurrentPopup => popups.Count > 0 ? popups[popups.Count - 1] : null;
 
+    /// 지금 떠 있는 UI가 캐릭터 조작을 막고 있는가. 입력을 읽는 쪽이 본다
+    /// (`PlayerInputRouter`).
+    public bool PlayerInputBlocked { get; private set; }
+
     public int ScreenDepth => screens.Count;
     public int PopupDepth => popups.Count;
 
@@ -148,6 +152,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
         screens.Add(view);
         view.IsOnStack = true;
         ShowAt(view, screenBaseOrder + (screens.Count - 1) * orderStep);
+        ApplyInputGates();
         return view;
     }
 
@@ -169,6 +174,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
             below.SetVisible(true);
             below.ShowInternal();
         }
+        ApplyInputGates();
     }
 
     /// 스택을 비우고 이 화면 하나만 남긴다. 로비에서 매치로 넘어가듯 되돌아갈 이유가
@@ -192,6 +198,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
             screens[i].SetVisible(false);
         }
         screens.Clear();
+        ApplyInputGates();
     }
 
     // --- 팝업 ---
@@ -205,6 +212,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
         popups.Add(view);
         view.IsOnStack = true;
         ShowAt(view, popupBaseOrder + (popups.Count - 1) * orderStep);
+        ApplyInputGates();
         return view;
     }
 
@@ -217,6 +225,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
         top.IsOnStack = false;
         top.HideInternal();
         top.SetVisible(false);
+        ApplyInputGates();
     }
 
     public void PopAllPopups()
@@ -243,6 +252,32 @@ public sealed class UIManager : MonoSingleton<UIManager>
         instance.SetVisible(false);          // 보이기는 스택에 올라갈 때만
         instanceByType[type] = instance;
         return (T)instance;
+    }
+
+    /// 커서와 이동 차단은 지금 떠 있는 UI가 정한다. 팝업이 하나라도 원하면 그렇게 되고,
+    /// 없으면 맨 위 화면이 정한다 (`UIView.WantsCursor`, `UIView.BlocksPlayerInput`).
+    ///
+    /// 스택이 바뀌는 자리마다 한 번씩 부른다. 뷰가 스스로 켜고 끄면 팝업을 닫는 순간
+    /// 밑에 깔린 화면이 무엇을 원하는지 모른 채 커서를 지워 버린다.
+    ///
+    /// 화면이 없을 때의 기본값이 둘로 갈린다. 커서는 보여 준다 — 화면이 없는 순간에
+    /// 커서까지 잠기면 사용자가 아무것도 할 수 없다. 조작은 막지 않는다 — 막는 것은
+    /// 창이 요구할 때만이고, 요구한 창이 없으면 막을 이유도 없다.
+    void ApplyInputGates()
+    {
+        var wants = false;
+        var blocks = false;
+        for (var i = 0; i < popups.Count; i++)
+        {
+            wants |= popups[i].WantsCursor;
+            blocks |= popups[i].BlocksPlayerInput;
+        }
+        if (!wants) wants = CurrentScreen == null || CurrentScreen.WantsCursor;
+        if (!blocks) blocks = CurrentScreen != null && CurrentScreen.BlocksPlayerInput;
+
+        PlayerInputBlocked = blocks;
+        Cursor.visible = wants;
+        Cursor.lockState = wants ? CursorLockMode.None : CursorLockMode.Locked;
     }
 
     void ShowAt(UIView view, int order)

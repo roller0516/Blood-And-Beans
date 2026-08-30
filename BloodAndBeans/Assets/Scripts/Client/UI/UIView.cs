@@ -52,6 +52,21 @@ public abstract class UIView : MonoBehaviour
         OnHide();
     }
 
+    /// 이 뷰가 떠 있는 동안 마우스 커서가 필요한가. 버튼을 누르는 화면·팝업은 그렇고,
+    /// 정보만 보여 주는 HUD는 아니다. 커서를 실제로 켜고 끄는 것은 `UIManager`다 —
+    /// 뷰마다 만지면 두 뷰가 겹쳤을 때 나중에 사라지는 쪽이 커서를 가져간다.
+    public virtual bool WantsCursor => true;
+
+    /// 이 뷰가 떠 있는 동안 캐릭터 조작을 통째로 막는가. 이동·대시·상호작용·쏟기·가방
+    /// 묻기가 함께 죽는다. 설정처럼 게임을 잠시 접어 두는 창이 그렇다.
+    ///
+    /// 상자 루팅 창은 아니다 — 기획서 6.5.5가 "이동 키를 누르면 상자 UI가 즉시 닫힘"으로
+    /// 정했으므로 이동 입력이 죽으면 그 규칙이 발동할 방법이 없다.
+    ///
+    /// 회전은 여기서 정하지 않는다. 커서를 푸는 창은 예외 없이 마우스를 UI에 넘긴 것이라
+    /// `WantsCursor` 하나로 갈린다 (`LookSensitivity`).
+    public virtual bool BlocksPlayerInput => false;
+
     /// 스택에 올라와 화면에 나타날 때. 구독은 여기서 시작한다.
     public virtual void OnShow() { }
 

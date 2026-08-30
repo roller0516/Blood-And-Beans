@@ -30,6 +30,10 @@ public class PlayerMove : NetworkBehaviour
     Vector2 predictedInput;                      // 소유자가 예측에 쓰는 값
     Vector3 facing = Vector3.forward;
 
+    /// 발이 지면에 닿는 높이. 스폰 위치의 y가 곧 그 높이다
+    /// (MatchDirector.NightSpawnPosition / CafeSpawnPosition 둘 다 spawnHeight로 띄운다).
+    float groundedY;
+
     /// 마지막으로 움직인 방향. 아무것도 플레이어를 회전시키지 않으므로 transform.forward는
     /// 항상 월드 +Z다. 대시 돌진처럼 "바라보는 쪽"이 필요한 서버 판정은 여기를 쓴다.
     public Vector3 FacingServer => facing;
@@ -37,6 +41,18 @@ public class PlayerMove : NetworkBehaviour
     /// 서버가 관측한 "지금 움직이고 있는가". 파밍 캔슬(이동하면 상자 창이 닫힘)의 판단
     /// 근거다. 클라이언트가 "안 움직였다"고 말하게 두면 그 규칙이 없는 것과 같다.
     public bool MovingServer => IsServer && serverInput.sqrMagnitude > 0.0001f;
+
+    /// 접지 높이를 스폰 시점에 한 번 잡는다. 서버와 소유자가 같은 값을 잡아야
+    /// 예측 화해가 y를 계속 당기지 않는다.
+    ///
+    /// **스폰 y에 skinWidth를 더한다.** 스폰 높이는 캡슐 바닥을 지면에 정확히 맞추는데,
+    /// CharacterController는 그 자리를 "지면에 박힌 상태"로 본다 — 항상 skinWidth만큼
+    /// 떠 있으려 하기 때문이다. 박힌 채로 `Move`를 부르면 수평 이동이 통째로 먹히고
+    /// (collisionFlags가 Sides로 온다) 대신 위로 밀려난다. 그것을 `PinToGround`가 매
+    /// 프레임 도로 끌어내리므로, 캐릭터는 제자리에서 위아래로 떨기만 하고 걷지 못한다.
+    /// 8cm 띄워 두면 그 싸움 자체가 없어진다.
+    public override void OnNetworkSpawn() =>
+        groundedY = transform.position.y + controller.skinWidth;
 
     void Awake()
     {
@@ -69,11 +85,13 @@ public class PlayerMove : NetworkBehaviour
     /// 그 자체가 떨림이 된다.
     ///
     /// transform 대입이 아니라 CharacterController다. 대입은 벽과 설비를 그냥 통과했다.
-    /// y는 건드리지 않는다. 평면이라 중력도 접지 처리도 쓰지 않는다.
+    /// 이동 벡터의 y는 항상 0이지만 컨트롤러가 겹침을 풀며 y를 바꾸므로 PinToGround로
+    /// 되돌린다. 평면이라 중력도 접지 처리도 쓰지 않는다.
     void StepMove(Vector2 input, float load)
     {
         var direction = new Vector3(input.x, 0f, input.y);
         controller.Move(direction * (speed * load * Time.deltaTime));
+        PinToGround();
 
         // 회전은 이동과 무관하다. 입력이 이미 월드 방향이라 서버와 소유자가 같은 결과를
         // 얻고, 회전이 이동식에 끼어들지 않으므로 예측 화해도 흔들리지 않는다.
@@ -83,6 +101,23 @@ public class PlayerMove : NetworkBehaviour
             transform.rotation,
             Quaternion.LookRotation(direction.normalized, Vector3.up),
             turnDegreesPerSecond * Time.deltaTime);
+    }
+
+    /// 평면 탑다운이라 y는 상수다. 그런데 CharacterController는 겹침을 풀 때 수평만
+    /// 밀어내지 않는다 — 스폰하면서 지면에 맞닿거나 상자·설비·다른 플레이어와 겹치면
+    /// 위아래로도 밀어낸다. 중력이 없어서 그 오차를 되돌릴 힘이 없으므로 한 번 뜨거나
+    /// 박히면 영구히 남는다. 그래서 이동을 마칠 때마다 접지 높이로 되돌린다.
+    ///
+    /// 컨트롤러를 잠깐 꺼야 대입이 남는다. 켜진 채로 대입하면 컨트롤러가 자기 내부
+    /// 위치를 다시 써 넣는다 (PlayerTeleport, PlayerPrediction.SnapTo와 같은 이유).
+    void PinToGround()
+    {
+        var position = transform.position;
+        if (Mathf.Approximately(position.y, groundedY)) return;
+
+        controller.enabled = false;
+        transform.position = new Vector3(position.x, groundedY, position.z);
+        controller.enabled = true;
     }
 
     public void SetInputClient(Vector2 input)

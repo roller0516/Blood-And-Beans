@@ -20,10 +20,11 @@ public class MatchCameraDirector : MonoBehaviour
     /// 플레이어를 따라다니는 카메라의 시점. 카페 고정 뷰는 이 선택과 무관하다.
     public enum PlayerView
     {
-        /// 위에서 비스듬히 내려다보는 기본 시점.
+        /// 위에서 비스듬히 내려다보는 시점. 멀리서 좁은 화각으로 잡아 원근을 누른다.
         Quarter,
 
         /// 어깨 너머. 같은 판을 눈높이에서 보면 거리감과 안개가 전혀 다르게 읽힌다.
+        /// 기본값이다.
         ThirdPerson,
     }
 
@@ -31,7 +32,7 @@ public class MatchCameraDirector : MonoBehaviour
     /// 밤 · 쿼터뷰.
     [SerializeField] CinemachineCamera nightCamera;
 
-    /// 밤 · TPP. 비어 있으면 시점 전환이 없는 것으로 보고 쿼터뷰만 쓴다.
+    /// 밤 · TPP. 기본 시점이다. 비어 있으면 시점 전환이 없는 것으로 보고 쿼터뷰만 쓴다.
     [SerializeField] CinemachineCamera tppCamera;
 
     /// 낮 · 전환. 내 팀 카페에 고정된다.
@@ -64,7 +65,7 @@ public class MatchCameraDirector : MonoBehaviour
     bool dayCameraPlaced;
 
     /// 지금 고른 시점. 바꾸는 것은 개발 콘솔뿐이다.
-    public PlayerView View { get; private set; } = PlayerView.Quarter;
+    public PlayerView View { get; private set; } = PlayerView.ThirdPerson;
 
     /// 시점을 바꾼다. 낮·전환처럼 카페에 고정된 동안 불러도 되며, 밤이 되면 고른 쪽이 뜬다.
     public void SetView(PlayerView view)

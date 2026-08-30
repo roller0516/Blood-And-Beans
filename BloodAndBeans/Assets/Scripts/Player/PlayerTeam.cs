@@ -77,20 +77,24 @@ public class PlayerTeam : NetworkBehaviour
             subscribedPhase.PhaseEntered += OnPhaseEntered;
         }
 
-        MoveToPhaseStartServer(director, director.Phase.Current);
+        MoveToPhaseStartServer(director.Phase.Current);
     }
 
+    /// 밤 진입만 여기서 처리한다. 밤이 *끝날* 때의 카페 복귀는 `ReturnZone`이 부른다 —
+    /// 귀환 정산이 플레이어의 위치를 읽어 판정하므로, 그보다 먼저 카페로 옮겨 버리면
+    /// 자기 소환 위치에 제대로 서 있던 사람이 전부 귀환 실패로 걸린다. 두 구독자의
+    /// 호출 순서는 보장되지 않으니 순서를 이벤트에 맡기지 않는다.
     void OnPhaseEntered(Phase p)
     {
-        var director = MatchDirector.Instance;
-        if (IsServer && p == Phase.Night && director != null) MoveToPhaseStartServer(director, p);
+        if (IsServer && p == Phase.Night) MoveToPhaseStartServer(p);
     }
 
     /// 밤은 숲 가장자리, 그 외에는 자기 팀 카페. 카페는 런타임에 스폰되므로 씬에
     /// 직렬화된 시작 위치를 쓸 수 없다.
-    void MoveToPhaseStartServer(MatchDirector director, Phase p)
+    public void MoveToPhaseStartServer(Phase p)
     {
-        if (!IsServer || team.Value < 0) return;
+        var director = MatchDirector.Instance;
+        if (!IsServer || team.Value < 0 || director == null) return;
 
         var slot = TeamSlotServer();
         var destination = p == Phase.Night

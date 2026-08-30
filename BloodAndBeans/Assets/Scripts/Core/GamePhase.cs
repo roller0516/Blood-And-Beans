@@ -12,6 +12,10 @@ public class GamePhase : NetworkBehaviour
     [SerializeField] float daySeconds = 120f;
     [SerializeField] int totalDays = 3;
 
+    /// 귀환 경보가 켜지는 시점. 밤이 끝나기까지 남은 시간으로 잰다 — 기획서 6.4는 2분 밤의
+    /// 1:30을 말하지만, 밤 길이는 `nightSeconds`로 바뀌므로 "끝나기 30초 전"이 그 뜻이다.
+    [SerializeField] float returnAlarmSeconds = 30f;
+
     readonly NetworkVariable<Phase> phase = new();
     readonly NetworkVariable<int> day = new();
     readonly NetworkVariable<double> endsAt = new();
@@ -23,6 +27,13 @@ public class GamePhase : NetworkBehaviour
     public float Remaining =>
         Mathf.Max(0f, (float)(endsAt.Value - NetworkManager.ServerTime.Time));
     public float Elapsed => Mathf.Max(0f, Duration(Current) - Remaining);
+
+    /// 밤 마감 직전 구간. 경보음과 귀환 방향 표시가 여기서 켜진다 (기획서 6.4).
+    ///
+    /// `Remaining > 0`을 함께 보는 것은 스폰 직후 때문이다. `endsAt`이 아직 복제되지 않은
+    /// 클라이언트는 남은 시간을 0으로 읽어서, 밤이 시작하자마자 경보가 울린다.
+    public bool ReturnAlarm =>
+        !Finished && Current == Phase.Night && Remaining > 0f && Remaining <= returnAlarmSeconds;
 
     /// 순수 전이 규칙. 순서를 한 줄로 읽을 수 있도록 분리해 뒀다.
     /// 페이즈가 시작되는 순간 서버에서 발생한다. 경계에 반응해야 하는 시스템은 각자
