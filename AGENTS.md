@@ -38,6 +38,39 @@
 - 에디터 실행 결과·화면 확인이 필요하면 브라우저 및 데스크톱 제어 MCP를 검증 수단으로 쓴다. 확인하지 못했으면 미검증으로 보고한다.
 - MCP가 연결되지 않았거나 호출이 실패하면 사용한 것처럼 말하지 않는다. 부재 사실과 대체로 수행한 확인 방법을 보고한다.
 
+## Unity 공식 스킬
+
+`Unity-Technologies/skills` 21개가 `.agents/skills/`에 설치돼 있고 `.claude/skills/`에서 링크로 잡힌다. 실체는 저장소 안이며 전역 설치가 아니다.
+
+**해당 영역의 작업은 손으로 시작하기 전에 그 스킬의 `SKILL.md`를 끝까지 읽고 절차를 따른다.** 기억에 의존해 Unity API를 쓰지 않는다는 「절대 원칙」의 연장이다. 읽지 않았으면 사용한 것처럼 말하지 않는다.
+
+| 작업 | 스킬 |
+|---|---|
+| UI 전반 (무엇을 쓸지 판단 포함) | `ui` |
+| uGUI 캔버스·RectTransform·UI 프리팹 — **이 저장소의 UI는 전부 여기다** | `ui-ugui` |
+| TextMeshPro 폰트 애셋, 한글/CJK 아틀라스, 텍스트 성능 | `optimize-text-mesh-pro` |
+| Shader Graph 커스텀 노드 (HLSL Custom Function) | `shader-graph-create-custom-node` |
+| URP 포스트프로세싱 (Volume, 블룸, 톤매핑) | `urp-postprocessing` |
+| URP ScriptableRendererFeature 검수 | `validate-urp-render-graph-renderer-feature` |
+| NavMesh·경로 탐색 | `initialize-ai-navigation` |
+| 스프라이트 슬라이싱·피벗·아틀라스 | `sprite-editor` |
+| 오디오 임포트 설정·믹서 비용 | `optimize-audio` |
+| UPM 패키지 조회·설치 | `unity-package-management` |
+| 다국어·로컬라이제이션 | `localization` |
+| WebGL/WebGPU 빌드 최적화 | `optimize-web` |
+
+에디터 조작은 `UnityMCP`를 먼저 쓴다 (위 「MCP 연결」). `unity-cli`는 MCP로 안 되는 일(에디터 설치, 헤드리스 빌드, CI)에만 쓴다.
+
+**승인 없이 쓰지 않는 스킬.** 이 저장소의 확정된 선택을 뒤집거나 새 의존성을 끌고 온다.
+
+- `new-unity-project` — 신규 프로젝트 부트스트랩이다. 이 저장소에는 해당 사항이 없다.
+- `setup-multiplayer-services` — Unity Multiplayer Services(UGS)로 끌고 간다. 이 프로젝트의 네트워크는 **Netcode for GameObjects 2.13 직접 사용**으로 확정돼 있다 (「프로젝트 기준」).
+- `build-live-game`, `implement-in-app-purchases`, `levelplay-unity-integration`, `setup-vivox-voice-chat` — 백엔드·결제·광고·음성 SDK를 새로 붙인다. 패키지 추가는 사용자 승인 사항이다 (「Unity에서 쓰지 말아야 할 방식」).
+
+**스킬 지시와 이 파일이 충돌하면 이 파일이 우선한다.** 스킬은 일반적인 Unity 관행을 담고 있고, 이 파일은 이 저장소의 결정을 담고 있다. 스킬이 시키는 대로 했더니 여기 규칙을 어기게 됐다면 그 사실을 보고한다.
+
+스킬은 에이전트 권한으로 실행된다. 설치 도구가 `setup-multiplayer-services`와 `setup-vivox-voice-chat`을 Critical Risk, `sprite-editor`에 알림 1건을 표시했다 (2026-08-30 설치 시점, https://skills.sh/Unity-Technologies/skills).
+
 ## QA 게이트 — 작업이 끝나면 Codex로 검수한다
 
 **QA는 Codex가 한다.** 구현을 맡은 에이전트가 자기 작업을 검수하지 않는다. 한 단계의 개발이
