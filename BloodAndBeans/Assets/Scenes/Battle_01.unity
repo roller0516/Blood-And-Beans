@@ -469,7 +469,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44d70cc20219cd84593f67d248eafe36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCameraOffset
-  Offset: {x: 0, y: 1, z: -3}
+  Offset: {x: 0, y: 0, z: -10}
   ApplyAfter: 1
   PreserveComposition: 0
 --- !u!114 &89249896
@@ -747,6 +747,7 @@ MonoBehaviour:
   glow: {fileID: 558016133}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &125731534
 GameObject:
@@ -880,6 +881,7 @@ MonoBehaviour:
   glow: {fileID: 1146241009}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &133687528
 GameObject:
@@ -1193,6 +1195,7 @@ MonoBehaviour:
   glow: {fileID: 1774235339}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &246715684
 GameObject:
@@ -1464,6 +1467,7 @@ MonoBehaviour:
   glow: {fileID: 1266899525}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &284566376
 GameObject:
@@ -2164,6 +2168,7 @@ MonoBehaviour:
   glow: {fileID: 1154511675}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &499045660
 GameObject:
@@ -2334,6 +2339,7 @@ MonoBehaviour:
   transitionSeconds: 10
   daySeconds: 120
   totalDays: 3
+  returnAlarmSeconds: 30
 --- !u!114 &500636061
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2514,6 +2520,7 @@ MonoBehaviour:
   glow: {fileID: 737987285}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &540996797
 GameObject:
@@ -2827,6 +2834,7 @@ MonoBehaviour:
   glow: {fileID: 284566378}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &626719329
 GameObject:
@@ -5825,6 +5833,7 @@ MonoBehaviour:
   glow: {fileID: 1441679821}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &938771317
 GameObject:
@@ -5958,6 +5967,7 @@ MonoBehaviour:
   glow: {fileID: 85866500}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1004518794
 GameObject:
@@ -6091,6 +6101,7 @@ MonoBehaviour:
   glow: {fileID: 1202664676}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1069015509
 GameObject:
@@ -6314,6 +6325,7 @@ MonoBehaviour:
   glow: {fileID: 2057346743}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1146241007
 GameObject:
@@ -6537,6 +6549,7 @@ MonoBehaviour:
   glow: {fileID: 266855419}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1154511673
 GameObject:
@@ -6940,6 +6953,7 @@ MonoBehaviour:
   glow: {fileID: 2064108222}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1266899523
 GameObject:
@@ -7307,6 +7321,7 @@ MonoBehaviour:
   glow: {fileID: 859119661}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1645614816
 GameObject:
@@ -7530,6 +7545,7 @@ MonoBehaviour:
   glow: {fileID: 1645614818}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1704784257
 GameObject:
@@ -7991,6 +8007,7 @@ MonoBehaviour:
   glow: {fileID: 852516988}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &1919786190
 GameObject:
@@ -8408,6 +8425,7 @@ MonoBehaviour:
   glow: {fileID: 744269155}
   outlineScale: 1.07
   glowFromTier: 3
+  highlightColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
   bodyHeight: 0.9
 --- !u!1 &2057346741
 GameObject:
