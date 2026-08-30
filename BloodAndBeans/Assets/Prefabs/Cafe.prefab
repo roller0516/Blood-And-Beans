@@ -1057,6 +1057,7 @@ GameObject:
   m_Component:
   - component: {fileID: 863622905430282439}
   - component: {fileID: 1570348446165149662}
+  - component: {fileID: 3526056397056653949}
   m_Layer: 8
   m_Name: PrepIsland
   m_TagString: Untagged
@@ -1101,6 +1102,20 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 12, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &3526056397056653949
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1900444683578952924}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 31c8db3025cc94b418304eb8bf46b0aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Game::PrepIsland
+  ShowTopMostFoldoutHeaderGroup: 1
+  reach: 2.5
 --- !u!1 &1938890587108903561
 GameObject:
   m_ObjectHideFlags: 0

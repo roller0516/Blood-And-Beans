@@ -23,31 +23,42 @@ public struct HeldItem
 /// (아키텍처_v1.0.md §1.5). 플레이어 오브젝트에 올리면 플레이어와 함께 파괴된다.
 /// 그게 수정의 전부다.
 ///
-/// ponytail: 여전히 서버 전용이라 들고 있는 물건이 남에게 보이지 않는다. 이전과 같은 한계다.
-/// 이걸 복제하는 것은 표현 작업이고 입력/표현 분리 단계에 속한다 (아키텍처_v1.0.md §5, 5단계).
+/// 규칙 판정에 쓰는 `HeldItem`은 서버만 든다 — `Recipe`가 관리 배열이라 복제할 수 없다.
+/// 대신 이름표에 필요한 만큼만 `CarryView`로 복제한다. 낮의 조작은 "재료를 옮기는 것"이
+/// 전부라(기획서 5.1) 무엇을 들었는지가 안 보이면 2인 분업 자체가 성립하지 않는다.
 public class PlayerCarry : NetworkBehaviour
 {
     HeldItem held = HeldItem.Nothing;
 
+    /// 표시용. 서버가 쓰고 전원이 읽는다. 초기값을 명시하는 이유는 `default`가
+    /// "우유를 들고 있음"으로 읽히기 때문이다 (`CarryView.Nothing` 주석).
+    readonly NetworkVariable<CarryView> view = new(CarryView.Nothing);
+
     public HeldItem Held => held;
     public bool Empty => held.Empty;
+
+    /// 팀원 화면이 읽는 값. 서버의 `Held`와 항상 같은 시점에 바뀐다.
+    public CarryView View => view.Value;
 
     public void SetServer(HeldItem item)
     {
         if (!IsServer) return;
         held = item;
+        view.Value = CarryView.Of(item);
     }
 
     public void ClearServer()
     {
         if (!IsServer) return;
         held = HeldItem.Nothing;
+        view.Value = CarryView.Nothing;
     }
 
     public void GiveIngredientServer(Ingredient i)
     {
         if (!IsServer) return;
         held = new HeldItem { Ingredient = i };
+        view.Value = CarryView.Of(held);
     }
 
     /// 클라이언트가 사라졌으면 null이다. static 맵이 표현하지 못하던 바로 그 경우다.

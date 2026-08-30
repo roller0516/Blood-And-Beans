@@ -66,6 +66,17 @@ public class ItemBox : NetworkBehaviour, IInteractable
     /// 캐스팅 중인 사람의 팀. 시작할 때 한 번 풀어 두고 틱에서는 읽기만 한다.
     readonly Dictionary<ulong, int> castTeam = new();
 
+    /// 이 상자의 **공유 공개 시계** (기획서 6.5.3). 누군가 박스를 열어 가려진 슬롯이
+    /// 공개되면, 그 박스는 이후 누가 와서 열어도 이미 공개된 상태다. 안개 공유(6.1-3)와
+    /// 같은 규칙이고, "정보는 공유되고 자원은 선착순"이 이 값 하나에 걸려 있다.
+    ///
+    /// 세션마다 따로 재면 두 번째로 온 사람이 5초를 처음부터 다시 기다린다. 그러면 늦게
+    /// 온 쪽이 자원뿐 아니라 정보에서도 손해를 봐서 6.5.3이 통째로 죽는다.
+    ///
+    /// 복제하지 않는다. 이 값은 이미 `BoxStateRpc`의 `openedAt`으로 나간다.
+    double revealClock = NeverOpened;
+    const double NeverOpened = double.NegativeInfinity;
+
     /// 열려 있는 루팅 세션 하나. 개봉 시각과, 이동 취소를 판정할 이동 컴포넌트를 든다.
     ///
     /// 이동 컴포넌트를 여기 캐시하는 이유는 세션 감시가 매 프레임 돌기 때문이다. 주기 실행
@@ -189,11 +200,15 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
         CancelCast(clientId);
 
+        // 공개 시계는 상자마다 하나다 (기획서 6.5.3). 처음 연 사람이 시작시키고, 그 뒤로는
+        // 누가 열어도 이미 흐르고 있던 시계를 그대로 읽는다.
+        if (double.IsNegativeInfinity(revealClock)) revealClock = now;
+
         // 쏟아진 더미는 아무것도 숨기지 않는다 (기획서 6.7). 개봉 시각을 공개가 다 끝난
         // 만큼 과거로 두면 같은 공개 식이 곧바로 전부를 드러낸다 — 분기를 만들지 않는다.
         sessions[clientId] = new Session
         {
-            OpenedAt = temporary ? now - revealInterval * stacks.Count : now,
+            OpenedAt = temporary ? now - revealInterval * stacks.Count : revealClock,
             Mover = MoverOf(clientId),
         };
         SendSessionStateServer(clientId);
@@ -400,6 +415,10 @@ public class ItemBox : NetworkBehaviour, IInteractable
         netTier.Value = tier;
         CloseAllSessionsServer();
         Fill();
+
+        // 내용과 등급이 매 밤 리롤되므로(기획서 6.3) 공개 시계도 함께 초기화한다.
+        // 남겨 두면 어젯밤 누가 열어 둔 상자가 오늘 밤에도 열자마자 전부 드러난다.
+        revealClock = NeverOpened;
     }
 
     // --- 클라이언트 표시 ---

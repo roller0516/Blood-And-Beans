@@ -23,6 +23,15 @@ public sealed class MatchHudPresenter
     PlayerInteractor interactor;
     PlayerInteract boxHold;
     DashHarass dash;
+    PlayerCarry carry;
+
+    /// 같은 팀 다른 사람의 손. 낮의 조작은 "재료를 옮기는 것"이 전부라(기획서 5.1)
+    /// 팀원이 무엇을 들었는지가 곧 다음에 무엇을 할지다.
+    ///
+    /// 늦게 생기므로 아직 못 잡았을 때만 찾고, 잡은 뒤에는 다시 찾지 않는다 (AGENTS.md).
+    /// 1인 1팀이면 영영 못 찾지만, 후보가 접속자 수(최대 8)뿐이라 갱신 주기당 그 순회가
+    /// 전부다.
+    PlayerCarry mate;
 
     /// 브레인이 붙은 카메라. 귀환 방향을 화면 기준으로 돌리는 데만 쓴다. 늦게 생기므로
     /// 아직 못 잡았을 때만 한 번 찾고, 잡은 뒤에는 다시 찾지 않는다 (AGENTS.md).
@@ -123,6 +132,15 @@ public sealed class MatchHudPresenter
                 text.AppendLine($"{rank + 1}. Team {rankedTeam} · {board.RevenueOf(rankedTeam)}g" +
                     (rankedTeam == team ? " <" : ""));
             }
+        }
+
+        // 낮의 조작은 재료를 옮기는 것이 전부다 (기획서 5.1). 무엇을 들었는지가 안 보이면
+        // 둘이 같은 주문을 분업할 수 없다 (2.1).
+        if (phase.Current == Phase.Day)
+        {
+            RefreshMate(team);
+            if (carry != null) text.AppendLine($"손 · {carry.View.Label}");
+            if (mate != null) text.AppendLine($"팀원 · {mate.View.Label}");
         }
 
         if (cafe?.Dishes != null)
@@ -265,5 +283,39 @@ public sealed class MatchHudPresenter
         interactor = player != null ? player.GetComponent<PlayerInteractor>() : null;
         boxHold = player != null ? player.GetComponent<PlayerInteract>() : null;
         dash = player != null ? player.GetComponent<DashHarass>() : null;
+        carry = player != null ? player.GetComponent<PlayerCarry>() : null;
+
+        // 로컬 플레이어가 바뀌면 팀도 바뀔 수 있다. 옛 팀의 팀원을 계속 들고 있으면
+        // 남의 손을 내 HUD에 그린다.
+        mate = null;
+    }
+
+    /// 같은 팀의 다른 플레이어를 한 번 찾는다. 이미 잡았거나 팀이 없으면 아무것도 하지 않는다.
+    void RefreshMate(int team)
+    {
+        if (mate != null || team < 0) return;
+
+        var manager = NetworkManager.Singleton;
+        if (manager == null || !manager.IsClient) return;
+
+        // 스폰된 플레이어 목록을 본다. `ConnectedClientsList`가 아닌 이유는 그쪽의
+        // `NetworkClient.PlayerObject`가 원격 클라이언트에 대해 채워진다는 보장이 없기
+        // 때문이다. 팀 번호도 `PlayerTeam.Of`(서버 측 조회) 대신 오브젝트에서 직접 읽는다 —
+        // 그 값은 복제되는 NetworkVariable이라 클라이언트에서도 옳다.
+        var spawner = manager.SpawnManager;
+        if (spawner == null) return;
+
+        var players = spawner.PlayerObjects;
+        for (var i = 0; i < players.Count; i++)
+        {
+            var player = players[i];
+            if (player == null || ReferenceEquals(player, cachedPlayer)) continue;
+
+            var owner = player.GetComponent<PlayerTeam>();
+            if (owner == null || owner.Team != team) continue;
+
+            mate = player.GetComponent<PlayerCarry>();
+            if (mate != null) return;
+        }
     }
 }

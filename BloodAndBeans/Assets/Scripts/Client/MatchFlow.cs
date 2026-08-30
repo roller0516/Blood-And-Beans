@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -34,6 +35,9 @@ public sealed class MatchFlow : MonoBehaviour
     /// 내 팀의 복귀 구역. 늦게 복제되므로 아직 없을 때만 한 번 찾는다.
     ReturnZone zone;
     bool returnPopupOpen;
+
+    /// 최종 결산을 이미 띄웠는가. 판이 끝나는 것은 한 번뿐이라 다시 열지 않는다.
+    bool resultPopupOpen;
 
     void Start()
     {
@@ -136,6 +140,38 @@ public sealed class MatchFlow : MonoBehaviour
 
         SyncLootPopup();
         SyncReturnPopup();
+        SyncResultPopup();
+    }
+
+    /// 판이 끝나면 최종 결산을 띄운다 (기획서 3.1: 마지막 낮이 끝나면 최종 결산, 1위 팀 승리).
+    ///
+    /// `GamePhase`는 마지막 낮에서 `finished`만 세우고 멈춘다. 그 사실을 화면으로 옮기는
+    /// 곳이 없어서, 판이 끝나도 HUD가 "종료 --:--"로 굳는 것이 전부였다.
+    ///
+    /// 매출판은 판에 하나뿐이고 모든 팀에 복제된다 (`MatchDirector.Board`). 카페에 매달린
+    /// 값을 읽으면 자기 팀 매출밖에 못 봐서 순위를 만들 수 없다.
+    void SyncResultPopup()
+    {
+        if (resultPopupOpen || phase == null || !phase.IsSpawned || !phase.Finished) return;
+
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        var director = MatchDirector.Instance;
+        var board = director != null ? director.Board : null;
+
+        // 매출판이 아직 복제되지 않았으면 다음 프레임에 다시 본다. 빈 목록으로 띄우면
+        // 모두가 0G 공동 1위인 결산이 뜬다.
+        if (board == null || board.TeamCount == 0) return;
+
+        var revenue = new List<int>(board.TeamCount);
+        for (var team = 0; team < board.TeamCount; team++) revenue.Add(board.RevenueOf(team));
+
+        var popup = ui.PushPopup<UIMatchResultPopup>();
+        if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
+
+        popup.Bind(revenue, PlayerTeam.Local());
+        resultPopupOpen = true;
     }
 
     /// 밤이 끝나면 자기 귀환 결과를 창으로 알린다 (기획서 6.8).
