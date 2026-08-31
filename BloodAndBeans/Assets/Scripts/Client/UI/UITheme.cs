@@ -18,9 +18,35 @@ using UnityEngine.UI;
 /// 지금 다른 작업이 올라가 있어 건드리면 충돌한다. 그쪽이 정리되면 이 클래스로 모은다.
 public static class UITheme
 {
+    static UIThemeConfig config;
+
+    /// 기본 디자인 원본. `Resources`에 애셋이 없으면 코드 기본값으로 만든 인스턴스를 쓴다 —
+    /// 그 기본값은 애셋이 생기기 전과 같은 값이라 화면이 깨지지는 않지만, 개발 콘솔에서
+    /// 만진 값이 저장되지 않으므로 한 번 경고한다.
+    public static UIThemeConfig Config
+    {
+        get
+        {
+            if (config != null) return config;
+
+            config = Resources.Load<UIThemeConfig>(UIThemeConfig.AssetName);
+            if (config == null)
+            {
+                config = ScriptableObject.CreateInstance<UIThemeConfig>();
+                CDebug.LogWarning(
+                    $"Resources/{UIThemeConfig.AssetName} 애셋이 없다. 코드 기본값으로 그린다. " +
+                    "개발 콘솔의 'UI 테마'에서 만들 수 있다.");
+            }
+            return config;
+        }
+    }
+
+    /// 개발 콘솔이 애셋을 새로 만들거나 고른 뒤 부른다. 다음 조회부터 그 애셋을 읽는다.
+    public static void UseConfig(UIThemeConfig replacement) => config = replacement;
+
     /// 목업이 그려진 판의 크기. 이 값과 CanvasScaler 기준 해상도가 같아야 좌표가 1:1이다.
-    public const float StageWidth = 1920f;
-    public const float StageHeight = 1080f;
+    public static float StageWidth => Config.StageSize.x;
+    public static float StageHeight => Config.StageSize.y;
 
     /// 화면 루트에 배경과 무대를 세우고 무대를 돌려준다. 이후 위젯은 전부 무대에 붙인다.
     ///
@@ -48,34 +74,27 @@ public static class UITheme
         rect.anchoredPosition = Vector2.zero;
         return rect;
     }
-    public static readonly Color Ink       = Hex(0x120C08); // 배경
-    public static readonly Color Panel     = Hex(0x0E0905); // 패널 바닥
-    public static readonly Color PanelDeep = Hex(0x180F09); // 카드 안쪽
-    public static readonly Color Cream     = Hex(0xF2E3CB); // 본문 글자
-    public static readonly Color Gold      = Hex(0xC6974A); // 구분선·라벨
-    public static readonly Color GoldLit   = Hex(0xE9B85C); // 강조 수치
-    public static readonly Color Green     = Hex(0x7CD9A8); // 이득
-    public static readonly Color Red       = Hex(0xD9563F); // 손실·카운트다운
-    public static readonly Color Blue      = Hex(0x7CAFD9); // 밤
-    public static readonly Color Purple    = Hex(0xA46EE8); // 업그레이드 재료
-    public static readonly Color Ice       = Hex(0xE6EEF5); // 슬롯·아이콘 자리
+    public static Color Ink       => Config.Ink;       // 배경
+    public static Color Panel     => Config.Panel;     // 패널 바닥
+    public static Color PanelDeep => Config.PanelDeep; // 카드 안쪽
+    public static Color Cream     => Config.Cream;     // 본문 글자
+    public static Color Gold      => Config.Gold;      // 구분선·라벨
+    public static Color GoldLit   => Config.GoldLit;   // 강조 수치
+    public static Color Green     => Config.Green;     // 이득
+    public static Color Red       => Config.Red;       // 손실·카운트다운
+    public static Color Blue      => Config.Blue;      // 밤
+    public static Color Purple    => Config.Purple;    // 업그레이드 재료
+    public static Color Ice       => Config.Ice;       // 슬롯·아이콘 자리
 
     /// 에셋이 아직 없는 아이콘·초상·썸네일 자리. 목업의 베이지 사각형이 이것이다.
-    public static readonly Color Placeholder = Hex(0xF2E3CB);
+    public static Color Placeholder => Config.Placeholder;
 
     /// 플레이어가 고르는 팀 색. 목업 2번의 `MY NAMEPLATE` 팔레트 순서 그대로이며,
     /// 인게임 네임플레이트에도 같은 색이 쓰인다.
     ///
     /// ponytail: 기획서에 팀 색 개념이 없다(9장·10장 어디에도). 목업에서만 온 값이라
-    /// 여기 두고, 확정되면 팀 데이터 원본으로 옮긴다.
-    public static readonly Color[] TeamColors =
-    {
-        Hex(0x4FB8E8), Hex(0xE86A4F), Hex(0x7CD9A8),
-        Hex(0xE9B85C), Hex(0xB98CF0), Hex(0xF0E4CB),
-    };
-
-    static Color Hex(int rgb) => new(
-        ((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, 1f);
+    /// 테마 애셋에 두고, 확정되면 팀 데이터 원본으로 옮긴다.
+    public static Color[] TeamColors => Config.TeamColors;
 
     /// 좌상단 원점 배치. 목업에서 읽은 (x, y, w, h)를 그대로 넘긴다.
     public static RectTransform At(RectTransform rect, float x, float y, float w, float h)
@@ -97,9 +116,9 @@ public static class UITheme
         return At((RectTransform)go.transform, x, y, w, h);
     }
 
-    /// 목업의 1px 구분선.
+    /// 목업의 얇은 구분선. 두께는 테마가 정한다.
     public static RectTransform Rule(Transform parent, Color color, float x, float y, float w)
-        => Box(parent, "Rule", color, x, y, w, 1f);
+        => Box(parent, "Rule", color, x, y, w, Config.RuleHeight);
 
     public static TMP_Text Text(Transform parent, string name, string value, float size,
                                 Color color, float x, float y, float w, float h,
@@ -120,7 +139,7 @@ public static class UITheme
 
     /// 목업의 대문자 소제목 (`TODAY'S TRADE`, `STANDINGS` …).
     public static TMP_Text Caption(Transform parent, string value, float x, float y, float w)
-        => Text(parent, "Caption", value, 11f, Gold, x, y, w, 16f);
+        => Text(parent, "Caption", value, Config.CaptionSize, Gold, x, y, w, Config.CaptionHeight);
 
     /// 왼쪽에서 자라는 막대. 반환값의 `localScale.x`가 진행도다 — 폭을 만지면 자식
     /// 텍스트까지 늘어나므로 스케일로 준다.
@@ -155,8 +174,10 @@ public static class UITheme
         var image = go.GetComponent<UnityEngine.UI.Image>();
         image.color = primary ? Gold : Panel;
 
-        Text(go.transform, "Label", label, primary ? 20f : 16f,
-             primary ? Ink : Cream, 0f, (h - 26f) * 0.5f, w, 26f,
+        var labelHeight = Config.ButtonLabelHeight;
+        Text(go.transform, "Label", label,
+             primary ? Config.ButtonPrimaryLabelSize : Config.ButtonSecondaryLabelSize,
+             primary ? Ink : Cream, 0f, (h - labelHeight) * 0.5f, w, labelHeight,
              TextAlignmentOptions.Top);
 
         return go.GetComponent<UnityEngine.UI.Button>();
