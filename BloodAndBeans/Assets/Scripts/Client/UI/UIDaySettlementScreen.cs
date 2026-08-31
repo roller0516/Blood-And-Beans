@@ -4,16 +4,19 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// 전환 페이즈(10초)의 정산 화면. 오늘의 매출·임대료, 목표 달성 여부, 팀 순위,
-/// 내일의 손님 예보, 미납 페널티 단계를 한 화면에 놓는다. 레이아웃은 `UI_목업.pptx` 6번이다.
+/// 전환 페이즈(10초)의 정산 화면. 오늘의 매출·임대료, 임대료 납부 결과, 팀 순위,
+/// 내일의 손님 예보, 미납 페널티 단계를 한 화면에 놓는다 (기획서 4장 · 3.2 · 3.3 · 5.6).
+/// 레이아웃은 `UI_목업.pptx` 6번이다.
+///
+/// **목업과 기획서가 어긋나는 두 곳은 기획서를 따랐다.** 목업 6번은 일일 목표 금액
+/// (`DAY 04 TARGET 775 / 700`)을 두고 페널티를 `제작 속도 −10% / 그릇 1개 압류 /
+/// 손님 대기 −1칸`으로 그렸는데, 기획서에는 목표 금액 개념이 없고(3.2는 임대료만) 3.3의
+/// 페널티는 임대료 미납으로 발동하며 낮·밤 쌍이다. 그래서 목표 자리에는 임대료 납부
+/// 결과를, 페널티 칸에는 3.3의 낮·밤 효과를 넣는다. 목업의 자리와 크기는 그대로 쓴다.
 ///
 /// 이 화면은 값을 만들지 않는다. 얼마를 벌었고 임대료가 얼마인지는 `TeamLedger`·`Rent`가,
 /// 내일 손님은 `Forecast`가 정한다. 여기는 받은 값을 정해진 자리에 그리기만 한다.
-///
-/// **목표 금액과 페널티 단계 문구도 인자로 받는다.** 목업 6번은 일일 목표 금액을 두고
-/// 페널티를 `제작 속도 −10% / 그릇 1개 압류 / 손님 대기 −1칸`으로 그렸는데, 기획서에는
-/// 목표 금액 개념이 없고 3.3의 페널티도 낮·밤 쌍으로 내용이 다르다. 어느 쪽으로
-/// 확정되든 이 화면은 손댈 것이 없도록 규칙을 코드에 넣지 않는다.
+/// 페널티 문구도 인자로 받는다 — 3.3 표의 내용을 화면이 들고 있으면 규칙이 두 곳에 산다.
 ///
 /// 위젯을 프리팹이 아니라 코드로 세우는 이유는 `MatchHudScreen`과 같다 — 행이 데이터
 /// 개수만큼 늘어나고 자리가 서로 물려 있어 Inspector로 흩어 두면 유지되지 않는다.
@@ -60,12 +63,17 @@ public sealed class UIDaySettlementScreen : UIScreen
         public PopularItem(string name, int percent) { Name = name; Percent = percent; }
     }
 
-    /// 미납 페널티 단계 한 칸. 문구는 규칙 쪽에서 받는다 (기획서 3.3 ↔ 목업 6번 불일치).
+    /// 미납 페널티 한 단계. 기획서 3.3 표가 낮·밤 쌍이라 두 줄을 따로 받는다.
+    /// 문구는 규칙 쪽에서 넘긴다 — 표의 내용을 화면이 들고 있으면 규칙이 두 곳에 산다.
     public readonly struct PenaltyStage
     {
         public readonly string Caption;
-        public readonly string Effect;
-        public PenaltyStage(string caption, string effect) { Caption = caption; Effect = effect; }
+        public readonly string Day;
+        public readonly string Night;
+        public PenaltyStage(string caption, string day, string night)
+        {
+            Caption = caption; Day = day; Night = night;
+        }
     }
 
     /// 목업 6번의 가로 폭이 이 개수에 맞춰져 있다. 넘치면 자리가 아니라 목업이 바뀌어야 한다.
@@ -85,7 +93,9 @@ public sealed class UIDaySettlementScreen : UIScreen
     readonly List<GameObject> guestCards = new();
     readonly List<GameObject> popularChips = new();
     readonly List<TMP_Text> penaltyCaptions = new();
-    readonly List<TMP_Text> penaltyEffects = new();
+    readonly List<TMP_Text> penaltyDays = new();
+    readonly List<TMP_Text> penaltyNights = new();
+    readonly List<UnityEngine.UI.Image> penaltySlots = new();
 
     bool built;
 
@@ -122,19 +132,19 @@ public sealed class UIDaySettlementScreen : UIScreen
         BuildPenaltyPanel();
     }
 
-    /// 목업 6번 상단의 `DAY 04 TARGET  775 / 700` 과 달성 배지.
+    /// 목업 6번 상단의 목표 자리. 기획서에 목표 금액이 없어(3.2는 임대료만) 그 자리에
+    /// 임대료 납부 결과를 넣는다 — 납부액 / 청구액 과 완납·미납 배지.
     void BuildTargetBadge()
     {
-        targetGoal = UITheme.Text(stage, "TargetCaption", "DAY 00 TARGET", 8f, UITheme.Gold,
+        targetGoal = UITheme.Text(stage, "RentCaption", "DAY 00 RENT", 8f, UITheme.Gold,
                                   1140f, 36f, 178f, 20f, TextAlignmentOptions.TopRight);
-        targetValue = UITheme.Text(stage, "TargetValue", "0", 22f, UITheme.Green,
+        targetValue = UITheme.Text(stage, "RentPaid", "0", 22f, UITheme.Green,
                                    1100f, 52f, 171f, 49f, TextAlignmentOptions.TopRight);
-        var goal = UITheme.Text(stage, "TargetGoal", "/ 0", 14f, UITheme.Cream,
-                                1271f, 67f, 47f, 30f);
-        targetGoalText = goal;
+        targetGoalText = UITheme.Text(stage, "RentOwed", "/ 0", 14f, UITheme.Cream,
+                                      1271f, 67f, 47f, 30f);
 
-        targetBadgeBox = UITheme.Box(stage, "TargetBadge", UITheme.Green, 1344f, 40f, 181f, 57f);
-        targetBadge = UITheme.Text(targetBadgeBox, "Label", "SUCCESS!", 20f, UITheme.Ink,
+        targetBadgeBox = UITheme.Box(stage, "RentBadge", UITheme.Green, 1344f, 40f, 181f, 57f);
+        targetBadge = UITheme.Text(targetBadgeBox, "Label", "완납", 20f, UITheme.Ink,
                                    0f, 12f, 181f, 43f, TextAlignmentOptions.Top);
     }
 
@@ -201,55 +211,74 @@ public sealed class UIDaySettlementScreen : UIScreen
                      25f, 231f, 160f, 21f);
     }
 
-    /// 목업 6번 하단의 미납 페널티 단계. 문구는 전부 `Bind`가 채운다.
+    /// 목업 6번 하단의 페널티 칸. 기획서 3.3은 누적 미납 단계마다 낮·밤 효과가 쌍으로
+    /// 붙으므로 한 칸에 두 줄을 넣는다. 지금 걸린 단계만 밝게 둔다.
     void BuildPenaltyPanel()
     {
         penaltyPanel = UITheme.Box(stage, "Penalty", UITheme.Panel, 980f, 924f, 892f, 132f);
         UITheme.Caption(penaltyPanel, "PENALTY", 25f, 19f, 83f);
         penaltyState = UITheme.Text(penaltyPanel, "State", string.Empty, 10f, UITheme.Green,
                                     116f, 22f, 420f, 20f);
-        UITheme.Text(penaltyPanel, "Escalation", "연속 미달 시 단계가 강화된다", 9f,
+        UITheme.Text(penaltyPanel, "Escalation", "연속 미납 시 단계가 강화된다", 9f,
                      UITheme.Cream, 452f, 22f, 415f, 19f, TextAlignmentOptions.TopRight);
 
         for (var i = 0; i < PenaltySlots; i++)
         {
+            // 목업은 한 줄짜리 칸이지만 기획서 3.3은 낮·밤이 쌍이라 두 줄이 필요하다.
+            // 목업에 없는 배치라 칸을 키웠다 — 아래 예보 패널이 y=906에서 끝나므로 자리는 남는다.
             var slot = UITheme.Box(penaltyPanel, $"Stage{i}", UITheme.PanelDeep,
-                                   25f + i * 285f, 52f, 273f, 61f);
-            penaltyCaptions.Add(UITheme.Text(slot, "Caption", $"STAGE {i + 1}", 8f,
-                                             UITheme.Cream, 15f, 12f, 267f, 19f));
-            penaltyEffects.Add(UITheme.Text(slot, "Effect", string.Empty, 11f,
-                                            UITheme.Cream, 15f, 30f, 267f, 23f));
+                                   25f + i * 285f, 50f, 273f, 74f);
+            penaltySlots.Add(slot.GetComponent<UnityEngine.UI.Image>());
+
+            penaltyCaptions.Add(UITheme.Text(slot, "Caption", $"{i + 1}회 연속", 8f,
+                                             UITheme.Gold, 14f, 8f, 245f, 18f));
+            penaltyDays.Add(UITheme.Text(slot, "Day", string.Empty, 10f,
+                                         UITheme.Cream, 14f, 27f, 245f, 20f));
+            penaltyNights.Add(UITheme.Text(slot, "Night", string.Empty, 10f,
+                                           UITheme.Blue, 14f, 48f, 245f, 20f));
         }
     }
 
     /// 전환 페이즈가 시작될 때 한 번 부른다. 남은 시간만 계속 바뀌므로 `SetRemaining`으로
     /// 따로 준다 — 여기서 매 프레임 행을 다시 만들면 GC가 붙는다.
+    /// `missStreak`은 누적 미납 횟수다 (`Rent.MissStreak`). 0이면 완납이라 페널티가 없다.
+    /// 단계는 3에서 멈춘다 — 기획서 3.3에 4회 행이 없다.
     public void Bind(int day,
-                     IReadOnlyList<TradeLine> lines, int sales, int rent,
-                     int debt, int tomorrowRent,
-                     int target, string targetLabel,
+                     IReadOnlyList<TradeLine> lines, int sales,
+                     int rentOwed, int rentPaid, int debt, int tomorrowRent,
                      IReadOnlyList<StandingRow> standings,
                      IReadOnlyList<GuestCard> guests,
                      IReadOnlyList<PopularItem> popular,
-                     string penaltyHeadline, IReadOnlyList<PenaltyStage> penalties)
+                     int missStreak, IReadOnlyList<PenaltyStage> penalties)
     {
         Build();
 
         dayHeading.text = $"DAY {day:00} 정산";
         todaySales.text = sales.ToString("N0");
-        rentDue.text = rent > 0 ? $"−{rent:N0}" : "0";
+        rentDue.text = rentOwed > 0 ? $"−{rentOwed:N0}" : "0";
         debtCarried.text = debt.ToString("N0");
         debtNote.text = $"이자 없음 · 내일 임대료 {tomorrowRent:N0}";
 
-        BindTarget(day, sales, target, targetLabel);
+        BindRent(day, rentOwed, rentPaid, missStreak);
 
-        penaltyState.text = penaltyHeadline ?? string.Empty;
+        // 지금 걸린 단계만 밝게 둔다. 나머지는 "다음에 이렇게 된다"는 예고다.
+        var active = Mathf.Clamp(missStreak, 0, PenaltySlots);
         for (var i = 0; i < PenaltySlots; i++)
         {
             var has = penalties != null && i < penalties.Count;
             penaltyCaptions[i].text = has && !string.IsNullOrEmpty(penalties[i].Caption)
-                ? penalties[i].Caption : $"STAGE {i + 1}";
-            penaltyEffects[i].text = has ? penalties[i].Effect : string.Empty;
+                ? penalties[i].Caption : $"{i + 1}회 연속";
+            // 어느 쪽이 낮이고 밤인지는 색만으로 갈리지 않는다. 표시용 머리글자를 붙인다.
+            penaltyDays[i].text = has && !string.IsNullOrEmpty(penalties[i].Day)
+                ? "낮 · " + penalties[i].Day : string.Empty;
+            penaltyNights[i].text = has && !string.IsNullOrEmpty(penalties[i].Night)
+                ? "밤 · " + penalties[i].Night : string.Empty;
+
+            var on = active > 0 && i == active - 1;
+            penaltySlots[i].color = on ? UITheme.Panel : UITheme.PanelDeep;
+            penaltyCaptions[i].color = on ? UITheme.Red : UITheme.Gold;
+            penaltyDays[i].color = on ? UITheme.Cream : UITheme.Cream * 0.55f;
+            penaltyNights[i].color = on ? UITheme.Blue : UITheme.Blue * 0.55f;
         }
 
         FillTradeLines(lines);
@@ -258,21 +287,24 @@ public sealed class UIDaySettlementScreen : UIScreen
         FillPopular(popular);
     }
 
-    void BindTarget(int day, int sales, int target, string label)
+    /// 임대료 납부 결과 (기획서 3.2). 부족분은 부채로 이월되므로 완납 여부는 실제로 낸
+    /// 금액과 청구액을 비교해 판정한다.
+    void BindRent(int day, int owed, int paid, int missStreak)
     {
-        targetGoal.text = $"DAY {day:00} TARGET";
-        targetValue.text = sales.ToString("N0");
-        targetGoalText.text = $"/ {target:N0}";
+        targetGoal.text = $"DAY {day:00} RENT";
+        targetValue.text = paid.ToString("N0");
+        targetGoalText.text = $"/ {owed:N0}";
 
-        // 목표가 0이면 이 판에 목표 개념이 없다는 뜻이라 배지를 감춘다. 기획서에 목표
-        // 금액이 없어서(3.2는 임대료만 규정) 호출자가 끌 수 있어야 한다.
-        var reached = sales >= target;
-        targetBadgeBox.gameObject.SetActive(target > 0);
-        targetValue.color = target <= 0 ? UITheme.GoldLit
-                          : reached ? UITheme.Green : UITheme.Red;
+        var settled = paid >= owed;
+        targetValue.color = settled ? UITheme.Green : UITheme.Red;
         targetBadgeBox.GetComponent<UnityEngine.UI.Image>().color =
-            reached ? UITheme.Green : UITheme.Red;
-        targetBadge.text = string.IsNullOrEmpty(label) ? (reached ? "SUCCESS!" : "FAILED") : label;
+            settled ? UITheme.Green : UITheme.Red;
+        targetBadge.text = settled ? "완납" : "미납";
+
+        penaltyState.text = settled
+            ? "완납 — 페널티 적용 받지 않음"
+            : $"미납 {missStreak}회 — {Mathf.Clamp(missStreak, 1, PenaltySlots)}단계 적용";
+        penaltyState.color = settled ? UITheme.Green : UITheme.Red;
     }
 
     /// 남은 시간. 전환은 10초라 초 단위로 충분하다 (기획서 4장).
