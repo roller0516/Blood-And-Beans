@@ -113,7 +113,8 @@ public class GamePhase : NetworkBehaviour
         PhaseEntered?.Invoke(p);
     }
 
-    float Duration(Phase p) => p switch
+    /// 페이즈 하나의 길이. 전환 화면이 남은 시간을 비율로 그리려면 분모가 필요하다.
+    public float Duration(Phase p) => p switch
     {
         Phase.Night => nightSeconds,
         Phase.Transition => transitionSeconds,

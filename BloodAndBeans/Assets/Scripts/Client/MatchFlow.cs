@@ -39,6 +39,9 @@ public sealed class MatchFlow : MonoBehaviour
     /// 최종 결산을 이미 띄웠는가. 판이 끝나는 것은 한 번뿐이라 다시 열지 않는다.
     bool resultPopupOpen;
 
+    /// 전환 페이즈에 떠 있는 정산 화면. 전환이 끝나면 매치 HUD로 되돌린다.
+    UIDaySettlementScreen settlement;
+
     void Start()
     {
         // 없으면 `Instance`가 만든다. 여기서 만들지 않으므로 씬 배선도 필요 없다.
@@ -140,8 +143,111 @@ public sealed class MatchFlow : MonoBehaviour
 
         SyncLootPopup();
         SyncReturnPopup();
+        SyncSettlementScreen();
         SyncResultPopup();
     }
+
+    /// 전환 페이즈(10초) 동안 정산 화면을 띄운다 (기획서 4장: 매출/임대료 결과 · 순위 ·
+    /// 내일의 손님 예보).
+    ///
+    /// 값의 출처는 전부 복제된 것이다. 매출과 순위는 판에 하나뿐인 `Scoreboard`,
+    /// 임대료·부채·미납 횟수는 `TransitionLedger`가 마감 순간 자기 팀에만 보낸 요약,
+    /// 예보는 같은 컴포넌트가 밤 끝에 보낸 두 요약이다. 클라이언트는 아무것도 계산하지 않는다.
+    ///
+    /// 화면 스택을 `Replace`하지 않고 `Push`하는 이유는 전환이 끝나면 밑에 깔린 매치
+    /// HUD로 그대로 돌아와야 하기 때문이다.
+    void SyncSettlementScreen()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null || phase == null || !phase.IsSpawned) return;
+
+        var inTransition = phase.Current == Phase.Transition && !phase.Finished;
+
+        if (!inTransition)
+        {
+            if (settlement == null) return;
+            ui.PopScreen();
+            settlement = null;
+            return;
+        }
+
+        if (settlement == null)
+        {
+            settlement = ui.PushScreen<UIDaySettlementScreen>();
+            if (settlement == null) return;      // 프리팹 미연결은 UIManager가 알린다
+            BindSettlement();
+        }
+
+        settlement.SetRemaining(phase.Remaining, phase.Duration(Phase.Transition));
+    }
+
+    void BindSettlement()
+    {
+        var director = MatchDirector.Instance;
+        var board = director != null ? director.Board : null;
+        var team = PlayerTeam.Local();
+
+        var today = ledger != null ? ledger.Today : default;
+        var day = today.Valid ? today.Day : phase.Day;
+
+        // 순위. 공개되는 것은 매출뿐이다 (기획서 3.1). 카페 이름이 데이터에 없어 팀 번호로 쓴다.
+        var standings = new List<UIDaySettlementScreen.StandingRow>();
+        if (board != null)
+            for (var t = 0; t < board.TeamCount; t++)
+                standings.Add(new UIDaySettlementScreen.StandingRow(
+                    $"{t + 1}팀", board.RevenueOf(t),
+                    t == team && today.Valid ? today.Sales : 0, t == team));
+        standings.Sort((a, b) => b.Total.CompareTo(a.Total));
+
+        // 예보. 종족별 인원수와 인기 재료만 온다 (기획서 5.6.3).
+        var guests = new List<UIDaySettlementScreen.GuestCard>();
+        var counts = ledger != null ? ledger.RaceCounts : null;
+        if (counts != null)
+            for (var r = 0; r < counts.Length; r++)
+                guests.Add(new UIDaySettlementScreen.GuestCard(
+                    DisplayNames.Of((Race)r), counts[r]));
+
+        var popular = new List<UIDaySettlementScreen.PopularItem>();
+        var shown = ledger != null ? ledger.PopularShown : null;
+        if (shown != null)
+            foreach (var item in shown)
+                popular.Add(new UIDaySettlementScreen.PopularItem(
+                    DisplayNames.Of(item),
+                    Mathf.RoundToInt(SalePrice.PopularBonus * 100f)));
+
+        settlement.Bind(
+            day,
+            TradeLines(today),
+            today.Valid ? today.Sales : 0,
+            today.Valid ? today.RentOwed : Rent.Due(day),
+            today.Valid ? today.RentPaid : 0,
+            today.Valid ? today.Debt : 0,
+            Rent.Due(day + 1),
+            standings, guests, popular,
+            today.Valid ? today.MissStreak : 0,
+            PenaltyStages);
+    }
+
+    /// 오늘의 거래 내역. 지금 복제되는 것은 합계뿐이라 한 줄이다 — 판매 잔 수와 판정
+    /// 내역은 서버에만 있고 아직 내려오지 않는다.
+    static List<UIDaySettlementScreen.TradeLine> TradeLines(TransitionLedger.Settlement s)
+    {
+        var lines = new List<UIDaySettlementScreen.TradeLine>();
+        if (!s.Valid) return lines;
+        lines.Add(new UIDaySettlementScreen.TradeLine(
+            "오늘 판매", $"+{s.Sales:N0}", UITheme.GoldLit));
+        return lines;
+    }
+
+    /// 기획서 3.3 표. 화면이 아니라 여기서 넘긴다 — 표의 내용은 규칙이지 표시가 아니다.
+    static readonly UIDaySettlementScreen.PenaltyStage[] PenaltyStages =
+    {
+        new("1회", "제작 속도 10% 감소", "시야 반경 감소"),
+        new("2회 연속", "커피 머신 1대 불통 (2대 → 1대)",
+                        "시야 반경 감소 + 박스 개봉 속도 감소"),
+        new("3회 연속", "머신 1대 불통 + 그릇 1개 파손",
+                        "위 + 무게 감속 구간이 한 단계 불리하게"),
+    };
 
     /// 판이 끝나면 최종 결산을 띄운다 (기획서 3.1: 마지막 낮이 끝나면 최종 결산, 1위 팀 승리).
     ///

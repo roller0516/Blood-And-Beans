@@ -80,7 +80,7 @@ public sealed class UICharacterSelectScreen : UIScreen
         stage = UITheme.Stage(transform, UITheme.Ink);
 
         UITheme.Caption(stage, "CHARACTER SELECT", 54f, 59f, 253f);
-        UITheme.Text(stage, "Rule", "팀 내 중복 픽 금지 · 발동 키 없는 상시 패시브", 10f,
+        UITheme.Text(stage, "Rule", "팀 내 중복 픽 금지 · 낮 패시브 1 + 밤 액티브 1", 10f,
                      UITheme.Cream, 302f, 62f, 304f, 22f);
         waitLabel = UITheme.Text(stage, "WaitLabel", "짝꿍 선택 대기", 10f, UITheme.Cream,
                                  1590f, 50f, 192f, 20f, TextAlignmentOptions.TopRight);
@@ -166,7 +166,7 @@ public sealed class UICharacterSelectScreen : UIScreen
                                  col, 176f, 272f, 52f);
 
         UITheme.Rule(panel, UITheme.Blue, col, 242f, 264f);
-        nightCaption = UITheme.Text(panel, "NightCaption", "NIGHT", 8f, UITheme.Blue,
+        nightCaption = UITheme.Text(panel, "NightCaption", "NIGHT ACTIVE", 8f, UITheme.Blue,
                                     col, 257f, 290f, 20f);
         nightName = UITheme.Text(panel, "NightName", string.Empty, 18f, UITheme.Cream,
                                  col, 279f, 290f, 34f);
