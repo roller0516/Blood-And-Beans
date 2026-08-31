@@ -44,21 +44,21 @@ public sealed class UIFacilityUpgradeScreen : UIScreen
         if (built) return;
         built = true;
 
-        UITheme.Box(transform, "Backdrop", UITheme.Ink, 0f, 0f, 1920f, 1080f);
+        var stage = UITheme.Stage(transform, UITheme.Ink);
 
-        UITheme.Caption(transform, "FACILITY UPGRADE", 48f, 61f, 277f);
-        UITheme.Text(transform, "Note", "업그레이드 재료는 3등급 박스에서만 나온다", 10f,
+        UITheme.Caption(stage, "FACILITY UPGRADE", 48f, 61f, 277f);
+        UITheme.Text(stage, "Note", "업그레이드 재료는 3등급 박스에서만 나온다", 10f,
                      UITheme.Cream, 320f, 58f, 303f, 22f);
 
-        UITheme.Box(transform, "PartsSwatch", UITheme.Purple, 1752f, 43f, 26f, 26f);
-        partsCount = UITheme.Text(transform, "PartsCount", "×0", 22f, UITheme.Cream,
+        UITheme.Box(stage, "PartsSwatch", UITheme.Purple, 1752f, 43f, 26f, 26f);
+        partsCount = UITheme.Text(stage, "PartsCount", "×0", 22f, UITheme.Cream,
                                   1790f, 39f, 42f, 38f);
-        countdown = UITheme.Text(transform, "Countdown", "0", 30f, UITheme.Red,
+        countdown = UITheme.Text(stage, "Countdown", "0", 30f, UITheme.Red,
                                  1840f, 36f, 40f, 44f, TextAlignmentOptions.TopRight);
 
-        UITheme.Rule(transform, UITheme.Gold, 48f, 94f, 1824f);
+        UITheme.Rule(stage, UITheme.Gold, 48f, 94f, 1824f);
 
-        grid = transform;
+        grid = stage;
         BuildCards();
         BuildLayoutPanel();
     }
@@ -105,7 +105,7 @@ public sealed class UIFacilityUpgradeScreen : UIScreen
 
     void BuildLayoutPanel()
     {
-        var panel = UITheme.Box(transform, "CafeLayout", UITheme.Panel, 1330f, 119f, 542f, 937f);
+        var panel = UITheme.Box(grid, "CafeLayout", UITheme.Panel, 1330f, 119f, 542f, 937f);
         UITheme.Caption(panel, "CAFE LAYOUT", 23f, 15f, 512f);
         UITheme.Rule(panel, UITheme.Gold, 1f, 43f, 540f);
 

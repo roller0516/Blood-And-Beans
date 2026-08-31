@@ -8,10 +8,46 @@ using UnityEngine.UI;
 /// 해상도도 1920×1080이다. 그래서 목업의 좌표를 그대로 넣을 수 있게 `At`가 좌상단
 /// 기준으로 앵커와 피벗을 잡는다 — 화면마다 y를 뒤집는 산수를 반복하지 않기 위해서다.
 ///
+/// **좌표가 절대값이라 캔버스가 1920×1080보다 작아지면 그만큼 잘려 나간다.** 실제로
+/// 21:9에서 확정 버튼이 화면 밖으로 밀려나 진행이 막혔다. 그래서 위젯을 캔버스에 직접
+/// 붙이지 않고 `Stage`가 세운 고정 1920×1080 판 위에 올린다. CanvasScaler를 `Expand`로
+/// 두면 캔버스 논리 크기가 어느 축에서도 기준 해상도 아래로 내려가지 않으므로 그 판이
+/// 통째로 들어온다. 남는 공간은 여백이 되고, 배경만 캔버스 전체를 덮는다.
+///
 /// ponytail: `MatchHudScreen`에도 비슷한 private 헬퍼가 있지만 합치지 않았다. 그 파일은
 /// 지금 다른 작업이 올라가 있어 건드리면 충돌한다. 그쪽이 정리되면 이 클래스로 모은다.
 public static class UITheme
 {
+    /// 목업이 그려진 판의 크기. 이 값과 CanvasScaler 기준 해상도가 같아야 좌표가 1:1이다.
+    public const float StageWidth = 1920f;
+    public const float StageHeight = 1080f;
+
+    /// 화면 루트에 배경과 무대를 세우고 무대를 돌려준다. 이후 위젯은 전부 무대에 붙인다.
+    ///
+    /// 배경은 캔버스 전체로 늘린다 — 무대만 칠하면 여백으로 게임 월드가 비친다.
+    public static RectTransform Stage(Transform root, Color background)
+    {
+        var back = new GameObject("Backdrop", typeof(RectTransform), typeof(UnityEngine.UI.Image));
+        var backRect = (RectTransform)back.transform;
+        backRect.SetParent(root, false);
+        backRect.anchorMin = Vector2.zero;
+        backRect.anchorMax = Vector2.one;
+        backRect.pivot = new Vector2(0.5f, 0.5f);
+        backRect.offsetMin = backRect.offsetMax = Vector2.zero;
+
+        var image = back.GetComponent<UnityEngine.UI.Image>();
+        image.color = background;
+        // 전체 화면 UI의 배경이므로 클릭을 여기서 멈춘다. 뒤의 화면으로 새어 나가면 안 된다.
+        image.raycastTarget = true;
+
+        var stage = new GameObject("Stage", typeof(RectTransform));
+        var rect = (RectTransform)stage.transform;
+        rect.SetParent(root, false);
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(StageWidth, StageHeight);
+        rect.anchoredPosition = Vector2.zero;
+        return rect;
+    }
     public static readonly Color Ink       = Hex(0x120C08); // 배경
     public static readonly Color Panel     = Hex(0x0E0905); // 패널 바닥
     public static readonly Color PanelDeep = Hex(0x180F09); // 카드 안쪽
@@ -26,6 +62,17 @@ public static class UITheme
 
     /// 에셋이 아직 없는 아이콘·초상·썸네일 자리. 목업의 베이지 사각형이 이것이다.
     public static readonly Color Placeholder = Hex(0xF2E3CB);
+
+    /// 플레이어가 고르는 팀 색. 목업 2번의 `MY NAMEPLATE` 팔레트 순서 그대로이며,
+    /// 인게임 네임플레이트에도 같은 색이 쓰인다.
+    ///
+    /// ponytail: 기획서에 팀 색 개념이 없다(9장·10장 어디에도). 목업에서만 온 값이라
+    /// 여기 두고, 확정되면 팀 데이터 원본으로 옮긴다.
+    public static readonly Color[] TeamColors =
+    {
+        Hex(0x4FB8E8), Hex(0xE86A4F), Hex(0x7CD9A8),
+        Hex(0xE9B85C), Hex(0xB98CF0), Hex(0xF0E4CB),
+    };
 
     static Color Hex(int rgb) => new(
         ((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, 1f);
