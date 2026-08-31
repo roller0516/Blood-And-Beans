@@ -278,6 +278,25 @@ public sealed class UICharacterSelectScreen : UIScreen
         Select(preselect >= 0 && preselect < cardButtons.Count ? preselect : 0, false);
     }
 
+    /// 짝꿍이 픽을 확정했을 때 부른다. 잠금만 갈아 끼우고 내가 고르던 칸과 색은 그대로 둔다 —
+    /// `Bind`를 다시 부르면 둘 다 인자 기본값으로 되돌아간다.
+    ///
+    /// 화면을 열어 둔 동안 짝꿍이 무엇을 집었는지는 복제 상태로만 알 수 있으므로, 이
+    /// 경로가 없으면 이미 남이 가져간 칸을 계속 고를 수 있게 그려 준다 (기획서 9.1).
+    public void SetClaims(IReadOnlyList<Claim> taken)
+    {
+        if (!built) return;
+
+        claims = taken;
+        for (var i = 0; i < cardButtons.Count; i++)
+            cardButtons[i].interactable = ClaimOf(i) < 0;
+        RefreshClaims();
+
+        // 내가 보고 있던 칸을 남이 먼저 가져갔으면 빈 칸으로 옮긴다. 서버에 알리는 것은
+        // 실제로 픽이 바뀐 것이라 맞다.
+        if (ClaimOf(selected) >= 0) Step(1);
+    }
+
     /// 짝꿍이 아직 고르는 중인지. 목업 우상단의 대기 표시다.
     public void SetWaiting(bool waiting, float seconds)
     {

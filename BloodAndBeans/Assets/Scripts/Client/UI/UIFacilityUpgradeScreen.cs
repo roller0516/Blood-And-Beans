@@ -183,7 +183,20 @@ public sealed class UIFacilityUpgradeScreen : UIScreen
                     // 람다가 루프 변수를 잡지 않도록 한 번 복사한다. 잡으면 카드 9장이
                     // 전부 마지막 id를 넘긴다.
                     var id = all[i].Id;
-                    UIButtons.Wire(installButtons[i], () => install?.Invoke(id));
+                    var button = installButtons[i];
+
+                    // 다시 눌릴 수 있게 되돌린다. 앞선 클릭으로 꺼 둔 채로 남으면 서버가
+                    // 거절했을 때 그 카드를 영영 설치할 수 없다.
+                    button.interactable = true;
+
+                    UIButtons.Wire(button, () =>
+                    {
+                        // 서버가 결과를 돌려주며 다시 `Bind`할 때까지 같은 카드를 잠근다.
+                        // 업그레이드 재료는 3등급 박스에서만 나와(기획서 8장) 귀하므로,
+                        // 연타로 두 번 빠지면 그 판의 설비 격차가 그대로 굳는다.
+                        button.interactable = false;
+                        install?.Invoke(id);
+                    });
                     break;
             }
         }

@@ -284,27 +284,46 @@ public sealed class UIDaySettlementScreen : UIScreen
             new Vector3(total > 0f ? Mathf.Clamp01(seconds / total) : 0f, 1f, 1f);
     }
 
+    /// 거래 내역이 흐르는 띠. 합계 구분선(패널 기준 y=235) 위까지가 전부다.
+    const float TradeTop = 67f, TradeStep = 41f, TradeRowHeight = 32f, TradeBottom = 230f;
+
+    /// 이 띠에 실제로 들어가는 줄 수. 목업 6번이 4줄로 그려져 있고 자리도 딱 그만큼이다.
+    ///
+    /// 마지막 줄은 간격이 아니라 자기 높이만큼만 필요하므로 한 번 빼고 나눈 뒤 다시 더한다.
+    /// 그냥 (아래 − 위) / 간격 으로 하면 마지막 줄이 들어가는데도 상한이 하나 줄어든다.
+    static int TradeCapacity => Mathf.Max(1,
+        Mathf.FloorToInt((TradeBottom - TradeTop - TradeRowHeight) / TradeStep) + 1);
+
     void FillTradeLines(IReadOnlyList<TradeLine> lines)
     {
         Clear(tradeRows);
-        if (lines == null) return;
+        if (lines == null || lines.Count == 0) return;
 
-        for (var i = 0; i < lines.Count; i++)
-        {
-            var y = 67f + i * 41f;
-            // 합계 구분선(y=235) 위까지만 흘린다. 넘치면 오늘 매출과 겹친다.
-            if (y + 32f > 230f) break;
+        var capacity = TradeCapacity;
+        // 넘치면 마지막 줄을 남은 건수 요약으로 바꾼다. 조용히 버리면 오늘 매출의 근거가
+        // 화면에서 사라지는데, 합계는 그대로라 플레이어가 차이를 확인할 방법이 없어진다.
+        var overflow = lines.Count > capacity;
+        var shown = overflow ? capacity - 1 : lines.Count;
 
-            var row = new GameObject($"Trade{i}", typeof(RectTransform));
-            row.transform.SetParent(tradePanel, false);
-            UITheme.At((RectTransform)row.transform, 23f, y, 434f, 32f);
-            tradeRows.Add(row);
+        for (var i = 0; i < shown; i++)
+            MakeTradeRow(i, lines[i].Label, lines[i].Amount, lines[i].Tint);
 
-            UITheme.Text(row.transform, "Label", lines[i].Label, 12f, UITheme.Cream,
-                         0f, 0f, 240f, 32f);
-            UITheme.Text(row.transform, "Amount", lines[i].Amount, 14f, lines[i].Tint,
-                         234f, 0f, 200f, 32f, TextAlignmentOptions.TopRight);
-        }
+        if (overflow)
+            MakeTradeRow(shown, $"그 외 {lines.Count - shown}건", "…", UITheme.Cream);
+    }
+
+    void MakeTradeRow(int index, string label, string amount, Color tint)
+    {
+        var row = new GameObject($"Trade{index}", typeof(RectTransform));
+        row.transform.SetParent(tradePanel, false);
+        UITheme.At((RectTransform)row.transform, 23f, TradeTop + index * TradeStep,
+                   434f, TradeRowHeight);
+        tradeRows.Add(row);
+
+        UITheme.Text(row.transform, "Label", label, 12f, UITheme.Cream,
+                     0f, 0f, 240f, TradeRowHeight);
+        UITheme.Text(row.transform, "Amount", amount, 14f, tint,
+                     234f, 0f, 200f, TradeRowHeight, TextAlignmentOptions.TopRight);
     }
 
     void FillStandings(IReadOnlyList<StandingRow> rows)
