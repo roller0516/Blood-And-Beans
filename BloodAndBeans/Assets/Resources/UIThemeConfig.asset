@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bb061563ae748844d89806f026a49e82, type: 3}
+  m_Name: UIThemeConfig
+  m_EditorClassIdentifier: BB.Client::UIThemeConfig
+  stageSize: {x: 1920, y: 1080}
+  ink: {r: 0.07058824, g: 0.047058824, b: 0.03137255, a: 1}
+  panel: {r: 0.05490196, g: 0.03529412, b: 0.019607844, a: 1}
+  panelDeep: {r: 0.09411765, g: 0.05882353, b: 0.03529412, a: 1}
+  cream: {r: 0.9490196, g: 0.8901961, b: 0.79607844, a: 1}
+  gold: {r: 0.7764706, g: 0.5921569, b: 0.2901961, a: 1}
+  goldLit: {r: 0.9137255, g: 0.72156864, b: 0.36078432, a: 1}
+  green: {r: 0.4862745, g: 0.8509804, b: 0.65882355, a: 1}
+  red: {r: 0.8509804, g: 0.3372549, b: 0.24705882, a: 1}
+  blue: {r: 0.4862745, g: 0.6862745, b: 0.8509804, a: 1}
+  purple: {r: 0.6431373, g: 0.43137255, b: 0.9098039, a: 1}
+  ice: {r: 0.9019608, g: 0.93333334, b: 0.9607843, a: 1}
+  placeholder: {r: 0.9490196, g: 0.8901961, b: 0.79607844, a: 1}
+  teamColors:
+  - {r: 0.30980393, g: 0.72156864, b: 0.9098039, a: 1}
+  - {r: 0.9098039, g: 0.41568628, b: 0.30980393, a: 1}
+  - {r: 0.4862745, g: 0.8509804, b: 0.65882355, a: 1}
+  - {r: 0.9137255, g: 0.72156864, b: 0.36078432, a: 1}
+  - {r: 0.7254902, g: 0.54901963, b: 0.9411765, a: 1}
+  - {r: 0.9411765, g: 0.89411765, b: 0.79607844, a: 1}
+  fontScale: 1.2
+  captionSize: 11
+  captionHeight: 16
+  buttonPrimaryLabelSize: 20
+  buttonSecondaryLabelSize: 16
+  buttonLabelHeight: 26
+  ruleHeight: 1
