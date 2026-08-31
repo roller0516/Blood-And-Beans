@@ -1,5 +1,5 @@
+using System;
 using System.Collections.Generic;
-using System.Text;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,142 +10,175 @@ using UnityEngine.UI;
 /// 매출만 보여 준다. 기획서 3.1이 보유 재료·설비·캐릭터는 비공개라고 못박았고, 애초에
 /// `Scoreboard`가 복제하는 것도 매출뿐이다.
 ///
-/// 위젯을 코드로 세우는 것은 `UIReturnResultPopup`과 같은 이유다. 자리와 크기가 서로 물려
-/// 있어서 Inspector에 흩어 두면 한 칸만 어긋나도 배치가 무너진다. 프리팹에는 Canvas와
-/// 이 스크립트만 있으면 된다.
+/// **트리는 프리팹에 있다.** 이 클래스는 아무것도 만들지 않고 이어 둔 참조에 값만 넣는다.
+/// 순위 칸은 최대 4팀(기획서 10장), 일차 칸은 7일(3.2 임대료 표의 길이)로 깔려 있다.
+///
+/// `UI_목업.pptx` 8번의 통계 넷(PERFECT RATE · BLOOD BEAN USED · DASH HITS ·
+/// FAILED RETURNS)은 넣지 않았다. 기획서 3.1에 없고 집계하는 코드도 없다.
 public sealed class UIMatchResultPopup : UIPopup
 {
+    /// 순위 한 줄.
+    [Serializable] public class RankSlot
+    {
+        public GameObject Root;
+        public TMP_Text Rank;
+        public TMP_Text Cafe;
+        public TMP_Text Revenue;
+        public RectTransform Bar;
+        public Image BarImage;
+    }
+
+    /// 일차별 매출 한 줄.
+    [Serializable] public class DaySlot
+    {
+        public GameObject Root;
+        public TMP_Text Label;
+        public TMP_Text Value;
+        public RectTransform Bar;
+    }
+
+    /// 순위 칸 수는 최대 팀 수와 같다 (기획서 10장: 2/3/4팀).
+    public const int RankSlots = 4;
+
+    /// 일차 칸 수. 기획서 3.2 임대료 표가 7일까지다.
+    public const int DaySlots = 7;
+
+    [Header("머리")]
+    [SerializeField] TMP_Text caption;
+    [SerializeField] TMP_Text titleText;
+    [SerializeField] TMP_Text totalText;
+
+    [Header("순위")]
+    [SerializeField] RankSlot[] rankSlots = Array.Empty<RankSlot>();
+
+    [Header("일차별 매출")]
+    [SerializeField] DaySlot[] daySlots = Array.Empty<DaySlot>();
+    [SerializeField] TMP_Text dailyNote;
+
+    [Header("바닥")]
+    [SerializeField] Button lobbyButton;
+    [SerializeField] Button rematchButton;
+
     [Header("색")]
     [SerializeField] Color win = new(0.95f, 0.84f, 0.42f);
     [SerializeField] Color draw = new(0.72f, 0.78f, 0.88f);
     [SerializeField] Color lose = new(0.78f, 0.55f, 0.52f);
     [SerializeField] Color muted = new(0.72f, 0.72f, 0.68f, 0.9f);
-    [SerializeField] Color panelBack = new(0.04f, 0.05f, 0.05f, 0.94f);
-
-    [Header("크기")]
-    [SerializeField] Vector2 panelSize = new(520f, 360f);
-
-    TMP_Text titleText;
-    TMP_Text lineText;
-    TMP_Text standingsText;
-
-    readonly StringBuilder text = new();
 
     /// 판이 끝났으므로 조작할 것이 없다. 커서를 돌려주고 입력을 막는다.
     public override bool BlocksPlayerInput => true;
 
-    protected override void Awake()
-    {
-        base.Awake();
-        Build();
-    }
-
     /// `revenueByTeam`은 `Scoreboard`가 복제한 값 그대로다. 승패 판정은 여기서 하지 않고
     /// `FinalStandings`에 묻는다 — 씬 없이 기획서와 대조할 수 있어야 하는 규칙이다.
-    public void Bind(IReadOnlyList<int> revenueByTeam, int myTeam)
+    ///
+    /// `lastDay`는 실제로 치른 마지막 일차다. 기획서 3.1은 7일차를 말하지만 판 길이는
+    /// `GamePhase.totalDays`가 정하므로 문구에 숫자를 박지 않는다.
+    ///
+    /// `dailyRevenue`는 아직 복제되지 않는다. 비워 넘기면 그 칸이 "집계 없음"으로 뜬다.
+    public void Bind(int lastDay, IReadOnlyList<int> revenueByTeam, int myTeam,
+                     IReadOnlyList<int> dailyRevenue, Action lobby, Action rematch)
     {
         var winners = FinalStandings.WinnersOf(revenueByTeam);
         var tie = FinalStandings.IsTie(revenueByTeam);
         var iWon = winners.Contains(myTeam);
 
+        Set(caption, $"DAY {lastDay:00} — FINAL SETTLEMENT");
+
         if (tie && iWon)
         {
-            titleText.text = "무승부";
-            titleText.color = draw;
-            lineText.text = $"공동 1위 · {Join(winners)}";
-            lineText.color = draw;
+            Set(titleText, "무승부", draw);
         }
         else if (iWon)
         {
-            titleText.text = "승리";
-            titleText.color = win;
-            lineText.text = "7일간의 누적 매출 1위";
-            lineText.color = win;
+            Set(titleText, $"{myTeam + 1}팀 승리", win);
         }
         else
         {
-            titleText.text = "패배";
-            titleText.color = lose;
-            lineText.text = winners.Count > 0 ? $"1위 · {Join(winners)}" : "판정할 매출이 없다";
-            lineText.color = lose;
+            var first = winners.Count > 0 ? winners[0] : -1;
+            Set(titleText, first >= 0 ? $"{first + 1}팀 승리" : "판 종료", lose);
         }
 
-        standingsText.text = Standings(revenueByTeam, myTeam);
+        var mine = revenueByTeam != null && myTeam >= 0 && myTeam < revenueByTeam.Count
+            ? revenueByTeam[myTeam] : 0;
+        Set(totalText, $"{mine:N0}", win);
+
+        FillRanks(revenueByTeam, myTeam);
+        FillDays(dailyRevenue);
+
+        UIButtons.Wire(lobbyButton, lobby);
+        UIButtons.Wire(rematchButton, rematch);
+
+        // 갈 곳이 없는 버튼은 잠근다. 눌러도 아무 일이 없으면 고장으로 보인다.
+        if (lobbyButton != null) lobbyButton.interactable = lobby != null;
+        if (rematchButton != null) rematchButton.interactable = rematch != null;
     }
 
-    /// 매출 내림차순. 같은 매출이면 같은 등수를 준다 — 1위 판정과 어긋나면 안 된다.
-    string Standings(IReadOnlyList<int> revenueByTeam, int myTeam)
+    void FillRanks(IReadOnlyList<int> revenueByTeam, int myTeam)
     {
-        text.Clear();
-        if (revenueByTeam == null || revenueByTeam.Count == 0) return string.Empty;
-
-        var order = new List<int>(revenueByTeam.Count);
-        for (var team = 0; team < revenueByTeam.Count; team++) order.Add(team);
+        // 매출 내림차순. 같은 값이면 팀 번호 순으로 둔다 — 공동 1위 판정은 이미
+        // `FinalStandings`가 했고 여기서는 줄 세우기만 한다.
+        var order = new List<int>();
+        if (revenueByTeam != null)
+            for (var t = 0; t < revenueByTeam.Count; t++) order.Add(t);
         order.Sort((a, b) => revenueByTeam[b].CompareTo(revenueByTeam[a]));
 
-        var rank = 0;
-        for (var i = 0; i < order.Count; i++)
+        var top = 1;
+        for (var i = 0; i < order.Count; i++) top = Mathf.Max(top, revenueByTeam[order[i]]);
+
+        for (var i = 0; i < rankSlots.Length; i++)
         {
+            var slot = rankSlots[i];
+            if (slot?.Root == null) continue;
+
+            if (i >= order.Count) { slot.Root.SetActive(false); continue; }
+            slot.Root.SetActive(true);
+
             var team = order[i];
-            if (i == 0 || revenueByTeam[team] != revenueByTeam[order[i - 1]]) rank = i + 1;
+            var value = revenueByTeam[team];
+            var tint = team == myTeam ? win : muted;
 
-            text.Append(rank).Append(". Team ").Append(team)
-                .Append("  ").Append(revenueByTeam[team].ToString("N0")).Append('G');
-            if (team == myTeam) text.Append("  <");
-            text.AppendLine();
+            Set(slot.Rank, $"{i + 1:00}", i == 0 ? win : muted);
+            Set(slot.Cafe, $"{team + 1}팀");
+            Set(slot.Revenue, value.ToString("N0"), tint);
+            if (slot.BarImage != null) slot.BarImage.color = tint;
+            if (slot.Bar != null)
+                slot.Bar.localScale = new Vector3(Mathf.Clamp01(value / (float)top), 1f, 1f);
         }
-        return text.ToString();
     }
 
-    static string Join(List<int> teams)
+    void FillDays(IReadOnlyList<int> daily)
     {
-        var parts = new string[teams.Count];
-        for (var i = 0; i < teams.Count; i++) parts[i] = $"Team {teams[i]}";
-        return string.Join(", ", parts);
+        var has = daily != null && daily.Count > 0;
+        Set(dailyNote, has ? string.Empty : "일차별 매출은 아직 집계되지 않는다");
+
+        var top = 1;
+        if (has) for (var i = 0; i < daily.Count; i++) top = Mathf.Max(top, daily[i]);
+
+        for (var i = 0; i < daySlots.Length; i++)
+        {
+            var slot = daySlots[i];
+            if (slot?.Root == null) continue;
+
+            var known = has && i < daily.Count;
+            slot.Root.SetActive(has);
+            if (!known) continue;
+
+            Set(slot.Label, $"D{i + 1}");
+            Set(slot.Value, daily[i].ToString("N0"));
+            if (slot.Bar != null)
+                slot.Bar.localScale = new Vector3(Mathf.Clamp01(daily[i] / (float)top), 1f, 1f);
+        }
     }
 
-    void Build()
+    static void Set(TMP_Text target, string value)
     {
-        var panel = new GameObject("Panel", typeof(RectTransform), typeof(UnityEngine.UI.Image));
-        var rect = (RectTransform)panel.transform;
-        rect.SetParent(transform, false);
-        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = panelSize;
-        rect.anchoredPosition = Vector2.zero;
-
-        var back = panel.GetComponent<UnityEngine.UI.Image>();
-        back.color = panelBack;
-        back.raycastTarget = false;
-
-        titleText = MakeText(rect, "Title", new Vector2(0.5f, 1f), new Vector2(0f, -34f),
-                             new Vector2(panelSize.x - 40f, 52f), 40f, win,
-                             TextAlignmentOptions.Center);
-        lineText = MakeText(rect, "Line", new Vector2(0.5f, 1f), new Vector2(0f, -88f),
-                            new Vector2(panelSize.x - 40f, 34f), 22f, muted,
-                            TextAlignmentOptions.Center);
-
-        // 순위는 여러 줄이라 가운데 정렬하면 자릿수마다 들쭉날쭉해진다. 왼쪽에 붙인다.
-        standingsText = MakeText(rect, "Standings", new Vector2(0.5f, 1f), new Vector2(0f, -130f),
-                                 new Vector2(panelSize.x - 80f, 180f), 20f, muted,
-                                 TextAlignmentOptions.TopLeft);
+        if (target != null) target.text = value;
     }
 
-    static TMP_Text MakeText(Transform parent, string name, Vector2 anchor, Vector2 position,
-                             Vector2 size, float fontSize, Color color,
-                             TextAlignmentOptions alignment)
+    static void Set(TMP_Text target, string value, Color color)
     {
-        var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
-        rect.sizeDelta = size;
-        rect.anchoredPosition = position;
-
-        var text = go.GetComponent<TextMeshProUGUI>();
-        text.fontSize = fontSize;
-        text.color = color;
-        text.alignment = alignment;
-        text.raycastTarget = false;
-        return text;
+        if (target == null) return;
+        target.text = value;
+        target.color = color;
     }
 }

@@ -276,7 +276,14 @@ public sealed class MatchFlow : MonoBehaviour
         var popup = ui.PushPopup<UIMatchResultPopup>();
         if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
 
-        popup.Bind(revenue, PlayerTeam.Local());
+        // 로비 복귀는 `SteamLobby.LeaveRoom`이 씬 전환까지 처리한다. 판이 끝나는 것은
+        // 한 번뿐이라 여기서 한 번 찾는다 — 주기 실행이 아니다 (AGENTS.md).
+        var lobby = FindFirstObjectByType<SteamLobby>();
+
+        // ponytail: "한 판 더"는 재시작 경로가 없어 넘기지 않는다. 팝업이 그 버튼을
+        // 잠근다. 매치 재시작이 생기면 여기에 이어 준다.
+        popup.Bind(phase.Day, revenue, PlayerTeam.Local(), null,
+                   lobby != null ? lobby.LeaveRoom : (System.Action)null, null);
         resultPopupOpen = true;
     }
 
