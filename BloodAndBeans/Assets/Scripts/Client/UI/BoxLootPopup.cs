@@ -4,39 +4,67 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-/// 상자 루팅 창 (기획서 7.2-2). 개봉 게이지가 다 차면 열리고, 이동하거나 맞아서
-/// 서버가 세션을 닫을 때까지 떠 있는다.
+/// 상자 루팅 창 (기획서 6.5.5). 개봉 게이지가 다 차면 열리고, 이동하거나 맞아서 서버가
+/// 세션을 닫을 때까지 떠 있는다.
 ///
-/// 칸은 종류 기준 5개다. 열린 직후에는 전부 `?`로 가려져 있고 1초 간격으로 하나씩
-/// 정체를 드러낸다. 드러난 칸을 누르면 통째로 가방에 들어가고, 아이콘이 HUD의 가방으로
-/// 날아가 빨려 들어간다.
+/// 칸은 종류 기준 5개다. 열린 직후에는 일부가 `?`로 가려져 있고 **1초 간격으로 하나씩**
+/// 정체를 드러낸다 (6.5.5). 드러난 칸을 누르면 통째로 가방에 들어가고, 아이콘이 HUD의
+/// 가방으로 날아가 빨려 들어간다 (6.5.5의 DoTween 연출).
 ///
-/// 칸은 런타임에 만든다. 프리팹에 다섯 칸을 구워 두면 칸 규칙이 바뀔 때마다 프리팹
-/// YAML을 손대야 하고, 이 저장소는 직렬화 참조가 깨지는 그 변경을 금지한다 (AGENTS.md).
+/// **트리는 프리팹에 있다.** 이 클래스는 아무것도 만들지 않고 이어 둔 참조에 값만 넣는다.
+/// 칸 5개는 기획서 6.5.5가 정한 상한이라 프리팹에 그대로 깔려 있다.
+///
+/// `UI_목업.pptx` 4번은 가려진 슬롯을 **동시에** 공개하고 등급별로 시간을 다르게(0.6/1.0/
+/// 1.4초) 그렸는데, 기획서 6.5.5는 1초 간격 순차다. 기획서를 따른다.
 ///
 /// ponytail: 공개 진행도는 서버에서 따로 받지 않는다. 개봉 시각 하나만 복제되고 공개
 /// 여부는 서버와 같은 식(`LootSlots.RevealedCount`)으로 클라이언트가 계산한다. 칸이
 /// 드러날 때마다 RPC를 보내면 5칸에 RPC 5개다.
 public sealed class BoxLootPopup : UIPopup
 {
-    /// 상자 종류와 남은 칸 수를 쓰는 머리글.
-    [SerializeField] TMP_Text label;
+    /// 한 칸의 부품 묶음. 배열 크기는 `LootSlots.MaxTypes`와 같아야 한다.
+    [Serializable] public class Cell
+    {
+        public GameObject Root;
+        public Image Frame;
+        public Image Icon;
+        public TMP_Text Name;
+        public TMP_Text Count;
+        public TMP_Text Weight;
+
+        /// 가려진 칸에만 보이는 것들. `?`와 남은 시간 안내다.
+        public GameObject Blind;
+        public TMP_Text BlindIn;
+    }
+
+    [Serializable] struct IngredientIcon
+    {
+        public Ingredient Item;
+        public Sprite Sprite;
+    }
+
+    [Header("머리")]
+    [SerializeField] TMP_Text tierLabel;
+    [SerializeField] TMP_Text title;
+    [SerializeField] TMP_Text revealValue;
+
+    [Header("가방")]
+    [SerializeField] TMP_Text bagPercent;
+    [SerializeField] TMP_Text bagWeight;
 
     [Header("칸")]
-    [SerializeField] Vector2 cellSize = new(96f, 96f);
-    [SerializeField] Vector2 cellSpacing = new(12f, 12f);
+    [SerializeField] Cell[] cells = Array.Empty<Cell>();
 
-    /// 머리글이 차지하는 띠의 높이. 프리팹의 머리글 Text는 창 전체를 채우고 가운데
-    /// 정렬이라, 자리를 정해 주지 않으면 칸과 같은 곳을 놓고 다퉈 글자가 칸 뒤에 깔린다.
-    /// 프리팹 YAML을 고치지 않고 여기서 위쪽 띠로 밀어 올린다.
-    [SerializeField] float headerHeight = 34f;
+    /// 칸 사이의 금색 구분 띠. 칸이 하나도 없으면 띠만 남아 통짜 금색으로 보인다.
+    [SerializeField] GameObject slotStrip;
 
-    /// 머리글 띠와 칸 사이의 간격.
-    [SerializeField] float headerGap = 6f;
+    [Header("바닥")]
+    [SerializeField] TMP_Text holdHint;
+    [SerializeField] TMP_Text warning;
 
     [Header("색")]
-    [SerializeField] Color blindColor = new(0.16f, 0.17f, 0.20f, 0.95f);
-    [SerializeField] Color readyColor = new(0.27f, 0.30f, 0.36f, 0.98f);
+    [SerializeField] Color blindColor = new(0.07f, 0.04f, 0.12f, 1f);
+    [SerializeField] Color readyColor = new(0.04f, 0.06f, 0.09f, 1f);
     [SerializeField] Color emptyColor = new(0.10f, 0.10f, 0.11f, 0.6f);
 
     [Header("연출")]
@@ -44,37 +72,15 @@ public sealed class BoxLootPopup : UIPopup
     [SerializeField] float bagPunchScale = 0.35f;
     [SerializeField] float bagPunchSeconds = 0.3f;
 
-    /// 재료 아이콘. 비워 두면 글자로만 그린다 — 아트가 붙기 전에도 규칙은 확인할 수 있다.
+    /// 재료 아이콘. 비워 두면 이름 글자로만 그린다 — 아트가 붙기 전에도 규칙은 확인된다.
     [SerializeField] IngredientIcon[] icons = Array.Empty<IngredientIcon>();
 
-    /// 칸 글자에 쓸 폰트 애셋. 비워 두면 TMP 프로젝트 기본값을 쓴다.
-    /// 기본 폰트 애셋에는 한글 글리프가 없으므로, 한글 재료명을 쓰려면 여기에 한글
-    /// 폰트 애셋을 이어야 한다 (AGENTS.md 「UI 텍스트는 TextMeshPro를 쓴다」).
-    [SerializeField] TMP_FontAsset font;
-
-    [Serializable]
-    struct IngredientIcon
-    {
-        public Ingredient Item;
-        public Sprite Sprite;
-    }
-
-    /// 한 칸의 구성 요소. 매 갱신마다 GetComponent를 부르지 않으려고 만들 때 묶어 둔다.
-    sealed class Cell
-    {
-        public RectTransform Root;
-        public Image Frame;
-        public Image Icon;
-        public TMP_Text Body;
-        public TMP_Text Count;
-    }
-
-    readonly Cell[] cells = new Cell[LootSlots.MaxTypes];
+    /// 날아가는 사본이 붙을 곳. 칸보다 위에 그려져야 해서 프리팹에 따로 둔다.
+    [SerializeField] RectTransform flyLayer;
 
     ItemBox box;
     PlayerInteract interact;
     RectTransform bagAnchor;
-    RectTransform flyLayer;
 
     /// 로컬 플레이어의 가방. 묻어 두면 서버가 담기를 전부 거절하는데(`PlayerInventory.
     /// AddServer`), 그 사실이 화면에 없으면 눌러도 아무 일이 없는 창으로만 보인다.
@@ -84,17 +90,26 @@ public sealed class BoxLootPopup : UIPopup
     /// 시작값으로 잡아, 담을 때마다 아이콘이 조금씩 커진 채로 남는다.
     Vector3 bagScale = Vector3.one;
 
-    /// 마지막으로 그린 상태. 이것과 같으면 다시 그리지 않는다.
     int lastRevealed = -1;
     int lastSignature = -1;
 
     protected override void Awake()
     {
         base.Awake();
-        BuildCells();
+        for (var i = 0; i < cells.Length; i++)
+        {
+            var index = i;
+            var frame = cells[i]?.Frame;
+            if (frame == null) continue;
+
+            var button = frame.GetComponent<Button>();
+            if (button == null) button = frame.gameObject.AddComponent<Button>();
+            button.targetGraphic = frame;
+            UIButtons.Wire(button, () => OnCellClicked(index));
+        }
     }
 
-    /// `MatchFlow`가 열려 있는 상자와 로컬 플레이어를 넘겨 준다. `bag`은 아이템이 빨려
+    /// `MatchFlow`가 열려 있는 상자와 로컬 플레이어를 넘겨 준다. `anchor`는 아이템이 빨려
     /// 들어갈 HUD의 가방 아이콘이며 없으면 연출만 생략된다.
     public void Bind(ItemBox value, PlayerInteract holder, RectTransform anchor)
     {
@@ -147,38 +162,57 @@ public sealed class BoxLootPopup : UIPopup
         var remaining = 0;
         for (var i = 0; i < slots; i++) if (box.SlotCountAt(i) > 0) remaining++;
 
-        if (label != null)
-            label.text = !HasBag
-                ? "가방을 묻어 뒀다 — 담을 수 없다"
-                : $"전리품 ({remaining}/{slots})" +
-                  (revealed < slots ? "   ·   공개 중…" : "");
+        var hidden = Mathf.Max(0, slots - revealed);
+        Set(tierLabel, $"TIER {box.Tier}");
+        Set(title, !HasBag
+            ? "가방을 묻어 뒀다 — 담을 수 없다"
+            : $"슬롯 {slots} · 남은 전리품 {remaining}");
+        Set(revealValue, hidden > 0 ? $"{hidden}칸 공개 중…" : "전부 공개됨");
+
+        // 개인 인벤토리는 없고 무게만 있다 (기획서 6.5.6).
+        if (bag != null)
+        {
+            Set(bagPercent, $"{Mathf.RoundToInt(bag.LoadRatio * 100f)}%");
+            Set(bagWeight, $"{bag.Carried:0.0} KG");
+        }
+
+        Set(holdHint, "HOLD F — 담기 (개당 0.2초)");
+        Set(warning, "이동 · 대시 · 피격 시 창이 닫히고 개봉부터 다시");
+
+        if (slotStrip != null) slotStrip.SetActive(slots > 0);
 
         for (var i = 0; i < cells.Length; i++)
         {
             var cell = cells[i];
-            if (i >= slots)
-            {
-                cell.Root.gameObject.SetActive(false);
-                continue;
-            }
+            if (cell?.Root == null) continue;
 
-            cell.Root.gameObject.SetActive(true);
+            if (i >= slots) { cell.Root.SetActive(false); continue; }
+            cell.Root.SetActive(true);
 
             var item = box.SlotItem(i);
             var count = box.SlotCountAt(i);
             var open = i < revealed;
             var takable = open && count > 0;
 
-            cell.Frame.color = !open ? blindColor : takable ? readyColor : emptyColor;
-            cell.Body.text = !open ? "?" : count > 0 ? item.ToString() : "";
-            cell.Count.text = takable && count > 1 ? $"x{count}" : "";
+            if (cell.Blind != null) cell.Blind.SetActive(!open);
+            Set(cell.BlindIn, !open ? "IN 1s" : string.Empty);
+
+            if (cell.Frame != null)
+            {
+                cell.Frame.color = !open ? blindColor : takable ? readyColor : emptyColor;
+                cell.Frame.raycastTarget = takable && HasBag;
+            }
+
+            Set(cell.Name, !open ? "— — —" : count > 0 ? DisplayNames.Of(item) : "");
+            Set(cell.Count, takable && count > 1 ? $"×{count}" : "");
+            Set(cell.Weight, takable ? $"{Ingredients.WeightOf(item) * count:0.0} KG" : "");
 
             var sprite = takable ? SpriteOf(item) : null;
-            cell.Icon.sprite = sprite;
-            cell.Icon.enabled = sprite != null;
-            cell.Body.enabled = sprite == null;
-
-            cell.Frame.raycastTarget = takable && HasBag;
+            if (cell.Icon != null)
+            {
+                cell.Icon.sprite = sprite;
+                cell.Icon.enabled = sprite != null;
+            }
         }
     }
 
@@ -204,21 +238,22 @@ public sealed class BoxLootPopup : UIPopup
     /// 누른 칸의 사본을 가방 아이콘으로 날린다. 원본을 옮기면 칸 배치가 무너진다.
     void FlyToBag(Cell cell)
     {
-        if (bagAnchor == null || flyLayer == null) return;
+        if (bagAnchor == null || flyLayer == null || cell?.Frame == null) return;
 
         // 창이 닫히면 필드가 비므로 지역 변수로 잡아 둔다. 트윈은 창보다 오래 산다.
         var anchor = bagAnchor;
         var scale = bagScale;
+        var source = (RectTransform)cell.Frame.transform;
 
         var ghost = new GameObject("Ghost", typeof(RectTransform), typeof(Image));
         var rect = (RectTransform)ghost.transform;
         rect.SetParent(flyLayer, false);
-        rect.sizeDelta = cell.Root.rect.size;
-        rect.position = cell.Root.position;
+        rect.sizeDelta = source.rect.size;
+        rect.position = source.position;
 
         var image = ghost.GetComponent<Image>();
-        image.sprite = cell.Icon.sprite;
-        image.color = cell.Icon.sprite != null ? Color.white : cell.Frame.color;
+        image.sprite = cell.Icon != null ? cell.Icon.sprite : null;
+        image.color = image.sprite != null ? Color.white : cell.Frame.color;
         image.raycastTarget = false;
 
         DOTween.Sequence()
@@ -239,122 +274,8 @@ public sealed class BoxLootPopup : UIPopup
             .SetUpdate(true);       // 팝업이 떠 있는 동안 시간 배율이 어떻든 돈다
     }
 
-    // --- 조립 ---
-
-    void BuildCells()
+    static void Set(TMP_Text target, string value)
     {
-        var panel = label != null ? (RectTransform)label.transform.parent : (RectTransform)transform;
-
-        // 머리글을 위쪽 띠로 올린다. 창 전체를 채우는 Text를 그대로 두면 칸이 글자 위에
-        // 겹쳐 그려진다 (프리팹의 머리글은 가운데 정렬이라 정확히 칸 자리에 앉는다).
-        if (label != null)
-        {
-            var head = label.rectTransform;
-            head.anchorMin = new Vector2(0f, 1f);
-            head.anchorMax = new Vector2(1f, 1f);
-            head.pivot = new Vector2(0.5f, 1f);
-            head.offsetMin = new Vector2(0f, -headerHeight);
-            head.offsetMax = Vector2.zero;
-            head.sizeDelta = new Vector2(0f, headerHeight);
-            label.alignment = TextAlignmentOptions.Center;
-        }
-
-        var grid = new GameObject("Slots", typeof(RectTransform), typeof(GridLayoutGroup));
-        var gridRect = (RectTransform)grid.transform;
-        gridRect.SetParent(panel, false);
-
-        // 머리글 띠를 뺀 나머지 공간의 한가운데. 창 높이가 바뀌어도 따라온다.
-        gridRect.anchorMin = new Vector2(0f, 0f);
-        gridRect.anchorMax = new Vector2(1f, 1f);
-        gridRect.pivot = new Vector2(0.5f, 0.5f);
-        gridRect.offsetMin = Vector2.zero;
-        gridRect.offsetMax = new Vector2(0f, -(headerHeight + headerGap));
-
-        var layout = grid.GetComponent<GridLayoutGroup>();
-        layout.cellSize = cellSize;
-        layout.spacing = cellSpacing;
-        layout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-        layout.constraintCount = LootSlots.MaxTypes;
-
-        // 칸 수는 상자마다 다르다 (3~5). UpperLeft로 두면 4칸짜리 상자가 왼쪽으로 몰려
-        // 창 안에서 한쪽으로 치우친 채 그려진다.
-        layout.childAlignment = TextAnchor.MiddleCenter;
-
-        for (var i = 0; i < cells.Length; i++) cells[i] = MakeCell(gridRect, i);
-
-        // 날아가는 사본은 칸 위에 그려야 한다. 그리드 안에 두면 레이아웃이 자리를 뺏는다.
-        var fly = new GameObject("FlyLayer", typeof(RectTransform));
-        flyLayer = (RectTransform)fly.transform;
-        flyLayer.SetParent(transform, false);
-        flyLayer.anchorMin = Vector2.zero;
-        flyLayer.anchorMax = Vector2.one;
-        flyLayer.offsetMin = flyLayer.offsetMax = Vector2.zero;
-        flyLayer.SetAsLastSibling();
-    }
-
-    Cell MakeCell(Transform parent, int index)
-    {
-        var root = new GameObject($"Slot{index}", typeof(RectTransform), typeof(Image), typeof(Button));
-        root.transform.SetParent(parent, false);
-
-        var frame = root.GetComponent<Image>();
-        frame.color = blindColor;
-
-        var button = root.GetComponent<Button>();
-        // 런타임 AddComponent는 Reset을 부르지 않아 targetGraphic이 비어 있다. 직접 채운다.
-        button.targetGraphic = frame;
-        button.onClick.AddListener(() => OnCellClicked(index));
-
-        var icon = MakeImage(root.transform, "Icon", new Vector2(0.12f, 0.12f), new Vector2(0.88f, 0.88f));
-        icon.enabled = false;
-        icon.raycastTarget = false;
-        icon.preserveAspect = true;
-
-        var body = MakeText(root.transform, "Body", new Vector2(0f, 0f), new Vector2(1f, 1f));
-        body.alignment = TextAlignmentOptions.Center;
-        body.fontSize = 18f;
-
-        var count = MakeText(root.transform, "Count", new Vector2(0.45f, 0f), new Vector2(1f, 0.32f));
-        count.alignment = TextAlignmentOptions.BottomRight;
-        count.fontSize = 16f;
-
-        return new Cell
-        {
-            Root = (RectTransform)root.transform,
-            Frame = frame,
-            Icon = icon,
-            Body = body,
-            Count = count,
-        };
-    }
-
-    static Image MakeImage(Transform parent, string name, Vector2 min, Vector2 max)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        Stretch(rect, min, max);
-        return go.GetComponent<Image>();
-    }
-
-    TMP_Text MakeText(Transform parent, string name, Vector2 min, Vector2 max)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        Stretch(rect, min, max);
-
-        var text = go.GetComponent<TextMeshProUGUI>();
-        if (font != null) text.font = font;      // 비우면 TMP 프로젝트 기본값
-        text.color = Color.white;
-        text.raycastTarget = false;
-        return text;
-    }
-
-    static void Stretch(RectTransform rect, Vector2 min, Vector2 max)
-    {
-        rect.anchorMin = min;
-        rect.anchorMax = max;
-        rect.offsetMin = rect.offsetMax = Vector2.zero;
+        if (target != null) target.text = value;
     }
 }
