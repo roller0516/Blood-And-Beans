@@ -11,8 +11,8 @@ public struct ServeInfo
     public Ingredient[] Recipe;
     public float GaugeMultiplier;   // 1.3 / 1.0 / 0.7 / 0.3 (탄 것)
     public bool Burnt;
-    public Species Kind;
-    public float SpeciesPriceWeight;
+    public Race Kind;
+    public float RacePriceWeight;
     public int BasePrice;
 }
 
@@ -85,11 +85,11 @@ public class CustomerQueue : NetworkBehaviour
 
         var next = planned.Dequeue();
         var menu = Menus.All[next.menu];
-        var count = next.species == Species.Werewolf ? Random.Range(2, 4) : 1;
-        c.SetupServer(team, next.species, Menus.TagsOf(menu.Parts), MenuTag.None, menu.Parts.Length, count);
+        var count = next.race == Race.Werewolf ? Random.Range(2, 4) : 1;
+        c.SetupServer(team, next.race, Menus.TagsOf(menu.Parts), MenuTag.None, menu.Parts.Length, count);
     }
 
-    readonly System.Collections.Generic.Queue<(Species species, int menu)> planned = new();
+    readonly System.Collections.Generic.Queue<(Race race, int menu)> planned = new();
 
     /// 전환 화면은 내일의 손님 구성을 약속한다 (기획서 5.6). 그러니 대기열은 실제로 그
     /// 구성대로 손님을 내보내야 한다. 구성은 Economy가 만들고 여기서는 순서대로 소비한다.
@@ -101,7 +101,7 @@ public class CustomerQueue : NetworkBehaviour
         var count = Mathf.Min(forecast.Races.Length, forecast.Orders.Length);
         for (var i = 0; i < count; i++)
             if (forecast.Orders[i] >= 0 && forecast.Orders[i] < Menus.All.Length)
-                planned.Enqueue(((Species)(int)forecast.Races[i], forecast.Orders[i]));
+                planned.Enqueue((forecast.Races[i], forecast.Orders[i]));
     }
 
     Vector3 SlotPosition(int index) => transform.position + transform.right * (index * slotSpacing);
@@ -149,7 +149,7 @@ public class CustomerQueue : NetworkBehaviour
             GaugeMultiplier = item.GaugeMultiplier,
             Burnt = item.Burnt,
             Kind = c.Kind,
-            SpeciesPriceWeight = Customer.PriceWeightOf(c.Kind),
+            RacePriceWeight = Customer.PriceWeightOf(c.Kind),
             BasePrice = Menus.BasePriceOf(item.Menu),
         });
 

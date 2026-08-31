@@ -15,7 +15,7 @@ public class PlayerTeam : NetworkBehaviour
     GamePhase subscribedPhase;
 
     /// 자리 배정은 서버가 스폰 뒤에 하므로 표현 쪽은 스폰이 아니라 값의 변화를 따라가야 한다
-    /// (Customer.SpeciesChanged와 같은 이유).
+    /// (Customer.RaceChanged와 같은 이유).
     public event System.Action<int> TeamChanged;
 
     public override void OnNetworkSpawn()

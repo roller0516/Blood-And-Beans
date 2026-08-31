@@ -152,10 +152,7 @@ public sealed class MatchHudPresenter
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
-                    // `Customer.Kind`는 `Species`, 예보는 `Race`다 — 멤버와 순서가 같은 별개의 열거자라
-                    // 표기표는 하나로 쓴다. `DisplayNames`는 BB.Rules에 있어 BB.Game의 `Species`를
-                    // 볼 수 없으므로 변환은 두 어셈블리를 다 보는 여기서 한다.
-                    text.AppendLine($"{DisplayNames.Of((Race)customer.Kind)} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
+                    text.AppendLine($"{DisplayNames.Of(customer.Kind)} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
 
         return text.ToString();
     }
