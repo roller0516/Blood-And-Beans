@@ -7,8 +7,8 @@ using UnityEngine.UI;
 /// 이 클래스는 값을 만들지 않는다. 무엇을 쓸지는 `MatchHudPresenter`가 정하고, 여기는
 /// 받은 값을 정해진 자리에 그리기만 한다.
 ///
-/// 위젯을 프리팹이 아니라 코드로 세운다. 프리팹에는 상세 글자 하나만 있고, 나머지는
-/// 자리와 크기가 서로 물려 있어 Inspector로 흩어 두면 한 칸만 어긋나도 배치가 무너진다.
+/// **트리는 프리팹에 있다.** 이 클래스는 아무것도 만들지 않고 이어 둔 참조에 값만 넣는다.
+/// 예전에는 코드로 세웠지만, 그러면 자리·색·글꼴을 기획자가 손댈 수 없었다.
 public sealed class MatchHudScreen : UIScreen
 {
     /// 페이즈별 상세(예보·순위·접시·손님). 자리를 잡아 줄 수 없는 가변 길이라 오른쪽에
@@ -53,33 +53,46 @@ public sealed class MatchHudScreen : UIScreen
     [Header("여백")]
     [SerializeField] float margin = 24f;
 
-    RectTransform castBar;
-    RectTransform castFill;
 
-    TMP_Text revenueText;
-    TMP_Text bagPercentText;
-    TMP_Text bagWeightText;
-    RectTransform bagFill;
+    [Header("왼쪽 위 — 매출·가방")]
+    [SerializeField] TMP_Text revenueText;
+    [SerializeField] TMP_Text bagPercentText;
+    [SerializeField] TMP_Text bagWeightText;
+    [SerializeField] RectTransform bagFill;
 
-    TMP_Text dayText;
-    TMP_Text phaseText;
-    TMP_Text timerText;
-    TMP_Text teamText;
+    /// 가방을 묻어 두면 게이지와 아이콘이 이 색으로 바뀐다. 글자만으로는 눈에 안 들어오는데,
+    /// 묻힌 동안에는 담기가 전부 거절되므로 한눈에 보여야 한다 (기획서 6.7 묻기).
+    [SerializeField] Color buriedColor = new(0.85f, 0.34f, 0.25f);
 
-    RectTransform promptBox;
-    TMP_Text promptText;
+    [Header("위 가운데 — 날짜·페이즈·시계")]
+    [SerializeField] TMP_Text dayText;
+    [SerializeField] TMP_Text phaseText;
+    [SerializeField] TMP_Text timerText;
 
-    RectTransform returnBox;
-    RectTransform returnArrow;
-    TMP_Text returnLabel;
+    [Header("오른쪽 위")]
+    [SerializeField] TMP_Text teamText;
+
+    [Header("상호작용 안내")]
+    [SerializeField] RectTransform promptBox;
+    [SerializeField] TMP_Text promptText;
+
+    [Header("귀환 표시")]
+    [SerializeField] RectTransform returnBox;
+    [SerializeField] RectTransform returnArrow;
+    [SerializeField] TMP_Text returnLabel;
+
+    [Header("개봉 게이지")]
+    [SerializeField] RectTransform castBar;
+    [SerializeField] RectTransform castFill;
+
+    [Header("대시")]
+    [SerializeField] RectTransform dashSlot;
+    [SerializeField] TMP_Text dashLabelText;
+    [SerializeField] TMP_Text dashTimeText;
+    [SerializeField] RectTransform dashFill;
 
     /// 이번 경보의 종을 이미 울렸는가. 경보가 꺼지면 풀려서 다음 밤에 다시 울린다.
     bool alarmRung;
-
-    RectTransform dashSlot;
-    TMP_Text dashLabelText;
-    TMP_Text dashTimeText;
-    RectTransform dashFill;
 
     /// 가방 연출의 목적지. 절대 null이 아니다.
     public RectTransform BagAnchor => bagIcon;
@@ -90,15 +103,9 @@ public sealed class MatchHudScreen : UIScreen
     protected override void Awake()
     {
         base.Awake();
-        if (bagIcon == null) bagIcon = BuildBagIcon();
-        BuildCastBar();
-        BuildTopLeft();
-        BuildTopCenter();
-        BuildTopRight();
-        BuildPrompt();
-        BuildDashSlot();
-        BuildReturnIndicator();
-        PlaceDetailLabel();
+
+        // 트리는 프리팹에 있다. 여기서 만들지 않는다 — 만들면 프리팹에서 고친 자리가
+        // 매번 덮인다.
     }
 
     /// 한 번에 한 덩어리로 받는다. 칸마다 따로 부르면 어느 칸이 이번 갱신에 빠졌는지
@@ -122,6 +129,21 @@ public sealed class MatchHudScreen : UIScreen
                 SetText(bagPercentText, model.BagPercent);
                 SetText(bagWeightText, model.BagWeight);
                 bagFill.localScale = new Vector3(Mathf.Clamp01(model.BagRatio), 1f, 1f);
+
+                // 묻어 둔 동안에는 적재량이 의미가 없다. 게이지를 비우고 색으로 알린다.
+                var tint = model.BagBuried ? buriedColor : accent;
+                var fillImage = bagFill.GetComponent<Image>();
+                if (fillImage != null) fillImage.color = tint;
+                if (bagPercentText != null)
+                    bagPercentText.color = model.BagBuried ? buriedColor : muted;
+                if (bagIcon != null)
+                {
+                    var icon = bagIcon.GetComponent<Image>();
+                    if (icon != null)
+                        icon.color = model.BagBuried
+                            ? buriedColor
+                            : new Color(0.35f, 0.26f, 0.18f, 0.9f);
+                }
             }
         }
 
@@ -161,96 +183,6 @@ public sealed class MatchHudScreen : UIScreen
     static void SetGroup(Component target, bool active)
     {
         if (target != null && target.gameObject.activeSelf != active) target.gameObject.SetActive(active);
-    }
-
-    // 화면 왼쪽 위: 팀 매출과 가방 적재량.
-    void BuildTopLeft()
-    {
-        var root = MakePanel("TopLeft", new Vector2(0f, 1f), new Vector2(margin, -margin), new Vector2(300f, 92f));
-
-        revenueText = MakeText(root, "Revenue", new Vector2(0f, 1f), new Vector2(12f, -8f),
-                               new Vector2(276f, 24f), 20f, accent, TextAlignmentOptions.Left);
-        bagPercentText = MakeText(root, "BagPercent", new Vector2(0f, 1f), new Vector2(12f, -34f),
-                                  new Vector2(276f, 22f), 17f, muted, TextAlignmentOptions.Left);
-        bagFill = MakeBar(root, "BagBar", new Vector2(0f, 1f), new Vector2(12f, -58f),
-                          new Vector2(276f, 6f), accent);
-        bagWeightText = MakeText(root, "BagWeight", new Vector2(0f, 1f), new Vector2(12f, -66f),
-                                 new Vector2(276f, 20f), 14f, muted, TextAlignmentOptions.Left);
-    }
-
-    // 화면 위 가운데: 날짜 · 페이즈 · 남은 시간.
-    void BuildTopCenter()
-    {
-        var root = MakePanel("TopCenter", new Vector2(0.5f, 1f), new Vector2(0f, -margin), new Vector2(420f, 40f));
-
-        dayText = MakeText(root, "Day", new Vector2(0f, 0.5f), new Vector2(16f, 0f),
-                           new Vector2(90f, 28f), 18f, accent, TextAlignmentOptions.Left);
-        phaseText = MakeText(root, "Phase", new Vector2(0f, 0.5f), new Vector2(118f, 0f),
-                             new Vector2(140f, 28f), 17f, muted, TextAlignmentOptions.Left);
-        timerText = MakeText(root, "Timer", new Vector2(1f, 0.5f), new Vector2(-16f, 0f),
-                             new Vector2(150f, 30f), 22f, Color.white, TextAlignmentOptions.Right);
-    }
-
-    // 화면 오른쪽 위: 지금 이 화면이 어느 팀인가.
-    void BuildTopRight()
-    {
-        teamText = MakeText(transform, "Team", new Vector2(1f, 1f), new Vector2(-margin, -margin),
-                            new Vector2(220f, 26f), 18f, Color.white, TextAlignmentOptions.Right);
-    }
-
-    // 상호작용 안내. 캐릭터 바로 아래에 뜬다 — 오른쪽 글자 덩어리에 섞으면 눈이 가지 않는다.
-    void BuildPrompt()
-    {
-        promptBox = MakePanel("Prompt", new Vector2(0.5f, 0.5f), new Vector2(0f, -castBarDrop - 60f),
-                              new Vector2(220f, 40f));
-
-        promptText = MakeText(promptBox, "Text", new Vector2(0.5f, 0.5f), Vector2.zero,
-                              new Vector2(200f, 30f), 17f, Color.white, TextAlignmentOptions.Center);
-        promptBox.gameObject.SetActive(false);
-    }
-
-    // 화면 왼쪽 아래: 지금 존재하는 유일한 행동인 대시.
-    void BuildDashSlot()
-    {
-        dashSlot = MakePanel("DashSlot", new Vector2(0f, 0f), new Vector2(margin, margin),
-                             new Vector2(200f, 48f));
-
-        dashLabelText = MakeText(dashSlot, "Name", new Vector2(0f, 1f), new Vector2(12f, -6f),
-                                 new Vector2(120f, 22f), 16f, accent, TextAlignmentOptions.Left);
-        dashLabelText.text = "대시";
-        dashTimeText = MakeText(dashSlot, "Time", new Vector2(1f, 1f), new Vector2(-12f, -6f),
-                                new Vector2(80f, 22f), 14f, muted, TextAlignmentOptions.Right);
-        dashFill = MakeBar(dashSlot, "Bar", new Vector2(0f, 0f), new Vector2(12f, 10f),
-                           new Vector2(176f, 5f), accent);
-
-        dashSlot.gameObject.SetActive(false);
-    }
-
-    // 화면 위 가운데, 시계 바로 아래. 밤이 끝나기 직전에만 뜬다 (기획서 6.4).
-    // 화살표는 카메라 기준이라 쿼터뷰에서도 화면에서 보이는 그 방향이 곧 갈 방향이다.
-    void BuildReturnIndicator()
-    {
-        // 배경판이 없다. 월드 위에 떠 있는 표시라 판을 깔면 그 뒤의 숲이 잘려 보인다 —
-        // 화살표와 글자만 남긴다. 그래서 `MakePanel`(Image를 붙인다)을 쓰지 않는다.
-        //
-        // 앵커는 화면 중앙이다. 월드의 한 점을 따라다니므로 고정된 자리가 없고,
-        // `SetReturnMarker`가 중앙 기준 오프셋으로 옮긴다.
-        var root = new GameObject("ReturnMarker", typeof(RectTransform));
-        returnBox = (RectTransform)root.transform;
-        returnBox.SetParent(transform, false);
-        returnBox.anchorMin = returnBox.anchorMax = returnBox.pivot = new Vector2(0.5f, 0.5f);
-        returnBox.sizeDelta = new Vector2(168f, 92f);
-        returnBox.anchoredPosition = Vector2.zero;
-
-        var arrow = MakeText(returnBox, "Arrow", new Vector2(0.5f, 1f), new Vector2(0f, -8f),
-                             new Vector2(56f, 56f), 44f, alarmColor, TextAlignmentOptions.Center);
-        arrow.text = "▲";      // Pretendard에 있는 글리프다. 화살표 스프라이트가 없다
-        returnArrow = (RectTransform)arrow.transform;
-
-        returnLabel = MakeText(returnBox, "Label", new Vector2(0.5f, 0f), new Vector2(0f, 12f),
-                               new Vector2(168f, 24f), 17f, alarmColor, TextAlignmentOptions.Center);
-
-        returnBox.gameObject.SetActive(false);
     }
 
     /// 매 프레임 불린다. 마커는 월드의 한 점에 붙어 있어서 HUD 갱신 주기(0.1초)로 옮기면
@@ -306,126 +238,6 @@ public sealed class MatchHudScreen : UIScreen
         AudioSource.PlayClipAtPoint(returnAlarmSound,
             listener != null ? listener.transform.position : Vector3.zero);
     }
-
-    // 프리팹의 상세 글자는 화면 전체를 덮게 늘어나 있다. 다른 칸과 겹치지 않게 오른쪽
-    // 열로 접어 둔다.
-    void PlaceDetailLabel()
-    {
-        if (label == null) return;
-
-        var rect = (RectTransform)label.transform;
-        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 1f);
-        rect.sizeDelta = new Vector2(360f, 420f);
-        rect.anchoredPosition = new Vector2(-margin, -(margin + 44f));
-        label.alignment = TextAlignmentOptions.TopRight;
-        label.raycastTarget = false;
-    }
-
-    RectTransform MakePanel(string name, Vector2 anchor, Vector2 position, Vector2 size)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(Image));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(transform, false);
-        rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
-        rect.sizeDelta = size;
-        rect.anchoredPosition = position;
-
-        var image = go.GetComponent<Image>();
-        image.color = panelBack;
-        image.raycastTarget = false;
-        return rect;
-    }
-
-    TMP_Text MakeText(Transform parent, string name, Vector2 anchor, Vector2 position,
-                      Vector2 size, float fontSize, Color color, TextAlignmentOptions align)
-    {
-        var go = new GameObject(name, typeof(RectTransform), typeof(TextMeshProUGUI));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(parent, false);
-        rect.anchorMin = rect.anchorMax = rect.pivot = anchor;
-        rect.sizeDelta = size;
-        rect.anchoredPosition = position;
-
-        var text = go.GetComponent<TextMeshProUGUI>();
-        text.fontSize = fontSize;
-        text.color = color;
-        text.alignment = align;
-        text.raycastTarget = false;
-        text.textWrappingMode = TextWrappingModes.NoWrap;
-        return text;
-    }
-
-    /// 왼쪽에서 자라는 막대. 반환값은 채워지는 쪽이며 `localScale.x`로 진행도를 준다.
-    RectTransform MakeBar(Transform parent, string name, Vector2 anchor, Vector2 position,
-                          Vector2 size, Color fillColor)
-    {
-        var back = new GameObject(name, typeof(RectTransform), typeof(Image));
-        var backRect = (RectTransform)back.transform;
-        backRect.SetParent(parent, false);
-        backRect.anchorMin = backRect.anchorMax = backRect.pivot = anchor;
-        backRect.sizeDelta = size;
-        backRect.anchoredPosition = position;
-
-        var backImage = back.GetComponent<Image>();
-        backImage.color = castBarBack;
-        backImage.raycastTarget = false;
-
-        var front = new GameObject("Fill", typeof(RectTransform), typeof(Image));
-        var fill = (RectTransform)front.transform;
-        fill.SetParent(backRect, false);
-        fill.anchorMin = Vector2.zero;
-        fill.anchorMax = Vector2.one;
-        fill.pivot = new Vector2(0f, 0.5f);
-        fill.offsetMin = fill.offsetMax = Vector2.zero;
-
-        var frontImage = front.GetComponent<Image>();
-        frontImage.color = fillColor;
-        frontImage.raycastTarget = false;
-        return fill;
-    }
-
-    void BuildCastBar()
-    {
-        var back = new GameObject("CastBar", typeof(RectTransform), typeof(Image));
-        castBar = (RectTransform)back.transform;
-        castBar.SetParent(transform, false);
-        castBar.anchorMin = castBar.anchorMax = castBar.pivot = new Vector2(0.5f, 0.5f);
-        castBar.sizeDelta = castBarSize;
-        castBar.anchoredPosition = new Vector2(0f, -castBarDrop);
-
-        var backImage = back.GetComponent<Image>();
-        backImage.color = castBarBack;
-        backImage.raycastTarget = false;
-
-        var front = new GameObject("Fill", typeof(RectTransform), typeof(Image));
-        castFill = (RectTransform)front.transform;
-        castFill.SetParent(castBar, false);
-        castFill.anchorMin = new Vector2(0f, 0f);
-        castFill.anchorMax = new Vector2(1f, 1f);
-        castFill.pivot = new Vector2(0f, 0.5f);      // 왼쪽에서 자란다
-        castFill.offsetMin = castFill.offsetMax = Vector2.zero;
-
-        var frontImage = front.GetComponent<Image>();
-        frontImage.color = castBarFill;
-        frontImage.raycastTarget = false;
-
-        castBar.gameObject.SetActive(false);
-    }
-
-    RectTransform BuildBagIcon()
-    {
-        var go = new GameObject("BagIcon", typeof(RectTransform), typeof(Image));
-        var rect = (RectTransform)go.transform;
-        rect.SetParent(transform, false);
-        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(1f, 0f);
-        rect.sizeDelta = bagIconSize;
-        rect.anchoredPosition = bagIconMargin;
-
-        var image = go.GetComponent<Image>();
-        image.color = new Color(0.35f, 0.26f, 0.18f, 0.9f);
-        image.raycastTarget = false;
-        return rect;
-    }
 }
 
 /// HUD 한 갱신분의 값. 화면이 그리기만 하도록 자리별로 나눠 담는다 — 한 덩어리 문자열로
@@ -444,6 +256,10 @@ public struct MatchHudModel
     public string BagPercent;   // "가방 용량  42%"
     public string BagWeight;    // "3.4 / 8.0 KG"
     public float BagRatio;
+
+    /// 가방을 땅에 묻어 뒀는가 (기획서 6.7). 묻힌 동안 담기가 전부 거절되므로 글자뿐
+    /// 아니라 색으로도 구분한다.
+    public bool BagBuried;
 
     public bool ShowDash;
     public bool DashReady;

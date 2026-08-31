@@ -98,6 +98,9 @@ public sealed class MatchHudPresenter
             }
             else
             {
+                // 묻힌 동안에는 적재량이 의미가 없다. 게이지를 비우고 화면이 색으로 알린다.
+                model.BagBuried = true;
+                model.BagRatio = 0f;
                 model.BagPercent = "가방을 묻어 뒀다";
                 model.BagWeight = "회수하지 않으면 수확 전량 소실";
             }
