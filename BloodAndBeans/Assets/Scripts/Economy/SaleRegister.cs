@@ -49,7 +49,7 @@ public class SaleRegister : NetworkBehaviour
             info.BasePrice, GaugeOf(info), grade, isDessert, recipe, Popular);
 
         // 종족 가중치는 손님 고유의 배율이고 (5.5), 5.6.2 공식의 일부가 아니다.
-        LastSale = Mathf.RoundToInt(price * Mathf.Max(0f, info.SpeciesPriceWeight));
+        LastSale = Mathf.RoundToInt(price * Mathf.Max(0f, info.RacePriceWeight));
         board?.AddSale(team, LastSale);
     }
 

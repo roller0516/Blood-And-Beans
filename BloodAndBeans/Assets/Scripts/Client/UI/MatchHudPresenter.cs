@@ -151,7 +151,7 @@ public sealed class MatchHudPresenter
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
-                    text.AppendLine($"{customer.Kind} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
+                    text.AppendLine($"{DisplayNames.Of(customer.Kind)} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
 
         return text.ToString();
     }

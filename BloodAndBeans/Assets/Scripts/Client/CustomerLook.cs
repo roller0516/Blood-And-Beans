@@ -7,6 +7,7 @@ using UnityEngine;
 /// 진짜 언데드 모델로 교체하면 되고 나머지는 바꿀 것이 없다.
 public class CustomerLook : NetworkBehaviour
 {
+    // 이름을 byRace로 바꾸지 않는다. Customer.prefab이 이 이름으로 6개 참조를 직렬화해 뒀다.
     [SerializeField] GameObject[] bySpecies = new GameObject[6];
 
     static readonly Color[] Tint =
@@ -21,23 +22,23 @@ public class CustomerLook : NetworkBehaviour
 
     [SerializeField] float bodyHeight = 1.6f;   // 월드 단위. 종족마다 키를 맞추기 위한 값
 
-    Species? shown;
+    Race? shown;
     GameObject body;
 
     public override void OnNetworkSpawn()
     {
         var c = GetComponent<Customer>();
-        c.SpeciesChanged += Apply;
+        c.RaceChanged += Apply;
         Apply(c.Kind);
     }
 
     public override void OnNetworkDespawn()
     {
         var c = GetComponent<Customer>();
-        if (c != null) c.SpeciesChanged -= Apply;
+        if (c != null) c.RaceChanged -= Apply;
     }
 
-    void Apply(Species s)
+    void Apply(Race s)
     {
         if (shown == s) return;
         var i = (int)s;
