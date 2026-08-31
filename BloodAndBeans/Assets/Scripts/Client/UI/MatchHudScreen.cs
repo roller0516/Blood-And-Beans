@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -121,6 +121,9 @@ public sealed class MatchHudScreen : UIScreen
 
         SetGroup(bagPercentText, model.ShowBag);
         SetGroup(bagWeightText, model.ShowBag);
+        // 가방 아이콘은 밤의 획득 연출 목표다 (기획서 6.5.5). 낮에도 켜 두면 정체를 알 수
+        // 없는 사각형이 남는다.
+        SetGroup(bagIcon, model.ShowBag);
         if (bagFill != null)
         {
             SetGroup(bagFill, model.ShowBag);

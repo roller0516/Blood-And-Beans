@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
@@ -138,7 +138,7 @@ public sealed class UIMatchResultPopup : UIPopup
             var tint = team == myTeam ? win : muted;
 
             Set(slot.Rank, $"{i + 1:00}", i == 0 ? win : muted);
-            Set(slot.Cafe, $"{team + 1}팀");
+            Set(slot.Cafe, DisplayNames.Team(team));
             Set(slot.Revenue, value.ToString("N0"), tint);
             if (slot.BarImage != null) slot.BarImage.color = tint;
             if (slot.Bar != null)

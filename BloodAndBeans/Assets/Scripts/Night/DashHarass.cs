@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -166,10 +166,11 @@ public class DashHarass : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void DashRpc(RpcParams p = default)
     {
-        // 이동 자체는 밤이면 된다. 보호 구간 제한은 "피해 효과"에 걸리는 것이라
-        // (기획서 4장 Night 0, 6.4) HarassAllowedServer에서 따로 본다.
+        // 이동으로서의 대시는 밤과 낮 모두 된다 (기획서 11장 조작 표: 낮 = "짧은 거리 대시").
+        // 낮에 없어지는 것은 견제 효과뿐이고, 그 판정은 HarassAllowedServer가 따로 본다
+        // (기획서 4장 Night 0, 6.4). 전환은 조작을 받지 않는 정산 구간이라 제외한다.
         var phase = MatchDirector.Instance?.Phase;
-        if (phase == null || phase.Current != Phase.Night) return;
+        if (phase == null || phase.Current == Phase.Transition) return;
         if (Time.time < stunEnd) return;                         // 경직 중에는 돌진하지 않는다
 
         // 가방이 무거우면 대시가 없다. 서버가 판정한다 — 소유자에게 맡기면 무게 제한이

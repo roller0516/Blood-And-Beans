@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -74,7 +74,7 @@ public sealed class MatchHudPresenter
         model.Day = $"{phase.Day}일차";
         model.PhaseName = phase.Finished ? "종료" : PhaseLabel(phase.Current);
         model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining);
-        model.Team = TeamLabel(team);
+        model.Team = DisplayNames.Team(team);
 
         if (director == null) director = MatchDirector.Instance;
         var cafe = director != null ? director.CafeOf(team) : null;
@@ -104,9 +104,10 @@ public sealed class MatchHudPresenter
                 model.BagPercent = "가방을 묻어 뒀다";
                 model.BagWeight = "회수하지 않으면 수확 전량 소실";
             }
-
-            FillDash(ref model);
         }
+
+        // 대시는 밤과 낮 모두 쓴다 (기획서 11장 조작 표). 전환은 조작을 받지 않는다.
+        if (phase.Current != Phase.Transition) FillDash(ref model);
 
         model.Details = BuildDetails(team, cafe, board);
         model.Prompt = interactor != null && !string.IsNullOrEmpty(interactor.Prompt)
@@ -123,7 +124,7 @@ public sealed class MatchHudPresenter
         {
             text.AppendLine("내일의 손님");
             for (var race = 0; race < ledger.RaceCounts.Length; race++)
-                if (ledger.RaceCounts[race] > 0) text.AppendLine($"{(Race)race} x{ledger.RaceCounts[race]}");
+                if (ledger.RaceCounts[race] > 0) text.AppendLine($"{DisplayNames.Of((Race)race)} x{ledger.RaceCounts[race]}");
             text.AppendLine($"인기 재료: {string.Join(", ", ledger.PopularShown)}");
         }
         else if (phase.Current == Phase.Day && board != null)
@@ -132,7 +133,7 @@ public sealed class MatchHudPresenter
             for (var rank = 0; rank < ranking.Count; rank++)
             {
                 var rankedTeam = ranking[rank];
-                text.AppendLine($"{rank + 1}. Team {rankedTeam} · {board.RevenueOf(rankedTeam)}g" +
+                text.AppendLine($"{rank + 1}. {DisplayNames.Team(rankedTeam)} · {board.RevenueOf(rankedTeam)}g" +
                     (rankedTeam == team ? " <" : ""));
             }
         }
@@ -151,7 +152,10 @@ public sealed class MatchHudPresenter
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
-                    text.AppendLine($"{customer.Kind} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
+                    // `Customer.Kind`는 `Species`, 예보는 `Race`다 — 멤버와 순서가 같은 별개의 열거자라
+                    // 표기표는 하나로 쓴다. `DisplayNames`는 BB.Rules에 있어 BB.Game의 `Species`를
+                    // 볼 수 없으므로 변환은 두 어셈블리를 다 보는 여기서 한다.
+                    text.AppendLine($"{DisplayNames.Of((Race)customer.Kind)} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
 
         return text.ToString();
     }
@@ -268,7 +272,6 @@ public sealed class MatchHudPresenter
     /// 여기는 값만 넘긴다. HUD 글자 덩어리에 섞으면 오른쪽 열에 붙어 시선에서 벗어난다.
     public float CastProgress01 => boxHold != null ? boxHold.CastProgress01 : 0f;
 
-    static string TeamLabel(int team) => team < 0 ? "팀 배정 대기" : $"Team {team}";
 
     /// 로컬 플레이어가 바뀔 때만 컴포넌트를 다시 푼다. 갱신마다 `GetComponent`를 부르면
     /// 주기 실행 안의 컴포넌트 조회가 된다 (AGENTS.md 참조와 결합도).

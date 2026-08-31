@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -195,7 +195,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (board != null)
             for (var t = 0; t < board.TeamCount; t++)
                 standings.Add(new UIDaySettlementScreen.StandingRow(
-                    $"{t + 1}팀", board.RevenueOf(t),
+                    DisplayNames.Team(t), board.RevenueOf(t),
                     t == team && today.Valid ? today.Sales : 0, t == team));
         standings.Sort((a, b) => b.Total.CompareTo(a.Total));
 
@@ -203,9 +203,12 @@ public sealed class MatchFlow : MonoBehaviour
         var guests = new List<UIDaySettlementScreen.GuestCard>();
         var counts = ledger != null ? ledger.RaceCounts : null;
         if (counts != null)
+            // 0마리 종족은 내보내지 않는다. 예보 칸이 6개뿐이라 「x0」 카드가 자리를 차지하면
+            // 실제로 오는 구성이 밀려 안 보인다 (기획서 5.6은 등장 종족만 나열한다).
             for (var r = 0; r < counts.Length; r++)
-                guests.Add(new UIDaySettlementScreen.GuestCard(
-                    DisplayNames.Of((Race)r), counts[r]));
+                if (counts[r] > 0)
+                    guests.Add(new UIDaySettlementScreen.GuestCard(
+                        DisplayNames.Of((Race)r), counts[r]));
 
         var popular = new List<UIDaySettlementScreen.PopularItem>();
         var shown = ledger != null ? ledger.PopularShown : null;
