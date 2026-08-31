@@ -338,7 +338,7 @@ MonoBehaviour:
   m_text: "\uBC29 \uB098\uAC00\uAE30"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
-  m_sharedMaterial: {fileID: 9029024515313258347, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
+  m_sharedMaterial: {fileID: -1859366967974018145, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -571,7 +571,7 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
-  m_sharedMaterial: {fileID: 9029024515313258347, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
+  m_sharedMaterial: {fileID: -1859366967974018145, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1010,7 +1010,7 @@ MonoBehaviour:
   m_text: "\uAC8C\uC784 \uC2DC\uC791"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
-  m_sharedMaterial: {fileID: 9029024515313258347, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
+  m_sharedMaterial: {fileID: -1859366967974018145, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1092,6 +1092,7 @@ GameObject:
   - component: {fileID: 2404282904821904433}
   - component: {fileID: 6610253370843485343}
   - component: {fileID: 4625731983656654640}
+  - component: {fileID: 4908367736410124301}
   m_Layer: 0
   m_Name: RoomScreen
   m_TagString: Untagged
@@ -1204,6 +1205,18 @@ MonoBehaviour:
   memberRowPrefab: {fileID: 1298641216270649047}
   startButton: {fileID: 8541302218100441532}
   leaveButton: {fileID: 4788015454302062326}
+--- !u!114 &4908367736410124301
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4260241475203956803}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &5276265397614852363
 GameObject:
   m_ObjectHideFlags: 0
@@ -1836,7 +1849,7 @@ MonoBehaviour:
   m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
-  m_sharedMaterial: {fileID: 9029024515313258347, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
+  m_sharedMaterial: {fileID: -1859366967974018145, guid: 4a27bf1b05ce1a646a5837fbcb3ef32a, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

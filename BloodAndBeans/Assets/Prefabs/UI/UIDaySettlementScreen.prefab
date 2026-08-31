@@ -14139,6 +14139,7 @@ GameObject:
   - component: {fileID: 7403421158920986016}
   - component: {fileID: 4200339696847944970}
   - component: {fileID: 4169225210580533051}
+  - component: {fileID: 1783558180702295148}
   m_Layer: 0
   m_Name: UIDaySettlementScreen
   m_TagString: Untagged
@@ -14344,6 +14345,18 @@ MonoBehaviour:
     Caption: {fileID: 8902252262493699907}
     Day: {fileID: 9204789340076262354}
     Night: {fileID: 9067795328367805713}
+--- !u!114 &1783558180702295148
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8448942712062627897}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &8457508562240048535
 GameObject:
   m_ObjectHideFlags: 0

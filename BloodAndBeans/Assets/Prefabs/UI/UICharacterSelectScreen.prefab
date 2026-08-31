@@ -5727,6 +5727,7 @@ GameObject:
   - component: {fileID: 1746645437731726020}
   - component: {fileID: 969422608246151585}
   - component: {fileID: 3123076120622967491}
+  - component: {fileID: 2464445576925270861}
   m_Layer: 0
   m_Name: UICharacterSelectScreen
   m_TagString: Untagged
@@ -5925,6 +5926,18 @@ MonoBehaviour:
   - {fileID: 3055111949762607960}
   confirmButton: {fileID: 3591227503822073718}
   backButton: {fileID: 9142871464136241528}
+--- !u!114 &2464445576925270861
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5208576705694103224}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &5254458789417630683
 GameObject:
   m_ObjectHideFlags: 0

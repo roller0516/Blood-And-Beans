@@ -1627,6 +1627,7 @@ GameObject:
   - component: {fileID: 1740028463110000004}
   - component: {fileID: 1740028463110000005}
   - component: {fileID: 1740028463110000006}
+  - component: {fileID: 8030685899647670742}
   m_Layer: 0
   m_Name: BoxLootPopup
   m_TagString: Untagged
@@ -1788,6 +1789,18 @@ MonoBehaviour:
   bagPunchSeconds: 0.3
   icons: []
   flyLayer: {fileID: 9115283186153540435}
+--- !u!114 &8030685899647670742
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1740028463110000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &1900147300134582039
 GameObject:
   m_ObjectHideFlags: 0

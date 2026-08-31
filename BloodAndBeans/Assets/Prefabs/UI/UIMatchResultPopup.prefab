@@ -4578,6 +4578,7 @@ GameObject:
   - component: {fileID: 8374530563109592001}
   - component: {fileID: 7231106263539931184}
   - component: {fileID: 2130531748024002998}
+  - component: {fileID: 6326190975857198411}
   m_Layer: 0
   m_Name: UIMatchResultPopup
   m_TagString: Untagged
@@ -4746,6 +4747,18 @@ MonoBehaviour:
   draw: {r: 0.72, g: 0.78, b: 0.88, a: 1}
   lose: {r: 0.78, g: 0.55, b: 0.52, a: 1}
   muted: {r: 0.72, g: 0.72, b: 0.68, a: 0.9}
+--- !u!114 &6326190975857198411
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5240271708547492389}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &5374129246404906826
 GameObject:
   m_ObjectHideFlags: 0

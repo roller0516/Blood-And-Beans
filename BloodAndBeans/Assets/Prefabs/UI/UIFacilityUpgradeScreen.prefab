@@ -7593,6 +7593,7 @@ GameObject:
   - component: {fileID: 7605976980562433699}
   - component: {fileID: 4419065804751821488}
   - component: {fileID: 3177966726387151112}
+  - component: {fileID: 2104555219324077361}
   m_Layer: 0
   m_Name: UIFacilityUpgradeScreen
   m_TagString: Untagged
@@ -7766,6 +7767,18 @@ MonoBehaviour:
   twinMachineNote: {fileID: 7786864373782660848}
   dishwasherNote: {fileID: 5774911687632696810}
   applyButton: {fileID: 1952785549772972061}
+--- !u!114 &2104555219324077361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4553395006540230115}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &4574091021102663748
 GameObject:
   m_ObjectHideFlags: 0

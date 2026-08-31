@@ -574,6 +574,7 @@ GameObject:
   - component: {fileID: 9117825514344717473}
   - component: {fileID: 2426155912352367759}
   - component: {fileID: 2011501696511093354}
+  - component: {fileID: 4702110108378810883}
   m_Layer: 0
   m_Name: TitleMenuScreen
   m_TagString: Untagged
@@ -682,3 +683,15 @@ MonoBehaviour:
   lobbyButton: {fileID: 297766289072128895}
   settingsButton: {fileID: 8224858540816174637}
   quitButton: {fileID: 9170124332337150667}
+--- !u!114 &4702110108378810883
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9013322345166294769}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale

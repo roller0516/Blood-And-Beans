@@ -1183,6 +1183,7 @@ GameObject:
   - component: {fileID: 853026712618359098}
   - component: {fileID: 5905992901263757287}
   - component: {fileID: 2476152581766435423}
+  - component: {fileID: 3907138872691627188}
   m_Layer: 0
   m_Name: MatchHudScreen
   m_TagString: Untagged
@@ -1329,6 +1330,18 @@ MonoBehaviour:
   dashLabelText: {fileID: 3989040134223147656}
   dashTimeText: {fileID: 2586504290220933737}
   dashFill: {fileID: 7584300169137873340}
+--- !u!114 &3907138872691627188
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5007552769612582652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &5111959187041975569
 GameObject:
   m_ObjectHideFlags: 0

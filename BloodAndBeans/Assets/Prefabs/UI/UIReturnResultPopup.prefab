@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 5391028383127271519}
   - component: {fileID: 8539939194827778137}
   - component: {fileID: 3712952612479374101}
+  - component: {fileID: 3725738940665393398}
   m_Layer: 0
   m_Name: UIReturnResultPopup
   m_TagString: Untagged
@@ -121,3 +122,15 @@ MonoBehaviour:
   muted: {r: 0.72, g: 0.72, b: 0.68, a: 0.9}
   panelBack: {r: 0.04, g: 0.05, b: 0.05, a: 0.92}
   panelSize: {x: 460, y: 240}
+--- !u!114 &3725738940665393398
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8369124894398526540}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale

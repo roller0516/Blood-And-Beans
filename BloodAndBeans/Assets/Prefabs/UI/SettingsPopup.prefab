@@ -1218,6 +1218,7 @@ GameObject:
   - component: {fileID: 4879610342474094253}
   - component: {fileID: 4941152774157037445}
   - component: {fileID: 3568051625470813295}
+  - component: {fileID: 6060773305268040778}
   m_Layer: 0
   m_Name: SettingsPopup
   m_TagString: Untagged
@@ -1328,6 +1329,18 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!114 &6060773305268040778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3222931501101391059}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIFontScale
 --- !u!1 &3595591868830243076
 GameObject:
   m_ObjectHideFlags: 0
