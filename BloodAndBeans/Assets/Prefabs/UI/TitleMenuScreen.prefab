@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6253073495778970534}
   - component: {fileID: 4653611889612414661}
   - component: {fileID: 9170124332337150667}
+  - component: {fileID: 1479290711551634632}
   m_Layer: 0
   m_Name: "\uAC8C\uC784 \uC885\uB8CC"
   m_TagString: Untagged
@@ -120,6 +121,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &1479290711551634632
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1415552826669027327}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &2418668785439118793
 GameObject:
   m_ObjectHideFlags: 0
@@ -333,6 +347,7 @@ GameObject:
   - component: {fileID: 8048397302751781732}
   - component: {fileID: 8981870747694100150}
   - component: {fileID: 297766289072128895}
+  - component: {fileID: 5680186879571781214}
   m_Layer: 0
   m_Name: "\uB85C\uBE44 \uC811\uC18D"
   m_TagString: Untagged
@@ -441,6 +456,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &5680186879571781214
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7327929210363153530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &8236933876440634777
 GameObject:
   m_ObjectHideFlags: 0
@@ -453,6 +481,7 @@ GameObject:
   - component: {fileID: 5418294287183019472}
   - component: {fileID: 2406891822367161372}
   - component: {fileID: 8224858540816174637}
+  - component: {fileID: 6276751663967748448}
   m_Layer: 0
   m_Name: "\uC124\uC815"
   m_TagString: Untagged
@@ -561,6 +590,19 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6276751663967748448
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8236933876440634777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &9013322345166294769
 GameObject:
   m_ObjectHideFlags: 0

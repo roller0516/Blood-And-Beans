@@ -56,6 +56,12 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 같은 팀 사람끼리 벌리는 간격. 캡슐 지름보다 커야 서로 밀어내지 않는다.
     [SerializeField] float spawnSlotSpacing = 2f;
 
+    /// 카페 원점에서 스폰 지점까지의 카페 로컬 오프셋. 원점 그대로 쓰면 그 자리에 서 있는
+    /// 조리대(Cafe.prefab의 PrepIsland, 12x1x1.6 박스) 안에 캡슐이 박힌 채로 시작한다.
+    /// 중력이 없어서(PlayerMove) 스스로 빠져나오지 못하고 그대로 굳는다.
+    /// 조리대(z 0.8까지)와 복귀 구역(z -3부터) 사이의 빈 바닥이 기본값이다.
+    [SerializeField] Vector3 cafeSpawnOffset = new(0f, 0f, -2f);
+
     [Header("표시")]
     /// 안개 표시용 평면. NetworkObject가 없는 순수 뷰라서 피어마다 각자 하나씩 만든다.
     [SerializeField] GameObject fogPlanePrefab;
@@ -66,7 +72,14 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     TeamLedger[] ledgers = new TeamLedger[0];
     GamePhase phase;
     int teamCount;
+
+    /// 씬이 상자를 깔아 둔 기준 팀 수 (기획서 10장의 최대 4팀). 실제 팀이 이보다 적으면
+    /// 그 비율만큼만 남긴다 (`ThinBoxesServer`).
+    int maxTeams = 1;
     bool subscribed;
+
+    /// 상자를 이미 솎았는가. 팀 수는 판 안에서 바뀌지 않으므로 한 번이면 끝이다.
+    bool boxesThinned;
 
     public GamePhase Phase => phase;
     public int TeamCount => teamCount;
@@ -118,7 +131,12 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             return;
         }
 
+        maxTeams = Mathf.Max(1, seating.MaxTeams);
         ApplyTeamCount(seating.TeamCount);
+
+        // 첫 밤에 상자를 솎는다. 씬 오브젝트의 NetworkObject가 확실히 스폰돼 있는 가장
+        // 이른 시점이다 — `sceneLoaded`는 NGO의 씬 오브젝트 스폰과 순서가 보장되지 않는다.
+        if (phase != null) phase.PhaseEntered += OnPhaseEntered;
 
         if (fogPlanePrefab != null) Instantiate(fogPlanePrefab);
 
@@ -205,6 +223,67 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         }
     }
 
+    void OnDestroy()
+    {
+        if (phase != null) phase.PhaseEntered -= OnPhaseEntered;
+    }
+
+    void OnPhaseEntered(Phase p)
+    {
+        // `global::`을 붙이는 이유는 이 클래스에 `Phase`라는 프로퍼티(`GamePhase`)가 있어서
+        // 그 이름이 열거형을 가리기 때문이다. 프로퍼티 이름을 바꾸면 저장소 곳곳의
+        // `director.Phase`가 전부 따라 바뀐다.
+        if (boxesThinned || p != global::Phase.Night) return;
+        if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
+
+        boxesThinned = true;
+        ThinBoxesServer();
+    }
+
+    /// 씬의 상자를 팀 수에 맞춰 솎아낸다 (기획서 10장: "팀 수에 따라 박스 수와 손님 수를
+    /// 비례 조정한다").
+    ///
+    /// 손님은 여기서 손댈 것이 없다. 대기열이 카페마다 하나씩이라 팀이 늘면 손님도 팀 수
+    /// 배로 늘어난다 — 이미 비례한다. 어긋나는 것은 숲 하나를 전원이 나눠 쓰는 상자뿐이다.
+    ///
+    /// 씬에는 최대 팀 수 기준으로 깔려 있으므로 팀이 적으면 그 비율만큼만 남긴다. 되돌리지
+    /// 않고 despawn하는 이유는 팀 수가 판 안에서 바뀌지 않기 때문이다.
+    void ThinBoxesServer()
+    {
+        if (teamCount >= maxTeams) return;
+
+        // 쏟아진 더미는 대상이 아니다. 그것은 맵이 깔아 둔 자원이 아니라 플레이어가
+        // 만든 것이고, 애초에 이 시점에 존재하지도 않는다.
+        var boxes = new List<ItemBox>();
+        foreach (var box in FindObjectsByType<ItemBox>(FindObjectsSortMode.None))
+            if (box != null && !box.Temporary && box.NetworkObject != null && box.NetworkObject.IsSpawned)
+                boxes.Add(box);
+
+        if (boxes.Count == 0) return;
+
+        // 정렬 없이는 `FindObjectsByType` 순서에 기대게 된다. 같은 판을 다시 열었을 때
+        // 다른 상자가 사라지면 맵이 판마다 달라 보인다.
+        boxes.Sort((a, b) => a.NetworkObjectId.CompareTo(b.NetworkObjectId));
+
+        var keep = Mathf.Clamp(
+            Mathf.RoundToInt(boxes.Count * (teamCount / (float)maxTeams)), 1, boxes.Count);
+
+        // 앞에서부터 자르지 않고 고르게 훑는다. 앞을 통째로 남기면 남은 상자가 스폰 순서
+        // 한쪽에 몰리고, 숲의 링 배치(기획서 6.3)가 한 방향만 비어 보인다.
+        var kept = 0;
+        for (var i = 0; i < boxes.Count; i++)
+        {
+            // 남길 자리인가: i번째까지 남겨야 할 누적 개수가 방금 하나 늘었는가.
+            var want = (i + 1) * keep / boxes.Count;
+            if (want > kept) { kept = want; continue; }
+
+            boxes[i].NetworkObject.Despawn();
+        }
+
+        CDebug.Log($"{name}: 상자 {boxes.Count}개 중 {keep}개를 남겼다 "
+                 + $"(팀 {teamCount}/{maxTeams}, 기획서 10장).", this);
+    }
+
     /// 팀이 서는 숲 모서리이자 카페가 놓이는 격자 칸. 부호는 (x, z)다.
     ///
     /// 대각선부터 채운다. 2팀에게 이웃한 두 모서리를 주면 한쪽이 상대 카페 구역에 더
@@ -253,8 +332,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         var cafe = CafeOf(team);
         if (cafe == null) return null;
 
-        return cafe.transform.position
-             + Vector3.right * (slot * spawnSlotSpacing)
+        return cafe.transform.TransformPoint(
+                   cafeSpawnOffset + Vector3.right * (slot * spawnSlotSpacing))
              + Vector3.up * spawnHeight;
     }
 

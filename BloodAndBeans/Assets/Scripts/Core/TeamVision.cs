@@ -25,9 +25,11 @@ public class TeamVision : MonoBehaviour
         cam.cullingMask = mask;
     }
 
-    /// 카페 하나를 통째로 그 팀의 레이어로 옮긴다. 카페가 런타임 스폰이 되면서 레이어를
-    /// 프리팹에 구워 둘 수 없게 됐다 — 프리팹 하나를 모든 팀이 공유하기 때문이다.
-    public static void ApplyCafeLayer(GameObject root, int team)
+    /// 오브젝트 하나를 통째로 그 팀의 레이어로 옮긴다. 카페가 런타임 스폰이 되면서
+    /// 레이어를 프리팹에 구워 둘 수 없게 됐다 — 프리팹 하나를 모든 팀이 공유하기 때문이다.
+    /// 플레이어의 손 앵커도 같은 통로를 쓴다 (`ItemDisplay`): 손에 든 것 역시 팀 밖에서
+    /// 보이면 안 되는데(기획서 3.1) 플레이어 본체는 Default에 남아야 하기 때문이다.
+    public static void ApplyTeamLayer(GameObject root, int team)
     {
         var layer = LayerMask.NameToLayer(LayerPrefix + team);
         if (root == null || layer < 0) return;       // 레이어가 없으면 컬링도 없다

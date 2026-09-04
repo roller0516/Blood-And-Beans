@@ -13,12 +13,7 @@ public class DashHarass : NetworkBehaviour
     [SerializeField] float reach = 1.6f;
     [SerializeField] float knockback = 3f;       // 약 1.5타일
     [SerializeField] float spillShare = 0.1f;
-    [SerializeField] float spillAtLoad = 0.8f;
     [SerializeField] float spawnProtectionSeconds = 15f;
-
-    /// 가방이 이 비율 이상 차면 대시를 쓸 수 없다. 무게를 비우려면 가방을 묻어야 하고,
-    /// 그것이 기동성과 수확을 맞바꾸는 선택지다.
-    [SerializeField] float dashBlockedAtLoad = 0.6f;
 
     [Header("돌진")]
     // ponytail: 거리·시간도 기획서 미결정이다. 걷는 속도(5)의 약 4배로 잡은 임시값이다.
@@ -70,10 +65,6 @@ public class DashHarass : NetworkBehaviour
     bool pushing;
     bool toppling;                               // 넘어지는 밀림인가. 반동은 서 있는 채로 밀린다
 
-    /// 돌진과 넉백은 둘 다 LateUpdate에서 위치를 직접 민다. 그동안 PlayerMove가 같이
-    /// 밀면 두 이동이 더해지므로, 조작 입력은 이 구간 내내 죽인다.
-    public bool SuppressesInputServer => IsServer && (Time.time < stunEnd || Time.time < dashEnd);
-
     void Awake()
     {
         controller = GetComponent<CharacterController>();
@@ -82,7 +73,13 @@ public class DashHarass : NetworkBehaviour
     }
 
     /// 표시 전용. 무게 때문에 대시가 막혔는지 소유자에게 알려 준다. 판정은 서버가 다시 한다.
-    public bool BlockedByLoad => inventory != null && inventory.LoadRatio >= dashBlockedAtLoad;
+    /// 가방이 무거우면 대시를 쓸 수 없다 (기획서 6.6: 70% *초과*). 기동성과 수확을
+    /// 맞바꾸는 선택이고, 그것이 기동을 되찾으려면 가방을 묻어야 하는 이유다 (6.7).
+    ///
+    /// 기준선은 `LoadBands`가 든다 — 겉보기·낙하(80%)와 같은 표에 있어야 두 선의
+    /// 순서가 기획서와 어긋나는 순간 눈에 띈다.
+    public bool BlockedByLoad =>
+        inventory != null && inventory.LoadRatio > LoadBands.DashBlockRatio;
 
     /// 표시 전용. 쿨다운 전체 길이(초). HUD가 남은 시간을 비율로 그리는 데 쓴다.
     public float Cooldown => cooldown;
@@ -175,7 +172,7 @@ public class DashHarass : NetworkBehaviour
 
         // 가방이 무거우면 대시가 없다. 서버가 판정한다 — 소유자에게 맡기면 무게 제한이
         // 없는 것과 같다.
-        if (inventory != null && inventory.LoadRatio >= dashBlockedAtLoad) return;
+        if (BlockedByLoad) return;
 
         if (NetworkManager.ServerTime.Time < nextDash) return;
         nextDash = NetworkManager.ServerTime.Time + cooldown;
@@ -183,6 +180,10 @@ public class DashHarass : NetworkBehaviour
 
         dashDirection = move.FacingServer;
         dashEnd = Time.time + dashSeconds;
+
+        // 돌진하는 동안 조작 입력은 죽는다. 여기서 미는 위치와 더해지면 돌진 거리가
+        // 입력만큼 늘거나 줄어든다.
+        move.SuppressInputUntilServer(dashEnd);
         dashHitResolved = false;
 
         DashStartedRpc(dashSeconds);
@@ -214,7 +215,9 @@ public class DashHarass : NetworkBehaviour
 
         // 재료가 쏟아졌는지는 연출이 갈리는 기준이다. 밀리기만 한 것과 수확을 흘린 것은
         // 맞은 사람에게 전혀 다른 사건이다 (기획서 6.6).
-        var spilled = inv != null && load >= spillAtLoad;
+        // 기준선은 `LoadBands.OverloadRatio` 하나다. 겉보기(기획서 6.6 "겉보기에도
+        // 표시된다")와 같은 값을 써야 부풀어 보이는 상대가 실제로 흘린다.
+        var spilled = inv != null && load >= LoadBands.OverloadRatio;
         if (spilled) inv.DropShareServer(spillShare, victim.transform.position);
         victim.GetComponent<PlayerInteract>()?.InterruptServer();
 
@@ -251,6 +254,7 @@ public class DashHarass : NetworkBehaviour
         knockStart = Time.time;
         pushSeconds = Mathf.Max(0.01f, slideSeconds);
         stunEnd = Time.time + Mathf.Max(lockSeconds, pushSeconds);
+        move.SuppressInputUntilServer(stunEnd);
         pushing = true;
 
         if (!topple) return;

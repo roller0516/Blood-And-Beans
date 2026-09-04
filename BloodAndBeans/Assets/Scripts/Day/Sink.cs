@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -15,6 +15,12 @@ public class Sink : NetworkBehaviour, IInteractable
 
     readonly HoldTimer hold = new();
     readonly List<ulong> holders = new();
+
+    /// 홀드를 시작한 사람의 세척 시간 배수 (기획서 9.1 「깔끔쟁이」: 설거지 속도 2배).
+    ///
+    /// 시작할 때 한 번 풀어 둔다. 매 틱 `PlayerCharacter.Of`를 부르면 그 안의
+    /// `GetComponent`가 주기 실행 안의 컴포넌트 조회가 된다 (AGENTS.md 참조와 결합도).
+    readonly Dictionary<ulong, float> washScale = new();
 
     Cafe ownerCafe;
 
@@ -41,11 +47,13 @@ public class Sink : NetworkBehaviour, IInteractable
     {
         if (Director == null || Director.Phase.Current != Phase.Day)
         {
-            hold.Cancel(clientId);
+            CancelHold(clientId);
             return;
         }
-        if (!InReach(clientId)) { hold.Cancel(clientId); return; }
-        if (!hold.TryConsume(clientId, NetworkManager.ServerTime.Time, washSeconds)) return;
+        if (!InReach(clientId)) { CancelHold(clientId); return; }
+
+        var scale = washScale.TryGetValue(clientId, out var s) ? s : 1f;
+        if (!hold.TryConsume(clientId, NetworkManager.ServerTime.Time, washSeconds / scale)) return;
         Cafe.Of(this)?.Dishes?.WashServer();
     }
 
@@ -55,11 +63,24 @@ public class Sink : NetworkBehaviour, IInteractable
         var clientId = p.Receive.SenderClientId;
         if (Director == null || Director.Phase.Current != Phase.Day) return;
         if (!InReach(clientId) || !Cafe.SameTeamServer(this, clientId)) return;
+
+        var pc = PlayerCharacter.Of(clientId);
+        washScale[clientId] = pc != null && pc.Has(DayPassive.Tidy)
+            ? DayPassives.WashSpeed : 1f;
+
         hold.Begin(clientId, NetworkManager.ServerTime.Time);
     }
 
     [Rpc(SendTo.Server)]
-    public void WashHoldEndRpc(RpcParams p = default) => hold.Cancel(p.Receive.SenderClientId);
+    public void WashHoldEndRpc(RpcParams p = default) => CancelHold(p.Receive.SenderClientId);
+
+    /// 타이머와 캐시한 배수는 항상 함께 산다. 한쪽만 지우면 다음 홀드가 남의 배수로
+    /// 세척 시간을 계산한다 (`ItemBox.CancelCast`와 같은 이유).
+    void CancelHold(ulong clientId)
+    {
+        hold.Cancel(clientId);
+        washScale.Remove(clientId);
+    }
 
     [Rpc(SendTo.Server)]
     public void DiscardRpc(RpcParams p = default)
@@ -75,12 +96,21 @@ public class Sink : NetworkBehaviour, IInteractable
         Cafe.Of(this)?.Dishes?.SoilServer();
     }
 
-    public override void OnNetworkDespawn() => hold.CancelAll();
+    public override void OnNetworkDespawn()
+    {
+        hold.CancelAll();
+        washScale.Clear();
+    }
 
     bool InReach(ulong clientId)
     {
         var t = Station.PlayerOf(clientId);
-        return t != null && Vector3.Distance(t.position, transform.position) <= reach;
+        return t != null && Station.WithinReach(surface, transform, t.position, reach);
     }
+
+    /// 손이 닿는지 재는 기준면 (`Station.WithinReach`).
+    Collider surface;
+
+    void Awake() => surface = GetComponentInChildren<Collider>(true);
 
 }

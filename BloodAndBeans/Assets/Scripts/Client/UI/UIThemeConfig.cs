@@ -54,6 +54,14 @@ public class UIThemeConfig : ScriptableObject
     [SerializeField, Min(1f)] float buttonSecondaryLabelSize = 16f;
     [SerializeField, Min(1f)] float buttonLabelHeight = 26f;
 
+    [Header("모서리")]
+    [Tooltip("둥근 모서리를 만드는 9-slice 스프라이트. 유니티 내장 UI/Skin/UISprite면 " +
+             "프로젝트에 새 이미지 파일을 넣지 않아도 된다.")]
+    [SerializeField] Sprite roundedSprite;
+
+    [Tooltip("모서리 반지름(px). UIRoundImage가 붙은 Image에만 먹는다. 0이면 각진 채로 둔다.")]
+    [SerializeField, Min(0f)] float cornerRadius = 12f;
+
     [Header("구분선")]
     [SerializeField, Min(0.1f)] float ruleHeight = 1f;
 
@@ -80,6 +88,9 @@ public class UIThemeConfig : ScriptableObject
     public float ButtonPrimaryLabelSize => buttonPrimaryLabelSize;
     public float ButtonSecondaryLabelSize => buttonSecondaryLabelSize;
     public float ButtonLabelHeight => buttonLabelHeight;
+
+    public Sprite RoundedSprite => roundedSprite;
+    public float CornerRadius => cornerRadius;
 
     public float RuleHeight => ruleHeight;
 

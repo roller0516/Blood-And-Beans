@@ -84,24 +84,6 @@ public class NightRuleTests
     }
 
     [Test]
-    public void DashKeepsHalfOfTheProgress()
-    {
-        // 6.6: 개봉 중단, 진행도 50% 유지.
-        var h = new HoldTimer();
-        h.Begin(1, 0d);
-        h.Halve(1, 0.8d);
-        Assert.AreEqual(0.4f, h.Elapsed(1, 0.8d), 0.001f);
-    }
-
-    [Test]
-    public void HalveOnSomeoneNotHoldingIsANoOp()
-    {
-        var h = new HoldTimer();
-        h.Halve(1, 5d);
-        Assert.IsFalse(h.Holding(1));
-    }
-
-    [Test]
     public void CancelAllClearsEveryone()
     {
         // 밤이 끝나면 진행 중이던 홀드는 전부 사라져야 한다.

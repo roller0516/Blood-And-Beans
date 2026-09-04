@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -113,9 +113,14 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
     void OnOwnerTeamChanged(int _, int __) => ApplyVisibility();
 
+    /// 지난 프레임에 「추적」이 켜져 있었는가. 꺼지는 순간을 잡아 한 번만 다시 그린다.
+    bool trackedWasOn;
+
     /// 아군이면 보여 주고 아니면 감춘다. 둘 중 하나라도 모르면 감춘 채로 두고 다음
     /// 기회에 다시 온다 — 로컬 플레이어는 늦게 스폰될 수 있고, 그때 재시도 경로가
     /// 없으면 적 화면에 가방이 그대로 남는다.
+    ///
+    /// 「추적」에 걸린 동안에는 적에게도 보인다 (기획서 9.2).
     void ApplyVisibility()
     {
         var owner = ownerTeam.Value;
@@ -123,7 +128,27 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         if (owner < 0 || local < 0) return;
 
         visibilityResolved = true;
-        SetShown(local == owner);
+        SetShown(local == owner || TrackedNow);
+    }
+
+    /// 「추적」이 드러낸 시각. 이 시각까지 적에게도 보인다.
+    float trackedUntil;
+
+    bool TrackedNow => Time.time < trackedUntil;
+
+    /// 「추적」이 이 가방을 찾아냈다 (기획서 9.2). 찾은 사람에게만 보여 준다 — 스킬을
+    /// 쓴 쪽의 정보이지 판 전체에 공개되는 것이 아니다.
+    public void RevealToServer(ulong clientId, float seconds)
+    {
+        if (!IsServer || seconds <= 0f) return;
+        TrackedRpc(seconds, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void TrackedRpc(float seconds, RpcParams p = default)
+    {
+        trackedUntil = Mathf.Max(trackedUntil, Time.time + seconds);
+        ApplyVisibility();
     }
 
     void SetShown(bool value)
@@ -172,6 +197,15 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     {
         // 로컬 팀이 늦게 정해지는 경우를 위한 재시도. 확정되면 bool 하나만 보고 빠진다.
         if (!visibilityResolved) ApplyVisibility();
+
+        // 「추적」이 끝나는 프레임에 다시 감춘다. 남겨 두면 한 번 찾힌 가방이 그 밤 내내
+        // 보인다 — 쿨타임 30초짜리 스킬이 영구 표시가 되면 안 된다.
+        if (trackedWasOn && !TrackedNow)
+        {
+            trackedWasOn = false;
+            ApplyVisibility();
+        }
+        else if (!trackedWasOn && TrackedNow) trackedWasOn = true;
 
         if (!IsServer) return;
 

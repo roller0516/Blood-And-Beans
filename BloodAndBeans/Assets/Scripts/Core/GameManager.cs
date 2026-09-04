@@ -1,4 +1,4 @@
-using Cysharp.Threading.Tasks;
+﻿using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -37,6 +37,13 @@ public class GameManager : PersistentMonoSingleton<GameManager>
     /// 매치 씬은 로비를 직접 알 이유가 없고, 세션 단위로 하나뿐인 것을 찾을 자리는 여기다.
     public static MatchSeating Seating =>
         Instance != null && Instance.lobby != null ? Instance.lobby.Seating : null;
+
+    /// 로비에서 고른 캐릭터 (기획서 9장). 좌석과 같은 이유로 여기서 통로만 연다 —
+    /// 플레이어는 타이틀 씬에서 스폰되고 그때 이 값을 읽어 서버로 넘긴다.
+    public static int SelectedCharacter =>
+        Instance != null && Instance.lobby != null
+            ? Instance.lobby.SelectedCharacter
+            : CharacterCatalog.NoPick;
 
     /// `BeforeSceneLoad`는 어떤 씬 오브젝트의 `Awake`보다도 먼저 돈다. 그래서 `MatchDirector`가
     /// `Awake`에서 `MatchSeating`을 찾는 것이 실행 순서에 기대지 않고 항상 성립한다.

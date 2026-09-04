@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 8058269972070213211}
   - component: {fileID: 4767095747920342168}
   - component: {fileID: 1423493841312213958}
+  - component: {fileID: 8064583822039146096}
   m_Layer: 0
   m_Name: "\uBC29 \uB9CC\uB4E4\uAE30"
   m_TagString: Untagged
@@ -142,6 +143,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8064583822039146096
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 890994180663115114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &971321815494109304
 GameObject:
   m_ObjectHideFlags: 0
@@ -313,6 +327,7 @@ GameObject:
   - component: {fileID: 6761985479189823069}
   - component: {fileID: 4139785748492192878}
   - component: {fileID: 1082029836808430668}
+  - component: {fileID: 2596569677519306935}
   m_Layer: 0
   m_Name: RoomRowTemplate
   m_TagString: Untagged
@@ -442,6 +457,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &2596569677519306935
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1022303493727896001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &1429563994128811264
 GameObject:
   m_ObjectHideFlags: 0
@@ -751,6 +779,7 @@ GameObject:
   - component: {fileID: 871257609775011262}
   - component: {fileID: 249273555782490276}
   - component: {fileID: 5102794589197515493}
+  - component: {fileID: 5193738924802829220}
   m_Layer: 0
   m_Name: "\uB4A4\uB85C"
   m_TagString: Untagged
@@ -880,6 +909,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &5193738924802829220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2818687940772726854}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &2854884158500504927
 GameObject:
   m_ObjectHideFlags: 0
@@ -1442,6 +1484,7 @@ GameObject:
   - component: {fileID: 1448050100522411211}
   - component: {fileID: 1319682059286354683}
   - component: {fileID: 1801340592935614289}
+  - component: {fileID: 7836649698932572339}
   m_Layer: 0
   m_Name: "\uB4E4\uC5B4\uAC00\uAE30"
   m_TagString: Untagged
@@ -1571,6 +1614,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &7836649698932572339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5878973374527351060}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &6597336843510722686
 GameObject:
   m_ObjectHideFlags: 0
@@ -1810,6 +1866,7 @@ GameObject:
   - component: {fileID: 7702816787021672165}
   - component: {fileID: 5415551662307282394}
   - component: {fileID: 252852010161273219}
+  - component: {fileID: 8462819402250974599}
   m_Layer: 0
   m_Name: "\uC0C8\uB85C\uACE0\uCE68"
   m_TagString: Untagged
@@ -1939,6 +1996,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8462819402250974599
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7221189141358438052}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &7715774277534814223
 GameObject:
   m_ObjectHideFlags: 0
@@ -2109,6 +2179,7 @@ GameObject:
   - component: {fileID: 2803223480722604705}
   - component: {fileID: 6059345852898513144}
   - component: {fileID: 1395594182517778691}
+  - component: {fileID: 2428405366912655401}
   m_Layer: 0
   m_Name: Panel
   m_TagString: Untagged
@@ -2203,6 +2274,19 @@ MonoBehaviour:
   m_ChildScaleWidth: 0
   m_ChildScaleHeight: 0
   m_ReverseArrangement: 0
+--- !u!114 &2428405366912655401
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8592737996448487506}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: -1
 --- !u!1 &8741289837594629872
 GameObject:
   m_ObjectHideFlags: 0

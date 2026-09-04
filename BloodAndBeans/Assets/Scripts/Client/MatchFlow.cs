@@ -15,6 +15,10 @@ public sealed class MatchFlow : MonoBehaviour
     /// 갱신 주기. 매 프레임 문자열을 새로 만들지 않기 위한 것이다.
     [SerializeField] float refreshInterval = 0.1f;
 
+    /// 귀환 결과 창이 떠 있는 시간. 이 창은 낮이 시작될 때 뜨는데(밤 -> 낮 -> 전환),
+    /// 낮은 2분짜리 조작 구간이라 창이 계속 덮고 있으면 안 된다.
+    [SerializeField] float returnPopupSeconds = 4f;
+
     [Header("입력")]
     /// ESC를 읽을 액션 애셋. 플레이어 조작과 같은 애셋이며 새 바인딩을 만들지 않는다 —
     /// `UI/Cancel`에 이미 키보드 Escape와 게임패드 B가 물려 있다.
@@ -26,21 +30,33 @@ public sealed class MatchFlow : MonoBehaviour
     InputAction cancel;
 
     MatchHudPresenter presenter;
-    MatchHudScreen hud;
+    UIMatchHudScreen hud;
 
     /// 루팅 창을 띄운 박스. 서버가 세션을 닫으면 같이 닫는다.
     ItemBox lootBox;
     bool lootOpen;
 
+    /// 그리드 창을 띄운 재료 칸 (기획서 6.5.4). 상자와 같은 창을 쓰지만 낮에만 뜨므로
+    /// 둘이 겹치지 않는다.
+    IngredientShelf gridShelf;
+
     /// 내 팀의 복귀 구역. 늦게 복제되므로 아직 없을 때만 한 번 찾는다.
     ReturnZone zone;
     bool returnPopupOpen;
+    float returnPopupUntil;
 
     /// 최종 결산을 이미 띄웠는가. 판이 끝나는 것은 한 번뿐이라 다시 열지 않는다.
     bool resultPopupOpen;
 
     /// 전환 페이즈에 떠 있는 정산 화면. 전환이 끝나면 매치 HUD로 되돌린다.
     UIDaySettlementScreen settlement;
+
+    /// 정산 위에 겹쳐 뜨는 설비 업그레이드 화면 (기획서 8장). 전환 페이즈에만 존재한다.
+    UIFacilityUpgradeScreen upgrades;
+
+    /// 업그레이드 화면을 이번 전환에서 닫았는가. 「적용」을 눌러 닫은 뒤 같은 전환에서
+    /// 다시 뜨면 정산을 볼 수가 없다.
+    bool upgradesDismissed;
 
     void Start()
     {
@@ -62,7 +78,7 @@ public sealed class MatchFlow : MonoBehaviour
 
         // Push가 아니라 Replace다. UIManager가 영속이라 타이틀의 화면이 스택에 그대로
         // 남아 있고, 그 위에 얹으면 매치가 끝나고 돌아갈 때 그 화면이 되살아난다.
-        var screen = ui.ReplaceScreen<MatchHudScreen>();
+        var screen = ui.ReplaceScreen<UIMatchHudScreen>();
         if (screen == null)
         {
             enabled = false;
@@ -101,7 +117,7 @@ public sealed class MatchFlow : MonoBehaviour
         var ui = UIManager.Instance;
         if (ui == null) return;
 
-        if (ui.CurrentPopup is SettingsPopup)
+        if (ui.CurrentPopup is UISettingsPopup)
         {
             ui.PopPopup();
             return;
@@ -109,7 +125,7 @@ public sealed class MatchFlow : MonoBehaviour
 
         if (ui.PopupDepth > 0) return;
 
-        var popup = ui.PushPopup<SettingsPopup>();
+        var popup = ui.PushPopup<UISettingsPopup>();
         popup?.Bind(ui.PopPopup);
     }
 
@@ -118,6 +134,9 @@ public sealed class MatchFlow : MonoBehaviour
     void OnDestroy()
     {
         if (cancel != null) cancel.performed -= OnCancel;
+
+        var cafe = LocalCafe;
+        if (cafe != null) cafe.UpgradesChanged -= OnUpgradesReplicated;
 
         var ui = UIManager.Instance;
         if (ui == null) return;
@@ -142,8 +161,10 @@ public sealed class MatchFlow : MonoBehaviour
         }
 
         SyncLootPopup();
+        SyncShelfPopup();
         SyncReturnPopup();
         SyncSettlementScreen();
+        SyncUpgradeScreen();
         SyncResultPopup();
     }
 
@@ -161,7 +182,11 @@ public sealed class MatchFlow : MonoBehaviour
         var ui = UIManager.Instance;
         if (ui == null || phase == null || !phase.IsSpawned) return;
 
-        var inTransition = phase.Current == Phase.Transition && !phase.Finished;
+        // 첫 전환(밤 → 낮 1일차)에는 아직 마감된 하루가 없다. 그때 정산 화면을 띄우면
+        // 청구되지도 않은 1일차 임대료를 미납으로, 매출을 0으로 그린다 — 임대료는 낮이
+        // 끝날 때 청구된다 (기획서 3.2). 마감 결과가 온 뒤에만 연다.
+        var settled = ledger != null && ledger.Today.Valid;
+        var inTransition = phase.Current == Phase.Transition && !phase.Finished && settled;
 
         if (!inTransition)
         {
@@ -180,6 +205,106 @@ public sealed class MatchFlow : MonoBehaviour
 
         settlement.SetRemaining(phase.Remaining, phase.Duration(Phase.Transition));
     }
+
+    /// 전환 페이즈에 설비 업그레이드 화면을 정산 위로 띄운다 (기획서 4장: 전환은 정산 ·
+    /// 순위 · **업그레이드 적용** · 예보를 함께 처리한다).
+    ///
+    /// 업그레이드 재료가 하나도 없고 설치한 것도 없으면 띄우지 않는다. 10초짜리 구간에서
+    /// 아무것도 할 수 없는 화면이 정산을 덮으면 그 10초가 통째로 사라진다 — 이 재료는
+    /// 3등급 상자에서만 나와서(기획서 8장) 없는 판이 대부분이다.
+    void SyncUpgradeScreen()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null || phase == null || !phase.IsSpawned) return;
+
+        var open = phase.Current == Phase.Transition && !phase.Finished
+                && settlement != null && !upgradesDismissed && HasAnythingToShow;
+
+        if (!open)
+        {
+            if (upgrades != null)
+            {
+                ui.PopScreen();
+                upgrades = null;
+            }
+
+            // 전환을 벗어났다. 다음 전환에서는 다시 뜬다.
+            if (phase.Current != Phase.Transition) upgradesDismissed = false;
+            return;
+        }
+
+        if (upgrades == null)
+        {
+            upgrades = ui.PushScreen<UIFacilityUpgradeScreen>();
+            if (upgrades == null) return;        // 프리팹 미연결은 UIManager가 알린다
+            BindUpgrades();
+        }
+
+        upgrades.SetRemaining(phase.Remaining);
+    }
+
+    /// 이 팀의 카페. 자기 팀 것만 복제되므로(`MatchDirector.SpawnCafesServer`) 여기서
+    /// 얻는 것은 언제나 내 카페다.
+    Cafe LocalCafe
+    {
+        get
+        {
+            var director = MatchDirector.Instance;
+            return director != null ? director.CafeOf(PlayerTeam.Local()) : null;
+        }
+    }
+
+    /// 볼 것이 있는가 — 쓸 재료가 있거나 이미 설치한 설비가 있다.
+    bool HasAnythingToShow
+    {
+        get
+        {
+            var cafe = LocalCafe;
+            if (cafe == null) return false;
+            return cafe.UpgradeMask != 0 || AvailableParts > 0;
+        }
+    }
+
+    int AvailableParts
+    {
+        get
+        {
+            var stock = LocalCafe?.Stock;
+            return stock != null ? stock.CountOf(Ingredient.UpgradePart) : 0;
+        }
+    }
+
+    void BindUpgrades()
+    {
+        var cafe = LocalCafe;
+        var mask = cafe != null ? cafe.UpgradeMask : 0;
+
+        var installed = new bool[UpgradeCatalog.All.Length];
+        for (var i = 0; i < installed.Length; i++)
+            installed[i] = TeamUpgrades.AtInMask(mask, i);
+
+        upgrades.Bind(installed, AvailableParts, InstallUpgrade, DismissUpgrades);
+    }
+
+    /// 카드를 눌렀다. 재료 차감과 설치 판정은 전부 서버가 한다 (`Cafe.InstallUpgradeRpc`).
+    /// 여기서는 눌렸다는 사실만 넘기고, 결과가 복제되면 화면을 다시 그린다.
+    void InstallUpgrade(UpgradeId id)
+    {
+        var cafe = LocalCafe;
+        if (cafe == null) return;
+
+        cafe.UpgradesChanged -= OnUpgradesReplicated;
+        cafe.UpgradesChanged += OnUpgradesReplicated;
+        cafe.InstallUpgradeRpc((int)id);
+    }
+
+    void OnUpgradesReplicated()
+    {
+        if (upgrades != null) BindUpgrades();
+    }
+
+    /// 「적용」을 눌러 정산으로 돌아간다. 이번 전환에서는 다시 뜨지 않는다.
+    void DismissUpgrades() => upgradesDismissed = true;
 
     void BindSettlement()
     {
@@ -290,7 +415,8 @@ public sealed class MatchFlow : MonoBehaviour
         resultPopupOpen = true;
     }
 
-    /// 밤이 끝나면 자기 귀환 결과를 창으로 알린다 (기획서 6.8).
+    /// 밤이 끝나면 자기 귀환 결과를 창으로 알린다 (기획서 6.8). 판정은 낮이 시작될 때
+    /// 서버가 한다 (`ReturnZone`).
     ///
     /// 루팅 창과 같은 방식이다. 결과는 서버가 자기 것만 보내 주고(`ReturnZone`),
     /// 여기서는 아직 소비하지 않은 결과가 있는지만 본다.
@@ -307,8 +433,9 @@ public sealed class MatchFlow : MonoBehaviour
             if (zone == null) return;
         }
 
-        // 전환 10초 동안만 띄운다. 낮이 시작되면 접는다.
-        if (returnPopupOpen && phase.Current != Phase.Transition)
+        // 낮이 시작될 때 떠서 `returnPopupSeconds`만큼만 머문다. 낮을 벗어나면 그 전에 접는다.
+        if (returnPopupOpen &&
+            (phase.Current != Phase.Day || Time.unscaledTime >= returnPopupUntil))
         {
             ui.PopPopup();
             returnPopupOpen = false;
@@ -329,6 +456,7 @@ public sealed class MatchFlow : MonoBehaviour
 
         popup.Bind(outcome, kept, lost, lossPercent);
         returnPopupOpen = true;
+        returnPopupUntil = Time.unscaledTime + returnPopupSeconds;
     }
 
     /// 개봉 게이지가 다 차면 창을 열고, 서버가 세션을 닫으면(이동·피격·밤 종료) 닫는다.
@@ -357,10 +485,56 @@ public sealed class MatchFlow : MonoBehaviour
         }
         if (box == null) return;
 
-        var popup = ui.PushPopup<BoxLootPopup>();
+        var popup = ui.PushPopup<UIBoxLootPopup>();
         if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
 
-        popup.Bind(box, presenter.BoxHold, hud != null ? hud.BagAnchor : null);
+        var hold = presenter.BoxHold;
+        popup.Bind(box, hold.TakeSlotClient, presenter.Bag,
+                   hud != null ? hud.BagAnchor : null);
         lootOpen = true;
+    }
+
+    /// 낮의 재료 칸도 같은 그리드 창에서 꺼낸다 (기획서 6.5.4).
+    ///
+    /// 창은 F로 열고 F로 닫는다(`IngredientShelf.BeginInteractionClient`). 상자와 달리
+    /// 서버 세션이 없으므로 여기서 닫을 조건을 본다 — 낮이 끝나거나 손이 닿지 않을
+    /// 만큼 멀어지면 내린다. 멀어져서 내릴 때는 칸의 토글도 함께 꺼야 다시 다가왔을 때
+    /// 저절로 열리지 않는다.
+    void SyncShelfPopup()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        var day = phase != null && phase.IsSpawned && phase.Current == Phase.Day;
+        var shelf = day ? presenter?.Interactor?.Latest as IngredientShelf : null;
+
+        if (shelf != null && !shelf.GridOpen) shelf = null;
+        if (shelf != null && !shelf.LocalPlayerNear)
+        {
+            shelf.CloseGridClient();
+            shelf = null;
+        }
+
+        if (ReferenceEquals(shelf, gridShelf)) return;
+
+        if (gridShelf != null)
+        {
+            gridShelf.CloseGridClient();
+            ui.PopPopup();
+        }
+
+        gridShelf = shelf;
+        if (shelf == null) return;
+
+        var popup = ui.PushPopup<UIBoxLootPopup>();
+        if (popup == null)              // 프리팹 미연결은 UIManager가 오류로 알린다
+        {
+            gridShelf = null;
+            shelf.CloseGridClient();
+            return;
+        }
+
+        // 가방은 밤의 물건이다. 낮에는 손으로 옮기므로 무게 표시도 연출도 없다.
+        popup.Bind(shelf, shelf.TakeSlotClient, null, null);
     }
 }

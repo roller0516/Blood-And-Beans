@@ -722,7 +722,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &109416756
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -856,7 +855,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &125731541
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1170,7 +1168,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &194730961
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1442,7 +1439,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &271540810
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2143,7 +2139,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &462427871
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2374,6 +2369,7 @@ MonoBehaviour:
   cafeAreaGap: 60
   spawnHeight: 1
   spawnSlotSpacing: 2
+  cafeSpawnOffset: {x: 0, y: 0, z: -2}
   fogPlanePrefab: {fileID: 900764007414461499, guid: a006ed7a1e020ba42b2fa8fba7c74853, type: 3}
 --- !u!114 &500636065
 MonoBehaviour:
@@ -2495,7 +2491,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &523830467
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2809,7 +2804,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &567411297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5808,7 +5802,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &898546339
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5942,7 +5935,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &938771324
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6076,7 +6068,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1004518801
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6300,7 +6291,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1091257487
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6524,7 +6514,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1150652909
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6928,7 +6917,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1206162158
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7076,10 +7064,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::MatchCameraDirector
   nightCamera: {fileID: 1919786191}
   tppCamera: {fileID: 89249890}
-  dayCamera: {fileID: 1723222160}
   activePriority: 20
   idlePriority: 0
-  cafeOffset: {x: 0, y: 14, z: -8}
+  phaseSnapSeconds: 0.3
   view: {fileID: 330585545}
 --- !u!4 &1307295434
 Transform:
@@ -7296,7 +7283,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1596484116
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7520,7 +7506,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1687637891
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -7859,6 +7844,7 @@ MonoBehaviour:
   phase: {fileID: 500636059}
   ledger: {fileID: 500636061}
   refreshInterval: 0.1
+  returnPopupSeconds: 4
   actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
 --- !u!4 &1825769255
 Transform:
@@ -7982,7 +7968,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &1883656858
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -8400,7 +8385,6 @@ MonoBehaviour:
   commonPool: 000000000100000002000000030000000400000005000000
   rarePool: 0600000007000000
   rareFromTier: 3
-  rareSlots: 1
 --- !u!114 &2021703820
 MonoBehaviour:
   m_ObjectHideFlags: 0

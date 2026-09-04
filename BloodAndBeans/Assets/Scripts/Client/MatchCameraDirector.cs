@@ -3,21 +3,25 @@ using Unity.Netcode;
 using UnityEngine;
 
 /// 매치 카메라의 조립 지점. 실제 카메라는 하나뿐이고(`CinemachineBrain`), 어디를 비출지는
-/// 페이즈에 따라 가상 카메라 둘이 번갈아 정한다.
+/// 가상 카메라 둘 중 우선순위가 높은 쪽이 정한다.
 ///
-/// - **밤**: 플레이어를 따라간다. 숲을 걸어 다니는 화면이다. 따라가는 방식은 둘이고
-///   (`PlayerView`) 개발 콘솔에서 갈아 끼운다 — 쿼터뷰와 TPP의 느낌을 눈으로 비교하려는
-///   장치이지 게임 규칙이 아니다.
-/// - **낮·전환**: 내 팀 카페에 고정된다. 카페는 숲 밖 빈 공간에 서 있어서, 카메라가 거기
-///   가면 주변에 지오메트리가 하나도 없고 카메라 배경색(검정)만 남는다. 동물의 숲 텐트
-///   실내와 같은 그림이며, 마스크나 후처리가 아니라 "거기 아무것도 없다"로 만든다.
-///   그 검정의 근거는 `MatchDirector.cafeAreaGap`이 벌려 둔 거리다.
+/// **페이즈와 무관하게 플레이어를 따라간다.** 밤에는 숲을 걷고, 낮·전환에는 카페 안에
+/// 서 있다 (`PlayerTeam.MoveToPhaseStartServer`) — 어느 쪽이든 화면 한가운데 내 캐릭터가
+/// 있다. 카페에 고정된 부감 뷰를 따로 두었었지만, 카페에서도 캐릭터를 움직이는 이상
+/// 시점이 페이즈마다 뒤바뀔 이유가 없다.
+///
+/// 따라가는 방식만 둘이고(`PlayerView`) 개발 콘솔에서 갈아 끼운다 — 쿼터뷰와 TPP의 느낌을
+/// 눈으로 비교하려는 장치이지 게임 규칙이 아니다.
+///
+/// 카페가 검게 보이는 것은 카메라가 아니라 지오메트리 문제다. 카페는 숲 밖 빈 공간에 서
+/// 있어서 주변에 아무것도 없고 카메라 배경색(검정)만 남는다. 동물의 숲 텐트 실내와 같은
+/// 그림이며, 그 검정의 근거는 `MatchDirector.cafeAreaGap`이 벌려 둔 거리다.
 ///
 /// 카메라 한 대에 분기를 넣지 않는다. 추적 방식이 둘 다 앞으로 손댈 값이고, 우선순위만
 /// 바꾸면 전환과 블렌딩은 브레인이 맡는다.
 public class MatchCameraDirector : MonoBehaviour
 {
-    /// 플레이어를 따라다니는 카메라의 시점. 카페 고정 뷰는 이 선택과 무관하다.
+    /// 플레이어를 따라다니는 카메라의 시점. 모든 페이즈에 같은 시점을 쓴다.
     public enum PlayerView
     {
         /// 위에서 비스듬히 내려다보는 시점. 멀리서 좁은 화각으로 잡아 원근을 누른다.
@@ -29,22 +33,24 @@ public class MatchCameraDirector : MonoBehaviour
     }
 
     [Header("가상 카메라")]
-    /// 밤 · 쿼터뷰.
+    /// 쿼터뷰. 필드 이름은 씬 배선(GUID가 아니라 필드 이름으로 붙는다)을 지키려고 그대로 둔다.
     [SerializeField] CinemachineCamera nightCamera;
 
-    /// 밤 · TPP. 기본 시점이다. 비어 있으면 시점 전환이 없는 것으로 보고 쿼터뷰만 쓴다.
+    /// TPP. 기본 시점이다. 비어 있으면 시점 전환이 없는 것으로 보고 쿼터뷰만 쓴다.
     [SerializeField] CinemachineCamera tppCamera;
-
-    /// 낮 · 전환. 내 팀 카페에 고정된다.
-    [SerializeField] CinemachineCamera dayCamera;
 
     /// 브레인은 우선순위가 높은 쪽을 따른다.
     [SerializeField] int activePriority = 20;
     [SerializeField] int idlePriority = 0;
 
-    [Header("낮 카페 뷰")]
-    /// 카페 중심에서 카메라가 서는 자리. 밤 카메라의 Follow Offset과 같은 뜻이다.
-    [SerializeField] Vector3 cafeOffset = new(0f, 14f, -8f);
+    [Header("페이즈 전환")]
+    /// 페이즈가 바뀔 때 카메라를 블렌딩 없이 잘라 붙인 뒤, 이 시간 동안 매 프레임 다시
+    /// 붙여 둔다. 페이즈 복제와 순간이동이 같은 프레임에 도착한다는 보장이 없어서
+    /// 한 번만 자르면 늦게 도착한 순간이동만큼 카메라가 뒤따라 날아온다. 숲과 카페는
+    /// `cafeAreaGap`만큼 떨어져 있어서 낮으로 넘어갈 때도 같은 문제가 그대로 있다.
+    /// 이 창 동안 캐릭터는 아직 디졸브 중이라 감쇠가 없어도 화면에 티가 나지 않는다
+    /// (`PlayerDissolve`).
+    [SerializeField] float phaseSnapSeconds = 0.3f;
 
     [Header("가시성")]
     /// 컬링 마스크를 깎을 실제 카메라. 브레인이 붙어 있는 그 카메라다.
@@ -55,19 +61,13 @@ public class MatchCameraDirector : MonoBehaviour
     MatchDirector director;
     GamePhase clock;
 
-    /// 마지막으로 들어간 페이즈. 시점을 바꿀 때 "지금 따라다니는 중인가"를 다시 물어볼
-    /// 곳이 없어서 들고 있는다.
-    Phase currentPhase = Phase.Night;
-
-    /// 낮 카메라가 카페 위에 자리를 잡았는가. 카페는 팀 배정보다 늦게 복제될 수 있어서,
-    /// 페이즈 전환 한 번에만 기대면 그 순간 카페가 없던 클라이언트는 낮 카메라가 원점에
-    /// 선 채로 남는다 — 화면이 카페도 플레이어도 아닌 곳을 비춘다.
-    bool dayCameraPlaced;
+    /// 카메라를 목표 자리에 붙여 두는 창의 끝 시각. 지났으면 시네머신이 평소대로 감쇠한다.
+    float snapUntil;
 
     /// 지금 고른 시점. 바꾸는 것은 개발 콘솔뿐이다.
     public PlayerView View { get; private set; } = PlayerView.ThirdPerson;
 
-    /// 시점을 바꾼다. 낮·전환처럼 카페에 고정된 동안 불러도 되며, 밤이 되면 고른 쪽이 뜬다.
+    /// 시점을 바꾼다. 어느 페이즈에서 불러도 그 자리에서 바로 바뀐다.
     public void SetView(PlayerView view)
     {
         if (View == view) return;
@@ -81,8 +81,8 @@ public class MatchCameraDirector : MonoBehaviour
 
     void OnDisable() => Unbind();
 
-    /// 늦게 생기는 두 참조(로컬 플레이어, 내 팀 카페)를 잡을 때까지만 돈다. 둘 다 잡히면
-    /// 이 함수는 첫 두 줄에서 끝난다 (AGENTS.md 참조와 결합도).
+    /// 늦게 생기는 참조(로컬 플레이어)를 잡을 때까지만 돈다. 잡히면 이 함수는 첫 줄에서
+    /// 끝난다 (AGENTS.md 참조와 결합도).
     void Update()
     {
         if (player == null)
@@ -97,7 +97,9 @@ public class MatchCameraDirector : MonoBehaviour
             return;
         }
 
-        if (!dayCameraPlaced) PlaceDayCamera();
+        // 가상 카메라들의 이전 프레임 상태를 버리고 브레인이 블렌딩 없이 새 카메라를
+        // 고르게 한다. 브레인은 LateUpdate에 도므로 여기서 무효화하면 이번 프레임부터 먹는다.
+        if (Time.time < snapUntil) CinemachineCore.ResetCameraState();
     }
 
     void Bind(NetworkObject local)
@@ -138,7 +140,6 @@ public class MatchCameraDirector : MonoBehaviour
         clock = null;
         director = null;
         player = null;
-        dayCameraPlaced = false;
     }
 
     /// 같은 인스턴스로 두 번 불릴 수 있다 (`MatchDirector.Bind` 계약).
@@ -161,10 +162,6 @@ public class MatchCameraDirector : MonoBehaviour
     {
         if (view != null && director != null)
             TeamVision.ApplyServer(view, myTeam, director.TeamCount);
-
-        // 팀이 바뀌면 비출 카페도 바뀐다. 자리를 다시 잡게 한다.
-        dayCameraPlaced = false;
-        PlaceDayCamera();
     }
 
     void OnPhaseEntered(Phase phase)
@@ -173,39 +170,19 @@ public class MatchCameraDirector : MonoBehaviour
         if (view != null && team != null && director != null)
             TeamVision.ApplyServer(view, team.Team, director.TeamCount);
 
-        currentPhase = phase;
-        if (phase != Phase.Night) PlaceDayCamera();
+        // 밤이든 낮이든 페이즈가 바뀌면 플레이어가 맵 반대편으로 순간이동한다.
+        snapUntil = Time.time + phaseSnapSeconds;
 
         ApplyPriorities();
     }
 
-    /// 브레인이 따를 카메라를 정한다. 밤이면 고른 시점의 추적 카메라, 아니면 카페 고정.
-    ///
-    /// 페이즈와 시점 두 축이 여기 한 곳에서만 만난다. 두 군데서 우선순위를 만지면
-    /// 시점을 바꾼 뒤 페이즈가 넘어갈 때 어느 쪽이 이겼는지 알 수 없게 된다.
+    /// 브레인이 따를 카메라를 정한다. 고른 시점 하나만 살리고 나머지는 재운다.
     void ApplyPriorities()
     {
-        var following = currentPhase == Phase.Night;
+        // TPP 카메라가 없으면 쿼터뷰가 통째로 맡는다.
+        var thirdPerson = View == PlayerView.ThirdPerson && tppCamera != null;
 
-        // TPP 카메라가 없으면 쿼터뷰가 밤을 통째로 맡는다.
-        var thirdPerson = following && View == PlayerView.ThirdPerson && tppCamera != null;
-        var quarter = following && !thirdPerson;
-
-        if (nightCamera != null) nightCamera.Priority = quarter ? activePriority : idlePriority;
+        if (nightCamera != null) nightCamera.Priority = thirdPerson ? idlePriority : activePriority;
         if (tppCamera != null) tppCamera.Priority = thirdPerson ? activePriority : idlePriority;
-        if (dayCamera != null) dayCamera.Priority = following ? idlePriority : activePriority;
-    }
-
-    /// 낮 카메라를 내 팀 카페 위에 세운다. 카페가 아직 복제되지 않았으면 아무것도 하지
-    /// 않고, `Update`가 잡힐 때까지 다시 시도한다.
-    void PlaceDayCamera()
-    {
-        if (dayCamera == null || director == null || team == null) return;
-
-        var cafe = director.CafeOf(team.Team);
-        if (cafe == null) return;
-
-        dayCamera.transform.position = cafe.transform.position + cafeOffset;
-        dayCameraPlaced = true;
     }
 }

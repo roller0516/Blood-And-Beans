@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -30,11 +30,13 @@ public class PlayerInputRouter : NetworkBehaviour
     PlayerInteractor interaction;
     PlayerInventory inventory;
     DashHarass dash;
+    PlayerCharacter character;
     InputAction moveAction;
     InputAction interactAction;
     InputAction dashAction;
     InputAction dumpAction;
     InputAction buryAction;
+    InputAction skillAction;
 
     public override void OnNetworkSpawn()
     {
@@ -44,6 +46,7 @@ public class PlayerInputRouter : NetworkBehaviour
         interaction = GetComponent<PlayerInteractor>();
         inventory = GetComponent<PlayerInventory>();
         dash = GetComponent<DashHarass>();
+        character = GetComponent<PlayerCharacter>();
         moveAction = actions.FindAction("Player/Move", true);
         interactAction = actions.FindAction("Player/Interact", true);
         dashAction = actions.FindAction("Player/Jump", true);
@@ -53,6 +56,15 @@ public class PlayerInputRouter : NetworkBehaviour
         // 게임패드 좌스틱 누르기). 새 바인딩을 만들지 않았다.
         buryAction = actions.FindAction("Player/Sprint", true);
 
+        // 밤 액티브 스킬 (기획서 9.2). 액션 애셋에 이미 있고 쓰이지 않던 Previous를 쓴다
+        // (키보드 1, 게임패드 D-pad 왼쪽). 새 바인딩을 만들지 않았다 — 묻기가 Sprint를
+        // 쓴 것과 같은 방식이다.
+        //
+        // 기획서 11장은 "캐릭터 능력은 전부 패시브이므로 스킬 키가 없다"고 적혀 있지만,
+        // 9.2가 밤 액티브를 정의하면서 그 문장은 낡았다. 차이를 보고만 하고 임의로 한쪽을
+        // 바꾸지 않는다 (AGENTS.md) — 키는 9.2를 따라야 스킬이 존재할 수 있다.
+        skillAction = actions.FindAction("Player/Previous", true);
+
         moveAction.performed += OnMove;
         moveAction.canceled += OnMove;
         interactAction.started += OnInteractStarted;
@@ -60,6 +72,7 @@ public class PlayerInputRouter : NetworkBehaviour
         dashAction.performed += OnDash;
         dumpAction.performed += OnDump;
         buryAction.performed += OnBury;
+        skillAction.performed += OnSkill;
         actions.FindActionMap("Player", true).Enable();
     }
 
@@ -73,6 +86,15 @@ public class PlayerInputRouter : NetworkBehaviour
         dashAction.performed -= OnDash;
         dumpAction.performed -= OnDump;
         buryAction.performed -= OnBury;
+        if (skillAction != null) skillAction.performed -= OnSkill;
+    }
+
+    /// 밤 액티브 스킬 (기획서 9.2). 쿨다운과 페이즈 검사는 전부 서버가 한다 —
+    /// 여기서는 눌렸다는 사실만 넘긴다.
+    void OnSkill(InputAction.CallbackContext _)
+    {
+        if (Blocked || character == null) return;
+        character.UseSkillRpc();
     }
 
     /// 조작을 막는 UI가 떠 있는가 (`UIManager.PlayerInputBlocked`). 설정 팝업이 그렇고,

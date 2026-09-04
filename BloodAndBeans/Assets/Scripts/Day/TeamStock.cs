@@ -14,13 +14,23 @@ public class TeamStock : NetworkBehaviour
 
     static readonly int Slots = System.Enum.GetValues(typeof(Ingredient)).Length;
 
+    /// 재고가 바뀌었다. 재료 칸이 자기 위에 늘어놓은 것을 다시 그리는 신호다
+    /// (`IngredientShelf`). 서버·클라이언트 양쪽에서 오른다.
+    public event System.Action CountsChanged;
+
     public override void OnNetworkSpawn()
     {
+        counts.OnListChanged += OnCountsChanged;
+
         if (!IsServer) return;
 
         counts.Clear();                       // 다시 스폰됐을 때 표가 두 벌 쌓이면 안 된다
         for (var i = 0; i < Slots; i++) counts.Add(0);
     }
+
+    public override void OnNetworkDespawn() => counts.OnListChanged -= OnCountsChanged;
+
+    void OnCountsChanged(NetworkListEvent<int> _) => CountsChanged?.Invoke();
 
     public int CountOf(Ingredient i)
     {

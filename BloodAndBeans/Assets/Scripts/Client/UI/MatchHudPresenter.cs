@@ -8,7 +8,7 @@ using UnityEngine;
 /// 순수 계산이다.
 public sealed class MatchHudPresenter
 {
-    readonly MatchHudScreen view;
+    readonly UIMatchHudScreen view;
     readonly GamePhase phase;
     readonly TransitionLedger ledger;
     readonly float refreshInterval;
@@ -20,6 +20,7 @@ public sealed class MatchHudPresenter
     MatchDirector director;
     NetworkObject cachedPlayer;
     PlayerInventory inventory;
+    PlayerMove move;
     PlayerInteractor interactor;
     PlayerInteract boxHold;
     DashHarass dash;
@@ -44,7 +45,11 @@ public sealed class MatchHudPresenter
     /// 로컬 플레이어의 박스 홀드 상태. 고른 칸을 루팅 창에 그리는 데 쓴다.
     public PlayerInteract BoxHold => boxHold;
 
-    public MatchHudPresenter(MatchHudScreen view, GamePhase phase,
+    /// 로컬 플레이어의 가방. 여기서 이미 한 번 풀어 두므로 루팅 창이 같은 것을 다시
+    /// `GetComponent`로 찾지 않는다.
+    public PlayerInventory Bag => inventory;
+
+    public MatchHudPresenter(UIMatchHudScreen view, GamePhase phase,
                              TransitionLedger ledger, float refreshInterval)
     {
         this.view = view;
@@ -92,8 +97,12 @@ public sealed class MatchHudPresenter
             if (inventory.HasBag)
             {
                 model.BagRatio = inventory.LoadRatio;
+
+                // 게이지 색이 구간마다 바뀐다 (기획서 6.7). 표는 `LoadBands`에 있고
+                // 화면은 인덱스만 받는다 — 어느 색인지는 표현의 몫이다.
+                model.BagBand = LoadBands.BandOf(inventory.LoadRatio);
                 model.BagPercent = $"가방 용량  {inventory.LoadRatio * 100f:0}%"
-                    + $"   속도 {inventory.CurrentSpeedMultiplier * 100f:0}%";
+                    + $"   속도 {(move != null ? move.SpeedScale : 1f) * 100f:0}%";
                 model.BagWeight = $"{inventory.Carried:0.0} / {inventory.Capacity:0.0} KG";
             }
             else
@@ -101,6 +110,7 @@ public sealed class MatchHudPresenter
                 // 묻힌 동안에는 적재량이 의미가 없다. 게이지를 비우고 화면이 색으로 알린다.
                 model.BagBuried = true;
                 model.BagRatio = 0f;
+                model.BagBand = 0;
                 model.BagPercent = "가방을 묻어 뒀다";
                 model.BagWeight = "회수하지 않으면 수확 전량 소실";
             }
@@ -152,7 +162,8 @@ public sealed class MatchHudPresenter
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
-                    text.AppendLine($"{DisplayNames.Of(customer.Kind)} · x{customer.Remaining} · 인내 {customer.PatienceRatio * 100f:0}%");
+                    // 인내심은 손님 머리 위 게이지가 보여 준다 (`UICustomerPatienceBar`).
+                    text.AppendLine($"{DisplayNames.Of(customer.Kind)} · x{customer.Remaining}");
 
         return text.ToString();
     }
@@ -178,7 +189,7 @@ public sealed class MatchHudPresenter
     }
 
     /// 귀환 지시기 한 프레임분. 화면 어디에 놓을지와 무엇을 쓸지만 담는다 —
-    /// 화면 좌표로 옮기는 것은 캔버스 크기를 아는 `MatchHudScreen`의 일이다.
+    /// 화면 좌표로 옮기는 것은 캔버스 크기를 아는 `UIMatchHudScreen`의 일이다.
     public struct ReturnMarker
     {
         public bool Show;
@@ -265,7 +276,7 @@ public sealed class MatchHudPresenter
         _ => "주간 영업",
     };
 
-    /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `MatchHudScreen`의 일이고,
+    /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `UIMatchHudScreen`의 일이고,
     /// 여기는 값만 넘긴다. HUD 글자 덩어리에 섞으면 오른쪽 열에 붙어 시선에서 벗어난다.
     public float CastProgress01 => boxHold != null ? boxHold.CastProgress01 : 0f;
 
@@ -283,6 +294,7 @@ public sealed class MatchHudPresenter
 
         cachedPlayer = player;
         inventory = player != null ? player.GetComponent<PlayerInventory>() : null;
+        move = player != null ? player.GetComponent<PlayerMove>() : null;
         interactor = player != null ? player.GetComponent<PlayerInteractor>() : null;
         boxHold = player != null ? player.GetComponent<PlayerInteract>() : null;
         dash = player != null ? player.GetComponent<DashHarass>() : null;

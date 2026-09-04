@@ -6,8 +6,10 @@ using UnityEngine.UI;
 
 /// 캐릭터 선택 화면 (기획서 9장). 레이아웃은 `UI_목업.pptx` 2번이다.
 ///
-/// **트리는 프리팹에 있다.** 이 클래스는 아무것도 만들지 않고 이어 둔 참조에 값만 넣는다.
-/// 카드 8장은 `CharacterCatalog`와 같은 순서로 프리팹에 깔려 있다.
+/// **머리·상세·네임플레이트 트리는 프리팹에 있다.** 이 클래스는 그것들을 만들지 않고
+/// 이어 둔 참조에 값만 넣는다. 다만 **카드는 `CharacterCatalog.All`을 보고 찍어 낸다** —
+/// 캐릭터 종 수가 14장 #10 미결이라 프리팹에 몇 장을 깔아 두든 데이터와 어긋난다.
+/// 격자 배치는 `cardRoot`의 `GridLayoutGroup`이 맡는다.
 ///
 /// 낮은 발동 키 없는 상시 패시브이고 밤은 쿨타임이 긴 액티브다 (9.1 · 9.2). 목업 2번은
 /// 아직 `NIGHT PASSIVE`로 그려져 있어 소제목을 `Bind` 인자로 받는다.
@@ -32,28 +34,13 @@ public sealed class UICharacterSelectScreen : UIScreen
         }
     }
 
-    /// 카드 한 장의 부품 묶음. 배열 순서는 `CharacterCatalog.All`과 같아야 한다.
-    [Serializable] public class CardSlot
-    {
-        public GameObject Root;
-        public Button Button;
-        public Image Background;
-        public TMP_Text Name;
-        public GameObject ClaimRoot;
-        public RectTransform ClaimChip;
-        public Image ClaimDot;
-        public TMP_Text ClaimLabel;
-    }
-
-    /// 선점된 카드를 덮는 색. 목업 2번의 어두운 카드가 이것이다.
-    static readonly Color TakenCard = new(8f / 255f, 5f / 255f, 3f / 255f, 1f);
-
     [Header("머리")]
     [SerializeField] TMP_Text waitLabel;
     [SerializeField] TMP_Text timer;
 
     [Header("카드")]
-    [SerializeField] CardSlot[] cards = Array.Empty<CardSlot>();
+    [SerializeField] UICharacterCard cardPrefab;
+    [SerializeField] RectTransform cardRoot;
 
     [Header("상세")]
     [SerializeField] TMP_Text selectedName;
@@ -75,6 +62,9 @@ public sealed class UICharacterSelectScreen : UIScreen
     [Header("바닥")]
     [SerializeField] Button confirmButton;
     [SerializeField] Button backButton;
+
+    /// 찍어 낸 카드. 인덱스는 `CharacterCatalog.All`과 같다.
+    readonly List<UICharacterCard> cards = new();
 
     int selected = -1;
     int colorIndex;
@@ -106,20 +96,7 @@ public sealed class UICharacterSelectScreen : UIScreen
         UIButtons.Wire(prevButton, () => Step(-1));
         UIButtons.Wire(nextButton, () => Step(1));
 
-        var all = CharacterCatalog.All;
-        for (var i = 0; i < cards.Length; i++)
-        {
-            var slot = cards[i];
-            if (slot == null) continue;
-
-            // 프리팹에 이름이 박혀 있어도 카탈로그를 원본으로 삼는다.
-            if (slot.Name != null && i < all.Length) slot.Name.text = all[i].Name;
-            if (slot.Button != null) slot.Button.interactable = ClaimOf(i) < 0;
-
-            // 람다가 루프 변수를 잡지 않도록 한 번 복사한다.
-            var index = i;
-            UIButtons.Wire(slot.Button, () => Select(index, true));
-        }
+        BuildCards();
 
         for (var i = 0; i < colorButtons.Length; i++)
         {
@@ -132,7 +109,32 @@ public sealed class UICharacterSelectScreen : UIScreen
 
         // 열면서 고르는 것은 표시일 뿐이라 서버에 알리지 않는다. 알리면 화면을 여는
         // 것만으로 픽이 확정돼 짝꿍의 선택지를 잠근다.
-        Select(preselect >= 0 && preselect < cards.Length ? preselect : 0, false);
+        Select(preselect >= 0 && preselect < cards.Count ? preselect : 0, false);
+    }
+
+    /// 카탈로그 수만큼 카드를 찍는다. 화면은 재사용되므로 한 번만 만든다.
+    ///
+    /// `Awake`가 아니라 여기서 만드는 이유는 화면 루트의 <see cref="UIFontScale"/>가 자기
+    /// Awake에서 자식 글자를 모으기 때문이다. 그 전에 카드가 있으면 카드가 스스로 먹인
+    /// 배율 위에 화면 배율이 한 번 더 곱해진다.
+    void BuildCards()
+    {
+        if (cards.Count > 0) return;
+        if (cardPrefab == null || cardRoot == null)
+        {
+            CDebug.LogError($"[{nameof(UICharacterSelectScreen)}] 카드 프리팹 또는 부모가 비어 있다.");
+            return;
+        }
+
+        var all = CharacterCatalog.All;
+        for (var i = 0; i < all.Length; i++)
+        {
+            var index = i;
+            var card = Instantiate(cardPrefab, cardRoot);
+            card.name = $"Card{i}";
+            card.Bind(all[i].Name, () => Select(index, true));
+            cards.Add(card);
+        }
     }
 
     /// 짝꿍이 픽을 확정했을 때 부른다. 잠금만 갈아 끼우고 고르던 칸과 색은 그대로 둔다 —
@@ -140,8 +142,6 @@ public sealed class UICharacterSelectScreen : UIScreen
     public void SetClaims(IReadOnlyList<Claim> taken)
     {
         claims = taken;
-        for (var i = 0; i < cards.Length; i++)
-            if (cards[i]?.Button != null) cards[i].Button.interactable = ClaimOf(i) < 0;
         RefreshClaims();
 
         // 내가 보고 있던 칸을 남이 먼저 가져갔으면 빈 칸으로 옮긴다.
@@ -173,31 +173,18 @@ public sealed class UICharacterSelectScreen : UIScreen
 
     void RefreshClaims()
     {
-        for (var i = 0; i < cards.Length; i++)
+        for (var i = 0; i < cards.Count; i++)
         {
-            var slot = cards[i];
-            if (slot?.ClaimRoot == null) continue;
-
             var at = ClaimOf(i);
-            slot.ClaimRoot.SetActive(at >= 0);
-            if (at < 0) continue;
-
-            if (slot.ClaimDot != null) slot.ClaimDot.color = claims[at].Color;
-            if (slot.ClaimLabel == null) continue;
-
-            slot.ClaimLabel.text = claims[at].Label ?? string.Empty;
-
-            // 칩은 글자 길이에 맞춰 줄인다. 고정 폭이면 짧은 이름에서 빈 칸이 남는다.
-            if (slot.ClaimChip != null)
-                slot.ClaimChip.sizeDelta = new Vector2(
-                    slot.ClaimLabel.preferredWidth + 38f, slot.ClaimChip.sizeDelta.y);
+            if (at < 0) cards[i].SetClaim(null, default);
+            else cards[i].SetClaim(claims[at].Label ?? string.Empty, claims[at].Color);
         }
     }
 
     /// 화살표로 선택을 옮긴다. 선점된 칸은 건너뛴다.
     void Step(int delta)
     {
-        var count = cards.Length;
+        var count = cards.Count;
         if (count == 0) return;
 
         for (var n = 1; n <= count; n++)
@@ -212,12 +199,10 @@ public sealed class UICharacterSelectScreen : UIScreen
     void Select(int index, bool notify)
     {
         var all = CharacterCatalog.All;
-        if (index < 0 || index >= all.Length || index >= cards.Length) return;
+        if (index < 0 || index >= all.Length || index >= cards.Count) return;
 
         selected = index;
-        for (var i = 0; i < cards.Length; i++)
-            if (cards[i]?.Background != null)
-                cards[i].Background.color = i == selected ? UITheme.PanelDeep : UITheme.Panel;
+        RefreshSelection();
 
         Set(selectedName, all[index].Name);
         Set(dayName, all[index].DayName);
@@ -226,6 +211,23 @@ public sealed class UICharacterSelectScreen : UIScreen
         Set(nightEffect, all[index].NightEffect);
 
         if (notify) onPick?.Invoke(index);
+    }
+
+    /// 고른 칸을 팀 색으로 칠한다. 칸을 옮길 때도, 팀 색을 바꿀 때도 여기로 온다.
+    void RefreshSelection()
+    {
+        var team = SelectedTeamColor;
+        for (var i = 0; i < cards.Count; i++) cards[i].SetSelected(i == selected, team);
+    }
+
+    Color SelectedTeamColor
+    {
+        get
+        {
+            var palette = UITheme.TeamColors;
+            return colorIndex >= 0 && colorIndex < palette.Length
+                ? palette[colorIndex] : UITheme.PanelDeep;
+        }
     }
 
     void SelectColor(int index, bool notify)
@@ -238,6 +240,9 @@ public sealed class UICharacterSelectScreen : UIScreen
 
         if (nameplateSwatch != null && index < UITheme.TeamColors.Length)
             nameplateSwatch.color = UITheme.TeamColors[index];
+
+        // 팀 색이 바뀌면 고른 카드도 따라 바뀐다.
+        RefreshSelection();
 
         if (notify) onColor?.Invoke(index);
     }

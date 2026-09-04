@@ -1,9 +1,10 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 public enum Phase { Night, Transition, Day }
 
-/// 서버 권위 하루 루프: 밤 -> 전환 -> 낮을 totalDays만큼 반복한다.
+/// 서버 권위 하루 루프: 밤 -> 낮 -> 전환을 totalDays만큼 반복한다.
+/// 전환은 낮 뒤에 온다 — 정산은 그 낮이 끝난 직후에 보여야 한다.
 /// 클라이언트는 동기화된 종료 시각에서 카운트다운을 계산하므로 네트워크로 째깍이는 값이 없다.
 public class GamePhase : NetworkBehaviour
 {
@@ -47,8 +48,8 @@ public class GamePhase : NetworkBehaviour
 
     public static Phase NextPhase(Phase p) => p switch
     {
-        Phase.Night => Phase.Transition,
-        Phase.Transition => Phase.Day,
+        Phase.Night => Phase.Day,
+        Phase.Day => Phase.Transition,
         _ => Phase.Night,
     };
 
@@ -59,7 +60,15 @@ public class GamePhase : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
-        if (!IsServer) return;
+        // `Enter`는 서버에서만 돈다. 보는 쪽 구독자(카메라 전환, 귀환판 배치, 캐스팅 취소)는
+        // 복제된 값이 바뀌는 순간을 같은 이벤트로 받아야 한다 — 이게 없으면 호스트 화면에서만
+        // 밤이 시작되고 클라이언트는 낮 카메라에 붙은 채로 남는다.
+        if (!IsServer)
+        {
+            phase.OnValueChanged += OnPhaseReplicated;
+            return;
+        }
+
         day.Value = 1;
         finished.Value = false;   // 다시 스폰된 루프가 영구 종료 상태로 남으면 안 된다
         skipToDay = NoSkipTarget; // 이전 매치의 치트가 새 판까지 따라오면 안 된다
@@ -76,7 +85,7 @@ public class GamePhase : NetworkBehaviour
     }
 
     /// 개발 치트. 날짜가 하나 넘어갈 때까지 페이즈를 연달아 마감한다.
-    /// 밤에서 누르면 전환과 낮을 지나 다음 밤까지 간다.
+    /// 밤에서 누르면 낮과 전환을 지나 다음 밤까지 간다.
     public void SkipToNextDayServer()
     {
         if (!IsServer || finished.Value) return;
@@ -97,14 +106,19 @@ public class GamePhase : NetworkBehaviour
 
         if (NetworkManager.ServerTime.Time < endsAt.Value) return;
 
-        // 낮이 끝나면 날짜를 넘긴다. 마지막 날이면 판을 종료한다.
-        if (phase.Value == Phase.Day)
+        // 전환이 끝나면 날짜를 넘긴다. 마지막 날이면 판을 종료한다 — 그 낮의 정산을
+        // 전환에서 다 보여 준 뒤다.
+        if (phase.Value == Phase.Transition)
         {
             if (day.Value >= totalDays) { finished.Value = true; return; }
             day.Value++;
         }
         Enter(NextPhase(phase.Value));
     }
+
+    public override void OnNetworkDespawn() => phase.OnValueChanged -= OnPhaseReplicated;
+
+    void OnPhaseReplicated(Phase _, Phase now) => PhaseEntered?.Invoke(now);
 
     void Enter(Phase p)
     {

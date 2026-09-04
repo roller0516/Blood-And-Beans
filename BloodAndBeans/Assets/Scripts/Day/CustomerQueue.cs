@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -55,7 +55,12 @@ public class CustomerQueue : NetworkBehaviour
         // 손님은 낮에만 존재한다. 시계를 아직 못 찾았으면 낮이라고 단정하지 않는다 —
         // 모를 때 손님을 내보내는 쪽이 이 가드가 없던 예전 동작이다.
         var now = Clock;
-        if (now == null || now.Current != Phase.Day) { ClearAll(); return; }
+        if (now == null || now.Current != Phase.Day)
+        {
+            ClearAll();
+            servedFirstToday = false;   // 다음 낮의 첫 손님에게 「붙임성」이 다시 걸린다
+            return;
+        }
 
         for (int i = waiting.Count - 1; i >= 0; i--)
         {
@@ -86,8 +91,23 @@ public class CustomerQueue : NetworkBehaviour
         var next = planned.Dequeue();
         var menu = Menus.All[next.menu];
         var count = next.race == Race.Werewolf ? Random.Range(2, 4) : 1;
-        c.SetupServer(team, next.race, Menus.TagsOf(menu.Parts), MenuTag.None, menu.Parts.Length, count);
+
+        // 캐릭터 팀 패시브 (기획서 9.1). 손님 하나가 스폰될 때 한 번만 묻는다 — 손님이
+        // 스스로 팀을 뒤지면 순회가 손님 수만큼 늘어난다.
+        var patienceScale = PlayerCharacter.TeamHas(team, DayPassive.PopularCafe)
+            ? DayPassives.PatienceBonus : 1f;
+
+        // 「붙임성」은 *매장의* 첫 손님이다. 그날 처음 온 한 명에게만 걸린다.
+        var welcoming = servedFirstToday == false
+                     && PlayerCharacter.TeamHas(team, DayPassive.Welcoming);
+        if (!servedFirstToday) servedFirstToday = true;
+
+        c.SetupServer(team, next.race, Menus.TagsOf(menu.Parts), MenuTag.None,
+                      menu.Parts.Length, count, patienceScale, welcoming);
     }
+
+    /// 오늘 첫 손님을 이미 내보냈는가. 「붙임성」이 그 한 명에게만 걸린다 (기획서 9.1).
+    bool servedFirstToday;
 
     readonly System.Collections.Generic.Queue<(Race race, int menu)> planned = new();
 
@@ -128,7 +148,9 @@ public class CustomerQueue : NetworkBehaviour
     public void RestoreFrontServer()
     {
         if (!IsServer || waiting.Count == 0) return;
-        waiting[0].AddPatienceServer(Customer.PatienceOf(waiting[0].Kind) * 0.25f);
+        // 최대치의 몫으로 회복시킨다. 종족표를 다시 읽으면 「인기 카페」로 늘어난 몫이
+        // 빠져서, 패시브가 걸린 팀만 Perfect 회복이 상대적으로 작아진다.
+        waiting[0].AddPatienceServer(waiting[0].PatienceMax * 0.25f);
     }
 
     /// 서버 권위 서빙. 누군가 물건을 받았으면 true를 돌려준다.

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,7 +16,7 @@ using UnityEngine;
 /// **모든 시간 측정은 서버가 한다.** 클라이언트는 "이 박스에서 F를 누르고 있다"와
 /// "이 칸을 눌렀다"만 말한다. 예전에는 소유자가 홀드를 재고 완료를 통보해서 밤 파밍
 /// 루프 전체가 공짜였다 (아키텍처_v1.0.md §1.1).
-public class ItemBox : NetworkBehaviour, IInteractable
+public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 {
     [SerializeField] int tier = 1;              // 1~3
 
@@ -53,9 +53,6 @@ public class ItemBox : NetworkBehaviour, IInteractable
 
     /// 중심부 보상이 나오기 시작하는 등급.
     [SerializeField] int rareFromTier = 3;
-
-    /// 그 등급에서 중심부 보상이 차지하는 칸 수.
-    [SerializeField] int rareSlots = 1;
 
     /// 서버 전용 내용물. 팀 간 선착순이라 모두가 같은 목록을 판다.
     readonly List<LootStack> stacks = new();
@@ -108,6 +105,11 @@ public class ItemBox : NetworkBehaviour, IInteractable
     MatchDirector director;
 
     public int Tier => netTier.Value > 0 ? netTier.Value : tier;
+
+    /// 숲에 깔린 상자가 아니라 쏟아진 더미인가 (기획서 6.7). 팀 수에 맞춰 상자를 솎을 때
+    /// 대상에서 빼야 한다 (`MatchDirector.ThinBoxesServer`) — 더미는 맵이 깔아 둔 자원이
+    /// 아니라 플레이어가 만든 것이다.
+    public bool Temporary => temporary;
 
     /// 이 클라이언트의 루팅 세션이 열려 있는가. 창을 여닫는 유일한 기준이다.
     public bool Opened => localOpened;
@@ -297,6 +299,36 @@ public class ItemBox : NetworkBehaviour, IInteractable
         SendAllSessionsStateServer();
     }
 
+    /// 「감별」이 가려진 칸을 즉시 공개한다 (기획서 9.2).
+    ///
+    /// 공개 시계를 과거로 당기는 것으로 끝난다 — 공개는 시각 하나의 순수 함수이고
+    /// (`LootSlots.RevealedCount`) 그 시계는 상자마다 하나뿐이라(6.5.3), 당겨 두면
+    /// 이 사람뿐 아니라 뒤에 오는 사람에게도 이미 공개된 상태가 된다. 그것이 6.5.3이다.
+    public void RevealAllServer()
+    {
+        if (!IsServer || temporary) return;
+
+        var now = NetworkManager.ServerTime.Time;
+        var fully = now - revealInterval * (stacks.Count + 1);
+
+        // 이미 더 오래 열려 있었으면 뒤로 돌리지 않는다.
+        if (!double.IsNegativeInfinity(revealClock) && revealClock <= fully) return;
+        revealClock = fully;
+
+        // 열려 있는 세션들의 개봉 시각도 함께 당긴다. 세션은 열릴 때의 시계를 복사해 두므로
+        // 이 값을 안 고치면 지금 보고 있는 사람 화면만 그대로 남는다.
+        scratch.Clear();
+        foreach (var pair in sessions) scratch.Add(pair.Key);
+        for (var i = 0; i < scratch.Count; i++)
+            sessions[scratch[i]] = new Session
+            {
+                OpenedAt = fully,
+                Mover = sessions[scratch[i]].Mover,
+            };
+
+        SendAllSessionsStateServer();
+    }
+
     /// 서버에서 PlayerInteract가 호출한다. 안개와 거리를 여기서 검사해야 클라이언트가
     /// 근처에도 없는 박스에 캐스팅을 등록하지 못한다.
     public void BeginHoldServer(ulong clientId)
@@ -376,9 +408,32 @@ public class ItemBox : NetworkBehaviour, IInteractable
         var types = Random.Range(minTypes, maxTypes + 1);
 
         // 3등급이면 중심부 보상을 먼저 몇 칸 채우고 나머지를 흔한 재료로 메운다.
-        var rare = tier >= rareFromTier ? Mathf.Clamp(rareSlots, 0, types) : 0;
+        // 몇 칸인가는 일차가 정한다 (기획서 10장: 후반으로 갈수록 희귀 재료·업그레이드
+        // 재료·블러드 빈의 비중이 오른다). 표는 `RegenTable`에 있다.
+        var day = director != null ? director.Phase.Day : 1;
+        var rare = tier >= rareFromTier
+            ? Mathf.Clamp(RegenTable.RareSlots(day), 0, types)
+            : 0;
         DrawInto(rarePool, rare);
-        DrawInto(commonPool, types - stacks.Count);
+
+        // 흔한 재료도 그날 리젠 풀 안에서만 뽑는다. 상자에 심어 둔 풀은 "이 자리에서
+        // 무엇이 나올 수 있는가"고, 리젠 표는 "오늘 숲이 무엇을 내놓는가"다 — 교집합이
+        // 그날 실제로 나오는 것이다.
+        DrawInto(TodaysCommon(day), types - stacks.Count);
+    }
+
+    /// 상자가 가진 풀과 그날 리젠 표의 교집합 (기획서 10장). 교집합이 비면 상자 자신의
+    /// 풀을 그대로 쓴다 — 리젠 표가 이 자리를 아예 비우게 두면 그 밤의 상자가 통째로
+    /// 빈 상자가 되고, 그것은 기획서가 요구한 "비중 조정"이 아니다.
+    Ingredient[] TodaysCommon(int day)
+    {
+        var today = RegenTable.PoolFor(day);
+        var picked = new List<Ingredient>();
+        for (var i = 0; i < commonPool.Length; i++)
+            for (var j = 0; j < today.Count; j++)
+                if (commonPool[i] == today[j]) { picked.Add(commonPool[i]); break; }
+
+        return picked.Count > 0 ? picked.ToArray() : commonPool;
     }
 
     /// 풀에서 서로 다른 종류를 `count`칸만큼 뽑는다. 같은 종류가 두 칸이 되면 안 된다 —
@@ -439,6 +494,12 @@ public class ItemBox : NetworkBehaviour, IInteractable
         : 0;
 
     public bool IsSlotRevealed(int index) => index >= 0 && index < RevealedCount;
+
+    /// 등급은 열지 않아도 전원이 안다 (기획서 6.5.2).
+    public string GridTitle => $"TIER {Tier}";
+
+    /// 이 창은 서버가 세션을 닫을 때 닫힌다 (기획서 6.5.5). 클라이언트가 못 닫는다.
+    public string GridHint => "이동 · 대시 · 피격 시 창이 닫히고 개봉부터 다시";
 
     /// 접속 직후 한 번. 이 클라이언트에는 아직 세션이 없으므로 닫힌 상태가 간다.
     public void SendStateToClientServer(ulong clientId, int team)

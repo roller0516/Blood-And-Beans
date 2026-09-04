@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 /// 한 팀의 카페. 설비가 찾아야 하는 것이 전부 여기 모여 있어서 낮 시스템이 static
@@ -25,6 +25,20 @@ public class Cafe : NetworkBehaviour
     public Dish Dishes { get; private set; }
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
+
+    /// 설치된 설비 업그레이드의 비트마스크 (기획서 8장).
+    ///
+    /// 권위는 서버 원장(`TeamLedger.Upgrades`)이고 이 값은 그 사본이다. 카페는 자기 팀
+    /// 클라이언트에만 복제되므로(`SpawnWithObservers = false`) 이 값도 팀 밖으로 새지
+    /// 않는다 — 기획서 3.1이 설비를 비공개로 둔 것과 맞는다.
+    readonly NetworkVariable<int> upgrades = new();
+
+    /// 설비들이 자기 효과를 켜고 끄는 신호. 서버·클라이언트 양쪽에서 오른다.
+    public event System.Action UpgradesChanged;
+
+    public int UpgradeMask => upgrades.Value;
+
+    public bool HasUpgrade(UpgradeId id) => TeamUpgrades.HasInMask(upgrades.Value, id);
 
     /// 이 팀의 복귀 구역. 밤이 끝난 뒤 자기 귀환 결과를 읽는 통로다 (`MatchFlow`).
     public ReturnZone Zone { get; private set; }
@@ -68,7 +82,7 @@ public class Cafe : NetworkBehaviour
 
         // 카메라 컬링이 레이어로 팀을 가른다. 프리팹 하나를 여러 팀이 쓰므로 레이어는
         // 씬에 구워 둘 수 없고 스폰 시점에 정해야 한다.
-        TeamVision.ApplyCafeLayer(gameObject, team.Value);
+        TeamVision.ApplyTeamLayer(gameObject, team.Value);
 
         // 색도 같은 이유로 스폰 시점이다. 서버·클라이언트 양쪽에서 실행되므로 보는 쪽에도 걸린다.
         TeamColors.Tint(gameObject, team.Value, teamTintStrength);
@@ -82,11 +96,60 @@ public class Cafe : NetworkBehaviour
             return;
         }
         director.RegisterCafe(this);
+
+        upgrades.OnValueChanged += OnUpgradesChanged;
+
+        // 서버는 원장이 이미 들고 있는 값을 사본에 심는다. 판 도중에 카페가 다시 스폰돼도
+        // 설치한 설비가 사라지지 않는다 — 효과는 그 판 동안 영구다 (기획서 8장).
+        if (IsServer)
+        {
+            var ledger = director.LedgerOf(team.Value);
+            if (ledger != null) upgrades.Value = ledger.Upgrades.ToMask();
+        }
+
+        // 복제값이 이미 도착해 있을 수 있다. 설비들이 첫 상태를 한 번은 받아야 한다.
+        UpgradesChanged?.Invoke();
     }
 
     public override void OnNetworkDespawn()
     {
+        upgrades.OnValueChanged -= OnUpgradesChanged;
         if (director != null) director.UnregisterCafe(this);
+    }
+
+    void OnUpgradesChanged(int _, int __) => UpgradesChanged?.Invoke();
+
+    /// 전환 페이즈에 카드를 눌렀다 (기획서 8장: "전환 페이즈에서 클릭 한 번으로 적용").
+    ///
+    /// `SendTo.Server`는 아무 클라이언트나 부를 수 있으므로 본문에서 발신자의 팀을
+    /// 검증한다 (AGENTS.md 「Netcode에서 쓰지 말아야 할 방식」). 이 검사가 없으면 남의
+    /// 카페에 설비를 설치하고 그 팀의 업그레이드 재료를 대신 태울 수 있다.
+    [Rpc(SendTo.Server)]
+    public void InstallUpgradeRpc(int upgrade, RpcParams p = default)
+    {
+        if (PlayerTeam.Of(p.Receive.SenderClientId) != TeamId) return;
+        if (director == null) return;
+
+        // 적용 시점은 전환뿐이다. 낮 도중에 설비가 늘어나면 그 낮의 주문이 발밑에서 바뀐다.
+        if (director.Phase == null || director.Phase.Current != Phase.Transition) return;
+
+        if (upgrade < 0 || upgrade >= UpgradeCatalog.All.Length) return;
+        var id = (UpgradeId)upgrade;
+
+        var ledger = director.LedgerOf(TeamId);
+        var stock = Stock;
+        if (ledger == null || stock == null) return;
+
+        var parts = stock.CountOf(Ingredient.UpgradePart);
+        if (!ledger.Upgrades.CanInstall(id, parts)) return;
+
+        // 재료를 먼저 뺀다. 표시를 먼저 켜면 차감이 도중에 실패했을 때 공짜 설비가 남는다.
+        var cost = ledger.Upgrades.CostOf(id);
+        for (var i = 0; i < cost; i++)
+            if (!stock.TakeServer(Ingredient.UpgradePart)) return;
+
+        ledger.Upgrades.MarkInstalled(id);
+        upgrades.Value = ledger.Upgrades.ToMask();
     }
 
     /// 모든 설비는 자기 카페 밑에 붙어 있으므로, 소유 판정은 부모를 거슬러 올라가면 끝난다.

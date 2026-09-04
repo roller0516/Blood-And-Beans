@@ -34,6 +34,19 @@ public class CarryViewTests
     }
 
     [Test]
+    public void ShelfIngredientIsNotAProduct()
+    {
+        // 재료 칸이 자기 재고를 그릴 때 쓰는 길이다 (`IngredientShelf.SlotAt`). 완성품으로
+        // 새면 선반 위에 커피잔이 늘어선다.
+        var view = CarryView.Of(Ingredient.Bean);
+
+        Assert.IsFalse(view.Empty);
+        Assert.IsFalse(view.IsProduct);
+        Assert.AreEqual(Ingredient.Bean, view.Ingredient);
+        Assert.AreEqual(MenuId.None, view.Menu);
+    }
+
+    [Test]
     public void ProductShowsMenuName()
     {
         var view = CarryView.Of(new HeldItem

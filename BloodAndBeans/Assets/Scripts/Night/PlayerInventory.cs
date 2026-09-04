@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -11,6 +11,7 @@ using UnityEngine;
 /// 아이템을 총합 숫자가 아니라 개별로 추적한다. 기획서 6.6이 적재분의 일부를 주울 수 있는
 /// 더미로 바닥에 흘리게 하는데, 기록하지 않은 것은 흘릴 수 없기 때문이다.
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerMove))]
 public class PlayerInventory : NetworkBehaviour
 {
     [SerializeField] float capacity = 20f;
@@ -32,31 +33,78 @@ public class PlayerInventory : NetworkBehaviour
     readonly NetworkVariable<bool> hasBag = new(true,
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
+    /// 적재가 80%를 넘었는가 (기획서 6.6).
+    ///
+    /// **이 한 비트만 전원에게 공개된다.** 무게도 내용물도 소유자만 읽지만(`carried`,
+    /// `items`), 이것은 감출 수 없다 — 기획서가 "적재 80%를 넘긴 캐릭터는 겉보기에도
+    /// 표시된다"고 정했고, 보이지 않으면 80% 낙하 규칙을 노리고 대시할 방법이 없어
+    /// 견제 설계가 통째로 작동하지 않는다.
+    readonly NetworkVariable<bool> overloaded = new(false,
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
     MatchDirector director;
     GamePhase subscribedPhase;
 
     // 흘린 더미를 발밑에 맞출 때 캡슐 치수가 필요하다. 스폰 시점에 한 번만 찾는다.
     CharacterController controller;
 
-    // CurrentSpeedMultiplier는 PlayerMove의 매 프레임 이동 경로에서 불린다. 주기 실행
-    // 안에서 컴포넌트를 조회하지 않는다.
     PlayerTeam team;
+
+    // 무게가 바뀔 때마다 속도 배수를 여기로 민다. 이동이 매 프레임 원장을 뒤지지 않게
+    // 하기 위해서다 - 무게는 재료를 담고 버릴 때만 바뀌지 프레임마다 바뀌지 않는다.
+    PlayerMove move;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
         team = GetComponent<PlayerTeam>();
+        move = GetComponent<PlayerMove>();
     }
 
     // 스폰 시점에는 매치 씬이 아직 없다. 직접 캐시하면 null로 굳어 임대료 페널티의
     // 무게 밴드 이동(기획서 3.3)이 적용되지 않는다.
-    public override void OnNetworkSpawn() => MatchDirector.Bind(BindDirector);
+    public override void OnNetworkSpawn()
+    {
+        MatchDirector.Bind(BindDirector);
+
+        // 겉보기는 서버·클라이언트 양쪽에서 그린다. 남의 적재 상태도 보여야 하므로
+        // 소유자 분기를 두지 않는다 (기획서 6.6).
+        overloaded.OnValueChanged += OnOverloadedChanged;
+        LoadChanged?.Invoke();
+
+        if (!IsServer) return;
+
+        // 담고 버리는 경로가 여럿이라(AddServer, ClearServer, DumpRpc, 흘리기) 한 곳씩
+        // 찾아 붙이면 언젠가 하나를 빠뜨린다. 값이 바뀌는 지점 하나만 본다.
+        carried.OnValueChanged += OnCarriedChangedServer;
+        PushSpeedServer();
+    }
 
     public override void OnNetworkDespawn()
     {
         MatchDirector.Unbind(BindDirector);
+        overloaded.OnValueChanged -= OnOverloadedChanged;
+        if (IsServer) carried.OnValueChanged -= OnCarriedChangedServer;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
+    }
+
+    void OnCarriedChangedServer(float previous, float current) => PushSpeedServer();
+
+    void OnOverloadedChanged(bool _, bool __) => LoadChanged?.Invoke();
+
+    /// 지금 무게와 밴드로 정해지는 속도 배수를 이동에 넣는다.
+    ///
+    /// 미는 쪽이 여기인 이유: 배수는 원장(서버 전용)과 무게에서 나오는데 둘 다 이 컴포넌트
+    /// 쪽 사정이다. 이동이 이걸 물어보게 두면 이동이 가방과 임대료를 알아야 한다.
+    void PushSpeedServer()
+    {
+        if (!IsServer) return;
+        move.SetSpeedScaleServer(CurrentSpeedMultiplier);
+
+        // 겉보기 판정도 같은 자리에서 민다. 무게가 바뀌는 지점이 여기 하나뿐이라
+        // (`OnCarriedChangedServer`) 둘이 갈라질 여지가 없다.
+        overloaded.Value = hasBag.Value && LoadRatio >= LoadBands.OverloadRatio;
     }
 
     /// 같은 인스턴스로 두 번 불려도 되게 짠다 (`MatchDirector.Bind` 계약).
@@ -69,6 +117,9 @@ public class PlayerInventory : NetworkBehaviour
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = phase;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered += OnPhaseEntered;
+
+        // 원장이 이제야 잡혔다. 밴드가 옮겨져 있으면 지금 값이 달라진다.
+        PushSpeedServer();
     }
 
     /// 가방을 잃어버리거나 소각당했더라도 다음 밤이 시작되면 다시 기본 지급된다.
@@ -77,6 +128,10 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer || p != Phase.Night) return;
         ClearServer();
         hasBag.Value = true;
+
+        // 임대료 페널티는 정산에서 정해진다. 무게가 그대로여도 밴드가 한 칸 옮겨져 있을
+        // 수 있으므로 밤이 시작될 때 한 번 다시 넣는다 (기획서 3.3).
+        PushSpeedServer();
     }
 
     public float Carried => carried.Value;
@@ -89,9 +144,19 @@ public class PlayerInventory : NetworkBehaviour
     /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.
     public bool HasBag => hasBag.Value;
 
+    /// 적재가 80%를 넘었는가 (기획서 6.6). 남의 것도 읽을 수 있는 유일한 적재 정보다.
+    public bool Overloaded => overloaded.Value;
+
+    /// 겉보기(`LoadVisuals`)가 다시 그리는 신호. 소유자·관전자 양쪽에서 오른다.
+    public event System.Action LoadChanged;
+
     /// 임대료 페널티 3단계는 밴드를 정확히 한 칸 불리하게 옮긴다 (기획서 3.3 밤 항목).
     /// 무게→속도 표 자체는 BB.Rules의 `LoadBands`에 있어 씬 없이 기획서 6.7과 대조할 수 있다.
-    public float CurrentSpeedMultiplier
+    ///
+    /// **서버에서만 옳은 값이다.** 원장(`TeamLedger`)은 복제되지 않아 클라이언트에서는
+    /// 밴드가 안 옮겨진 값이 나온다. 그래서 밖으로 열지 않는다 — 화면에 쓸 값은 복제되는
+    /// `PlayerMove.SpeedScale`이다.
+    float CurrentSpeedMultiplier
     {
         get
         {
@@ -251,6 +316,10 @@ public class PlayerInventory : NetworkBehaviour
         bag.SeedServer(team != null ? team.Team : -1, DrainServer());
         bag.NetworkObject.Spawn();
         hasBag.Value = false;
+
+        // 가방이 없어졌으니 부풀어 있을 이유도 없다. `DrainServer`는 무게만 비우고
+        // 겉보기를 갱신하지 않으므로 여기서 한 번 더 민다.
+        PushSpeedServer();
     }
 
     /// 묻어 둔 가방을 도로 멘다. 내용물은 보존된다.
@@ -259,7 +328,7 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer) return;
 
         hasBag.Value = true;
-        if (contents == null) return;
+        if (contents == null) { PushSpeedServer(); return; }
         for (var i = 0; i < contents.Count; i++) AddServer(contents[i]);
     }
 

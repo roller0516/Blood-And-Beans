@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 /// 밤이 끝났을 때 이 사람에게 무슨 일이 있었는가 (기획서 6.8의 세 갈래).
@@ -69,7 +69,9 @@ public class ReturnZone : NetworkBehaviour
 
     /// `phase.Current`를 폴링하지 않고 페이즈 이벤트에서 정산하는 것이 TransitionLedger와의
     /// 순서를 확정해 준다. PhaseEntered는 GamePhase.Enter 안에서 발생하므로, 어떤 Update가
-    /// 새 페이즈를 관측하고 팀 재고로 예보를 뽑기 전에 모든 입고가 끝나 있다 (기획서 5.5 규칙 3).
+    /// 새 페이즈를 관측하기 전에 모든 입고가 끝나 있다.
+    ///
+    /// 밤 다음은 낮이다 (밤 -> 낮 -> 전환). 그래서 귀환 판정도 낮이 시작될 때 한다.
     public override void OnNetworkSpawn()
     {
         director = MatchDirector.Instance;
@@ -88,9 +90,9 @@ public class ReturnZone : NetworkBehaviour
     void OnPhaseEntered(Phase p)
     {
         // 팀 번호는 카페의 NetworkVariable이라 스폰 시점에는 아직 0일 수 있다. 밤이
-        // 시작될 때 한 번 더 놓으면 정산(전환)보다 항상 먼저다.
+        // 시작될 때 한 번 더 놓으면 귀환 판정(낮 진입)보다 항상 먼저다.
         if (p == Phase.Night) PlaceAtSpawnPoint();
-        else if (IsServer && p == Phase.Transition) Settle(p);
+        else if (IsServer && p == Phase.Day) Settle(p);
     }
 
     /// 보이는 판과 트리거를 실제 귀환 자리로 옮긴다. 판정만 옮기고 이걸 하지 않으면

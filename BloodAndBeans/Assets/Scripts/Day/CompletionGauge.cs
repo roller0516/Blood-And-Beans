@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 public enum Judgement { Perfect, Good, Miss, Burnt }
@@ -10,12 +10,17 @@ public enum Judgement { Perfect, Good, Miss, Burnt }
 public class CompletionGauge : NetworkBehaviour
 {
     [SerializeField] float window = 10f;        // 이 시간 동안 완성 판정을 칠 수 있다
+
     [SerializeField] float sweepsPerSecond = 1.4f;
     [SerializeField] float perfectHalfWidth = 0.05f;   // 중앙 0.5로부터의 거리
     [SerializeField] float goodHalfWidth = 0.16f;
 
     readonly NetworkVariable<bool> active = new();
     readonly NetworkVariable<double> startedAt = new();
+
+    /// 이번 게이지의 유예. 기본은 `window`(기획서 5.2의 10초)이고, 팀에 「제빵사」가
+    /// 있으면 20초다 (기획서 9.1). 클라이언트도 남은 시간을 그리므로 복제한다.
+    readonly NetworkVariable<float> windowNow = new(10f);
 
     /// 서버 전용. Station이 구독해서 제작 결과를 받는다.
     public System.Action<Judgement> OnResult;
@@ -40,13 +45,18 @@ public class CompletionGauge : NetworkBehaviour
         Mathf.PingPong((float)(NetworkManager.ServerTime.Time - startedAt.Value) * sweepsPerSecond, 1f);
 
     public float Remaining =>
-        Mathf.Max(0f, window - (float)(NetworkManager.ServerTime.Time - startedAt.Value));
+        Mathf.Max(0f, windowNow.Value - (float)(NetworkManager.ServerTime.Time - startedAt.Value));
 
     public void BeginServer()
     {
         if (!IsServer || !IsDay) return;
         active.Value = true;
         startedAt.Value = NetworkManager.ServerTime.Time;
+
+        // 「제빵사」는 탈 때까지의 유예를 늘린다 (기획서 9.1). 게이지가 시작될 때 한 번만
+        // 묻는다 — 사건 하나짜리 자리라 팀 순회를 여기 둬도 된다.
+        windowNow.Value = PlayerCharacter.TeamHas(TeamId, DayPassive.Baker)
+            ? DayPassives.BakerWindow : window;
     }
 
     /// 팀 번호가 아니라 소유 카페를 들고 있는다. MatchDirector는 자기 Awake에서 팀 번호를
@@ -55,7 +65,11 @@ public class CompletionGauge : NetworkBehaviour
     void Awake()
     {
         cafe = Cafe.Of(this);
+        station = GetComponent<Station>();
     }
+
+    /// 같은 GameObject의 설비. 「얼음 장인」이 지금 굽고 있는 것이 찬 메뉴인지 물어본다.
+    Station station;
 
     int TeamId => cafe != null ? cafe.TeamId : -1;
     bool IsDay => Director != null && Director.Phase.Current == Phase.Day;
@@ -98,13 +112,26 @@ public class CompletionGauge : NetworkBehaviour
     {
         if (!IsDay || !active.Value || TeamId < 0) return;
         if (PlayerTeam.Of(p.Receive.SenderClientId) != TeamId) return;
-        Finish(Judge(Needle));
+
+        Finish(JudgeFor(p.Receive.SenderClientId));
     }
 
     void Finish(Judgement j)
     {
         active.Value = false;
         OnResult?.Invoke(j);
+    }
+
+    /// 「얼음 장인」은 `Temp.Cold` 메뉴를 항상 Perfect로 만든다 (기획서 9.1).
+    /// 누른 사람의 능력이고, 지금 굽고 있는 것이 찬 메뉴인지는 설비가 안다.
+    Judgement JudgeFor(ulong clientId)
+    {
+        var pc = PlayerCharacter.Of(clientId);
+        if (pc != null && pc.Has(DayPassive.IceMaster) &&
+            station != null && station.GaugeLaneIsCold)
+            return Judgement.Perfect;
+
+        return Judge(Needle);
     }
 
     Judgement Judge(float pos)

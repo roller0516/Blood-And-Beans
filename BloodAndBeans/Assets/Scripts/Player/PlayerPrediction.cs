@@ -69,15 +69,32 @@ public class PlayerPrediction : NetworkBehaviour
         if (!Predicting || history == null) return;
 
         // 그 틱의 예측이 이력에 없으면 비교 기준이 없다. 지연이 이력 길이를 넘었거나 막
-        // 스폰한 직후다. 현재 위치와 비교하면 지연 거리를 오차로 착각하므로 그냥 버린다.
-        if (!history.TryGet(serverTick, out var predicted)) return;
+        // 스폰·순간이동한 직후다.
+        if (!history.TryGet(serverTick, out var predicted))
+        {
+            // 델타 교정의 기준이 없다. 그렇다고 버리면 안 된다 — NetworkTransform은 값이
+            // 바뀔 때만 보내고, 예측 중인 소유자는 권위 상태를 적용하지 않으며
+            // (PlayerNetworkTransform), 중력도 없어 스스로 돌아오지 않는다. 여기서 놓친
+            // 순간이동 한 번이 그대로 영구 어긋남이 된다. 실제로 밤 진입 순간이동이 이
+            // 경로로 사라져서, 클라이언트가 원점에 선 채 남고 카메라도 거기를 비췄다.
+            //
+            // 지연으로 설명되는 거리는 그대로 무시한다. 그 이상이면 권위 위치로 맞춘다 —
+            // 기준이 없을 때 옳은 답은 델타가 아니라 서버가 말한 절대 위치다.
+            var stray = serverPosition - transform.position;
+            stray.y = 0f;
+            if (stray.magnitude > snapDistance) SnapTo(serverPosition);
+            return;
+        }
 
         var diff = serverPosition - predicted;
         diff.y = 0f;                    // 평면 탑다운이라 y는 아무도 움직이지 않는다 (PlayerMove)
 
+        // 순간이동은 절대 위치로 맞춘다. 여기서 델타(transform.position + diff)를 더하면
+        // 현재 위치가 예측과 어긋나 있던 만큼이 그대로 남아, 페이즈 전환마다 오차가
+        // 쌓인다 — 클라이언트가 서버와 다른 곳에 서서 안개도 걷히지 않은 검은 화면을 본다.
         if (diff.magnitude > snapDistance)
         {
-            SnapTo(transform.position + diff);
+            SnapTo(serverPosition);
             return;
         }
 

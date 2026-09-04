@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -139,6 +139,25 @@ public class SteamLobby : MonoBehaviour
 
     /// 내가 고른 팀. 대기실에 들어갈 때 멤버 데이터로 기록된다.
     public int SelectedTeam { get; private set; }
+
+    /// 이 사람이 고른 캐릭터 (기획서 9장). `CharacterCatalog.All`의 인덱스이고
+    /// `NoPick`이면 아직 고르지 않았다.
+    ///
+    /// 로비에 있는 동안에는 플레이어 오브젝트가 없을 수 있어서 서버에 보낼 자리가 없다.
+    /// 그래서 여기 보관했다가 `PlayerCharacter`가 스폰되는 순간 서버로 넘긴다 — 씬을
+    /// 건너는 사용자 선택이라 수명이 앱과 같은 이 컴포넌트가 드는 것이 맞다.
+    public int SelectedCharacter { get; private set; } = CharacterCatalog.NoPick;
+
+    public void SelectCharacter(int index)
+    {
+        if (!CharacterCatalog.IsValid(index)) return;
+
+        SelectedCharacter = index;
+        Changed?.Invoke();
+
+        // 이미 스폰돼 있으면 지금 보낸다. 아직이면 스폰 때 이 값을 읽어 간다.
+        PlayerCharacter.Local()?.PickRpc(index);
+    }
 
     /// 방 목록·대기실·상태 중 무엇이든 바뀌었다. 화면은 매 프레임 새로 그리는 대신 이걸 듣는다.
     public event Action Changed;

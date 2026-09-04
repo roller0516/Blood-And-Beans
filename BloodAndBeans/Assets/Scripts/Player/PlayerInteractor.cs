@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,6 +13,11 @@ public class PlayerInteractor : NetworkBehaviour
     /// 지금 상호작용 중인 대상. `BeginClient`와 `EndClient` 사이에만 있다. 어떤 박스를
     /// 잡고 있는지 아는 유일한 지점이라 루팅 창을 여닫는 쪽이 여기를 읽는다.
     public IInteractable Current => current;
+
+    /// 마지막으로 F를 누른 대상. `Current`와 달리 F를 놓아도 남는다 — 재료 칸의 그리드
+    /// 창은 누르고 있는 동안이 아니라 닫을 때까지 떠 있다 (기획서 6.5.4). 창을 여는 쪽이
+    /// 거리를 다시 확인하므로, 여기 남아 있다는 것만으로 창이 뜨지는 않는다.
+    public IInteractable Latest { get; private set; }
 
     void OnTriggerEnter(Collider other)
     {
@@ -35,6 +40,7 @@ public class PlayerInteractor : NetworkBehaviour
         if (CompletionGauge.TryStopLocalClient()) return;
 
         current = Nearest();
+        if (current != null) Latest = current;
         current?.BeginInteractionClient();
     }
 

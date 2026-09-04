@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 /// 숲의 나무·수풀·풀을 GPU 인스턴싱으로 그린다. 씬에 GameObject를 두지 않는다.
 ///
@@ -110,6 +110,9 @@ public class ForestInstances : MonoBehaviour
     void Submit(UnityEngine.Rendering.ScriptableRenderContext context, Camera camera)
     {
         if (matrices == null || camera == null) return;
+
+        // 프리뷰·프리팹 스테이지 카메라에는 그리지 않는다 (`ForestCameras`).
+        if (!ForestCameras.Renders(camera, gameObject)) return;
 
         for (var b = 0; b < batches.Length; b++)
         {

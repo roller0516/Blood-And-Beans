@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Unity.Netcode;
 
 /// 손이나 조리대에 놓인 것을 **화면에 그리기 위한** 최소 정보.
@@ -16,6 +16,9 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public bool IsProduct;
     public bool Burnt;
 
+    /// 재료 개수 (기획서 9.1 「양손잡이」). 1이면 이름표에 표시하지 않는다.
+    public int Count;
+
     /// `default(CarryView)`는 "우유를 들고 있음"으로 읽힌다. `Ingredient.None`과
     /// `MenuId.None`이 0이 아니라 -1이기 때문이다 (`HeldItem.Nothing`과 같은 함정).
     public static CarryView Nothing =>
@@ -23,12 +26,17 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
 
     public bool Empty => !IsProduct && Ingredient == Ingredient.None;
 
+    /// 아직 손에 들리지 않은 재료. 재료 칸이 자기 재고를 그릴 때 쓴다.
+    public static CarryView Of(Ingredient ingredient) =>
+        new() { Ingredient = ingredient, Menu = MenuId.None, Count = 1 };
+
     public static CarryView Of(HeldItem item) => new()
     {
         Ingredient = item.IsProduct ? Ingredient.None : item.Ingredient,
         Menu = item.IsProduct ? item.Menu : MenuId.None,
         IsProduct = item.IsProduct,
         Burnt = item.Burnt,
+        Count = item.Empty ? 0 : item.Amount,
     };
 
     /// 표시용 이름. 재료·메뉴의 한글 이름표가 아직 없어서 enum 이름을 그대로 쓴다 —
@@ -45,7 +53,8 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
                 var name = Menu == MenuId.None ? "정체불명" : Menu.ToString();
                 return Burnt ? $"{name} (탄 것)" : name;
             }
-            return Ingredient == Ingredient.None ? "빈손" : Ingredient.ToString();
+            if (Ingredient == Ingredient.None) return "빈손";
+            return Count > 1 ? $"{Ingredient} ×{Count}" : Ingredient.ToString();
         }
     }
 
@@ -55,6 +64,7 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
         serializer.SerializeValue(ref Menu);
         serializer.SerializeValue(ref IsProduct);
         serializer.SerializeValue(ref Burnt);
+        serializer.SerializeValue(ref Count);
     }
 
     /// `NetworkVariable`은 `IEquatable`을 구현한 타입이면 `Equals`로 변경을 판정한다
@@ -62,5 +72,5 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     /// 매번 더티로 잡혀 낭비된다.
     public bool Equals(CarryView other) =>
         Ingredient == other.Ingredient && Menu == other.Menu &&
-        IsProduct == other.IsProduct && Burnt == other.Burnt;
+        IsProduct == other.IsProduct && Burnt == other.Burnt && Count == other.Count;
 }

@@ -157,11 +157,25 @@ public class FogOfWar : NetworkBehaviour
         RevealAround(transform.position);
     }
 
+    /// 「메아리」가 한 번에 걷어내는 범위 (기획서 9.2). 평소 샘플링과 같은 경로를 쓰므로
+    /// 걷힌 칸은 똑같이 전원에게 공유된다 (6.1-3).
+    public void RevealBurstServer(Vector3 centre, float radius)
+    {
+        if (!IsServer) return;
+        RevealCircle(centre, radius);
+    }
+
     void RevealAround(Vector3 centre)
     {
         // 임대료 미납 페널티에 따라 시야 범위 축소 적용.
         var ledger = director != null ? director.LedgerOf(TeamId) : null;
-        var radius = revealRadius * (ledger != null ? ledger.VisionScale : 1f);
+        RevealCircle(centre, revealRadius * (ledger != null ? ledger.VisionScale : 1f));
+    }
+
+    /// 한 점 둘레의 칸을 걷는다. 평소 샘플링과 「메아리」가 같은 코드를 쓴다 — 두 벌이면
+    /// 한쪽만 고쳐 놓고 다른 쪽에서 격자가 어긋난다.
+    void RevealCircle(Vector3 centre, float radius)
+    {
         var steps = Mathf.CeilToInt(radius / cellSize);
         var origin = CellIndex(centre);
         var ox = origin % Side;

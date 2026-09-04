@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 /// 클라이언트별로 홀드 시간을 누적하는 서버 측 계산기.
 ///
@@ -36,13 +36,6 @@ public class HoldTimer
         if (now - t < seconds) return false;
         startedAt[client] = now;
         return true;
-    }
-
-    /// 대시를 맞으면 개봉이 끊기지만 진행도는 절반이 남는다 (기획서 6.6).
-    public void Halve(ulong client, double now)
-    {
-        if (!startedAt.TryGetValue(client, out var t)) return;
-        startedAt[client] = now - (now - t) * 0.5d;
     }
 
     /// 현재 홀드 중인 클라이언트를 호출자 소유 리스트로 복사한다. 직접 순회하면서 이 타이머를

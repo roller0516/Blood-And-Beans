@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 /// 대기 중인 손님 한 명 (기획서 5.5). 선호 태그와 줄어드는 인내심 게이지를 들고 있다.
@@ -14,6 +14,13 @@ public class Customer : NetworkBehaviour
     readonly NetworkVariable<float> patience = new();
     readonly NetworkVariable<int> team = new(-1);
 
+    /// 이 손님의 인내심 최대치. 종족표(`PatienceOf`)에 「인기 카페」 배수가 곱해진
+    /// 결과라, 게이지 비율을 그릴 때 종족표를 다시 읽으면 안 된다 (기획서 9.1).
+    readonly NetworkVariable<float> patienceMax = new(1f);
+
+    /// 인내심이 닳지 않는 손님인가 (기획서 9.1 「붙임성」: 매장의 첫 손님).
+    readonly NetworkVariable<bool> patient = new();
+
     public Race Kind => race.Value;
     public int TeamId => team.Value;
 
@@ -25,7 +32,14 @@ public class Customer : NetworkBehaviour
     public int MinIngredients => minIngredients.Value;
     public int Remaining => orderCount.Value - served.Value;
     public float Patience => patience.Value;
-    public float PatienceRatio => patience.Value / PatienceOf(race.Value);
+
+    /// 이 손님의 인내심 최대치. 「인기 카페」가 걸려 있으면 종족표보다 크다.
+    public float PatienceMax => patienceMax.Value > 0f ? patienceMax.Value : PatienceOf(race.Value);
+
+    public float PatienceRatio => patience.Value / PatienceMax;
+
+    /// 「붙임성」이 걸린 첫 손님인가 (기획서 9.1).
+    public bool Patient => patient.Value;
 
     // ponytail: 임시값이다. 기획서 14장이 인내심 길이와 가격 폭을 열어 뒀고, 상대적인
     // 순서(좀비는 길고 싸다, 뱀파이어는 짧고 비싸다, 마녀가 가장 비싸다)만 확정돼 있다.
@@ -52,7 +66,11 @@ public class Customer : NetworkBehaviour
         RaceChanged?.Invoke(race.Value);
     }
 
-    public void SetupServer(int teamId, Race s, MenuTag req, MenuTag any, int minParts, int count)
+    /// `patienceScale`은 「인기 카페」 배수이고 `neverImpatient`는 「붙임성」이다
+    /// (기획서 9.1). 둘 다 대기열이 팀 패시브를 보고 넘긴다 — 손님이 스스로 팀을 뒤지면
+    /// 손님 수만큼 순회가 늘어난다.
+    public void SetupServer(int teamId, Race s, MenuTag req, MenuTag any, int minParts, int count,
+                            float patienceScale = 1f, bool neverImpatient = false)
     {
         if (!IsServer) return;
         team.Value = teamId;
@@ -64,12 +82,19 @@ public class Customer : NetworkBehaviour
         minIngredients.Value = minParts;
         orderCount.Value = count;
         served.Value = 0;
-        patience.Value = PatienceOf(s);
+
+        patienceMax.Value = PatienceOf(s) * Mathf.Max(0.01f, patienceScale);
+        patience.Value = patienceMax.Value;
+        patient.Value = neverImpatient;
     }
 
     void Update()
     {
         if (!IsServer || patience.Value <= 0f) return;
+
+        // 「붙임성」이 걸린 손님은 게이지가 줄지 않는다 (기획서 9.1).
+        if (patient.Value) return;
+
         patience.Value = Mathf.Max(0f, patience.Value - Time.deltaTime);
     }
 
@@ -90,6 +115,6 @@ public class Customer : NetworkBehaviour
     public void AddPatienceServer(float delta)
     {
         if (!IsServer) return;
-        patience.Value = Mathf.Clamp(patience.Value + delta, 0f, PatienceOf(race.Value));
+        patience.Value = Mathf.Clamp(patience.Value + delta, 0f, PatienceMax);
     }
 }

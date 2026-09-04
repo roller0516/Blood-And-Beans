@@ -1,11 +1,11 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
 
-/// 루프의 장부를 마감한다. 기획서 2장의 순서는 밤 -> 전환 -> 낮이므로 낮에서 전환으로
-/// 가는 경계는 없다. 임대료는 낮이 끝나고 밤으로 넘어갈 때 청구되고 (3.2), 예보는 밤이
-/// 끝날 때 뽑아서 전환 화면이 곧 시작될 낮에 대해 보여 줄 것을 갖게 한다 (5.6).
+/// 루프의 장부를 마감한다. 순서는 밤 -> 낮 -> 전환이라 마감할 것이 모두 낮 -> 전환
+/// 경계에 모인다. 임대료는 그 자리에서 청구되고 (3.2), 예보도 같은 자리에서 뽑아
+/// 전환 화면이 다음 밤 뒤에 올 낮에 대해 보여 줄 것을 갖게 한다 (5.6).
 public class TransitionLedger : NetworkBehaviour
 {
     [SerializeField] int ordersPerDay = 8;
@@ -14,16 +14,15 @@ public class TransitionLedger : NetworkBehaviour
 
     Phase last = Phase.Night;
 
-    /// GamePhase는 낮을 빠져나가기 전에 날짜 카운터를 올린다. 그래서 여기가 경계를 볼
-    /// 때는 달력이 이미 내일을 가리킨다. 다시 읽어 오는 대신 마감 중인 날짜를 여기서
-    /// 따로 추적한다 (기획서 3.2: "그날의 임대료").
+    /// 1일차 예보를 이미 뽑았는가. 첫 낮만 앞선 전환 없이 시작한다.
+    bool drewFirstForecast;
+
+    /// 마감 중인 날짜 (기획서 3.2: "그날의 임대료"). 달력은 전환이 끝날 때 넘어가므로
+    /// 지금은 `phase.Day`와 같지만, 마감이 어느 날의 것인지는 장부가 스스로 알고 있는
+    /// 편이 낫다 — 날짜를 올리는 자리가 바뀌어도 임대료가 하루 밀리지 않는다.
     int dayClosing = 1;
     MatchDirector director;
     GamePhase phase;
-
-    /// 마지막 날을 이미 마감했는가. 마지막 낮은 페이즈가 바뀌지 않고 끝나므로
-    /// (`GamePhase`가 `finished`만 세우고 멈춘다) 경계 감지로는 잡히지 않는다.
-    bool closedFinalDay;
 
     /// 판 하나짜리 매출판. 예전에는 `FindFirstObjectByType`으로 아무거나 하나를 집었는데,
     /// 매출판이 카페마다 있던 탓에 한 팀의 장부만 읽거나 아예 null로 굳어 임대료가
@@ -70,12 +69,12 @@ public class TransitionLedger : NetworkBehaviour
 
         director = MatchDirector.Instance;
         phase = director != null ? director.Phase : null;
-        closedFinalDay = false;
 
         // 다시 스폰됐을 때 두 번째 세트가 덧붙으면 안 된다. 그러면 CloseDay가 Scoreboard
         // 범위를 넘겨 인덱싱한다.
         revenueAtDayStart.Clear();
         dayClosing = 1;
+        drewFirstForecast = false;
 
         // Penalties.ResetServer()는 더 이상 없다. 장부는 MatchDirector.Awake가 매번 새로
         // 만들므로 비울 static이 남아 있지 않다.
@@ -86,18 +85,21 @@ public class TransitionLedger : NetworkBehaviour
     {
         if (!IsServer || phase == null) return;
 
-        // 낮 종료 -> 임대료 청구 (3.2).
-        if (last == Phase.Day && phase.Current != Phase.Day) CloseDay();
-
-        // 마지막 낮은 페이즈가 바뀌지 않는다. `GamePhase.Update`가 `finished`만 세우고
-        // 멈추므로 위의 경계 감지가 영영 걸리지 않아 그날 임대료가 공짜였다.
-        else if (!closedFinalDay && phase.Finished && last == Phase.Day)
+        // 낮 종료 -> 임대료 청구 (3.2)와 다음 낮의 예보 (5.6). 마지막 낮도 전환으로
+        // 넘어간 뒤에 판이 끝나므로 이 경계 하나로 전부 잡힌다.
+        if (last == Phase.Day && phase.Current == Phase.Transition)
         {
-            closedFinalDay = true;
             CloseDay();
+            DrawForecast();
         }
-        // 밤 종료 -> 전환 화면이 보여 줄 내용을 뽑는다 (5.6).
-        if (last == Phase.Night && phase.Current == Phase.Transition) DrawForecast();
+
+        // 첫 낮 앞에는 전환이 없다. 여기서 한 번 뽑지 않으면 1일차 대기열이 비어 있어
+        // 손님이 아예 오지 않는다.
+        else if (!drewFirstForecast && last == Phase.Night && phase.Current == Phase.Day)
+        {
+            drewFirstForecast = true;
+            DrawForecast();
+        }
         last = phase.Current;
     }
 
@@ -203,14 +205,13 @@ public class TransitionLedger : NetworkBehaviour
         PopularShown = System.Array.ConvertAll(popular, i => (Ingredient)i);
     }
 
-    /// 오늘 밤 숲이 내놓는 것. 카페 상비 재료는 여기 없다. Forecast가 제작 가능 판정을
-    /// 위해 따로 더해 주고 인기 재료 추첨에서는 제외한다 (기획서 7.1, 5.6.1).
-    /// ponytail: DT_Regen(기획서 10장)이 생기기 전까지는 모든 숲 재료가 리젠된다.
-    static IReadOnlyList<Ingredient> RegenPool() => new[]
-    {
-        Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
-        Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
-    };
+    /// 그 밤 숲이 내놓는 것. 표는 `BB.Rules`의 `RegenTable`에 있어 씬 없이 기획서 10장과
+    /// 대조할 수 있다. Forecast가 제작 가능 판정을 위해 상비 재료를 따로 더해 주고 인기
+    /// 재료 추첨에서는 제외한다 (기획서 7.1, 5.6.1).
+    ///
+    /// `dayClosing`은 `CloseDay`가 이미 올린 뒤라 곧 *다음* 일차다. 여기서 뽑는 예보는
+    /// 다음 밤에 캐서 그 다음 낮에 파는 것이므로 그 일차가 맞다.
+    IReadOnlyList<Ingredient> RegenPool() => RegenTable.PoolFor(dayClosing);
 
     /// 주문 구성의 30% 몫은 팀이 실제로 보유한 것을 본다 (기획서 5.5 규칙 3).
     /// 이제 밤의 수확이 재고로 들어가므로 실제 재고를 읽는다. ReturnZone은 페이즈 이벤트에서

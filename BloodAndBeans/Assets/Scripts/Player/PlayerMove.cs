@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using UnityEngine;
 
 /// 소유자는 크기가 제한된 입력 의도만 보내고, transform의 권위는 서버가 가진다.
@@ -23,8 +23,14 @@ public class PlayerMove : NetworkBehaviour
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
     CharacterController controller;
-    PlayerInventory inventory;
-    DashHarass harass;
+
+    /// 이 시각까지는 조작 입력을 무시한다. 대시 돌진·넉백처럼 위치를 직접 미는 기능이
+    /// 여기를 올린다. 이동은 누가 올렸는지 묻지 않는다 — 그래서 상태이상이 늘어도
+    /// 이 파일은 그대로다.
+    ///
+    /// 구간은 늘어나기만 하고 줄지 않는다(`Mathf.Max`). 둘이 겹쳐 걸렸을 때 먼저 끝난
+    /// 쪽이 남은 구간까지 풀어 버리면 안 되기 때문이다.
+    float suppressedUntil;
 
     Vector2 serverInput;                         // 서버가 RPC로 받은 값
     Vector2 predictedInput;                      // 소유자가 예측에 쓰는 값
@@ -54,27 +60,67 @@ public class PlayerMove : NetworkBehaviour
     public override void OnNetworkSpawn() =>
         groundedY = transform.position.y + controller.skinWidth;
 
-    void Awake()
+    void Awake() => controller = GetComponent<CharacterController>();
+
+    /// 위치를 직접 미는 기능이 그 구간 동안 조작을 죽인다. 서버만 부른다.
+    ///
+    /// 대시 돌진과 넉백은 LateUpdate에서 위치를 덮어쓴다. 그 사이 여기서 같이 밀면
+    /// 두 이동이 겹쳐 돌진 거리가 입력만큼 늘거나 줄어든다.
+    public void SuppressInputUntilServer(float endTime)
     {
-        controller = GetComponent<CharacterController>();
-        inventory = GetComponent<PlayerInventory>();
-        harass = GetComponent<DashHarass>();
+        if (!IsServer) return;
+        suppressedUntil = Mathf.Max(suppressedUntil, endTime);
     }
+
+    /// 이동 속도 배수를 정한다. 서버만 쓴다.
+    ///
+    /// 무게 밴드는 서버 전용 원장에서 나오므로(`MatchDirector.LedgerOf`) 소유자가 스스로
+    /// 계산할 수 없다. 여기 넣은 값이 복제되어 소유자의 예측이 서버와 같은 속도를 쓴다.
+    public void SetSpeedScaleServer(float value)
+    {
+        if (!IsServer) return;
+
+        loadScale = value;
+        PushScaleServer();
+    }
+
+    /// 캐릭터 낮 패시브에서 나오는 배수 (기획서 9.1의 잰걸음·강심장). 서버만 쓴다.
+    ///
+    /// 무게 배수와 채널을 나눈 이유는 둘이 서로 다른 이유로, 서로 다른 시점에 바뀌기
+    /// 때문이다. 한 값에 섞으면 무게가 바뀔 때마다 캐릭터를 다시 묻고, 큐가 바뀔 때마다
+    /// 가방을 다시 물어야 한다.
+    public void SetPassiveScaleServer(float value)
+    {
+        if (!IsServer) return;
+
+        passiveScale = value;
+        PushScaleServer();
+    }
+
+    /// 두 채널을 곱해 실제 배수를 낸다.
+    void PushScaleServer()
+    {
+        var want = loadScale * passiveScale;
+
+        // 밴드 값이라 실제로는 거의 바뀌지 않는다. 같은 값을 다시 쓰지 않으려는 비교다.
+        if (!Mathf.Approximately(speedScale.Value, want)) speedScale.Value = want;
+    }
+
+    /// 무게에서 오는 배수 (`PlayerInventory`)와 캐릭터에서 오는 배수 (`PlayerCharacter`).
+    float loadScale = 1f;
+    float passiveScale = 1f;
+
+    /// 지금 적용 중인 속도 배수. 서버가 정하고 소유자에게 복제된 값이라, 소유자 화면이
+    /// 서버와 다른 숫자를 보여 주지 않는다.
+    public float SpeedScale => speedScale.Value;
 
     void Update()
     {
         if (IsServer)
         {
-            // 대시 돌진과 넉백은 LateUpdate에서 위치를 덮어쓴다. 여기서 같이 밀면 두 이동이
-            // 겹쳐 돌진 거리가 입력만큼 늘거나 줄어든다.
-            if (harass != null && harass.SuppressesInputServer) return;
+            if (Time.time < suppressedUntil) return;
 
-            var load = inventory != null ? inventory.CurrentSpeedMultiplier : 1f;
-
-            // 밴드 값이라 실제로는 거의 바뀌지 않는다. 같은 값을 다시 쓰지 않으려는 비교다.
-            if (!Mathf.Approximately(speedScale.Value, load)) speedScale.Value = load;
-
-            StepMove(serverInput, load);
+            StepMove(serverInput, speedScale.Value);
             return;
         }
 

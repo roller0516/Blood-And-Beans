@@ -109,7 +109,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
 
     /// 열기 전에 미리 만들어 둔다. 스택에는 올리지 않는다.
     ///
-    /// 만드는 비용을 원하는 시점으로 옮기는 것이 전부다. `BoxLootPopup`처럼 밤 한가운데
+    /// 만드는 비용을 원하는 시점으로 옮기는 것이 전부다. `UIBoxLootPopup`처럼 밤 한가운데
     /// 처음 열리는 팝업은 그 순간 인스턴스를 만드느라 한 번 끊긴다.
     public void Preload<T>() where T : UIView => Resolve<T>();
 

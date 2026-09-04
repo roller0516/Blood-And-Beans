@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEditor;
 using UnityEngine;
@@ -29,6 +29,7 @@ public class DevConsoleWindow : EditorWindow
         new SessionGroup(),
         new PhaseCheatGroup(),
         new TeamCheatGroup(),
+        new CharacterCheatGroup(),
         new CameraGroup(),
         new LookSensitivityGroup(),
         new UIThemeGroup(),

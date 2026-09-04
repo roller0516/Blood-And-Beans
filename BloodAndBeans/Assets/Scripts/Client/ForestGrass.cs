@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Rendering;
 
 /// 숲 바닥의 풀. GPU가 위치를 뽑고 한 번의 인디렉트 드로우로 전부 그린다.
@@ -95,6 +95,9 @@ public class ForestGrass : MonoBehaviour
     void Submit(ScriptableRenderContext context, Camera camera)
     {
         if (camera == null || positionsCompute == null || bladeMaterial == null) return;
+
+        // 프리뷰·프리팹 스테이지 카메라에는 그리지 않는다 (`ForestCameras`).
+        if (!ForestCameras.Renders(camera, gameObject)) return;
         if (spacing <= 0f || mapSize.x <= 0f || mapSize.y <= 0f) return;
 
         EnsureBuffers();
