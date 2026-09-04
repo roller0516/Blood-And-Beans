@@ -17,6 +17,18 @@ using UnityEngine.UI;
 public sealed class UIBoxLootSlot : MonoBehaviour,
     IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
 {
+    /// 칸이 지금 어느 상태인가. bool을 여러 개 나란히 넘기면 호출부에서 `false, false`가
+    /// 무슨 뜻인지 읽히지 않는다.
+    enum SlotState
+    {
+        /// 아직 공개되지 않았다. 테두리도 켜지 않는다 — 열리는 순간이 드러나야 한다.
+        Hidden,
+        /// 공개됐고 담을 수 있다.
+        Ready,
+        /// 공개됐지만 남이 먼저 가져갔다.
+        Empty,
+    }
+
     /// 가려진 칸의 이름 자리. 아직 무엇인지 모른다는 표시다.
     const string HiddenLabel = "— — —";
 
@@ -50,28 +62,25 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     [SerializeField] string[] rarityNames = { "일반", "희귀" };
 
     [Header("색")]
-    /// 칸 바닥. **상태에 따라 바뀌지 않는다.** 예전에는 가려짐·담을 수 있음·비워짐마다
-    /// 다른 색을 칠했는데, 칸 자체가 계속 색을 바꾸니 무엇이 상태 표시이고 무엇이
-    /// 등급 표시인지 읽히지 않았다. 가려짐은 `blind` 덮개가, 비워짐은 아이콘이 없는
-    /// 것이 이미 알려 준다.
+    [SerializeField] Color blindColor = new(0.16f, 0.17f, 0.2f, 0.95f);
+    [SerializeField] Color readyColor = new(0.27f, 0.3f, 0.36f, 0.98f);
+    [SerializeField] Color emptyColor = new(0.1f, 0.1f, 0.11f, 1f);
 
     /// 등급이 없는 칸(가려짐·비워짐)의 테두리색.
-    [SerializeField] Color slotColor = new(0.16f, 0.17f, 0.2f, 0.95f);
-
     [SerializeField] Color plainEdgeColor = Color.white;
+
+    /// 등급 글자 색. 테두리 색은 발광 기준으로 고른 값이라 글자로 쓰면 어둡고 잘 안
+    /// 읽힌다. 등급이 무엇인지는 글자 *내용*이 이미 말해 주므로, 글자는 읽히기만 하면 된다.
+    [SerializeField] Color rarityTextColor = Color.white;
 
     /// 공개된 칸의 테두리 등급 색. 인덱스가 `IngredientRarity`다 — 배열이 짧으면 그
     /// 등급은 `plainEdgeColor`로 남는다.
     ///
-    /// 바닥이 아니라 테두리를 칠한다. 바닥은 고정이고, 움직이는 색은 등급 하나뿐이다.
+    /// 바닥이 아니라 테두리를 칠하는 이유는 바닥이 이미 세 가지 상태(가려짐·담을 수
+    /// 있음·비워짐)를 나르고 있어서다. 등급까지 바닥에 얹으면 두 정보가 한 색에 겹친다.
     ///
     /// 희귀 색은 3등급 상자 머티리얼(`Box_T3.mat`)의 금보라 발광 (2.1, 1.35, 3.0)을
     /// 최대 성분으로 나눠 LDR로 내린 값이다 (기획서 6.5.2).
-    /// 등급 글자만 따로 밝히는 색. 테두리 색은 발광 기준이라 어두워서 글자로는 잘
-    /// 안 읽힌다 — 일반은 흰색으로 띄운다. **배열에 없는 등급은 테두리 색을 그대로
-    /// 쓴다.** 그래서 희귀 색은 여기 없다 — 색표를 두 벌로 만들지 않기 위해서다.
-    [SerializeField] Color[] rarityTextColors = { Color.white };
-
     [SerializeField] Color[] rarityEdgeColors =
     {
         new(0.45f, 0.50f, 0.58f, 1f),   // Common — 흰색보다 낮춰 희귀가 튀게 한다
@@ -114,6 +123,13 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     /// 연출이 끝나고 돌아갈 색. 지금 칸이 무슨 상태인지를 그대로 들고 있다.
     Color idleGlow = Color.clear;
 
+    /// 지금 칸이 공개된 상태인가. 테두리를 켤지는 이 값과 `edgeHeld`가 함께 정한다.
+    bool edgeOpened;
+
+    /// 담기 연출이 도는 동안 테두리를 잠근다. 사본이 날아가는 중에 빈 칸이 먼저 불을
+    /// 켜면 무엇이 떠난 것인지 흐려진다 — 연출이 끝나면 화면이 풀어 준다.
+    bool edgeHeld;
+
     /// 지금 담을 수 있는 칸인가. 설명을 띄울지도 이 값이 정한다.
     bool takable;
 
@@ -145,18 +161,30 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     void Awake()
     {
         restScale = transform.localScale;
-        if (frame != null) frame.color = slotColor;
-        if (glow == null) return;
 
-        glow.raycastTarget = false;
-        glow.enabled = false;           // 켜는 것은 `Paint`가 등급을 보고 정한다
-        if (edge != null) edge.raycastTarget = false;
+        // 둘 다 선택 참조다. 한쪽이 비어도 나머지는 세운다 — 조기 반환으로 묶으면
+        // `glow`를 안 단 칸에서 `edge`가 통째로 설정되지 않는다.
+        if (glow != null)
+        {
+            glow.raycastTarget = false;
+            glow.enabled = false;       // 켜는 것은 `Paint`가 등급을 보고 정한다
+        }
+
+        if (edge != null)
+        {
+            edge.raycastTarget = false;
+            edge.enabled = false;       // 공개될 때 `Paint`가 켠다
+        }
     }
 
     /// 창이 내려가면 돌던 연출을 끊고 원래 크기로 되돌린다. 트윈은 창보다 오래 살아서,
     /// 놔두면 다음에 열 때 칸이 부푼 채이거나 잔광이 켜진 채로 남는다.
     void OnDisable()
     {
+        // 트윈은 창보다 오래 산다. 잠금을 안 풀면 다음에 열 때 테두리가 꺼진 채로 남는다.
+        edgeHeld = false;
+        ApplyEdge();
+
         transform.DOKill();
         transform.localScale = restScale;
         if (glow == null) return;
@@ -201,7 +229,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         Set(weightLabel, string.Empty);
         ClearRarity();
         SetIcon(null);
-        Paint(plainEdgeColor, false);
+        Paint(blindColor, plainEdgeColor, SlotState.Hidden);
     }
 
     /// 공개됐고 담을 수 있는 칸. 글자와 아이콘은 화면이 만든다 — 이름표와 아이콘 목록이
@@ -216,7 +244,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         Set(weightLabel, weight);
         SetRarity(rarity);
         SetIcon(sprite);
-        Paint(RarityEdge(rarity), true, rarity == IngredientRarity.Rare);
+        Paint(readyColor, RarityEdge(rarity), SlotState.Ready, rarity == IngredientRarity.Rare);
     }
 
     /// 공개됐지만 남이 먼저 가져가 비워진 칸.
@@ -229,7 +257,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         Set(weightLabel, string.Empty);
         ClearRarity();
         SetIcon(null);
-        Paint(plainEdgeColor, false);
+        Paint(emptyColor, plainEdgeColor, SlotState.Empty);
     }
 
     /// 창이 내려가는 순간에는 `PointerExit`가 오지 않는다. 남겨 두면 다음에 열 때 마우스를
@@ -261,24 +289,28 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (tooltip != null) tooltip.SetActive(hovered && takable);
     }
 
-    /// `accent`는 도는 조각을 켤지다. 정지 테두리는 이 값과 무관하게 늘 켜져 있다.
-    /// 바닥은 여기서 건드리지 않는다 — `Awake`가 한 번 칠하고 그대로 둔다.
-    void Paint(Color edgeColor, bool canTake, bool accent = false)
+    /// `accent`는 도는 조각을 켤지다. 정지 테두리는 공개 여부가 정한다.
+    void Paint(Color frameColor, Color edgeColor, SlotState state, bool accent = false)
     {
-        takable = canTake;
-        SetGlow(edgeColor, accent);
+        takable = state == SlotState.Ready;
+        if (frame != null) frame.color = frameColor;
+        SetGlow(edgeColor, state != SlotState.Hidden, accent);
         SyncTooltip();
     }
 
     /// 발광 프레임을 이 색으로 세운다. 돌던 연출은 끊는다 — 칸의 상태가 바뀐 뒤에도
     /// 이전 상태의 밝기로 타오르고 있으면 안 된다.
-    void SetGlow(Color tint, bool accent)
+    void SetGlow(Color tint, bool opened, bool accent)
     {
         idleGlow = new Color(tint.r, tint.g, tint.b, idleAlpha);
 
-        // 정지 테두리는 연출과 무관하게 상태 색만 따른다. 여기에도 펀치를 걸면 칸이
-        // 두 겹으로 흔들려 무엇이 강조인지 읽히지 않는다.
+        // 정지 테두리는 공개된 뒤에만 켜진다. 가려진 칸까지 두르면 열리는 순간에
+        // 아무 변화가 없어서, 무엇이 방금 드러났는지 알 수 없다.
+        // 연출과 무관하게 상태 색만 따른다 — 여기에도 펀치를 걸면 칸이 두 겹으로
+        // 흔들려 무엇이 강조인지 읽히지 않는다.
+        edgeOpened = opened;
         if (edge != null) edge.color = new Color(tint.r, tint.g, tint.b, edgeAlpha);
+        ApplyEdge();
 
         if (glow == null) return;
 
@@ -292,16 +324,33 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         glow.enabled = accent;
     }
 
+    /// 담기 연출이 시작됐다. 연출이 끝날 때까지 테두리를 끈다.
+    public void HoldEdge()
+    {
+        edgeHeld = true;
+        ApplyEdge();
+    }
+
+    /// 담기 연출이 끝났다. 칸이 공개 상태면 테두리가 다시 켜진다.
+    public void ReleaseEdge()
+    {
+        edgeHeld = false;
+        ApplyEdge();
+    }
+
+    void ApplyEdge()
+    {
+        if (edge != null) edge.enabled = edgeOpened && !edgeHeld;
+    }
+
     /// 등급을 칸 얼굴과 툴팁 양쪽에 적는다. 색은 테두리와 같은 것을 쓴다 — 색과 글자가
     /// 같은 것을 가리켜야 링만 보이는 상황에서도 그 색이 무슨 뜻이었는지 이어진다.
     void SetRarity(IngredientRarity rarity)
     {
         var index = (int)rarity;
         var label = index < rarityNames.Length ? rarityNames[index] : string.Empty;
-        var color = RarityText(rarity);
-
-        Paint(rarityBadge, label, color);
-        Paint(rarityLabel, label, color);
+        Paint(rarityBadge, label, rarityTextColor);
+        Paint(rarityLabel, label, rarityTextColor);
     }
 
     /// 등급 글자를 비운다. 가려진 칸과 비워진 칸에는 알려 줄 등급이 없다.
@@ -316,13 +365,6 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (target == null) return;
         target.text = value;
         target.color = color;
-    }
-
-    /// 글자에 쓸 등급 색. 배열에 없으면 테두리 색으로 떨어진다.
-    Color RarityText(IngredientRarity rarity)
-    {
-        var index = (int)rarity;
-        return index < rarityTextColors.Length ? rarityTextColors[index] : RarityEdge(rarity);
     }
 
     Color RarityEdge(IngredientRarity rarity)

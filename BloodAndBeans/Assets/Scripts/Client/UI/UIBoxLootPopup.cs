@@ -57,8 +57,8 @@ public sealed class UIBoxLootPopup : UIPopup
     [Header("연출")]
     [SerializeField] float flySeconds = 0.45f;
 
-    /// 희귀 재료를 담을 때 남는 발광 꼬리(`BB/UI Glow Trail`). 흔한 재료에는 남기지
-    /// 않는다 — 담을 때마다 날리면 희귀라는 신호가 흔해진다.
+    /// 재료를 담을 때 남는 발광 꼬리(`BB/UI Glow Trail`). 등급과 무관하게 붙고,
+    /// 색만 등급을 따른다.
     ///
     /// 꼬리 모양은 셰이더가 UV로 그린다. 쿼드는 **한 장**이고 매 프레임 출발점과 머리를
     /// 잇도록 늘어난다. `TrailRenderer`는 월드 렌더러라 Overlay 캔버스에서 그려지지
@@ -267,14 +267,26 @@ public sealed class UIBoxLootPopup : UIPopup
         if (index >= source.RevealedCount || source.SlotCountAt(index) == 0) return;
 
         var rarity = Ingredients.RarityOf(source.SlotItem(index));
+        var slot = SlotOf(index);
+
+        // 사본이 날아가는 동안 이 칸의 테두리를 끈다. 담자마자 `Render`가 빈 칸으로
+        // 다시 그리는데, 그때 테두리가 곧장 켜지면 떠나는 연출과 겹친다.
+        if (slot != null) slot.HoldEdge();
+
         take(index);
-        FlyToBag(SlotOf(index), rarity);
+        FlyToBag(slot, rarity);
     }
 
     /// 누른 칸의 사본을 가방 아이콘으로 날린다. 원본을 옮기면 칸 배치가 무너진다.
     void FlyToBag(UIBoxLootSlot slot, IngredientRarity rarity)
     {
-        if (bagAnchor == null || flyLayer == null || slot == null) return;
+        if (bagAnchor == null || flyLayer == null || slot == null)
+        {
+            // 연출을 못 띄우면 잠금도 풀어야 한다. 안 그러면 그 칸은 창을 닫을 때까지
+            // 테두리가 꺼진 채로 남는다.
+            if (slot != null) slot.ReleaseEdge();
+            return;
+        }
 
         // 창이 닫히면 필드가 비므로 지역 변수로 잡아 둔다. 트윈은 창보다 오래 산다.
         var anchor = bagAnchor;
@@ -292,11 +304,10 @@ public sealed class UIBoxLootPopup : UIPopup
         image.color = image.sprite != null ? Color.white : slot.FrameColor;
         image.raycastTarget = false;
 
-        // 꼬리는 희귀에만 붙인다.
+        // 꼬리는 등급을 가리지 않고 붙인다. 담는 순간 무엇이 어디로 갔는지 보이는 것이
+        // 먼저고, 등급은 꼬리 *색*이 말한다 — 흔한 재료는 흐린 청회색, 희귀는 금보라다.
         var origin = from.position;
-        var streak = rarity == IngredientRarity.Rare && trailMaterial != null
-            ? CreateStreak(slot.ColorOf(rarity))
-            : null;
+        var streak = trailMaterial != null ? CreateStreak(slot.ColorOf(rarity)) : null;
 
         DOTween.Sequence()
             .Append(rect.DOMove(anchor.position, flySeconds).SetEase(Ease.InQuad))
@@ -319,6 +330,10 @@ public sealed class UIBoxLootPopup : UIPopup
             .OnComplete(() =>
             {
                 Destroy(ghost);
+
+                // 창이 닫혔으면 칸은 이미 스스로 잠금을 풀었다.
+                if (slot != null) slot.ReleaseEdge();
+
                 if (streak == null) return;
 
                 // 꼬리는 머리가 도착한 뒤에도 잠깐 남아 사라진다. 같이 지우면 자취가
