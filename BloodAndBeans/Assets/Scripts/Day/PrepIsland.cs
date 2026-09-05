@@ -16,9 +16,10 @@ using UnityEngine;
 /// 올린 쪽 칸이 비어 다음 것을 올릴 수 있다. 받는 쪽은 흘러온 것부터 집는다 — 그것이
 /// 이 업그레이드가 동선에서 지워 주는 왕복이다.
 ///
-/// 기획서 5.1의 디저트 조립(빵 베이스를 조리대에 올리고 크림을 얹은 뒤 오븐에 넣는다)은
-/// 여기 없다. 현재 구현은 오븐이 재료를 직접 받는다 (`Station.Insert`). 차이를 보고만
-/// 하고 임의로 한쪽을 바꾸지 않는다 (AGENTS.md).
+/// **디저트는 여기서 조립한다** (기획서 5.1: 빵 베이스를 올리고 크림을 얹은 뒤 오븐에
+/// 넣는다). 바탕이 올라와 있을 때 얹을 수 있는 재료를 들고 누르면 올려놓는 대신 그 위에
+/// 얹힌다. 오븐은 낱개 재료를 받지 않으므로(`Oven`) 이 조립이 디저트의 유일한 경로이고,
+/// 그래서 디저트가 커피보다 단계가 하나 많다.
 public class PrepIsland : NetworkBehaviour, IInteractable, IItemHolder
 {
     [SerializeField] float reach = 2.5f;
@@ -138,9 +139,42 @@ public class PrepIsland : NetworkBehaviour, IInteractable, IItemHolder
         var carry = PlayerCarry.Of(clientId);
         if (carry == null) return;
 
-        if (!carry.Empty && placed.Empty) Place(carry);
+        // 얹기가 먼저다. 올려놓기보다 뒤에 두면 바탕이 있는 칸은 늘 "자리 참"으로 걸려
+        // 조립이 시작조차 하지 못한다.
+        if (!carry.Empty && CanTop(carry.Held)) Top(carry);
+        else if (!carry.Empty && placed.Empty) Place(carry);
         else if (carry.Empty && !(placed.Empty && delivered.Empty)) Take(carry);
     }
+
+    /// 올라와 있는 바탕 위에 이 손을 얹을 수 있는가 (기획서 5.1).
+    ///
+    /// 상한은 메뉴 표가 정한다 (`Menus.MaxDessertParts`). 없으면 한 덩어리에 재료를 계속
+    /// 얹을 수 있고, 그렇게 만든 것은 오븐 한 레인에 들어가지 못해 낮이 끝날 때까지
+    /// 손에 남는다.
+    ///
+    /// ponytail: 얹기는 올린 쪽 칸에서만 된다. 벨트가 반대편으로 넘긴 뒤에는 받는 쪽이
+    /// 집어서 다시 올려야 얹을 수 있다 — 두 칸 모두에 얹기를 열면 같은 조립물이 양쪽에서
+    /// 자라는 경우를 따로 막아야 한다. 벨트를 단 팀의 디저트 동선이 실제로 불편하면 그때 연다.
+    bool CanTop(HeldItem held) =>
+        !placed.Empty && !placed.IsProduct && placed.Ingredient == Menus.DessertBase &&
+        !held.IsProduct && !held.IsAssembly && Menus.IsDessertTopping(held.Ingredient) &&
+        PartsOf(placed).Length < Menus.MaxDessertParts;
+
+    void Top(PlayerCarry carry)
+    {
+        var parts = PartsOf(placed);
+        var next = new Ingredient[parts.Length + 1];
+        System.Array.Copy(parts, next, parts.Length);
+        next[parts.Length] = carry.Held.Ingredient;
+
+        placed = HeldItem.Assembled(next);
+        carry.ConsumeOneServer();
+        view.Value = CarryView.Of(placed);
+    }
+
+    /// 아직 아무것도 얹지 않은 바탕은 재료 하나짜리 조립물과 같다.
+    static Ingredient[] PartsOf(HeldItem item) =>
+        item.IsAssembly ? item.Recipe : new[] { item.Ingredient };
 
     void Place(PlayerCarry carry)
     {

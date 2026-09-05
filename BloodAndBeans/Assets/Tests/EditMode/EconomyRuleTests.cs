@@ -233,4 +233,30 @@ public class EconomyRuleTests
         Assert.IsNotNull(f.Orders);
         Assert.IsNotNull(f.Popular);
     }
+
+    // --- 7.2 태그 — 온도는 음료 개념이다 ---
+
+    [Test]
+    public void DessertsCarryNoTemperatureTag()
+    {
+        // 디저트는 얼음도 온장도 없다. Hot을 기본값으로 채우면 해골(Hot 전용) 손님이
+        // 브라우니를 주문 후보로 받아들이는 결함이 된다.
+        var tags = Menus.TagsOf(new[] { Ingredient.BreadBase, Ingredient.Chocolate });
+        Assert.AreEqual(MenuTag.None, tags & (MenuTag.Hot | MenuTag.Cold),
+            "디저트에 Hot/Cold 어느 쪽도 붙으면 안 된다");
+    }
+
+    [Test]
+    public void CoffeeWithoutIceDefaultsToHot()
+    {
+        var tags = Menus.TagsOf(new[] { Ingredient.Bean });
+        Assert.AreEqual(MenuTag.Hot, tags & (MenuTag.Hot | MenuTag.Cold));
+    }
+
+    [Test]
+    public void CoffeeWithIceIsColdNotHot()
+    {
+        var tags = Menus.TagsOf(new[] { Ingredient.Bean, Ingredient.Ice });
+        Assert.AreEqual(MenuTag.Cold, tags & (MenuTag.Hot | MenuTag.Cold));
+    }
 }

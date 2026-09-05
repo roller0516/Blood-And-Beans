@@ -125,11 +125,11 @@ public class PlayerInteract : NetworkBehaviour
         serverHeld = null;
     }
 
-    /// 대시를 맞으면 파밍이 취소된다 (기획서: 이동하거나 피격당하면 상자 UI가 즉시 닫힘).
-    /// 진행도를 절반 남기지 않는다 — 다시 열려면 캐스팅부터 처음이다.
+    /// 대시를 맞았다. 개봉 캐스팅 중이었는지 이미 열린 세션이었는지는 `ItemBox`가
+    /// 갈라 처리한다(기획서 6.6) — 여기서는 어느 상자를 잡고 있었는지만 넘긴다.
     public void InterruptServer()
     {
         if (!IsServer || serverHeld == null) return;
-        serverHeld.CancelSessionServer(OwnerClientId);
+        serverHeld.HarassServer(OwnerClientId);
     }
 }

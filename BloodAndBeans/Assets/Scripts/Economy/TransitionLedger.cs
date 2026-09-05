@@ -211,7 +211,8 @@ public class TransitionLedger : NetworkBehaviour
     ///
     /// `dayClosing`은 `CloseDay`가 이미 올린 뒤라 곧 *다음* 일차다. 여기서 뽑는 예보는
     /// 다음 밤에 캐서 그 다음 낮에 파는 것이므로 그 일차가 맞다.
-    IReadOnlyList<Ingredient> RegenPool() => RegenTable.PoolFor(dayClosing);
+    IReadOnlyList<Ingredient> RegenPool() =>
+        RegenTable.PoolFor(director != null ? director.MapId : RegenTable.DefaultMapId, dayClosing);
 
     /// 주문 구성의 30% 몫은 팀이 실제로 보유한 것을 본다 (기획서 5.5 규칙 3).
     /// 이제 밤의 수확이 재고로 들어가므로 실제 재고를 읽는다. ReturnZone은 페이즈 이벤트에서

@@ -3,18 +3,13 @@ using UnityEngine;
 
 public enum Phase { Night, Transition, Day }
 
-/// 서버 권위 하루 루프: 밤 -> 낮 -> 전환을 totalDays만큼 반복한다.
+/// 서버 권위 하루 루프: 밤 -> 낮 -> 전환을 `DayPhases.TotalDays`만큼 반복한다.
 /// 전환은 낮 뒤에 온다 — 정산은 그 낮이 끝난 직후에 보여야 한다.
 /// 클라이언트는 동기화된 종료 시각에서 카운트다운을 계산하므로 네트워크로 째깍이는 값이 없다.
 public class GamePhase : NetworkBehaviour
 {
-    [SerializeField] float nightSeconds = 120f;
-    [SerializeField] float transitionSeconds = 10f;
-    [SerializeField] float daySeconds = 120f;
-    [SerializeField] int totalDays = 3;
-
     /// 귀환 경보가 켜지는 시점. 밤이 끝나기까지 남은 시간으로 잰다 — 기획서 6.4는 2분 밤의
-    /// 1:30을 말하지만, 밤 길이는 `nightSeconds`로 바뀌므로 "끝나기 30초 전"이 그 뜻이다.
+    /// 1:30을 말하지만, 밤 길이가 바뀌면 "끝나기 30초 전"이 그 뜻이다.
     [SerializeField] float returnAlarmSeconds = 30f;
 
     readonly NetworkVariable<Phase> phase = new();
@@ -110,7 +105,7 @@ public class GamePhase : NetworkBehaviour
         // 전환에서 다 보여 준 뒤다.
         if (phase.Value == Phase.Transition)
         {
-            if (day.Value >= totalDays) { finished.Value = true; return; }
+            if (day.Value >= DayPhases.TotalDays) { finished.Value = true; return; }
             day.Value++;
         }
         Enter(NextPhase(phase.Value));
@@ -130,8 +125,8 @@ public class GamePhase : NetworkBehaviour
     /// 페이즈 하나의 길이. 전환 화면이 남은 시간을 비율로 그리려면 분모가 필요하다.
     public float Duration(Phase p) => p switch
     {
-        Phase.Night => nightSeconds,
-        Phase.Transition => transitionSeconds,
-        _ => daySeconds,
+        Phase.Night => DayPhases.NightSeconds,
+        Phase.Transition => DayPhases.TransitionSeconds,
+        _ => DayPhases.DaySeconds,
     };
 }

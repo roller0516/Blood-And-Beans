@@ -293,12 +293,25 @@ public class Station : NetworkBehaviour, IInteractable, IItemHolder
     int LaneForInsert(HeldItem held)
     {
         if (held.IsProduct) return NoLane;
+        if (held.IsAssembly) return LaneForAssembly(held);
 
         for (var lane = 0; lane < Lanes; lane++)
             if (Accepts(lane, held.Ingredient) && Loaded(lane).Count > 0) return lane;
 
         for (var lane = 0; lane < Lanes; lane++)
             if (Accepts(lane, held.Ingredient)) return lane;
+
+        return NoLane;
+    }
+
+    /// 조리대에서 조립해 온 것이 들어갈 레인 (기획서 5.1). 조립물은 한 판 전체라 절반쯤
+    /// 채워진 레인에 섞이지 않는다 — 빈 레인에만 통째로 들어간다.
+    int LaneForAssembly(HeldItem held)
+    {
+        if (!AcceptsAssembly || held.Recipe.Length > maxIngredients) return NoLane;
+
+        for (var lane = 0; lane < Lanes; lane++)
+            if (State(lane).Value == StationState.Idle && Loaded(lane).Count == 0) return lane;
 
         return NoLane;
     }
@@ -329,7 +342,17 @@ public class Station : NetworkBehaviour, IInteractable, IItemHolder
             if (dishes == null || !dishes.ClaimServer()) return;
         }
 
-        items.Add((int)carry.Held.Ingredient);
+        // 조립물은 통째로 들어간다. 재료를 하나씩 옮겨 담으면 조리대에서 맞춰 둔 조합이
+        // 레인 용량에 걸려 반만 들어갈 수 있다.
+        var held = carry.Held;
+        if (held.IsAssembly)
+        {
+            for (var i = 0; i < held.Recipe.Length; i++) items.Add((int)held.Recipe[i]);
+            carry.ClearServer();
+            return;
+        }
+
+        items.Add((int)held.Ingredient);
 
         // 「양손잡이」가 둘을 들고 있어도 하나만 들어간다 (`PlayerCarry.ConsumeOneServer`).
         carry.ConsumeOneServer();
@@ -348,6 +371,11 @@ public class Station : NetworkBehaviour, IInteractable, IItemHolder
     }
 
     protected virtual bool AcceptsIngredient(Ingredient ingredient, int currentCount) => true;
+
+    /// 조리대에서 조립해 온 것을 받는가 (기획서 5.1). 오븐만 받는다 — 커피 머신은 재료를
+    /// 직접 받는 것이 기획서의 커피 흐름이다.
+    protected virtual bool AcceptsAssembly => false;
+
     protected virtual bool CanCook() => true;
 
     void TakeProduct(ulong clientId, int lane)

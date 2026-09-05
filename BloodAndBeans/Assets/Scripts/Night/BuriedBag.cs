@@ -5,8 +5,16 @@ using UnityEngine;
 /// 땅에 묻어 둔 가방 (기획서: 무게를 비워 대시를 쓰기 위해 그 자리에 숨긴다).
 ///
 /// 아군에게만 보인다. 적은 눈으로 찾을 수 없고, 가방 없이 돌아다니는 동선을 힌트로
-/// 위치를 유추해 그 위에 올라서야 존재를 안다 — 그래서 표시(Renderer)만 팀별로 끄고
-/// 콜라이더는 양쪽 모두에 남긴다. 복제 자체를 끊으면 적이 밟아도 아무 일도 일어나지 않는다.
+/// 위치를 유추해 그 위에 올라서야 존재를 안다.
+///
+/// 복제 자체를 끊으면 적이 밟아도 아무 일도 일어나지 않으므로, 아군에게는 스폰 즉시
+/// 보여 주고(`OnNetworkSpawn`) 적에게는 실제로 다가온 순간에만 `NetworkShow`한다
+/// (`RevealToNearbyEnemiesServer`). 표시(Renderer)를 팀별로 끄는 것과는 별개다 — 렌더러
+/// 토글은 이미 복제받은 클라이언트가 그리는지 여부일 뿐이라, 스폰 시점부터 전원에게
+/// 복제해 버리면 위치·팀 정보 자체가 상대 클라이언트 메모리에 항상 올라가 있고
+/// 렌더러만 꺼진 상태가 된다 — 조작된 클라이언트가 렌더러를 강제로 켜면 찾지 않고도
+/// 모든 적 은닉 위치를 알 수 있다. `NetworkShow`를 접근 시점으로 미루면 애초에 그
+/// 클라이언트에 오브젝트 자체가 존재하지 않아 읽을 것이 없다.
 ///
 /// **숨김이 기본값이다.** 팀을 아직 모르는 동안 보이는 쪽으로 열어 두면, 숨기는 것이
 /// 유일한 목적인 오브젝트가 그 창 동안 전원에게 드러난다. 모를 때는 감춘다.
@@ -92,6 +100,12 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         director = MatchDirector.Instance;
         if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
 
+        // 아군에게는 스폰 즉시 보여 준다. `SpawnWithObservers = false`로 스폰됐으므로
+        // (`PlayerInventory.BuryRpc`/`PlayerCharacter.PlaceDecoyBagServer`) 여기서 보여
+        // 주지 않으면 아군도 이 오브젝트를 영영 못 받는다.
+        if (IsServer && director != null && ownerTeam.Value >= 0)
+            director.ShowToTeamServer(NetworkObject, ownerTeam.Value);
+
         ownerTeam.OnValueChanged += OnOwnerTeamChanged;
         ApplyVisibility();
     }
@@ -141,6 +155,11 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     public void RevealToServer(ulong clientId, float seconds)
     {
         if (!IsServer || seconds <= 0f) return;
+
+        // 「추적」은 원래 안 보이던 클라이언트를 겨냥한다. 먼저 복제해 주지 않으면
+        // 그 클라이언트에는 이 오브젝트 자체가 없어서 RPC를 받을 대상이 없다.
+        if (!NetworkObject.IsNetworkVisibleTo(clientId)) NetworkObject.NetworkShow(clientId);
+
         TrackedRpc(seconds, RpcTarget.Single(clientId, RpcTargetUse.Temp));
     }
 
@@ -209,8 +228,38 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
         if (!IsServer) return;
 
+        RevealToNearbyEnemiesServer();
+
         hold.CopyClientsTo(scratch);
         for (var i = 0; i < scratch.Count; i++) TickServer(scratch[i]);
+    }
+
+    /// 다가온 적에게만 그 순간 복제를 열어 준다 (기획서 6.7 「적 가방 탐색 및 파괴」:
+    /// "적도 숨긴 위치 바로 위에 있으면 [제거] 아이콘이 보임"). `reach`를 그대로 쓰는
+    /// 이유는 상호작용 판정(`BeginHoldRpc`)과 같은 거리여야 보이는 순간과 누를 수 있는
+    /// 순간이 어긋나지 않기 때문이다. 한 번 보여 주면 다시 숨기지 않는다 — 멀어졌다고
+    /// 되돌리면 상호작용 도중에 오브젝트가 사라지는 경우가 생긴다.
+    ///
+    /// `ConnectedClientsList`와 `Station.PlayerOf`는 딕셔너리 조회일 뿐 씬 탐색이 아니라
+    /// 매 프레임 불러도 된다 (AGENTS.md 「참조와 결합도」가 막는 것은 `GameObject.Find`·
+    /// `GetComponent` 계열이다).
+    void RevealToNearbyEnemiesServer()
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager == null || ownerTeam.Value < 0) return;
+
+        foreach (var client in manager.ConnectedClientsList)
+        {
+            if (NetworkObject.IsNetworkVisibleTo(client.ClientId)) continue;
+
+            var enemyTeam = PlayerTeam.Of(client.ClientId);
+            if (enemyTeam < 0 || enemyTeam == ownerTeam.Value) continue;
+
+            var body = Station.PlayerOf(client.ClientId);
+            if (body == null || Vector3.Distance(body.position, transform.position) > reach) continue;
+
+            NetworkObject.NetworkShow(client.ClientId);
+        }
     }
 
     void TickServer(ulong clientId)

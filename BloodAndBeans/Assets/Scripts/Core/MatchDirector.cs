@@ -26,6 +26,12 @@ using UnityEngine.SceneManagement;
 public class MatchDirector : MonoSingleton<MatchDirector>
 {
     [Header("맵")]
+    /// 이 씬이 어느 맵인가 (기획서 10장: "맵마다 리젠되는 재료 타입이 정해져 있다").
+    /// `RegenTable.PoolFor`가 이 키로 재료 풀을 찾는다. 맵마다 씬이 갈리므로 여기가
+    /// 진실의 원천이다 — 등록 안 된 값이면 `RegenTable`이 기본 풀로 조용히 떨어진다.
+    [SerializeField] string mapId = RegenTable.DefaultMapId;
+    public string MapId => mapId;
+
     /// 맵의 원점. 숲과 카페 구역이 모두 여기를 기준으로 놓인다.
     [SerializeField] Vector3 cafeOrigin = Vector3.zero;
 
@@ -37,6 +43,9 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     [Header("카페")]
     [SerializeField] Cafe cafePrefab;
+
+    /// 팀의 귀환 지점. 숲 모서리에 서므로 카페의 자식이 아니라 따로 스폰한다 (기획서 6.8).
+    [SerializeField] ReturnZone returnZonePrefab;
 
     /// 카페 구역 격자의 한 칸. 카페 하나가 이 칸 가운데에 선다.
     [SerializeField] Vector2 cafeCell = new(46f, 40f);
@@ -68,6 +77,9 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     /// 스폰된 카페의 팀별 색인. 서버는 스폰하면서, 클라이언트는 복제를 받으면서 채운다.
     readonly Dictionary<int, Cafe> cafes = new();
+
+    /// 같은 방식의 귀환 지점 색인.
+    readonly Dictionary<int, ReturnZone> zones = new();
 
     TeamLedger[] ledgers = new TeamLedger[0];
     GamePhase phase;
@@ -209,6 +221,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             var networkObject = cafe.GetComponent<NetworkObject>();
             networkObject.SpawnWithObservers = false;   // 상대 팀에는 애초에 복제하지 않는다
             networkObject.Spawn();
+
+            SpawnZoneServer(team);
         }
 
         // 이미 붙어 있는 사람들은 타이틀 씬에서 스폰됐다. 그때는 카페도 박스도 없었으므로
@@ -282,6 +296,30 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
         CDebug.Log($"{name}: 상자 {boxes.Count}개 중 {keep}개를 남겼다 "
                  + $"(팀 {teamCount}/{maxTeams}, 기획서 10장).", this);
+    }
+
+    /// 귀환 지점은 숲 모서리에 선다 (기획서 6.8 "소환 위치"). 카페 구역은 숲 바깥이라
+    /// 카페의 자식으로 두면 돌아갈 수 없는 거리에 놓인다.
+    ///
+    /// y는 프리팹 값을 그대로 쓴다. 스폰 좌표의 y는 플레이어 캡슐용으로 띄운 높이라
+    /// (`spawnHeight`) 판에 적용하면 공중에 뜬다 — 중력이 없어 스스로 내려오지도 않는다.
+    void SpawnZoneServer(int team)
+    {
+        if (returnZonePrefab == null)
+        {
+            Debug.LogError($"{name}: returnZonePrefab이 비어 있다. 팀 {team}은 귀환할 곳이 없다.", this);
+            return;
+        }
+
+        var spawn = NightSpawnPosition(team, 0);
+        var at = new Vector3(spawn.x, returnZonePrefab.transform.position.y, spawn.z);
+
+        var zone = Instantiate(returnZonePrefab, at, Quaternion.identity);
+        zone.AssignTeamServer(team);
+
+        var networkObject = zone.GetComponent<NetworkObject>();
+        networkObject.SpawnWithObservers = false;   // 남의 귀환 지점은 볼 이유가 없다
+        networkObject.Spawn();
     }
 
     /// 팀이 서는 숲 모서리이자 카페가 놓이는 격자 칸. 부호는 (x, z)다.
@@ -358,6 +396,19 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     public Cafe CafeOf(int team) => cafes.TryGetValue(team, out var cafe) ? cafe : null;
 
+    public void RegisterZone(ReturnZone zone)
+    {
+        if (zone != null) zones[zone.TeamId] = zone;
+    }
+
+    public void UnregisterZone(ReturnZone zone)
+    {
+        if (zone != null && zones.TryGetValue(zone.TeamId, out var found) && found == zone)
+            zones.Remove(zone.TeamId);
+    }
+
+    public ReturnZone ZoneOf(int team) => zones.TryGetValue(team, out var zone) ? zone : null;
+
     /// 서버 전용. 명단에 있는 팀이면 절대 null이 아니다.
     public TeamLedger LedgerOf(int team) =>
         team >= 0 && team < ledgers.Length ? ledgers[team] : null;
@@ -371,6 +422,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         ledgers = new TeamLedger[teamCount];
         for (var i = 0; i < teamCount; i++) ledgers[i] = new TeamLedger();
         cafes.Clear();
+        zones.Clear();
     }
 
     /// 이 클라이언트에게 자기 팀 카페만 보여 준다. 카페는 관측자 없이 스폰되므로
@@ -384,6 +436,11 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         if (cafe != null && cafe.NetworkObject.IsSpawned &&
             !cafe.NetworkObject.IsNetworkVisibleTo(clientId))
             cafe.NetworkObject.NetworkShow(clientId);
+
+        var zone = ZoneOf(team);
+        if (zone != null && zone.NetworkObject.IsSpawned &&
+            !zone.NetworkObject.IsNetworkVisibleTo(clientId))
+            zone.NetworkObject.NetworkShow(clientId);
 
         foreach (var customer in FindObjectsByType<Customer>(FindObjectsSortMode.None))
             if (customer.TeamId == team && customer.NetworkObject.IsSpawned &&

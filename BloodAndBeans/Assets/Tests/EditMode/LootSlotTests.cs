@@ -52,7 +52,7 @@ public class LootSlotTests
     [Test]
     public void SlotsRevealOneEverySecondWithNoSkip()
     {
-        // 개봉 직후에는 전부 가려져 있고, 5칸이면 5초에 다 드러난다.
+        // 열자마자는 하나도 안 보인다. 5칸이면 5초에 걸쳐 다 드러난다 (기획서 6.5.5).
         Assert.AreEqual(0, LootSlots.RevealedCount(100d, 100d, 1f, 5));
         Assert.AreEqual(0, LootSlots.RevealedCount(100.9d, 100d, 1f, 5));
         Assert.AreEqual(1, LootSlots.RevealedCount(101d, 100d, 1f, 5));
@@ -65,6 +65,26 @@ public class LootSlotTests
     {
         Assert.AreEqual(3, LootSlots.RevealedCount(1000d, 100d, 1f, 3));
         Assert.AreEqual(0, LootSlots.RevealedCount(99d, 100d, 1f, 5), "개봉 전은 음수가 아니라 0이다");
+    }
+
+    // --- 가려짐은 등급을 따지지 않는다 (기획서 6.5.5) ---
+
+    [Test]
+    public void EveryTierHidesEverySlotAtOpen()
+    {
+        // 등급은 칸 수만 정한다. 몇 칸이든 열자마자는 전부 가려져 있다.
+        foreach (var slots in new[] { 2, 3, 4, 5 })
+            Assert.AreEqual(0, LootSlots.RevealedCount(100d, 100d, 1f, slots),
+                slots + "칸짜리 상자도 개봉 직후에는 하나도 안 보인다");
+    }
+
+    [Test]
+    public void PouredPileRevealsEverythingAtOnce()
+    {
+        // 쏟아진 더미는 아무것도 숨기지 않는다 (기획서 6.7). 개봉 시각을 공개가 다 끝난
+        // 만큼 과거로 두는 것으로 처리하므로, 같은 식이 곧바로 전부를 드러내야 한다.
+        const int slots = 4;
+        Assert.AreEqual(slots, LootSlots.RevealedCount(100d, 100d - 1f * slots, 1f, slots));
     }
 
     // --- 등급별 슬롯 수 (기획서 6.5.2) ---

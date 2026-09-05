@@ -73,6 +73,27 @@ public class NightRuleTests
     }
 
     [Test]
+    public void HalveKeepsHalfProgressInsteadOfWipingIt()
+    {
+        // 기획서 6.6: 박스를 여는 중인 상대에게 대시 -> 개봉 중단, 진행도 50% 유지.
+        var h = new HoldTimer();
+        h.Begin(1, 0d);
+        h.Halve(1, 5d, 10f);   // 10초짜리 홀드를 5초 시점에 방해받았다
+
+        Assert.IsFalse(h.TryConsume(1, 9.9d, 10f), "50%에서 다시 세므로 아직 다 안 찼다");
+        Assert.IsTrue(h.TryConsume(1, 10d, 10f), "5초(50%)를 남겨 뒀으니 5초만 더 지나면 찬다");
+    }
+
+    [Test]
+    public void HalveDoesNothingWithoutAnActiveHold()
+    {
+        // 잡고 있지도 않은 홀드를 방해받았다고 진행도가 생기면 안 된다.
+        var h = new HoldTimer();
+        h.Halve(1, 5d, 10f);
+        Assert.IsFalse(h.Holding(1));
+    }
+
+    [Test]
     public void HoldsAreIsolatedPerClient()
     {
         // 한 박스에 두 명이 붙어도 서로의 진행도를 쓰지 못한다.

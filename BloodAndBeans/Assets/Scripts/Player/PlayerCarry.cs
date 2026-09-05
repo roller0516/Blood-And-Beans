@@ -15,9 +15,17 @@ public struct HeldItem
     public int Count;
 
     /// 실제 개수. `default(HeldItem)`과 옛 코드가 만든 값이 0으로 오므로 최소 1로 읽는다.
-    public int Amount => IsProduct ? 1 : (Count < 1 ? 1 : Count);
+    public int Amount => IsProduct || IsAssembly ? 1 : (Count < 1 ? 1 : Count);
 
     public bool Empty => !IsProduct && Ingredient == Ingredient.None;
+
+    /// 조리대에서 조립 중인 디저트 (기획서 5.1: 바탕에 재료를 얹은 뒤 오븐에 넣는다).
+    /// 아직 굽지 않았으므로 완성품이 아니고, 낱개 재료도 아니라 통째로 옮겨 다닌다.
+    public bool IsAssembly => !IsProduct && Recipe != null && Recipe.Length > 0;
+
+    /// 조립물. `Ingredient`에는 바탕을 남긴다 — 표시가 이 값으로 모델을 고른다.
+    public static HeldItem Assembled(Ingredient[] parts) =>
+        new() { Ingredient = parts[0], Recipe = parts, Count = 1 };
 
     /// default(HeldItem)은 "우유를 들고 있음"으로 읽힌다. Ingredient.None은 0이 아니라 -1이다.
     public static HeldItem Nothing => new() { Ingredient = Ingredient.None };
@@ -134,8 +142,13 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
     }
 
     /// 이 재료를 하나 더 받을 수 있는가. 빈손이거나 같은 재료를 한도 미만으로 들고 있을 때다.
+    ///
+    /// 조립물은 바탕 재료를 `Ingredient`로 들고 있어서(`HeldItem.Assembled`) 이 검사에
+    /// 그대로 걸린다 — 막지 않으면 선반에서 빵 베이스를 하나 더 집는 순간 얹어 둔 재료가
+    /// 통째로 사라진다.
     public bool CanTakeServer(Ingredient want, int limit) =>
-        held.Empty || (!held.IsProduct && held.Ingredient == want && held.Amount < limit);
+        held.Empty ||
+        (!held.IsProduct && !held.IsAssembly && held.Ingredient == want && held.Amount < limit);
 
     /// 같은 재료를 하나 더 든다.
     public void AddOneServer(Ingredient want)

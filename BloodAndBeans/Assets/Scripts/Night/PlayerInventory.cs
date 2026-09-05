@@ -128,6 +128,7 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer || p != Phase.Night) return;
         ClearServer();
         hasBag.Value = true;
+        BuriedLossCount = 0;    // 새 밤이다 — 지난 밤에 묻어 두고 못 찾은 것은 이미 정산됐다
 
         // 임대료 페널티는 정산에서 정해진다. 무게가 그대로여도 밴드가 한 칸 옮겨져 있을
         // 수 있으므로 밤이 시작될 때 한 번 다시 넣는다 (기획서 3.3).
@@ -143,6 +144,12 @@ public class PlayerInventory : NetworkBehaviour
 
     /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.
     public bool HasBag => hasBag.Value;
+
+    /// 가방을 묻은 순간 그 안에 있던 개수 (기획서 6.8 「가방 X → 100% 소실」의 실제
+    /// 소실량). `Count`는 묻는 순간 `DrainServer`로 이미 0이 돼 있어, 귀환 정산이 그때
+    /// 가서 물어보면 늘 0만 나온다 — 정산 시점이 아니라 잃은 시점의 값을 따로 들고
+    /// 있어야 한다. 되찾거나 다음 밤이 되면 0으로 되돌아간다.
+    public int BuriedLossCount { get; private set; }
 
     /// 적재가 80%를 넘었는가 (기획서 6.6). 남의 것도 읽을 수 있는 유일한 적재 정보다.
     public bool Overloaded => overloaded.Value;
@@ -313,7 +320,11 @@ public class PlayerInventory : NetworkBehaviour
         // 팀을 먼저 심고 스폰한다. 스폰 뒤에 쓰면 그 값은 다음 틱의 델타로 가고, 적
         // 클라이언트는 팀 미상(-1) 상태로 스폰을 받아 그동안 가방을 그대로 렌더한다.
         // 숨기는 것이 유일한 목적인 오브젝트라 한 틱 노출이면 기능이 없는 것과 같다.
-        bag.SeedServer(team != null ? team.Team : -1, DrainServer());
+        var buried = DrainServer();
+        BuriedLossCount = buried.Count;    // 되찾지 못하면 이 개수가 곧 귀환 정산의 손실량이다
+
+        bag.SeedServer(team != null ? team.Team : -1, buried);
+        bag.NetworkObject.SpawnWithObservers = false;   // 보여주는 시점은 BuriedBag이 정한다
         bag.NetworkObject.Spawn();
         hasBag.Value = false;
 
@@ -328,6 +339,7 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer) return;
 
         hasBag.Value = true;
+        BuriedLossCount = 0;    // 되찾았으니 잃은 게 아니다
         if (contents == null) { PushSpeedServer(); return; }
         for (var i = 0; i < contents.Count; i++) AddServer(contents[i]);
     }

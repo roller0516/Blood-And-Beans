@@ -111,9 +111,9 @@ public sealed class TitlePresenter
     }
 
     /// 방 이름 입력 팝업이 생기기 전까지는 Steam 표시 이름을 재사용한다.
-    public async void CreateRoom()
+    public async void CreateRoom(int teamCount)
     {
-        if (await lobby.CreateRoomAsync(lobby.SuggestedRoomName) && active) EnterRoom();
+        if (await lobby.CreateRoomAsync(lobby.SuggestedRoomName, teamCount) && active) EnterRoom();
     }
 
     public async void JoinRoom()
@@ -197,7 +197,7 @@ public sealed class TitlePresenter
                 menu.Bind(gameTitle, OpenRooms, OpenSettings, Quit);
                 break;
             case UIRoomListScreen rooms:
-                rooms.Bind(RefreshRooms, CreateRoom, JoinRoom, BackToTitle, SelectRoom);
+                rooms.Bind(RefreshRooms, CreateRoom, JoinRoom, BackToTitle, SelectRoom, lobby.MaxTeams);
                 break;
             case UIRoomScreen room:
                 room.Bind(StartMatch, LeaveRoom, SelectTeam);

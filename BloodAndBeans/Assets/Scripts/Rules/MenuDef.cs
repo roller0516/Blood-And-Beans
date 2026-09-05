@@ -50,6 +50,28 @@ public static class Menus
         new(MenuId.BerryTart,     70, Ingredient.BreadBase, Ingredient.Berry),
     };
 
+    /// 디저트의 바탕 (기획서 5.1: "빵 베이스를 꺼내 조리대에 올린다").
+    public const Ingredient DessertBase = Ingredient.BreadBase;
+
+    /// 디저트 하나가 갖는 최대 재료 수. 조리대가 이보다 더 얹지 못하게 막는 상한이며,
+    /// 메뉴 표에서 읽으므로 디저트가 늘어도 여기를 고치지 않는다.
+    public static readonly int MaxDessertParts = LongestDessert();
+
+    /// 빵 베이스 위에 얹을 수 있는 재료인가 (기획서 5.1). 목록을 따로 적으면 메뉴가 늘 때
+    /// 표와 조리대가 갈라진다 — 바탕과 같은 메뉴에 쓰이는 재료가 곧 얹을 수 있는 것이다.
+    public static bool IsDessertTopping(Ingredient i) =>
+        i != DessertBase && System.Array.Exists(All, m => Uses(m, DessertBase) && Uses(m, i));
+
+    static bool Uses(MenuDef m, Ingredient i) => System.Array.IndexOf(m.Parts, i) >= 0;
+
+    static int LongestDessert()
+    {
+        var best = 0;
+        foreach (var m in All)
+            if (Uses(m, DessertBase) && m.Parts.Length > best) best = m.Parts.Length;
+        return best;
+    }
+
     /// 블러드빈은 별도 메뉴가 아니라 원두 대체재다 (기획서 7.2).
     /// 등급 배율은 메뉴 표가 아니라 Economy가 맡는다.
     public static Ingredient Normalize(Ingredient i) =>
@@ -70,11 +92,15 @@ public static class Menus
     };
 
     /// 기본 온도는 뜨거움이다. 음료를 차갑게 만드는 것은 얼음이다 (기획서 7.1).
+    /// 온도는 *음료* 개념이다 — 디저트는 얼음을 넣지 않으니 `Cold`가 붙을 일이 없는데,
+    /// 여기서 무조건 `Hot`을 채우면 디저트까지 뜨거운 것으로 잡혀 해골(Hot 전용) 손님이
+    /// 브라우니를 주문하는 결함이 생긴다. `Coffee` 태그가 있을 때만(=원두가 들어간
+    /// 조합일 때만) 온도 기본값을 채운다.
     public static MenuTag TagsOf(IEnumerable<Ingredient> parts)
     {
         var tags = MenuTag.None;
         foreach (var p in parts) tags |= TagOf(p);
-        if ((tags & MenuTag.Cold) == 0) tags |= MenuTag.Hot;
+        if ((tags & MenuTag.Coffee) != 0 && (tags & MenuTag.Cold) == 0) tags |= MenuTag.Hot;
         return tags;
     }
 

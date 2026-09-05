@@ -16,6 +16,10 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public bool IsProduct;
     public bool Burnt;
 
+    /// 조리대에서 조립 중인 디저트인가 (기획서 5.1). 완성품과 낱개 재료 사이의 상태라
+    /// 이 표시가 없으면 재료 여러 개가 바탕 하나로만 보인다.
+    public bool Assembled;
+
     /// 재료 개수 (기획서 9.1 「양손잡이」). 1이면 이름표에 표시하지 않는다.
     public int Count;
 
@@ -30,13 +34,16 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public static CarryView Of(Ingredient ingredient) =>
         new() { Ingredient = ingredient, Menu = MenuId.None, Count = 1 };
 
+    /// 조립물의 `Count`는 든 개수가 아니라 **얹힌 재료 수**다. 조립물은 늘 하나뿐이라
+    /// (`HeldItem.Amount`) 그 자리에 개수를 넣으면 항상 1만 보인다.
     public static CarryView Of(HeldItem item) => new()
     {
         Ingredient = item.IsProduct ? Ingredient.None : item.Ingredient,
         Menu = item.IsProduct ? item.Menu : MenuId.None,
         IsProduct = item.IsProduct,
+        Assembled = item.IsAssembly,
         Burnt = item.Burnt,
-        Count = item.Empty ? 0 : item.Amount,
+        Count = item.IsAssembly ? item.Recipe.Length : (item.Empty ? 0 : item.Amount),
     };
 
     /// 표시용 이름. 재료·메뉴의 한글 이름표가 아직 없어서 enum 이름을 그대로 쓴다 —
@@ -54,6 +61,7 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
                 return Burnt ? $"{name} (탄 것)" : name;
             }
             if (Ingredient == Ingredient.None) return "빈손";
+            if (Assembled) return $"{Ingredient} 조립 · 재료 {Count}개";
             return Count > 1 ? $"{Ingredient} ×{Count}" : Ingredient.ToString();
         }
     }
@@ -63,6 +71,7 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
         serializer.SerializeValue(ref Ingredient);
         serializer.SerializeValue(ref Menu);
         serializer.SerializeValue(ref IsProduct);
+        serializer.SerializeValue(ref Assembled);
         serializer.SerializeValue(ref Burnt);
         serializer.SerializeValue(ref Count);
     }
@@ -72,5 +81,6 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     /// 매번 더티로 잡혀 낭비된다.
     public bool Equals(CarryView other) =>
         Ingredient == other.Ingredient && Menu == other.Menu &&
-        IsProduct == other.IsProduct && Burnt == other.Burnt && Count == other.Count;
+        IsProduct == other.IsProduct && Assembled == other.Assembled &&
+        Burnt == other.Burnt && Count == other.Count;
 }

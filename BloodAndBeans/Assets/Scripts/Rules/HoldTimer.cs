@@ -23,6 +23,15 @@ public class HoldTimer
 
     public void Cancel(ulong client) => startedAt.Remove(client);
 
+    /// 진행도를 절반으로 되돌린다 (기획서 6.6: 개봉 중인 상대에게 대시 — 진행도 50%
+    /// 유지). 홀드 중이 아니면 아무 일도 하지 않는다 — 지우는 것과 달리, 이건 "지금
+    /// 재고 있는 진행도를 깎는" 연산이라 잴 것이 없으면 깎을 것도 없다.
+    public void Halve(ulong client, double now, float requiredSeconds)
+    {
+        if (!startedAt.ContainsKey(client)) return;
+        startedAt[client] = now - requiredSeconds * 0.5f;
+    }
+
     public void CancelAll() => startedAt.Clear();
 
     public float Elapsed(ulong client, double now) =>

@@ -15,13 +15,12 @@ public enum ReturnOutcome
 /// 팀의 복귀 지점 (기획서 6.8). 밤이 끝나는 순간 자기 팀 구역 안에 있지 않은 사람은
 /// 들고 있던 것의 일부를 잃고, 살아남은 나머지가 내일의 팀 재고가 된다 (기획서 2장).
 ///
-/// **자리는 이 오브젝트의 transform이 아니라 그 팀의 밤 시작 지점이다** (기획서 6.8:
-/// "소환 위치"). 이 컴포넌트는 카페 프리팹의 자식이라 transform은 카페 위에 있는데,
-/// 밤에는 `MatchDirector.NightSpawnPosition`이 플레이어를 숲 모서리에 세운다 — 그
-/// 좌표로 판정하면 아무도 서 본 적 없는 카페 앞이 기준이 되어 전원이 귀환에 실패한다.
-/// 그 값은 씬 오브젝트의 직렬화 값으로만 계산되므로 서버와 클라이언트가 같은 답을
-/// 내고, 복제할 것이 없다.
-/// 이 입고 처리가 생기기 전에는 밤의 수확이 그냥 버려져서 코어 루프가 끊겨 있었다.
+/// **숲에 서 있는 오브젝트다.** 자리는 그 팀의 밤 시작 지점이고(기획서 6.8 "소환 위치"),
+/// `MatchDirector`가 카페와 함께 팀 수만큼 스폰한다. 카페 프리팹의 자식이 아니다 —
+/// 카페는 숲 바깥 격자에 서고 이쪽은 숲 모서리에 선다.
+///
+/// 자기 팀에만 복제된다 (`SpawnWithObservers = false`). 남의 귀환 지점은 볼 이유가 없다.
+[RequireComponent(typeof(NetworkObject))]
 public class ReturnZone : NetworkBehaviour
 {
     [SerializeField] float radius = 4f;
@@ -29,7 +28,10 @@ public class ReturnZone : NetworkBehaviour
     /// 가방은 메고 있지만 소환 위치 밖에서 밤이 끝났을 때 잃는 비율 (기획서: 일부(n%) 소실).
     [SerializeField, Range(0f, 1f)] float missedReturnLoss = 0.5f;
 
-    Cafe cafe;
+    /// 스폰 페이로드에 실려 모든 피어가 같은 값을 받는다 (`Cafe.team`과 같은 방식).
+    readonly NetworkVariable<int> team = new(-1);
+    int pendingServerTeam = -1;
+
     MatchDirector director;
 
     /// 이 클라이언트가 마지막 밤에 받은 결과. 읽는 쪽(`MatchFlow`)이 소비한다.
@@ -45,13 +47,14 @@ public class ReturnZone : NetworkBehaviour
 
     public void ConsumeResult() => HasResult = false;
 
-    /// 팀 번호가 아니라 카페를 들고 있는다. MatchDirector는 자기 Awake에서 팀 번호를
-    /// 배정하는데 두 Awake 사이의 순서에 기대면 안 된다. 부모를 거슬러 올라가는 방식은
-    /// 어느 쪽이든 안정적이다. 카페를 복제하면 직렬화된 0이 두 구역에 그대로 복사돼서,
-    /// 팀 1의 구역이 팀 0의 플레이어를 판정해 자기 문 앞에 서 있는데도 수확 절반을 빼앗았다.
-    void Awake() => cafe = Cafe.Of(this);
+    /// 서버가 Spawn 직전에 부른다. 스폰 뒤에 쓰면 그 값은 다음 틱의 델타로 가고,
+    /// 그동안 이 구역은 팀 미상으로 남는다 (`Cafe.AssignTeamServer`와 같은 이유).
+    public void AssignTeamServer(int value) => pendingServerTeam = value;
 
-    int TeamId => cafe != null ? cafe.TeamId : -1;
+    public int TeamId => team.Value;
+
+    /// 재고를 넣을 카페. 팀 번호로 찾는다 — 더 이상 부모가 아니다.
+    Cafe Cafe => director != null ? director.CafeOf(TeamId) : null;
 
     /// 이 팀이 돌아와야 하는 자리. 슬롯 0을 팀의 기준점으로 쓴다 — 같은 팀의 두 자리는
     /// `spawnSlotSpacing`(2m)만큼만 떨어져 있어서 `radius` 안에 함께 들어온다.
@@ -74,17 +77,32 @@ public class ReturnZone : NetworkBehaviour
     /// 밤 다음은 낮이다 (밤 -> 낮 -> 전환). 그래서 귀환 판정도 낮이 시작될 때 한다.
     public override void OnNetworkSpawn()
     {
-        director = MatchDirector.Instance;
+        if (IsServer && pendingServerTeam >= 0) team.Value = pendingServerTeam;
 
-        // 서버·클라이언트 양쪽에서 건다. 자리를 옮기는 것은 보는 쪽에도 필요한 일이고,
-        // 기준점이 씬 오브젝트의 직렬화 값으로만 계산되므로 두 쪽이 같은 답을 낸다.
-        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
+        director = MatchDirector.Instance;
+        if (director == null)
+        {
+            CDebug.LogError($"{name}: 씬에 {nameof(MatchDirector)}가 없다. 귀환 판정이 돌지 않는다.", this);
+            return;
+        }
+
+        director.RegisterZone(this);
+        director.Phase.PhaseEntered += OnPhaseEntered;
+
+        // 카메라 컬링이 레이어로 팀을 가른다. 프리팹 하나를 여러 팀이 쓰므로 레이어는
+        // 스폰 시점에 정해야 한다 (`Cafe.OnNetworkSpawn`과 같다).
+        TeamVision.ApplyTeamLayer(gameObject, team.Value);
+
+        // 서버·클라이언트 양쪽에서 놓는다. 기준점이 팀 번호만으로 계산되므로 두 쪽이
+        // 같은 답을 낸다.
         PlaceAtSpawnPoint();
     }
 
     public override void OnNetworkDespawn()
     {
-        if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
+        if (director == null) return;
+        director.UnregisterZone(this);
+        director.Phase.PhaseEntered -= OnPhaseEntered;
     }
 
     void OnPhaseEntered(Phase p)
@@ -116,7 +134,7 @@ public class ReturnZone : NetworkBehaviour
         var center = Center;
         if (!center.HasValue) return;   // 기준점을 모르면 판정하지 않는다. 전원 실패보다 낫다
 
-        var stock = cafe != null ? cafe.Stock : null;
+        var stock = Cafe != null ? Cafe.Stock : null;
 
         foreach (var client in NetworkManager.ConnectedClientsList)
         {
@@ -143,7 +161,9 @@ public class ReturnZone : NetworkBehaviour
             // 가방 X (묻어 두고 회수하지 않음) → 위치와 무관하게 전량 소실.
             if (!inv.HasBag)
             {
-                ReportServer(client.ClientId, ReturnOutcome.BagLost, 0, inv.Count);
+                // `inv.Count`는 이미 0이다 — 묻는 순간 비웠다. 실제로 잃은 개수는
+                // `BuriedLossCount`가 그 순간 값으로 따로 들고 있다.
+                ReportServer(client.ClientId, ReturnOutcome.BagLost, 0, inv.BuriedLossCount);
                 inv.ClearServer();
                 continue;
             }

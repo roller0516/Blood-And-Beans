@@ -359,6 +359,22 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         SendSessionStateServer(clientId);                     // 닫힘을 알린다
     }
 
+    /// 대시로 방해받았다 (기획서 6.6). 두 문단이 서로 다른 국면을 다룬다 — 섞지 않는다.
+    ///
+    /// 이미 루팅 세션이 열려 있으면(가려진 슬롯을 기다리는 중) 스킵/캔슬 규칙(6.5.6)과
+    /// 같게 완전히 닫는다. 아직 개봉 캐스팅 중이었을 뿐이면(창이 뜨기 전) 지우지 않고
+    /// 진행도를 절반만 깎는다(6.6: "개봉 중단, 진행도 50% 유지") — 다음에 같은 상자를
+    /// 다시 잡으면 `HoldTimer.Begin`이 이미 있는 값을 안 건드리므로 50%부터 이어진다.
+    public void HarassServer(ulong clientId)
+    {
+        if (!IsServer) return;
+
+        if (sessions.ContainsKey(clientId)) { CancelSessionServer(clientId); return; }
+        if (!castTeam.TryGetValue(clientId, out var team)) return;   // 이 상자를 잡고 있지 않았다
+
+        hold.Halve(clientId, NetworkManager.ServerTime.Time, RequiredSecondsFor(team));
+    }
+
     /// 서버 전용. 남은 칸이 하나도 없는가.
     bool Empty
     {
@@ -414,7 +430,23 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         var rare = tier >= rareFromTier
             ? Mathf.Clamp(RegenTable.RareSlots(day), 0, types)
             : 0;
+
+        var beforeRare = stacks.Count;
         DrawInto(rarePool, rare);
+        var rareAdded = stacks.Count - beforeRare;
+
+        // `rarePool`은 지금 2종류(블러드 빈·업그레이드 재료)뿐이라 `DrawInto`는 종류가
+        // 겹치지 않게 뽑는 특성상 요청한 칸 수(5~7일차는 3)를 다 못 채운다 — 5~7일차와
+        // 3~4일차가 파밍 결과에서 구분되지 않는다(기획서 10장: 후반일수록 비중 상승).
+        // 남는 몫은 이미 뽑은 칸의 *수량*으로 옮긴다. `rarePool`이 늘어나면 이 보정은
+        // 저절로 줄어든다 — 종류 확장 자체는 재료 데이터가 하는 일이다.
+        var shortfall = rare - rareAdded;
+        for (var i = 0; i < shortfall && rareAdded > 0; i++)
+        {
+            var lane = beforeRare + i % rareAdded;
+            var s = stacks[lane];
+            stacks[lane] = new LootStack(s.Item, s.Count + Random.Range(stackSize.x, stackSize.y + 1));
+        }
 
         // 흔한 재료도 그날 리젠 풀 안에서만 뽑는다. 상자에 심어 둔 풀은 "이 자리에서
         // 무엇이 나올 수 있는가"고, 리젠 표는 "오늘 숲이 무엇을 내놓는가"다 — 교집합이
@@ -427,7 +459,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 빈 상자가 되고, 그것은 기획서가 요구한 "비중 조정"이 아니다.
     Ingredient[] TodaysCommon(int day)
     {
-        var today = RegenTable.PoolFor(day);
+        var today = RegenTable.PoolFor(director != null ? director.MapId : RegenTable.DefaultMapId, day);
         var picked = new List<Ingredient>();
         for (var i = 0; i < commonPool.Length; i++)
             for (var j = 0; j < today.Count; j++)

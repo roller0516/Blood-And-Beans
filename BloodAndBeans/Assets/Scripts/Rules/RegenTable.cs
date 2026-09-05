@@ -14,15 +14,27 @@ using System.Collections.Generic;
 /// (기획서 6.3, `ItemBox.tierWeights`), 여기는 그 등급이 무엇을 담는가만 정한다.
 public static class RegenTable
 {
-    /// 맵이 내놓는 흔한 재료. 기획서 7.1 「숲에서 캐는 재료」에서 중심부 보상 둘
+    /// 맵 데이터가 아직 없을 때 쓰는 키. `MatchDirector.MapId`의 기본값과 같다 —
+    /// 씬에 맵 ID를 안 채워도(또는 등록 안 된 ID를 채워도) 조용히 이 풀로 떨어진다.
+    public const string DefaultMapId = "default";
+
+    /// 맵별 흔한 재료. 맵마다 다른 리젠 타입(기획서 10장 첫 줄: "맵마다 리젠되는 재료
+    /// 타입이 정해져 있다")을 여기 한 줄씩 추가한다 — 그게 전부다. 조회하는 쪽
+    /// (`PoolFor`)과 심는 쪽(`MatchDirector.MapId`)은 이미 맵 ID로 짜여 있어서 코드를
+    /// 더 안 고쳐도 된다.
+    ///
+    /// 기본값(`DefaultMapId`)의 재료는 기획서 7.1 「숲에서 캐는 재료」에서 중심부 보상 둘
     /// (블러드 빈 · 업그레이드 재료)을 뺀 나머지다.
     ///
-    /// ponytail: 맵마다 다른 리젠 타입(기획서 10장 첫 줄)은 맵 데이터가 생기기 전까지
-    /// 한 벌뿐이다. `DT_Regen`이 생기면 맵별 표로 옮긴다.
-    static readonly Ingredient[] Common =
+    /// ponytail: 지금은 기본 맵 한 벌뿐이다. 실제 맵이 정해지면 그 맵의 ID로 항목을
+    /// 추가한다 — `DT_Regen`이 생기면 이 표 자체를 데이터 에셋으로 옮긴다.
+    static readonly Dictionary<string, Ingredient[]> ByMap = new()
     {
-        Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
-        Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
+        [DefaultMapId] = new[]
+        {
+            Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,
+            Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
+        },
     };
 
     /// 일차별 중심부 보상 칸 수. 3등급 상자 하나가 이만큼을 블러드 빈·업그레이드 재료로
@@ -40,7 +52,12 @@ public static class RegenTable
     public static int RareSlots(int day) =>
         RareSlotsByDay[System.Math.Min(System.Math.Max(day, 1), RareSlotsByDay.Length) - 1];
 
-    /// 그날 밤 숲이 내놓는 것. 카페 상비 재료(원두·빵 베이스)는 여기 없다 — 숲에서 캐지
-    /// 않고 인기 재료 추첨 대상도 아니다 (기획서 7.1, 5.6.1).
-    public static IReadOnlyList<Ingredient> PoolFor(int day) => Common;
+    /// 그 맵의 그날 밤 숲이 내놓는 것. 카페 상비 재료(원두·빵 베이스)는 여기 없다 —
+    /// 숲에서 캐지 않고 인기 재료 추첨 대상도 아니다 (기획서 7.1, 5.6.1).
+    ///
+    /// `mapId`가 `ByMap`에 없으면(맵 데이터가 아직 없거나 오타) 기본 풀로 떨어진다.
+    /// 여기서 예외를 던지면 등록 안 된 맵마다 그 밤의 파밍이 통째로 멈춘다 — 자리를
+    /// 비우는 것보다는 기본 재료라도 내주는 쪽이 낫다.
+    public static IReadOnlyList<Ingredient> PoolFor(string mapId, int day) =>
+        ByMap.TryGetValue(mapId, out var pool) ? pool : ByMap[DefaultMapId];
 }

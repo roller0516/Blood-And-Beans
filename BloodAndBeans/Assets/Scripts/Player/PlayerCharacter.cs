@@ -374,6 +374,7 @@ public class PlayerCharacter : NetworkBehaviour
         // 팀을 먼저 심고 스폰한다 (`PlayerInventory.BuryRpc`와 같은 이유 — 스폰 뒤에 쓰면
         // 적 클라이언트가 팀 미상 상태의 가방을 한 틱 동안 그대로 렌더한다).
         bag.SeedServer(team != null ? team.Team : -1, null);
+        bag.NetworkObject.SpawnWithObservers = false;   // 보여주는 시점은 BuriedBag이 정한다
         bag.NetworkObject.Spawn();
         return true;
     }

@@ -72,7 +72,7 @@ public sealed class UIMatchResultPopup : UIPopup
     /// `FinalStandings`에 묻는다 — 씬 없이 기획서와 대조할 수 있어야 하는 규칙이다.
     ///
     /// `lastDay`는 실제로 치른 마지막 일차다. 기획서 3.1은 7일차를 말하지만 판 길이는
-    /// `GamePhase.totalDays`가 정하므로 문구에 숫자를 박지 않는다.
+    /// `DayPhases.TotalDays`가 정하므로 문구에 숫자를 박지 않는다.
     ///
     /// `dailyRevenue`는 아직 복제되지 않는다. 비워 넘기면 그 칸이 "집계 없음"으로 뜬다.
     public void Bind(int lastDay, IReadOnlyList<int> revenueByTeam, int myTeam,

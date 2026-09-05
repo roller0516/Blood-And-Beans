@@ -140,6 +140,53 @@ public class DayRuleTests
             "얼음은 가볍고 블러드 빈은 무겁다 (6.7)");
     }
 
+    // --- 5.1 디저트는 조리대에서 조립한다 ---
+
+    [Test]
+    public void DessertToppingsComeFromTheMenuTable()
+    {
+        // 기획서 7.2 디저트 4종이 빵 베이스와 함께 쓰는 재료가 곧 얹을 수 있는 것이다.
+        Assert.IsTrue(Menus.IsDessertTopping(Ingredient.Chocolate), "초코 브라우니");
+        Assert.IsTrue(Menus.IsDessertTopping(Ingredient.Almond), "아몬드 쿠키");
+        Assert.IsTrue(Menus.IsDessertTopping(Ingredient.Cream), "크림 케이크");
+        Assert.IsTrue(Menus.IsDessertTopping(Ingredient.Berry), "베리 타르트");
+
+        Assert.IsFalse(Menus.IsDessertTopping(Ingredient.Ice), "얼음은 디저트 메뉴에 없다");
+        Assert.IsFalse(Menus.IsDessertTopping(Ingredient.Bean), "원두는 커피 쪽이다");
+        Assert.IsFalse(Menus.IsDessertTopping(Menus.DessertBase), "바탕은 자기 위에 못 얹는다");
+    }
+
+    [Test]
+    public void ADessertNeverNeedsMorePartsThanTheMenuTableSays()
+    {
+        // 조리대가 얹기를 멈추는 상한이다. 표보다 커지면 오븐 레인에 안 들어가는 덩어리가
+        // 만들어지고, 작아지면 만들 수 없는 디저트가 생긴다.
+        Assert.AreEqual(2, Menus.MaxDessertParts, "디저트는 바탕 + 재료 하나다 (7.2)");
+    }
+
+    [Test]
+    public void AssembledDessertStillMatchesItsMenu()
+    {
+        // 조리대에서 조립한 것이 오븐에서 그대로 펼쳐진다 (`Station.Insert`).
+        Assert.AreEqual(MenuId.ChocoBrownie,
+            Menus.Match(new[] { Menus.DessertBase, Ingredient.Chocolate }));
+    }
+
+    // --- 4장 하루의 구조 ---
+
+    [Test]
+    public void DayPhaseTableMatchesTheDoc()
+    {
+        Assert.AreEqual(120f, DayPhases.NightSeconds);
+        Assert.AreEqual(120f, DayPhases.DaySeconds);
+        Assert.AreEqual(10f, DayPhases.TransitionSeconds);
+        Assert.AreEqual(7, DayPhases.TotalDays);
+
+        // 7일 × (120 + 120 + 10) = 1,750초 ≈ 29분 10초 (기획서 4장).
+        Assert.AreEqual(1750f, DayPhases.TotalDays *
+            (DayPhases.NightSeconds + DayPhases.DaySeconds + DayPhases.TransitionSeconds));
+    }
+
     [Test]
     public void CookingOnlyAdvancesDuringDay()
     {

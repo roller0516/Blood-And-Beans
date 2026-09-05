@@ -2333,7 +2333,7 @@ MonoBehaviour:
   nightSeconds: 120
   transitionSeconds: 10
   daySeconds: 120
-  totalDays: 3
+  totalDays: 7
   returnAlarmSeconds: 30
 --- !u!114 &500636061
 MonoBehaviour:
@@ -2361,10 +2361,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 69c33fecb12d54f46b3165cb69b13fa9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Game::MatchDirector
+  mapId: default
   cafeOrigin: {x: 0, y: 0, z: 0}
   forestSize: {x: 60, y: 60}
   spawnInset: 6
   cafePrefab: {fileID: 1497946502227984900, guid: a2a006269a980ef489aee772b3fa146e, type: 3}
+  returnZonePrefab: {fileID: 4896794348315299125, guid: 8651a3d35d61e84498b8b884ebcac94c, type: 3}
   cafeCell: {x: 46, y: 40}
   cafeAreaGap: 60
   spawnHeight: 1

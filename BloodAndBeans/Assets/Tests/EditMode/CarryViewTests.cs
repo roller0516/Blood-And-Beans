@@ -86,6 +86,22 @@ public class CarryViewTests
     }
 
     [Test]
+    public void AssemblyShowsHowManyIngredientsAreOnIt()
+    {
+        // 조리대에서 조립 중인 디저트 (기획서 5.1). 완성품도 낱개 재료도 아니라서, 이
+        // 구분이 없으면 재료를 얹어도 화면에는 빵 베이스 하나로만 보인다.
+        var view = CarryView.Of(HeldItem.Assembled(
+            new[] { Ingredient.BreadBase, Ingredient.Berry }));
+
+        Assert.IsFalse(view.Empty);
+        Assert.IsFalse(view.IsProduct);
+        Assert.IsTrue(view.Assembled);
+        Assert.AreEqual(2, view.Count);
+        Assert.IsFalse(view.Equals(CarryView.Of(Ingredient.BreadBase)),
+            "얹기 전과 후가 같은 값이면 조리대 표시가 갱신되지 않는다");
+    }
+
+    [Test]
     public void EqualityIgnoresNothingButTheShownFields()
     {
         var a = CarryView.Of(new HeldItem

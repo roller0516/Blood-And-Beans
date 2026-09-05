@@ -31,6 +31,10 @@ public class SteamLobby : MonoBehaviour
     /// 기획서 10장이 지원하는 최대 팀 수. 치트 툴은 이 위로 올릴 수 없다.
     [SerializeField, Min(1)] int maxTeams = 4;
 
+    /// 로비 UI가 팀 수 선택 범위의 상한을 여기서 읽는다 — 값을 UI에 따로 박으면
+    /// `maxTeams`를 고쳐도 UI가 안 따라온다.
+    public int MaxTeams => maxTeams;
+
     /// 한 팀에 앉힐 수 있는 인원. 방 정원(팀 수 × 이 값)의 출처이기도 하다.
     [SerializeField, Min(1)] int playersPerTeam = 2;
 
@@ -69,6 +73,11 @@ public class SteamLobby : MonoBehaviour
     const string GameValue = "blood-and-beans";
     const string NameKey = "bb_room";
     const string HostKey = "bb_host";
+
+    /// 방을 만든 사람이 고른 팀 수 (기획서 10장). 로비 메타데이터로 적어 두지 않으면
+    /// 참가자는 자기 씬의 기본값(`teams`)으로 좌석을 짜서, 호스트가 3팀으로 만든 방에
+    /// 참가자만 4팀 좌석표를 들고 들어오는 불일치가 생긴다.
+    const string TeamsKey = "bb_teams";
     const string LiveKey = "bb_live";
 
     /// 멤버별 메타데이터 키. 대기실의 팀 선택이 여기로 오간다.
@@ -187,8 +196,15 @@ public class SteamLobby : MonoBehaviour
 
     void Awake()
     {
-        Seating = new MatchSeating(teams, maxTeams, playersPerTeam, roomFullMessage);
+        ReconfigureSeating(teams);
+    }
 
+    /// 좌석표를 다시 짠다. 방을 만들 때(고른 팀 수)와 방에 들어갈 때(호스트가 고른 팀 수를
+    /// 읽어서) 둘 다 이 한 곳을 거친다 — `Seating`과 `occupancy`가 따로 놀면 인원 표시와
+    /// 실제 접속 승인이 서로 다른 팀 수를 기준으로 계산된다.
+    void ReconfigureSeating(int teamCount)
+    {
+        Seating = new MatchSeating(Mathf.Clamp(teamCount, 1, maxTeams), maxTeams, playersPerTeam, roomFullMessage);
         occupancy = new int[Mathf.Max(1, TeamCount)];
     }
 
@@ -394,9 +410,14 @@ public class SteamLobby : MonoBehaviour
     /// 방을 만들고 대기실로 들어간다. 네트워크는 아직 뜨지 않는다 — 팀을 고르고 인원을
     /// 확인하는 동안은 스팀 로비만으로 충분하고, 접속을 먼저 열면 대기실을 나가는 것과
     /// 매치를 나가는 것이 같은 일이 돼 버린다.
-    public async Task<bool> CreateRoomAsync(string roomName)
+    ///
+    /// `teamCount`는 로비 UI가 만들기 전에 고른 값이다 (기획서 10장: 2/3/4팀). 정원
+    /// (`RoomCapacity`)이 이 값으로 정해지므로 로비를 만들기 *전에* 먼저 반영해야 한다.
+    public async Task<bool> CreateRoomAsync(string roomName, int teamCount)
     {
         if (!Guard()) return false;
+
+        ReconfigureSeating(teamCount);
 
         Status = "방을 만드는 중…";
         Changed?.Invoke();
@@ -424,6 +445,7 @@ public class SteamLobby : MonoBehaviour
         lobby.SetData(GameKey, GameValue);
         lobby.SetData(NameKey, roomName);
         lobby.SetData(HostKey, SteamClient.SteamId.Value.ToString());
+        lobby.SetData(TeamsKey, TeamCount.ToString());
         lobby.SetPublic();
         lobby.SetJoinable(true);
 
@@ -471,6 +493,12 @@ public class SteamLobby : MonoBehaviour
     {
         current = lobby;
         Status = string.Empty;
+
+        // 참가자는 이 방의 팀 수를 몰랐다 — 자기 씬의 기본값(`teams`)이 아니라 방을 만든
+        // 사람이 실제로 고른 값을 읽어야 한다. 값이 없거나(옛 방·다른 게임) 못 읽으면
+        // 씬 기본값으로 되돌린다.
+        var teamCount = int.TryParse(lobby.GetData(TeamsKey), out var parsed) ? parsed : teams;
+        ReconfigureSeating(teamCount);
 
         // 내 팀을 바로 적어 둬야 남들 화면의 인원 표시에 내가 잡힌다.
         SelectTeam(FirstTeamWithRoom());

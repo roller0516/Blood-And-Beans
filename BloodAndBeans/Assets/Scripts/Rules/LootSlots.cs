@@ -73,8 +73,12 @@ public static class LootSlots
         return boxes;
     }
 
-    /// 공개는 개봉 시각부터 `interval`마다 한 칸씩, 건너뛰기 없이 진행된다.
+    /// 공개는 개봉 시각부터 `interval`마다 한 칸씩, 건너뛰기 없이 진행된다 (기획서 6.5.5).
     /// 서버와 클라이언트가 같은 식을 써야 화면과 실제 담기 가능 여부가 어긋나지 않는다.
+    ///
+    /// **모든 칸이 가려진 채로 열린다.** 등급은 칸 수만 정하고(`SlotRangeFor`) 가려짐에는
+    /// 관여하지 않는다 — 5칸이면 5초에 걸쳐 하나씩 전부 드러난다(6.5.5의 "5개 기준 총 5초").
+    /// 열자마자 다 보여야 하는 것(쏟아진 더미, 「감별」)은 개봉 시각을 과거로 당겨 처리한다.
     public static int RevealedCount(double now, double openedAt, float interval, int slotCount)
     {
         if (slotCount <= 0) return 0;

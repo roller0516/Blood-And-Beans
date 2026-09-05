@@ -8,8 +8,9 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMove))]
 public class DashHarass : NetworkBehaviour
 {
-    // ponytail: 기획서 14장 #7/#8에서 미결정이다. 중간값으로 둔 임시값이다.
-    [SerializeField] float cooldown = 6f;        // 기획서: 5~8초
+    // ponytail: 기획서 14장 #7/#8에서 미결정이다. 기획서 6.6이 정한 것은 5~8초라는
+    // 폭뿐이라 그 안의 중간값으로 두고, 폭 자체는 Range로 막는다.
+    [SerializeField, Range(5f, 8f)] float cooldown = 6f;   // 기획서 6.6: 5~8초
     [SerializeField] float reach = 1.6f;
     [SerializeField] float knockback = 3f;       // 약 1.5타일
     [SerializeField] float spillShare = 0.1f;
