@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ForestGrassBlade
+  m_Shader: {fileID: 4800000, guid: 4cd863b72c3216f488473ee50c70e7a6, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseColorTexture:
+        m_Texture: {fileID: 2800000, guid: 25d94f191e9988343b12b83b93e55743, type: 3}
+        m_Scale: {x: 0.01, y: 0.01}
+        m_Offset: {x: -0.5, y: 0}
+    - _WindTexture:
+        m_Texture: {fileID: 2800000, guid: 786764829c67c9d4a936db67fdbe0083, type: 3}
+        m_Scale: {x: 0.02, y: 0.02}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ExpandDistantGrassWidth: 4
+    - _GrassCurving: 0.1
+    - _GrassHeight: 0.7
+    - _GrassHeightRandomness: 0.5
+    - _GrassTrampleRadius: 1.6
+    - _GrassTrampleSquash: 0.5
+    - _GrassTrampleStrength: 1
+    - _GrassWidth: 0.25
+    - _GrassWidthRandomness: 0.25
+    - _RandomNormal: 0.2
+    - _WindStrength: 0.7
+    m_Colors:
+    - _AOColor: {r: 0.049987763, g: 0.3207547, b: 0, a: 1}
+    - _ColorA: {r: 0, g: 0.5294118, b: 0.1719094, a: 1}
+    - _ColorB: {r: 0.5109501, g: 0.7529412, b: 0, a: 1}
+    - _ExpandDistantGrassRange: {r: 10, g: 300, b: 0, a: 0}
+    - _WindScroll: {r: -0.15, g: -0.15, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
