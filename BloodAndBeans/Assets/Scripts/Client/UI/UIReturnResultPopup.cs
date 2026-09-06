@@ -39,15 +39,17 @@ public sealed class UIReturnResultPopup : UIPopup
         {
             case ReturnOutcome.Returned:
                 Set(titleText, "귀환 성공", success);
-                Set(lineText, "획득 아이템 100% 귀환", success);
-                Set(detailText, kept > 0
+                Set(lineText, "소지한 아이템 100% 귀환", success);
+                Set(detailText, lost > 0
+                    ? $"재료 {kept}개 반입 · 회수하지 못한 가방에서 {lost}개 소실"
+                    : kept > 0
                     ? $"재료 {kept}개를 팀 재고로 넘겼다"
                     : "가져온 재료가 없다");
                 break;
 
             case ReturnOutcome.PartialLoss:
                 Set(titleText, "귀환 실패", warning);
-                Set(lineText, $"획득 아이템 {lossPercent}% 소실", warning);
+                Set(lineText, $"소지한 아이템 {lossPercent}% 소실 · 미회수 가방 전량 소실", warning);
                 Set(detailText, $"소환 위치 밖에서 밤이 끝났다 · {lost}개 소실 / {kept}개 반입");
                 break;
 

@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 /// 이 씬의 UI 조립 루트. 화면과 팝업 프리팹을 만들고, 스택으로 흐름을 관리하고,
 /// 겹침 순서를 배분한다.
@@ -74,7 +76,11 @@ public sealed class UIManager : MonoSingleton<UIManager>
         // 색인을 채우고 EventSystem까지 만들면 그것이 그대로 쓰레기가 된다.
         if (Instance != this) return;
 
-        DevHud.EnsureEventSystem();
+        if (FindAnyObjectByType<EventSystem>() == null)
+        {
+            var eventSystem = new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
+            eventSystem.transform.SetParent(this.transform);
+        }
 
         Register(screenPrefabs);
         Register(popupPrefabs);

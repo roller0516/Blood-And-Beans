@@ -111,8 +111,8 @@ public sealed class MatchHudPresenter
                 model.BagBuried = true;
                 model.BagRatio = 0f;
                 model.BagBand = 0;
-                model.BagPercent = "가방을 묻어 뒀다";
-                model.BagWeight = "회수하지 않으면 수확 전량 소실";
+                model.BagPercent = "가방 없음";
+                model.BagWeight = "귀환 지점에서 빈 가방 재지급";
             }
         }
 
@@ -279,6 +279,60 @@ public sealed class MatchHudPresenter
     /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `UIMatchHudScreen`의 일이고,
     /// 여기는 값만 넘긴다. HUD 글자 덩어리에 섞으면 오른쪽 열에 붙어 시선에서 벗어난다.
     public float CastProgress01 => boxHold != null ? boxHold.CastProgress01 : 0f;
+
+
+    /// 완성 게이지 한 프레임분 (기획서 5.2). 침 위치와 판정 구간만 담는다 — 화면 어디에
+    /// 얼마만 한 막대로 그릴지는 `UIMatchHudScreen`이 정한다.
+    public struct GaugeView
+    {
+        public bool Show;
+        public float Needle;        // 0~1. 0.5가 중앙
+        public float PerfectHalf;   // 중앙 0.5로부터의 반폭
+        public float GoodHalf;
+        public string Label;        // "Oven · 6.3s"
+    }
+
+    string gaugeLabel;
+    int gaugeLabelTenths = -1;
+    CompletionGauge gaugeLabelOwner;
+
+    /// 매 프레임 불린다. 침은 초당 1.4회 왕복이라 HUD 갱신 주기(0.1초)로 그리면
+    /// 계단이 되고 판정 구간을 눈으로 노릴 수 없다 — 개봉 게이지와 같은 이유다.
+    ///
+    /// F는 설비를 조준하지 않고 *자기 카페에서 가장 오래된* 게이지를 멈춘다 (기획서 5.2).
+    /// 그래서 여기 뜨는 것도 설비 옆에 서 있는지와 무관하게 바로 그 게이지 하나다.
+    public GaugeView Gauge
+    {
+        get
+        {
+            var view = new GaugeView();
+            if (phase == null || !phase.IsSpawned || phase.Current != Phase.Day) return view;
+
+            var gauge = CompletionGauge.LocalTarget();
+            if (gauge == null)
+            {
+                gaugeLabelOwner = null;
+                return view;
+            }
+
+            view.Show = true;
+            view.Needle = gauge.Needle;
+            view.PerfectHalf = gauge.PerfectHalfWidth;
+            view.GoodHalf = gauge.GoodHalfWidth;
+
+            // 문자열은 표시할 0.1초가 바뀔 때만 다시 만든다. 매 프레임 만들면 그대로 GC다
+            // (귀환 마커의 거리 라벨과 같은 방식).
+            var tenths = Mathf.CeilToInt(gauge.Remaining * 10f);
+            if (tenths != gaugeLabelTenths || !ReferenceEquals(gauge, gaugeLabelOwner))
+            {
+                gaugeLabelTenths = tenths;
+                gaugeLabelOwner = gauge;
+                gaugeLabel = $"{gauge.StationName} · {tenths * 0.1f:0.0}s";
+            }
+            view.Label = gaugeLabel;
+            return view;
+        }
+    }
 
 
     /// 로컬 플레이어가 바뀔 때만 컴포넌트를 다시 푼다. 갱신마다 `GetComponent`를 부르면

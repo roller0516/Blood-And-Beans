@@ -82,6 +82,8 @@ public class SteamLobby : MonoBehaviour
 
     /// 멤버별 메타데이터 키. 대기실의 팀 선택이 여기로 오간다.
     const string TeamKey = "bb_team";
+    const string ReadyKey = "bb_ready";
+    const string PickKey = "bb_pick";
 
     readonly List<RoomInfo> rooms = new();
     readonly List<RoomMember> members = new();
@@ -115,13 +117,16 @@ public class SteamLobby : MonoBehaviour
     /// 대기실의 한 사람.
     public readonly struct RoomMember
     {
-        public RoomMember(ulong steamId, string name, int team, bool isSelf, bool isHost)
+        public RoomMember(ulong steamId, string name, int team, bool isSelf, bool isHost,
+                          bool isReady, int character)
         {
             SteamId = steamId;
             Name = name;
             Team = team;
             IsSelf = isSelf;
             IsHost = isHost;
+            IsReady = isReady;
+            Character = character;
         }
 
         public ulong SteamId { get; }
@@ -131,6 +136,14 @@ public class SteamLobby : MonoBehaviour
         public int Team { get; }
         public bool IsSelf { get; }
         public bool IsHost { get; }
+
+        /// 준비를 눌렀는가 (기획서 10.1 「팀 배정과 준비 상태」). 방장은 항상 준비로 친다 —
+        /// 시작 버튼을 쥔 사람에게 준비 버튼을 또 주면 누를 이유가 없는 버튼이 하나 는다.
+        public bool IsReady { get; }
+
+        /// 고른 캐릭터. `CharacterCatalog.NoPick`이면 아직 안 골랐다.
+        /// 팀원끼리는 서로의 픽이 보여야 중복 픽 금지가 성립한다 (기획서 3.4 · 9.1).
+        public int Character { get; }
     }
 
     /// 스팀이 살아 있는가. false면 방 목록도 방 만들기도 되지 않는다.
@@ -149,6 +162,21 @@ public class SteamLobby : MonoBehaviour
     /// 내가 고른 팀. 대기실에 들어갈 때 멤버 데이터로 기록된다.
     public int SelectedTeam { get; private set; }
 
+    /// 내가 준비를 눌렀는가. 방장은 시작 버튼을 쥐므로 항상 참이다.
+    public bool SelfReady => IsRoomHost || selfReady;
+    bool selfReady;
+
+    /// 준비한 사람 수와 전체 인원. 화면이 「준비 N/M」으로 쓴다 (기획서 10.1).
+    public int ReadyCount
+    {
+        get
+        {
+            var n = 0;
+            for (var i = 0; i < members.Count; i++) if (members[i].IsReady) n++;
+            return n;
+        }
+    }
+
     /// 이 사람이 고른 캐릭터 (기획서 9장). `CharacterCatalog.All`의 인덱스이고
     /// `NoPick`이면 아직 고르지 않았다.
     ///
@@ -162,6 +190,12 @@ public class SteamLobby : MonoBehaviour
         if (!CharacterCatalog.IsValid(index)) return;
 
         SelectedCharacter = index;
+
+        // 팀·준비와 같은 통로로 내보낸다. 서버 판정(`PlayerCharacter.PickRpc`)이 최종이지만,
+        // 그건 스폰 뒤라서 로비 화면이 그때까지 남의 픽을 모른다 (기획서 3.4).
+        if (current.HasValue) current.Value.SetMemberData(PickKey, index.ToString());
+
+        RefreshMembers();
         Changed?.Invoke();
 
         // 이미 스폰돼 있으면 지금 보낸다. 아직이면 스폰 때 이 값을 읽어 간다.
@@ -191,8 +225,26 @@ public class SteamLobby : MonoBehaviour
     public bool TeamHasRoom(int team) => OccupancyOf(team) < PlayersPerTeam;
 
     /// 호스트가 시작을 누를 수 있는가. 정원을 넘겨 고른 사람이 있으면 시작해 봐야 그 사람이
-    /// 접속 승인에서 튕긴다.
-    public bool CanStartMatch => IsRoomHost && members.Count > 0 && !AnyTeamOverfilled();
+    /// 접속 승인에서 튕기고, 아직 준비하지 않은 사람이 있으면 기다린다 (기획서 10.1).
+    public bool CanStartMatch =>
+        IsRoomHost && members.Count > 0 && !AnyTeamOverfilled() && ReadyCount >= members.Count;
+
+    /// 같은 팀에서 이미 집어 간 캐릭터. 화면이 그 칸을 잠그는 데 쓴다 (기획서 3.4 · 9.1).
+    /// 최종 판정은 서버 한 곳이다 (`PlayerCharacter.PickRpc`, 기획서 9.3) — 여기는 표시용이다.
+    public IReadOnlyList<RoomMember> TeammatesWithPick(int team)
+    {
+        teammatePicks.Clear();
+        for (var i = 0; i < members.Count; i++)
+        {
+            var m = members[i];
+            if (m.IsSelf || m.Team != team) continue;
+            if (!CharacterCatalog.IsValid(m.Character)) continue;
+            teammatePicks.Add(m);
+        }
+        return teammatePicks;
+    }
+
+    readonly List<RoomMember> teammatePicks = new();
 
     void Awake()
     {
@@ -510,6 +562,8 @@ public class SteamLobby : MonoBehaviour
         current = null;
         members.Clear();
         ClearOccupancy();
+        selfReady = false;
+        pendingServer = 0;
 
         var manager = NetworkManager.Singleton;
         if (manager != null && (manager.IsListening || manager.IsClient)) manager.Shutdown();
@@ -518,6 +572,19 @@ public class SteamLobby : MonoBehaviour
     }
 
     // --- 대기실 ---
+
+    /// 준비를 켜고 끈다. 팀과 같은 통로(멤버 데이터)로 나가므로 같은 방의 모두가 즉시 본다.
+    /// 방장은 시작 버튼을 쥐고 있어 준비 개념이 없다.
+    public void ToggleReady()
+    {
+        if (!InRoom || IsRoomHost) return;
+
+        selfReady = !selfReady;
+        if (current.HasValue) current.Value.SetMemberData(ReadyKey, selfReady ? "1" : "0");
+
+        RefreshMembers();
+        Changed?.Invoke();
+    }
 
     /// 팀을 고른다. 스팀 로비 멤버 데이터로 적히므로 같은 방의 모두가 즉시 본다.
     public void SelectTeam(int team)
@@ -546,17 +613,30 @@ public class SteamLobby : MonoBehaviour
         foreach (var member in lobby.Members)
         {
             var isSelf = member.Id == selfId;
+            var isHost = member.Id == ownerId;
             var team = isSelf ? SelectedTeam : ParseTeam(lobby.GetMemberData(member, TeamKey));
+
+            // 내 값은 멤버 데이터를 되읽지 않는다. 스팀이 방금 쓴 값을 곧바로 돌려준다는
+            // 보장이 없어서, 눌렀는데 한 박자 뒤에야 켜지는 것처럼 보인다 (팀과 같은 이유).
+            var ready = isHost || (isSelf ? selfReady
+                                          : lobby.GetMemberData(member, ReadyKey) == "1");
+
+            var pick = isSelf ? SelectedCharacter
+                              : ParsePick(lobby.GetMemberData(member, PickKey));
             
             if (team >= 0 && team < occupancy.Length) occupancy[team]++;
 
             members.Add(new RoomMember(member.Id, member.Name, team,
-                                       isSelf, member.Id == ownerId));
+                                       isSelf, isHost, ready, pick));
         }
     }
 
     static int ParseTeam(string raw) =>
         int.TryParse(raw, out var team) ? team : TeamSeats.NoPreference;
+
+    static int ParsePick(string raw) =>
+        int.TryParse(raw, out var pick) && CharacterCatalog.IsValid(pick)
+            ? pick : CharacterCatalog.NoPick;
 
     void ClearOccupancy()
     {
@@ -650,7 +730,30 @@ public class SteamLobby : MonoBehaviour
             return;
         }
 
-        StartNetwork(SelectedTeam, host: false, server.Value);
+        // 바로 붙지 않는다. 기획서 10.1의 순서가 방 → 캐릭터 선택 → 매치라서, 손님도
+        // 여기서 선택 화면을 먼저 보고 「확정」할 때 `JoinStartedMatch`로 붙는다.
+        pendingServer = server.Value;
+        MatchStarting?.Invoke();
+    }
+
+    /// 방장이 매치를 열었다. 손님 화면이 캐릭터 선택으로 넘어가는 신호다 (기획서 10.1).
+    /// 방장 자신은 위에서 걸러지므로 여기서 오르지 않는다 — 방장은 시작 버튼이 곧 이 신호다.
+    public event Action MatchStarting;
+
+    /// 붙을 곳. `OnHostStartedMatch`가 방 주인인지까지 검증한 뒤에만 채운다.
+    ulong pendingServer;
+
+    /// 손님 전용. 캐릭터 선택에서 「확정」을 누르면 그때 붙는다.
+    ///
+    /// 픽이 접속보다 먼저 있어야 한다 — `PlayerCharacter.OnNetworkSpawn`이
+    /// `GameManager.SelectedCharacter`를 읽어 서버로 올리기 때문이다.
+    public bool JoinStartedMatch()
+    {
+        if (pendingServer == 0) return false;
+
+        var target = pendingServer;
+        pendingServer = 0;
+        return StartNetwork(SelectedTeam, host: false, target);
     }
 
     bool StartNetwork(int team, bool host, ulong targetSteamId)
@@ -686,6 +789,8 @@ public class SteamLobby : MonoBehaviour
         current = null;
         members.Clear();
         ClearOccupancy();
+        selfReady = false;
+        pendingServer = 0;
 
         var manager = NetworkManager.Singleton;
         if (manager != null && localTransport != null)

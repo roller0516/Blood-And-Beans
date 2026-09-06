@@ -41,6 +41,14 @@ public class CompletionGauge : NetworkBehaviour
 
     public bool Active => active.Value;
 
+    /// 판정 구간의 반폭. HUD가 침 뒤에 Perfect/Good 구간을 그리는 데 쓴다 (기획서 5.2).
+    /// 판정과 표시가 같은 값을 읽어야 한다 — 화면에만 따로 적으면 둘이 어긋난다.
+    public float PerfectHalfWidth => perfectHalfWidth;
+    public float GoodHalfWidth => goodHalfWidth;
+
+    /// 이 게이지가 붙은 설비의 이름. HUD가 어느 기계를 판정하는지 적는 데 쓴다.
+    public string StationName => name;
+
     public float Needle =>
         Mathf.PingPong((float)(NetworkManager.ServerTime.Time - startedAt.Value) * sweepsPerSecond, 1f);
 
@@ -80,29 +88,35 @@ public class CompletionGauge : NetworkBehaviour
 
     }
 
-    public static bool TryStopLocalClient()
+    /// 다음 F가 멈출 게이지. 없으면 null.
+    ///
+    /// 후보는 로컬 팀 카페가 캐시해 둔 목록뿐이다 (`Cafe.Gauges`). HUD가 매 프레임 부르므로
+    /// 예전의 `FindObjectsByType` 전역 탐색은 여기 있을 수 없다 (AGENTS.md 참조와 결합도).
+    public static CompletionGauge LocalTarget()
     {
-        foreach (var gauge in FindObjectsByType<CompletionGauge>(FindObjectsSortMode.None))
-        {
-            if (!gauge.IsDay || !gauge.active.Value || gauge.TeamId < 0 || gauge.TeamId != PlayerTeam.Local()) continue;
-            if (gauge.OldestInThisCafe() != gauge) continue;
-            gauge.StopRpc();
-            return true;
-        }
-        return false;
-    }
+        var director = MatchDirector.Instance;
+        var team = PlayerTeam.Local();
+        if (director == null || team < 0) return null;
 
-    CompletionGauge OldestInThisCafe()
-    {
+        var cafe = director.CafeOf(team);
         if (cafe == null) return null;
 
         CompletionGauge best = null;
         foreach (var g in cafe.Gauges)
         {
-            if (g == null || !g.active.Value) continue;
+            if (g == null || !g.active.Value || !g.IsDay) continue;
             if (best == null || g.startedAt.Value < best.startedAt.Value) best = g;
         }
         return best;
+    }
+
+    public static bool TryStopLocalClient()
+    {
+        var target = LocalTarget();
+        if (target == null) return false;
+
+        target.StopRpc();
+        return true;
     }
 
     /// `[Rpc(SendTo.Server)]`는 어떤 클라이언트든 호출할 수 있으므로, 팀 검사는 호출부

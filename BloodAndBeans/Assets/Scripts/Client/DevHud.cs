@@ -18,14 +18,7 @@ public static class DevHud
     /// 패널 배경. 밝은 지형 위에서도 글자가 읽혀야 한다.
     static readonly Color PanelColor = new(0f, 0f, 0f, 0.55f);
     static readonly Color DisabledColor = new(0.12f, 0.13f, 0.15f, 0.95f);
-
-    /// 입력 모듈이 없으면 버튼이 눌리지 않는다. 어느 HUD가 먼저 깨어나든 한 번만 만든다.
-    public static void EnsureEventSystem()
-    {
-        if (Object.FindFirstObjectByType<EventSystem>() == null)
-            new GameObject("EventSystem", typeof(EventSystem), typeof(InputSystemUIInputModule));
-    }
-
+    
     /// 화면 좌상단 기준으로 세로 목록 패널 하나를 만든다. 반환값의 자식으로 행을 붙인다.
     public static RectTransform MakePanel(Transform parent, string name, int sortingOrder,
                                           Vector2 anchoredPosition, Vector2 size)

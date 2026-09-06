@@ -70,6 +70,13 @@ public class ReturnZone : NetworkBehaviour
         }
     }
 
+    /// 재지급과 밤 종료 정산이 같은 귀환 반경을 사용한다 (기획서 6.8).
+    public bool Contains(Vector3 position)
+    {
+        var center = Center;
+        return center.HasValue && Vector3.Distance(position, center.Value) <= radius;
+    }
+
     /// `phase.Current`를 폴링하지 않고 페이즈 이벤트에서 정산하는 것이 TransitionLedger와의
     /// 순서를 확정해 준다. PhaseEntered는 GamePhase.Enter 안에서 발생하므로, 어떤 Update가
     /// 새 페이즈를 관측하기 전에 모든 입고가 끝나 있다.
@@ -142,7 +149,7 @@ public class ReturnZone : NetworkBehaviour
             if (player == null || TeamOf(player) != team) continue;
 
             // 귀환 판정에 쓸 위치를 옮기기 전에 읽는다.
-            var inZone = Vector3.Distance(player.transform.position, center.Value) <= radius;
+            var inZone = Contains(player.transform.position);
 
             // 그리고 카페로 들여보낸다 — 정산과 배치를 한 자리에 두어야 순서가 확정된다.
             // 페이즈 이벤트에서 각자 자기 자리를 찾아가게 하면 이 정산보다 먼저 도착하는
@@ -173,7 +180,7 @@ public class ReturnZone : NetworkBehaviour
 
             ReportServer(client.ClientId,
                 inZone ? ReturnOutcome.Returned : ReturnOutcome.PartialLoss,
-                inv.Count, before - inv.Count);
+                inv.Count, before - inv.Count + inv.BuriedLossCount);
 
             var haul = inv.DrainServer();
             if (stock == null) continue;

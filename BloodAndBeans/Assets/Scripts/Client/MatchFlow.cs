@@ -158,6 +158,10 @@ public sealed class MatchFlow : MonoBehaviour
             // 귀환 마커도 같은 이유로 매 프레임이다. 월드의 한 점에 붙어 있어서
             // 0.1초마다 옮기면 카메라가 도는 동안 끊겨 보인다 (기획서 6.4).
             hud.SetReturnMarker(presenter.Marker);
+
+            // 완성 게이지도 매 프레임이다. 침이 초당 1.4회 왕복해서 0.1초마다 옮기면
+            // 노릴 수 없는 계단이 된다 (기획서 5.2).
+            hud.SetCompletionGauge(presenter.Gauge);
         }
 
         SyncLootPopup();

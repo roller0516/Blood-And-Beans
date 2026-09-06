@@ -18,6 +18,7 @@ public sealed class UIMatchHudScreen : UIScreen
     /// 루팅한 아이템이 빨려 들어갈 가방 아이콘. 프리팹에 이어 두지 않으면 아래에서
     /// 만들어 쓴다 — 이 아이콘은 연출의 목적지라서 없으면 획득 피드백이 사라진다.
     [SerializeField] RectTransform bagIcon;
+    [SerializeField] UIBagStatus bagStatus;
 
     /// 프리팹에 아이콘이 없을 때 만들 자리와 크기. 화면 오른쪽 아래 모서리 기준이다.
     [SerializeField] Vector2 bagIconSize = new(72f, 72f);
@@ -104,6 +105,15 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] RectTransform castBar;
     [SerializeField] RectTransform castFill;
 
+    [Header("완성 게이지")]
+    /// 기획서 5.2의 침 게이지. 낮에만 뜬다. 구간 폭은 `CompletionGauge`가 판정에 쓰는
+    /// 값을 그대로 받아 그린다 — 여기 따로 적으면 보이는 구간과 맞는 구간이 어긋난다.
+    [SerializeField] RectTransform completionBar;
+    [SerializeField] RectTransform completionGoodZone;
+    [SerializeField] RectTransform completionPerfectZone;
+    [SerializeField] RectTransform completionNeedle;
+    [SerializeField] TMP_Text completionLabel;
+
     [Header("대시")]
     [SerializeField] RectTransform dashSlot;
     [SerializeField] TMP_Text dashLabelText;
@@ -153,6 +163,7 @@ public sealed class UIMatchHudScreen : UIScreen
         // 가방 아이콘은 밤의 획득 연출 목표다 (기획서 6.5.5). 낮에도 켜 두면 정체를 알 수
         // 없는 사각형이 남는다.
         SetGroup(bagIcon, model.ShowBag);
+        if (bagStatus != null) bagStatus.SetMissing(model.ShowBag && model.BagBuried);
         if (bagFill != null)
         {
             SetGroup(bagFill, model.ShowBag);
@@ -201,6 +212,33 @@ public sealed class UIMatchHudScreen : UIScreen
         // 폭을 sizeDelta로 줄이지 않고 스케일로 민다. 앵커 스트레치라 sizeDelta는 여백이
         // 되어 오른쪽부터 줄어든다 — 게이지는 왼쪽에서 자라야 한다.
         castFill.localScale = new Vector3(Mathf.Clamp01(ratio01), 1f, 1f);
+    }
+
+    /// 매 프레임 불린다. 침은 초당 1.4회 왕복이라 HUD 갱신 주기(0.1초)로 옮기면 계단이 되고
+    /// 판정 구간을 눈으로 노릴 수 없다 — 개봉 게이지와 같은 이유다 (기획서 5.2).
+    public void SetCompletionGauge(in MatchHudPresenter.GaugeView view)
+    {
+        if (completionBar == null) return;
+
+        SetGroup(completionBar, view.Show);
+        if (!view.Show) return;
+
+        var width = completionBar.rect.width;
+        SetZoneWidth(completionGoodZone, width * view.GoodHalf * 2f);
+        SetZoneWidth(completionPerfectZone, width * view.PerfectHalf * 2f);
+
+        if (completionNeedle != null)
+            completionNeedle.anchoredPosition = new Vector2((view.Needle - 0.5f) * width, 0f);
+
+        SetText(completionLabel, view.Label);
+    }
+
+    /// 판정 구간의 폭. 값이 그대로면 손대지 않는다 — `sizeDelta` 대입은 매번 레이아웃을
+    /// 더럽히는데 구간 폭은 게이지가 도는 내내 바뀌지 않는다.
+    static void SetZoneWidth(RectTransform zone, float width)
+    {
+        if (zone == null || Mathf.Approximately(zone.sizeDelta.x, width)) return;
+        zone.sizeDelta = new Vector2(width, zone.sizeDelta.y);
     }
 
     static void SetText(TMP_Text target, string value)

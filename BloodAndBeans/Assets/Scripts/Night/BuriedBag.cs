@@ -49,6 +49,7 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     int pendingTeam = -1;
 
     readonly List<Ingredient> contents = new();     // 서버 전용
+    PlayerInventory sourceInventory;               // 묻은 사람의 소실 기록도 서버에만 둔다
 
     /// 진행 중인 홀드 하나. 팀과 시작 위치를 여기 캐시한다 — 틱에서 `PlayerTeam.Of`를
     /// 부르면 그 안의 `GetComponent`가 주기 실행 안의 컴포넌트 조회가 된다 (AGENTS.md).
@@ -178,9 +179,10 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     }
 
     /// 스폰 *전에* 서버가 부른다. 팀과 내용물을 심어 두면 스폰 페이로드에 함께 나간다.
-    public void SeedServer(int team, List<Ingredient> items)
+    public void SeedServer(int team, List<Ingredient> items, PlayerInventory source = null)
     {
         pendingTeam = team;
+        sourceInventory = source;
         contents.Clear();
         if (items != null) contents.AddRange(items);
     }
@@ -298,6 +300,7 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         if (inv == null || inv.HasBag) { CancelHold(clientId); return; }
 
         inv.RetrieveServer(contents);
+        if (sourceInventory != null) sourceInventory.ResolveBuriedLossServer(contents.Count);
         contents.Clear();
         DespawnServer();
     }

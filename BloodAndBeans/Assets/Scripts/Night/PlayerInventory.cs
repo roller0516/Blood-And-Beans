@@ -44,6 +44,7 @@ public class PlayerInventory : NetworkBehaviour
 
     MatchDirector director;
     GamePhase subscribedPhase;
+    bool leftReturnZoneWithoutBag;
 
     // 흘린 더미를 발밑에 맞출 때 캡슐 치수가 필요하다. 스폰 시점에 한 번만 찾는다.
     CharacterController controller;
@@ -128,10 +129,35 @@ public class PlayerInventory : NetworkBehaviour
         if (!IsServer || p != Phase.Night) return;
         ClearServer();
         hasBag.Value = true;
+        leftReturnZoneWithoutBag = false;
         BuriedLossCount = 0;    // 새 밤이다 — 지난 밤에 묻어 두고 못 찾은 것은 이미 정산됐다
 
         // 임대료 페널티는 정산에서 정해진다. 무게가 그대로여도 밴드가 한 칸 옮겨져 있을
         // 수 있으므로 밤이 시작될 때 한 번 다시 넣는다 (기획서 3.3).
+        PushSpeedServer();
+    }
+
+    void Update() => ReissueBagServer();
+
+    /// 자기 귀환 구역에 돌아오면 같은 밤에도 빈 가방을 지급한다 (기획서 6.8).
+    public void ReissueBagServer()
+    {
+        if (!IsServer || !IsSpawned || hasBag.Value || team == null || team.Team < 0 ||
+            subscribedPhase == null || !subscribedPhase.IsSpawned || subscribedPhase.Finished ||
+            subscribedPhase.Current != Phase.Night || subscribedPhase.Remaining <= 0f) return;
+
+        var zone = director != null ? director.ZoneOf(team.Team) : null;
+        if (zone == null || !zone.IsSpawned) return;
+        if (!zone.Contains(transform.position))
+        {
+            leftReturnZoneWithoutBag = true;
+            return;
+        }
+        // 구역 안에 묻자마자 재지급하면 원본을 다시 멜 수 없다. 밖에서 돌아올 때 지급한다.
+        if (!leftReturnZoneWithoutBag) return;
+
+        hasBag.Value = true;
+        leftReturnZoneWithoutBag = false;
         PushSpeedServer();
     }
 
@@ -145,11 +171,15 @@ public class PlayerInventory : NetworkBehaviour
     /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.
     public bool HasBag => hasBag.Value;
 
-    /// 가방을 묻은 순간 그 안에 있던 개수 (기획서 6.8 「가방 X → 100% 소실」의 실제
-    /// 소실량). `Count`는 묻는 순간 `DrainServer`로 이미 0이 돼 있어, 귀환 정산이 그때
-    /// 가서 물어보면 늘 0만 나온다 — 정산 시점이 아니라 잃은 시점의 값을 따로 들고
-    /// 있어야 한다. 되찾거나 다음 밤이 되면 0으로 되돌아간다.
+    /// 이번 밤에 묻고 아무도 회수하지 않은 재료 수. 빈 가방 재지급으로 지우지 않는다.
+    /// 팀원이 회수하면 그 가방의 수량만 차감하고, 새 밤에는 초기화한다 (기획서 6.8).
     public int BuriedLossCount { get; private set; }
+
+    public void ResolveBuriedLossServer(int count)
+    {
+        if (!IsServer || count <= 0) return;
+        BuriedLossCount = Mathf.Max(0, BuriedLossCount - count);
+    }
 
     /// 적재가 80%를 넘었는가 (기획서 6.6). 남의 것도 읽을 수 있는 유일한 적재 정보다.
     public bool Overloaded => overloaded.Value;
@@ -321,12 +351,14 @@ public class PlayerInventory : NetworkBehaviour
         // 클라이언트는 팀 미상(-1) 상태로 스폰을 받아 그동안 가방을 그대로 렌더한다.
         // 숨기는 것이 유일한 목적인 오브젝트라 한 틱 노출이면 기능이 없는 것과 같다.
         var buried = DrainServer();
-        BuriedLossCount = buried.Count;    // 되찾지 못하면 이 개수가 곧 귀환 정산의 손실량이다
+        BuriedLossCount += buried.Count;
 
-        bag.SeedServer(team != null ? team.Team : -1, buried);
+        bag.SeedServer(team != null ? team.Team : -1, buried, this);
         bag.NetworkObject.SpawnWithObservers = false;   // 보여주는 시점은 BuriedBag이 정한다
         bag.NetworkObject.Spawn();
         hasBag.Value = false;
+        var returnZone = director != null && team != null ? director.ZoneOf(team.Team) : null;
+        leftReturnZoneWithoutBag = returnZone != null && !returnZone.Contains(transform.position);
 
         // 가방이 없어졌으니 부풀어 있을 이유도 없다. `DrainServer`는 무게만 비우고
         // 겉보기를 갱신하지 않으므로 여기서 한 번 더 민다.
@@ -336,10 +368,9 @@ public class PlayerInventory : NetworkBehaviour
     /// 묻어 둔 가방을 도로 멘다. 내용물은 보존된다.
     public void RetrieveServer(List<Ingredient> contents)
     {
-        if (!IsServer) return;
+        if (!IsServer || hasBag.Value) return;
 
         hasBag.Value = true;
-        BuriedLossCount = 0;    // 되찾았으니 잃은 게 아니다
         if (contents == null) { PushSpeedServer(); return; }
         for (var i = 0; i < contents.Count; i++) AddServer(contents[i]);
     }
