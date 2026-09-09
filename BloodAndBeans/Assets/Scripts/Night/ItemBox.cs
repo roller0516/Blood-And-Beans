@@ -432,7 +432,11 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
             : 0;
 
         var beforeRare = stacks.Count;
-        DrawInto(rarePool, rare);
+        // v5.0 8.1: 보석 종류는 버프에 고정 대응하며 3등급에서만 추첨한다.
+        var gems = new Ingredient[TeamBuffs.Materials.Length + 1];
+        gems[0] = Ingredient.BloodBean;
+        System.Array.Copy(TeamBuffs.Materials, 0, gems, 1, TeamBuffs.Materials.Length);
+        DrawInto(gems, rare);
         var rareAdded = stacks.Count - beforeRare;
 
         // `rarePool`은 지금 2종류(블러드 빈·업그레이드 재료)뿐이라 `DrawInto`는 종류가

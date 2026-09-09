@@ -20,24 +20,23 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] RectTransform bagIcon;
     [SerializeField] UIBagStatus bagStatus;
 
-    /// 프리팹에 아이콘이 없을 때 만들 자리와 크기. 화면 오른쪽 아래 모서리 기준이다.
-    [SerializeField] Vector2 bagIconSize = new(72f, 72f);
-    [SerializeField] Vector2 bagIconMargin = new(-72f, 72f);
+    /// 가방 아이콘의 두 얼굴. 비어 있거나 꽉 찼으면 닫힌 쪽, 그 사이에는 열린 쪽이다.
+    [SerializeField] Sprite bagClosedSprite;
+    [SerializeField] Sprite bagOpenSprite;
 
-    [Header("개봉 게이지")]
-    /// 상자 개봉 로딩 바. 화면 한가운데에 뜬다 — 이건 지금 무엇을 기다리는지 알려 주는
-    /// 값이라 HUD 글자 덩어리에 섞으면 시선이 닿지 않는다.
-    [SerializeField] Vector2 castBarSize = new(260f, 14f);
-
+    /// 가방이 열려 보이는 적재 구간의 위쪽 끝. 이 값을 넘으면 더 들어가지 않으므로 닫는다.
+    ///
+    /// ponytail: 기획서에 없는 값이다 — 6.5.5는 획득 연출(날아가기·스케일 펀치)까지만
+    /// 정하고 아이콘이 열리고 닫히는 규칙은 없다. 100%가 아니라 겉보기가 갈리는
+    /// 80%(`LoadBands.OverloadRatio`)에서 닫는 편이 맞다면 인스펙터에서 옮기면 된다.
+    [SerializeField, Min(0f)] float bagOpenUntilRatio = 1f;
+    
     /// 화면 중앙에서 내리는 양. 정확히 가운데는 캐릭터와 겹친다.
     [SerializeField] float castBarDrop = 90f;
 
-    [SerializeField] Color castBarBack = new(0f, 0f, 0f, 0.55f);
-    [SerializeField] Color castBarFill = new(1f, 0.82f, 0.29f);
-
     [Header("귀환 경보")]
-    /// 밤 마감 30초 전에 울리는 종소리 (기획서 6.4). 애셋이 아직 없어서 비워 둘 수 있고,
-    /// 비어 있으면 화살표만 뜬다 — 소리는 이 표시의 필수 조건이 아니다.
+    // 밤 마감 30초 전에 울리는 종소리 (기획서 6.4). 애셋이 아직 없어서 비워 둘 수 있고,
+    // 비어 있으면 화살표만 뜬다 — 소리는 이 표시의 필수 조건이 아니다.
     [SerializeField] AudioClip returnAlarmSound;
 
     [SerializeField] Color alarmColor = new(0.93f, 0.35f, 0.28f);
@@ -61,9 +60,12 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] TMP_Text bagWeightText;
     [SerializeField] RectTransform bagFill;
 
-    /// 가방을 묻어 두면 게이지와 아이콘이 이 색으로 바뀐다. 글자만으로는 눈에 안 들어오는데,
+    /// 가방을 묻어 두면 게이지와 글자가 이 색으로 바뀐다. 글자만으로는 눈에 안 들어오는데,
     /// 묻힌 동안에는 담기가 전부 거절되므로 한눈에 보여야 한다 (기획서 6.7 묻기).
     [SerializeField] Color buriedColor = new(0.85f, 0.34f, 0.25f);
+
+    /// 묻어 둔 동안 가방 아이콘의 투명도. 아이콘에는 색을 씌우지 않고 이것만 낮춘다.
+    [SerializeField, Range(0f, 1f)] float bagBuriedAlpha = 0.35f;
 
     /// 무게 구간별 게이지 색 (기획서 6.7: "구간이 바뀔 때 색과 발소리가 바뀐다").
     /// 인덱스는 `LoadBands`의 밴드와 같다 — 0~50% / 50~80% / 80~100% / 100~130% /
@@ -176,13 +178,22 @@ public sealed class UIMatchHudScreen : UIScreen
                 // 묻어 둔 동안에는 적재량이 의미가 없다. 게이지를 비우고 색으로 알린다.
                 // 메고 있으면 무게 구간이 색을 정한다 (기획서 6.7).
                 var tint = model.BagBuried ? buriedColor : BandColor(model.BagBand);
-                if (bagFillImage != null) bagFillImage.color = tint;
+                if (bagFillImage != null) bagFillImage.color = tint; 
                 if (bagPercentText != null)
                     bagPercentText.color = model.BagBuried ? buriedColor : tint;
                 if (bagIconImage != null)
-                    bagIconImage.color = model.BagBuried
-                        ? buriedColor
-                        : new Color(0.35f, 0.26f, 0.18f, 0.9f);
+                {
+                    // 아이콘은 그림 색 그대로 둔다. 색을 곱하면 열린 가방과 닫힌 가방이
+                    // 둘 다 그 색으로 뭉개진다. 묻어 둔 것은 흐리게 해서만 알린다 —
+                    // X 표시는 `UIBagStatus`가 따로 그린다.
+                    bagIconImage.color = new Color(1f, 1f, 1f, model.BagBuried ? bagBuriedAlpha : 1f);
+
+                    // 하나라도 담겨 있으면 열어 둔다. 묻어 둔 가방은 적재가 0으로 와서
+                    // 저절로 닫힌다 (`MatchHudPresenter`).
+                    var open = model.BagRatio > 0f && model.BagRatio < bagOpenUntilRatio;
+                    var face = open ? bagOpenSprite : bagClosedSprite;
+                    if (face != null && bagIconImage.sprite != face) bagIconImage.sprite = face;
+                }
             }
         }
 
@@ -246,7 +257,7 @@ public sealed class UIMatchHudScreen : UIScreen
         if (target != null) target.text = value ?? string.Empty;
     }
 
-    static void SetGroup(Component target, bool active)
+    void SetGroup(Component target, bool active)
     {
         if (target != null && target.gameObject.activeSelf != active) target.gameObject.SetActive(active);
     }

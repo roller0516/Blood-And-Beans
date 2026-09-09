@@ -10,16 +10,18 @@ using UnityEngine;
 /// 다시 적으면 맵을 넓힐 때 두 곳을 같이 고쳐야 하고, 한쪽만 고치면 팀이 지형 밖에서 시작한다.
 /// 그래서 이 도구는 `SerializedObject`로 그 값을 읽어 쓴다.
 ///
-/// 나무는 `NetworkObject`가 없는 순수 표현이라 씬에 그대로 굽는다. 상자는 씬 NetworkObject라
-/// 위치를 건드리지 않는다 — 기획서 6.3이 "박스의 위치는 맵마다 고정"이라고 했고, 이미 놓인
-/// 동심원 링이 그 고정 배치다. 이 도구는 그 자리에 등급 가중치와 겉모습만 채운다.
+/// 나무는 `NetworkObject`가 없는 순수 표현이라 씬에 그대로 굽는다. 상자는 씬 NetworkObject지만
+/// 위치를 여기서 정한다 — 기획서 6.3의 "박스의 위치는 맵마다 고정"은 판마다 흔들리지 않는다는
+/// 뜻이고, 같은 절이 "지형·통로·박스 배치는 레벨 디자인 영역"이라고 했다. 씨앗으로 굽는 편집
+/// 시점이 그 레벨 디자인이고, 구워진 뒤로는 고정이다. 런타임에는 아무것도 생성하지 않는다.
 public static class ForestMapBuilder
 {
     const string MenuPath = "Tools/Blood & Beans/숲 맵 생성";
+    const string RerollMenuPath = "Tools/Blood & Beans/숲 맵 생성 — 씨앗 무작위";
+    const string VerifyMenuPath = "Tools/Blood & Beans/숲 씨앗 훑기";
 
-    /// 같은 씬에서 몇 번을 돌려도 같은 숲이 나오게 하는 씨앗. 배치가 마음에 들지 않으면
-    /// 이 값만 바꾼다.
-    const int Seed = 20260828;
+    /// 씨앗 훑기가 볼 씨앗 수. 씬의 씨앗부터 이만큼 이어서 센다.
+    const int VerifySeedCount = 200;
 
     const string ForestRootName = "Forest";
     const string GlowChildName = "Glow";
@@ -33,8 +35,34 @@ public static class ForestMapBuilder
     /// Kenney nature-kit 모델은 원점이 밑동이라 그대로 0에 놓는다.
     const float GroundY = 0f;
 
-    const float BoxClearance = 3.5f;      // 상자 주변은 비운다. 나무가 상자를 가리면 못 찾는다
+    /// 상자 주변은 비운다. 나무가 상자를 가리면 못 찾는다. 콜라이더가 생긴 뒤로는 "가린다"가
+    /// "못 다가간다"가 되므로 `ItemBox.reach`(2.5) + 나무 반경 + 플레이어 반경보다 커야 한다.
+    const float BoxClearance = 4.5f;
     const float SpawnClearance = 6f;    // 스폰 자리도 비운다. 시작하자마자 나무에 끼면 안 된다
+
+    /// 콜라이더 두께. 모델의 XZ 반경에 이 배수를 곱한다. 줄기만 잡으면 탑다운에서 나무를
+    /// 뚫고 지나가 보이고, 수관을 통째로 잡으면 숲이 벽이 된다 — 그 사이의 조정 손잡이다.
+    const float ColliderFactor = 0.32f;
+    const float ColliderMinRadius = 0.35f;
+    const float ColliderMaxRadius = 1.1f;
+
+    /// 세워 둔 캡슐 하나로 나무를 대신한다. 중력이 없고(PlayerMove) 플레이어 y가 고정이라
+    /// 충돌은 사실상 평면 위의 원이다.
+    /// ponytail: `log`처럼 누운 모델도 원으로 근사한다. 실루엣이 어긋나 보이면 그때 박스로 바꾼다.
+    const float ColliderHeight = 3f;
+    const string CollidersChildName = "Colliders";
+
+    /// 지나갈 수 있어야 하는 것들. 기획서 6.2가 수풀을 은폐물로 쓰므로 몸으로 막지 않는다.
+    static readonly string[] NoColliderModels = { "grass_large", "plant_bush", "plant_bushLarge" };
+
+    /// 연결성 검사 격자. 플레이어가 지나갈 틈보다 촘촘해야 통로를 놓치지 않는다.
+    const float ReachCell = 0.5f;
+
+    /// CharacterController 반지름 0.5 + 스킨과 조작 여유.
+    const float PlayerRadius = 0.6f;
+
+    /// 막힌 상자를 뚫는 시도 횟수. 한 번에 통로 하나를 낸다.
+    const int RepairPasses = 12;
 
     /// 바깥에서 중심으로 갈수록 빽빽해진다. 기획서 6.2-3: 중심부는 늦게 열리고 조우가
     /// 거기서 생긴다 — 화면에서도 안쪽이 더 답답해야 그 긴장이 읽힌다.
@@ -52,7 +80,7 @@ public static class ForestMapBuilder
     /// 바닥 풀은 Kenney 덩어리를 흩뿌리지 않는다. `ForestGrass`가 컴퓨트 셰이더로 위치를
     /// 뽑아 인디렉트 드로우 한 번에 그린다 - 덩어리 2,494개(33.9만 삼각형)를 대체한다.
     const string GrassComputePath = "Assets/Art/Shaders/ForestGrassPositions.compute";
-    const string GrassMaterialPath = "Assets/Art/Materials/ForestGrassBlade.mat";
+    const string GrassMaterialPath = MaterialFolder + "ForestGrassBlade.mat";
 
     /// 바닥 풀 설정. **도구가 소유한다.** 이 도구는 매번 `ForestGrass`를 새로 만들므로,
     /// Inspector에서 손으로 맞춘 값은 다음 실행에서 스크립트 기본값으로 되돌아간다.
@@ -75,8 +103,8 @@ public static class ForestMapBuilder
 
     const string NatureModels = "Assets/AssetStore/Kenney/nature-kit/Models/FBX format/";
     const string SurvivalModels = "Assets/AssetStore/Kenney/survival-kit/Models/FBX format/";
-    const string MaterialFolder = "Assets/Art/Materials/";
-    const string ForestMaterialFolder = "Assets/Art/Materials/Forest/";
+    const string MaterialFolder = "Assets/Art/Environment/Materials/";
+    const string ForestMaterialFolder = MaterialFolder + "Forest/";
 
     /// 숲 팔레트. Kenney FBX에 박힌 머티리얼을 그대로 쓰면 잎이 청록으로 나온다 —
     /// Unity의 `ImportViaMaterialDescription`이 이 FBX의 디퓨즈를 제대로 읽지 못해서
@@ -146,8 +174,99 @@ public static class ForestMapBuilder
     const float CoreRingRatio = 0.25f;
     const float MidRingRatio = 0.55f;
 
+    /// 상자를 뿌릴 링. 링마다 상자 수를 이 비중으로 나누고, 링 안에서는 섹터를 균등하게
+    /// 잘라 하나씩 놓는다 — 순수 난수로 뿌리면 한쪽 모서리에 몰려서 스폰 자리에 따라
+    /// 유불리가 갈린다. `Centre`와 `Jitter`는 숲 반지름에 대한 비율이다.
+    static readonly (float Centre, float Jitter, int Share)[] BoxRings =
+    {
+        (0.14f, 0.05f, 3),   // 중심 - 3등급이 나오는 링 (기획서 6.3)
+        (0.40f, 0.07f, 6),
+        (0.78f, 0.07f, 8),
+    };
+
+    /// 상자끼리 이만큼은 떨어뜨린다. 붙어 있으면 한 번 개척으로 둘을 다 먹는다.
+    const float BoxSeparation = 7f;
+    const int BoxPlaceAttempts = 24;
+
+    /// 씬에 적힌 씨앗으로 굽는다. 몇 번을 돌려도 같은 숲이 나온다.
     [MenuItem(MenuPath)]
-    static void Build()
+    internal static void Build() => Build(null);
+
+    /// 씨앗을 새로 뽑아 씬에 적고 굽는다. 마음에 드는 숲이 나오면 그 씨앗이 `MatchDirector`에
+    /// 남으므로 「숲 맵 생성」으로 언제든 같은 숲을 되살린다.
+    [MenuItem(RerollMenuPath)]
+    internal static void Reroll() => Build(Random.Range(int.MinValue, int.MaxValue));
+
+    /// 씨앗을 통째로 훑어 "네 모서리에서 걸어서 모든 상자에 닿는다"는 불변식을 확인한다.
+    /// 씬은 건드리지 않는다. 밀도·콜라이더 두께·상자 링을 만진 뒤 이걸 돌린다 — 한 씨앗만
+    /// 보고 넘어가면 다른 씨앗에서 중심부가 벽이 되는 것을 못 잡는다.
+    [MenuItem(VerifyMenuPath)]
+    internal static void VerifySeeds()
+    {
+        var director = Object.FindFirstObjectByType<MatchDirector>();
+        if (director == null)
+        {
+            EditorUtility.DisplayDialog("숲 씨앗 훑기",
+                "열려 있는 씬에 MatchDirector가 없다. 매치 씬(Battle_01)을 먼저 연다.", "확인");
+            return;
+        }
+
+        var so = new SerializedObject(director);
+        var origin = so.FindProperty("cafeOrigin").vector3Value;
+        var forestSize = so.FindProperty("forestSize").vector2Value;
+        var spawns = SpawnPoints(origin, forestSize,
+            so.FindProperty("spawnInset").floatValue,
+            so.FindProperty("spawnSlotSpacing").floatValue);
+
+        var boxCount = Object.FindObjectsByType<ItemBox>(
+            FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
+
+        var trees = LoadModels(NatureModels, TreeModels);
+        var undergrowth = LoadModels(NatureModels, UndergrowthModels);
+        if (trees.Count == 0)
+        {
+            Debug.LogError($"{NatureModels}에서 나무 모델을 하나도 찾지 못했다.");
+            return;
+        }
+
+        var baseRadii = new Dictionary<GameObject, float>();
+        foreach (var model in trees) baseRadii[model] = BaseRadius(model);
+        foreach (var model in undergrowth) baseRadii[model] = BaseRadius(model);
+
+        var densityScale = so.FindProperty("forestDensity").floatValue;
+        var first = so.FindProperty("mapSeed").intValue;
+        var state = Random.state;
+        var failed = new List<int>();
+        var carved = 0;
+
+        for (var i = 0; i < VerifySeedCount; i++)
+        {
+            var seed = first + i;
+            Random.InitState(seed);
+
+            var boxes = BoxPositions(boxCount, origin, forestSize, spawns);
+            var props = Scatter(origin, forestSize, CollectKeepOut(spawns, boxes),
+                                trees, undergrowth, baseRadii, densityScale);
+
+            carved += OpenPassages(props, origin, forestSize, spawns, boxes);
+            if (FirstUnreachable(Walkable(props, origin, forestSize, spawns), boxes).HasValue)
+                failed.Add(seed);
+        }
+
+        Random.state = state;
+
+        if (failed.Count > 0)
+        {
+            Debug.LogError($"씨앗 훑기: {VerifySeedCount}개 중 {failed.Count}개가 막혔다 — "
+                         + $"{string.Join(", ", failed)}");
+            return;
+        }
+
+        Debug.Log($"씨앗 훑기: 씨앗 {first}부터 {VerifySeedCount}개 모두 모든 상자에 닿는다. "
+                + $"통로 내느라 걷어낸 나무 총 {carved}개.");
+    }
+
+    static void Build(int? reroll)
     {
         var director = Object.FindFirstObjectByType<MatchDirector>();
         if (director == null)
@@ -163,19 +282,151 @@ public static class ForestMapBuilder
         var spawnInset = so.FindProperty("spawnInset").floatValue;
         var spawnSpacing = so.FindProperty("spawnSlotSpacing").floatValue;
 
+        var seedProperty = so.FindProperty("mapSeed");
+        if (reroll.HasValue)
+        {
+            seedProperty.intValue = reroll.Value;
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+        var seed = seedProperty.intValue;
+        var densityScale = so.FindProperty("forestDensity").floatValue;
+
+        var spawns = SpawnPoints(origin, forestSize, spawnInset, spawnSpacing);
         var boxes = Object.FindObjectsByType<ItemBox>(FindObjectsInactive.Include, FindObjectsSortMode.None);
-        var keepOut = CollectKeepOut(origin, forestSize, spawnInset, spawnSpacing, boxes);
+
+        // 상자 자리와 숲이 같은 씨앗을 쓴다. 하나만 흔들면 상자만 다른 같은 숲이 나온다.
+        var state = Random.state;
+        Random.InitState(seed);
+
+        var boxPositions = BoxPositions(boxes.Length, origin, forestSize, spawns);
+        for (var i = 0; i < boxes.Length; i++)
+        {
+            // y는 `GroundBox`가 규격에 맞춘다. 여기서는 평면 자리만 정한다.
+            var t = boxes[i].transform;
+            t.position = new Vector3(boxPositions[i].x, t.position.y, boxPositions[i].z);
+        }
+
+        var keepOut = CollectKeepOut(spawns, boxPositions);
 
         DressBoxes(boxes, origin, forestSize);
-        var planted = PlantForest(origin, forestSize, keepOut);
+        var planted = PlantForest(origin, forestSize, keepOut, spawns, boxPositions, densityScale);
+
+        Random.state = state;
 
         var scene = director.gameObject.scene;
         PaintGround(scene);
         EditorSceneManager.MarkSceneDirty(scene);
-        EditorSceneManager.SaveScene(scene);
 
-        Debug.Log($"숲 맵 생성: 나무·수풀 {planted}개, 상자 {boxes.Length}개 정리. "
+        Debug.Log($"숲 맵 생성: 씨앗 {seed}, 나무·수풀 {planted}개, 상자 {boxes.Length}개. "
                 + $"숲 {forestSize.x}x{forestSize.y}, 원점 {origin}.");
+    }
+
+    /// 팀 스폰 자리. `MatchDirector.NightSpawnPosition`과 같은 식이다 — 어긋나면 팀이
+    /// 나무 속에서 시작한다.
+    static List<Vector3> SpawnPoints(
+        Vector3 origin, Vector2 forestSize, float spawnInset, float spawnSpacing)
+    {
+        var corners = new[]
+        {
+            new Vector2(-1f, 1f), new Vector2(1f, 1f),
+            new Vector2(-1f, -1f), new Vector2(1f, -1f),
+        };
+
+        var points = new List<Vector3>();
+        foreach (var corner in corners)
+        {
+            var edge = new Vector3(corner.x * (forestSize.x * 0.5f - spawnInset), 0f,
+                                   corner.y * (forestSize.y * 0.5f - spawnInset));
+            var inward = new Vector3(-corner.x, 0f, -corner.y).normalized;
+            for (var slot = 0; slot < 2; slot++)
+                points.Add(origin + edge + inward * (slot * spawnSpacing));
+        }
+
+        return points;
+    }
+
+    /// 상자를 링별 지터 극좌표로 놓는다. 링 안에서 각도를 균등하게 잘라 하나씩 넣고 반지름과
+    /// 각도만 흔든다 — 순수 난수로 뿌리면 한쪽 모서리에 몰려 스폰 자리에 따라 유불리가 갈린다.
+    static List<Vector3> BoxPositions(int count, Vector3 origin, Vector2 forestSize, List<Vector3> spawns)
+    {
+        var placed = new List<Vector3>(count);
+        if (count == 0) return placed;
+
+        var radius = Mathf.Min(forestSize.x, forestSize.y) * 0.5f;
+        var counts = ShareOut(count);
+
+        for (var ring = 0; ring < BoxRings.Length; ring++)
+        {
+            var band = BoxRings[ring];
+            var slots = counts[ring];
+            var sector = slots > 0 ? Mathf.PI * 2f / slots : 0f;
+
+            for (var slot = 0; slot < slots; slot++)
+            {
+                var best = Vector3.zero;
+                var bestGap = float.MinValue;
+
+                for (var attempt = 0; attempt < BoxPlaceAttempts; attempt++)
+                {
+                    var angle = (slot + Random.value) * sector;
+                    var r = (band.Centre + Random.Range(-band.Jitter, band.Jitter)) * radius;
+                    var candidate = origin + new Vector3(Mathf.Cos(angle) * r, 0f, Mathf.Sin(angle) * r);
+
+                    var gap = NearestGap(candidate, placed, spawns);
+                    if (gap > bestGap)
+                    {
+                        bestGap = gap;
+                        best = candidate;
+                    }
+
+                    if (gap >= BoxSeparation) break;
+                }
+
+                placed.Add(best);
+            }
+        }
+
+        return placed;
+    }
+
+    /// 상자 수를 링 비중대로 나눈다. 나머지는 바깥 링부터 채운다 — 바깥이 넓어 자리가 남는다.
+    static int[] ShareOut(int total)
+    {
+        var weight = 0;
+        foreach (var ring in BoxRings) weight += ring.Share;
+
+        var counts = new int[BoxRings.Length];
+        var assigned = 0;
+        for (var i = 0; i < BoxRings.Length; i++)
+        {
+            counts[i] = total * BoxRings[i].Share / weight;
+            assigned += counts[i];
+        }
+
+        for (var i = BoxRings.Length - 1; assigned < total; i = i > 0 ? i - 1 : BoxRings.Length - 1)
+        {
+            counts[i]++;
+            assigned++;
+        }
+
+        return counts;
+    }
+
+    /// 이 자리가 이미 놓인 상자·스폰에서 얼마나 떨어져 있는지. 스폰은 `SpawnClearance`만큼
+    /// 먼저 깎아 같은 잣대로 비교한다 — 스폰 위에 상자를 놓으면 시작하자마자 하나가 공짜다.
+    static float NearestGap(Vector3 candidate, List<Vector3> placed, List<Vector3> spawns)
+    {
+        var gap = float.MaxValue;
+        foreach (var other in placed) gap = Mathf.Min(gap, Flat(candidate - other).magnitude);
+        foreach (var spawn in spawns)
+            gap = Mathf.Min(gap, Flat(candidate - spawn).magnitude - SpawnClearance);
+        return gap;
+    }
+
+    static Vector3 Flat(Vector3 v)
+    {
+        v.y = 0f;
+        return v;
     }
 
     /// 숲 팔레트를 만들어 이름으로 찾을 수 있게 돌려준다.
@@ -248,7 +499,7 @@ public static class ForestMapBuilder
     static Material EnsurePaletteMaterial(string name, Color colour, bool sways)
     {
         if (!AssetDatabase.IsValidFolder(ForestMaterialFolder.TrimEnd('/')))
-            AssetDatabase.CreateFolder("Assets/Art/Materials", "Forest");
+            AssetDatabase.CreateFolder(MaterialFolder.TrimEnd('/'), "Forest");
 
         var shader = sways
             ? AssetDatabase.LoadAssetAtPath<Shader>("Assets/Art/Shaders/FoliageWind.shadergraph")
@@ -316,29 +567,11 @@ public static class ForestMapBuilder
     }
 
     /// 나무를 놓지 않을 자리. 상자와 팀 스폰이다.
-    static List<KeepOut> CollectKeepOut(
-        Vector3 origin, Vector2 forestSize, float spawnInset, float spawnSpacing, ItemBox[] boxes)
+    static List<KeepOut> CollectKeepOut(List<Vector3> spawns, List<Vector3> boxes)
     {
         var keepOut = new List<KeepOut>();
-
-        foreach (var box in boxes) keepOut.Add(new KeepOut(box.transform.position, BoxClearance));
-
-        // 네 모서리 x 팀당 자리 둘. MatchDirector.NightSpawnPosition과 같은 식이다.
-        var corners = new[]
-        {
-            new Vector2(-1f, 1f), new Vector2(1f, 1f),
-            new Vector2(-1f, -1f), new Vector2(1f, -1f),
-        };
-
-        foreach (var corner in corners)
-        {
-            var edge = new Vector3(corner.x * (forestSize.x * 0.5f - spawnInset), 0f,
-                                   corner.y * (forestSize.y * 0.5f - spawnInset));
-            var inward = new Vector3(-corner.x, 0f, -corner.y).normalized;
-            for (var slot = 0; slot < 2; slot++)
-                keepOut.Add(new KeepOut(origin + edge + inward * (slot * spawnSpacing), SpawnClearance));
-        }
-
+        foreach (var box in boxes) keepOut.Add(new KeepOut(box, BoxClearance));
+        foreach (var spawn in spawns) keepOut.Add(new KeepOut(spawn, SpawnClearance));
         return keepOut;
     }
 
@@ -365,7 +598,7 @@ public static class ForestMapBuilder
         return false;
     }
 
-    /// 상자에 링 가중치와 등급별 겉모습을 채운다. 위치는 건드리지 않는다.
+    /// 상자에 링 가중치와 등급별 겉모습을 채운다. 자리는 `PlaceBoxes`가 이미 정했다.
     static void DressBoxes(ItemBox[] boxes, Vector3 origin, Vector2 forestSize)
     {
         var meshes = new Object[TierMeshModels.Length];
@@ -541,7 +774,68 @@ public static class ForestMapBuilder
         public float Scale;
     }
 
-    static int PlantForest(Vector3 origin, Vector2 forestSize, List<KeepOut> keepOut)
+    /// 심기로 정한 것 하나. 그림과 콜라이더가 같은 목록에서 나와야 한다 — 통로를 뚫느라
+    /// 지운 나무가 그림에 남으면 허공에서 막히거나 없는 나무를 뚫고 지나간다.
+    struct Prop
+    {
+        public GameObject Model;
+        public Vector3 World;
+        public float Yaw;
+        public float Scale;
+
+        /// 0이면 콜라이더를 달지 않는다 (풀·덤불).
+        public float Radius;
+    }
+
+    /// 나무와 수풀을 지터 격자에 뿌린다. 씬을 건드리지 않으므로 씨앗 훑기(`VerifySeeds`)가
+    /// 같은 결과를 다시 만들어 볼 수 있다.
+    static List<Prop> Scatter(Vector3 origin, Vector2 forestSize, List<KeepOut> keepOut,
+                              List<GameObject> trees, List<GameObject> undergrowth,
+                              Dictionary<GameObject, float> baseRadii, float densityScale)
+    {
+        var halfX = forestSize.x * 0.5f;
+        var halfZ = forestSize.y * 0.5f;
+        var radius = Mathf.Min(halfX, halfZ);
+        var props = new List<Prop>();
+
+        for (var x = -halfX; x <= halfX; x += ScatterStep)
+        for (var z = -halfZ; z <= halfZ; z += ScatterStep)
+        {
+            var jitter = new Vector3(Random.Range(-ScatterStep, ScatterStep) * 0.5f, 0f,
+                                     Random.Range(-ScatterStep, ScatterStep) * 0.5f);
+            var local = new Vector3(x, 0f, z) + jitter;
+            if (Mathf.Abs(local.x) > halfX || Mathf.Abs(local.z) > halfZ) continue;
+
+            var world = origin + local + Vector3.up * GroundY;
+            if (Blocked(world, keepOut)) continue;
+
+            // 중심으로 갈수록 빽빽하게. ratio 0 = 중심, 1 = 가장자리.
+            var ratio = radius > 0f ? Mathf.Clamp01(local.magnitude / radius) : 1f;
+            var density = Mathf.Lerp(InnerDensity, OuterDensity, ratio) * densityScale;
+            if (Random.value > density) continue;
+
+            // 넷에 하나 정도는 나무 대신 낮은 수풀을 놓아 눈높이를 흔든다.
+            var pool = undergrowth.Count > 0 && Random.value < 0.25f ? undergrowth : trees;
+            var model = pool[Random.Range(0, pool.Count)];
+            var scale = TreeScale * Random.Range(1f - TreeScaleJitter, 1f + TreeScaleJitter);
+
+            props.Add(new Prop
+            {
+                Model = model,
+                World = world,
+                Yaw = Random.Range(0f, 360f),
+                Scale = scale,
+                Radius = baseRadii[model] <= 0f ? 0f
+                       : Mathf.Clamp(baseRadii[model] * scale * ColliderFactor,
+                                     ColliderMinRadius, ColliderMaxRadius),
+            });
+        }
+
+        return props;
+    }
+
+    static int PlantForest(Vector3 origin, Vector2 forestSize, List<KeepOut> keepOut,
+                           List<Vector3> spawns, List<Vector3> boxes, float densityScale)
     {
         // 예전에는 프리팹 인스턴스 259개를 씬에 구웠다. 씬 오브젝트로 두면 SRP Batcher가
         // 먼저 잡아서 GPU 인스턴싱이 동작하지 않고, 풀을 깔면 드로우콜이 수천 개가 된다.
@@ -563,68 +857,36 @@ public static class ForestMapBuilder
         }
 
         var parts = new Dictionary<GameObject, List<ModelPart>>();
+        var baseRadii = new Dictionary<GameObject, float>();
         foreach (var model in trees) parts[model] = PartsOf(model, palette);
         foreach (var model in undergrowth) if (!parts.ContainsKey(model)) parts[model] = PartsOf(model, palette);
+        foreach (var model in parts.Keys) baseRadii[model] = BaseRadius(model);
 
-        var collected = new Dictionary<BatchKey, List<Placement>>();
-
-        void Add(GameObject model, Vector3 world, float yaw, float scale, bool castShadows)
-        {
-            foreach (var part in parts[model])
-            {
-                var key = new BatchKey(part.Mesh, part.Submesh, part.Material, castShadows);
-                if (!collected.TryGetValue(key, out var list))
-                {
-                    list = new List<Placement>();
-                    collected[key] = list;
-                }
-
-                list.Add(new Placement
-                {
-                    Position = world + part.LocalOffset * scale,
-                    Yaw = yaw,
-                    Scale = scale,
-                });
-            }
-        }
-
-        var state = Random.state;
-        Random.InitState(Seed);
-
-        var halfX = forestSize.x * 0.5f;
-        var halfZ = forestSize.y * 0.5f;
-        var radius = Mathf.Min(halfX, halfZ);
-        var planted = 0;
-
-        // --- 나무와 수풀 ---
-        for (var x = -halfX; x <= halfX; x += ScatterStep)
-        for (var z = -halfZ; z <= halfZ; z += ScatterStep)
-        {
-            var jitter = new Vector3(Random.Range(-ScatterStep, ScatterStep) * 0.5f, 0f,
-                                     Random.Range(-ScatterStep, ScatterStep) * 0.5f);
-            var local = new Vector3(x, 0f, z) + jitter;
-            if (Mathf.Abs(local.x) > halfX || Mathf.Abs(local.z) > halfZ) continue;
-
-            var world = origin + local + Vector3.up * GroundY;
-            if (Blocked(world, keepOut)) continue;
-
-            // 중심으로 갈수록 빽빽하게. ratio 0 = 중심, 1 = 가장자리.
-            var ratio = radius > 0f ? Mathf.Clamp01(local.magnitude / radius) : 1f;
-            var density = Mathf.Lerp(InnerDensity, OuterDensity, ratio);
-            if (Random.value > density) continue;
-
-            // 넷에 하나 정도는 나무 대신 낮은 수풀을 놓아 눈높이를 흔든다.
-            var pool = undergrowth.Count > 0 && Random.value < 0.25f ? undergrowth : trees;
-            Add(pool[Random.Range(0, pool.Count)], world,
-                Random.Range(0f, 360f),
-                TreeScale * Random.Range(1f - TreeScaleJitter, 1f + TreeScaleJitter),
-                castShadows: true);
-            planted++;
-        }
-
-        Random.state = state;
+        var props = Scatter(origin, forestSize, keepOut, trees, undergrowth, baseRadii, densityScale);
+        var carved = OpenPassages(props, origin, forestSize, spawns, boxes);
+        var planted = props.Count;
 
         // --- 배치로 굽는다 ---
+        var collected = new Dictionary<BatchKey, List<Placement>>();
+
+        foreach (var prop in props)
+        foreach (var part in parts[prop.Model])
+        {
+            var key = new BatchKey(part.Mesh, part.Submesh, part.Material, castShadows: true);
+            if (!collected.TryGetValue(key, out var list))
+            {
+                list = new List<Placement>();
+                collected[key] = list;
+            }
+
+            list.Add(new Placement
+            {
+                Position = prop.World + part.LocalOffset * prop.Scale,
+                Yaw = prop.Yaw,
+                Scale = prop.Scale,
+            });
+        }
+
         var batches = new ForestInstances.Batch[collected.Count];
         var index = 0;
         foreach (var pair in collected)
@@ -656,9 +918,240 @@ public static class ForestMapBuilder
         var bounds = new Bounds(origin, new Vector3(forestSize.x + 20f, 30f, forestSize.y + 20f));
         root.GetComponent<ForestInstances>().SetBatches(batches, bounds);
 
-        Debug.Log($"인스턴싱: 배치 {batches.Length}개 · 나무/수풀 {planted}개 "
-                + "(GameObject 0개). 바닥 풀은 ForestGrass가 컴퓨트로 뽑는다.");
+        var colliders = BakeColliders(root.transform, props);
+
+        Debug.Log($"인스턴싱: 배치 {batches.Length}개 · 나무/수풀 {planted}개 (GameObject 0개) · "
+                + $"콜라이더 {colliders}개 · 통로 내느라 걷어낸 {carved}개. "
+                + "바닥 풀은 ForestGrass가 컴퓨트로 뽑는다.");
         return planted;
+    }
+
+    /// 스케일 1 기준 모델의 XZ 반경. 콜라이더를 달지 않는 모델은 0을 준다.
+    static float BaseRadius(GameObject model)
+    {
+        foreach (var name in NoColliderModels)
+            if (model.name == name) return 0f;
+
+        var has = false;
+        var bounds = new Bounds();
+
+        foreach (var filter in model.GetComponentsInChildren<MeshFilter>(true))
+        {
+            if (filter.sharedMesh == null) continue;
+
+            var b = filter.sharedMesh.bounds;
+            b.center += filter.transform.localPosition;
+
+            if (!has)
+            {
+                bounds = b;
+                has = true;
+            }
+            else bounds.Encapsulate(b);
+        }
+
+        return has ? Mathf.Max(bounds.extents.x, bounds.extents.z) : 0f;
+    }
+
+    /// 콜라이더를 오브젝트 하나에 캡슐 여러 개로 단다. 나무마다 GameObject를 두면 씬 파일이
+    /// 세 배로 부풀고 하이어라키가 수백 줄이 된다. 렌더러가 없으므로 GPU 인스턴싱을 위해
+    /// GameObject를 버린 이유(`ForestInstances`)와는 상관이 없다 — 그쪽은 SRP Batcher 얘기다.
+    static int BakeColliders(Transform parent, List<Prop> props)
+    {
+        var holder = new GameObject(CollidersChildName);
+        holder.transform.SetParent(parent, worldPositionStays: false);
+        holder.transform.localPosition = Vector3.zero;
+        holder.transform.localRotation = Quaternion.identity;
+        holder.transform.localScale = Vector3.one;
+
+        var count = 0;
+        foreach (var prop in props)
+        {
+            if (prop.Radius <= 0f) continue;
+
+            var capsule = holder.AddComponent<CapsuleCollider>();
+            capsule.direction = 1;   // Y축. 중력이 없어 충돌은 사실상 평면 위의 원이다
+            capsule.radius = prop.Radius;
+            capsule.height = ColliderHeight;
+            capsule.center = holder.transform.InverseTransformPoint(
+                new Vector3(prop.World.x, GroundY + ColliderHeight * 0.5f, prop.World.z));
+            count++;
+        }
+
+        return count;
+    }
+
+    /// 스폰에서 모든 상자에 갈 수 있는지 확인하고, 막혀 있으면 통로를 낸다. 걷어낸 나무 수를
+    /// 돌려준다.
+    ///
+    /// 콜라이더가 생기면서 밀도 0.78인 중심부가 통째로 벽이 되는 씨앗이 나온다. 그러면
+    /// 3등급이 몰린 중심(기획서 6.3)에 아무도 닿지 못해 판이 성립하지 않는다.
+    /// ponytail: 막힌 상자마다 직선 하나를 뚫는 최소 수리다. 통로가 부자연스러우면 그때
+    /// 경로를 격자 A*로 바꾼다.
+    static int OpenPassages(List<Prop> props, Vector3 origin, Vector2 forestSize,
+                            List<Vector3> spawns, List<Vector3> boxes)
+    {
+        var removed = 0;
+
+        for (var pass = 0; pass <= RepairPasses; pass++)
+        {
+            var grid = Walkable(props, origin, forestSize, spawns);
+            var blocked = FirstUnreachable(grid, boxes);
+            if (!blocked.HasValue) return removed;
+
+            if (pass == RepairPasses)
+            {
+                Debug.LogError($"통로를 {RepairPasses}번 뚫었는데도 {blocked.Value}의 상자에 "
+                             + "닿지 못한다. 씨앗을 바꾸거나 밀도를 낮춘다.");
+                return removed;
+            }
+
+            removed += Carve(props, grid, blocked.Value);
+        }
+
+        return removed;
+    }
+
+    /// 플레이어가 설 수 있는 칸과, 스폰에서 걸어 닿는 칸.
+    sealed class ReachGrid
+    {
+        public Vector3 Corner;      // (0,0) 칸의 월드 좌표
+        public int Nx;
+        public int Nz;
+        public bool[] Reached;
+
+        public int Index(Vector3 world)
+        {
+            var x = Mathf.Clamp(Mathf.RoundToInt((world.x - Corner.x) / ReachCell), 0, Nx - 1);
+            var z = Mathf.Clamp(Mathf.RoundToInt((world.z - Corner.z) / ReachCell), 0, Nz - 1);
+            return z * Nx + x;
+        }
+
+        public Vector3 Centre(int index) =>
+            new(Corner.x + index % Nx * ReachCell, 0f, Corner.z + index / Nx * ReachCell);
+    }
+
+    static ReachGrid Walkable(List<Prop> props, Vector3 origin, Vector2 forestSize, List<Vector3> spawns)
+    {
+        var grid = new ReachGrid
+        {
+            Corner = new Vector3(origin.x - forestSize.x * 0.5f, 0f, origin.z - forestSize.y * 0.5f),
+            Nx = Mathf.CeilToInt(forestSize.x / ReachCell) + 1,
+            Nz = Mathf.CeilToInt(forestSize.y / ReachCell) + 1,
+        };
+        grid.Reached = new bool[grid.Nx * grid.Nz];
+
+        var free = new bool[grid.Reached.Length];
+        for (var i = 0; i < free.Length; i++) free[i] = true;
+
+        // 나무마다 자기가 막는 칸만 훑는다. 칸마다 나무 전체를 재면 곱셈이 수백만 번이 된다.
+        foreach (var prop in props)
+        {
+            if (prop.Radius <= 0f) continue;
+
+            var block = prop.Radius + PlayerRadius;
+            var steps = Mathf.CeilToInt(block / ReachCell);
+            var centre = grid.Index(prop.World);
+            var cx = centre % grid.Nx;
+            var cz = centre / grid.Nx;
+
+            for (var dz = -steps; dz <= steps; dz++)
+            for (var dx = -steps; dx <= steps; dx++)
+            {
+                var x = cx + dx;
+                var z = cz + dz;
+                if (x < 0 || z < 0 || x >= grid.Nx || z >= grid.Nz) continue;
+
+                var index = z * grid.Nx + x;
+                if (Flat(grid.Centre(index) - prop.World).sqrMagnitude > block * block) continue;
+                free[index] = false;
+            }
+        }
+
+        // 스폰 칸은 `SpawnClearance`로 비워 둔 자리라 무조건 열려 있다.
+        var queue = new Queue<int>();
+        foreach (var spawn in spawns)
+        {
+            var index = grid.Index(spawn);
+            if (grid.Reached[index]) continue;
+
+            grid.Reached[index] = true;
+            queue.Enqueue(index);
+        }
+
+        // 대각선은 열지 않는다. 나무 두 그루가 대각으로 맞닿은 틈은 사람이 못 지나간다.
+        while (queue.Count > 0)
+        {
+            var index = queue.Dequeue();
+            var x = index % grid.Nx;
+            var z = index / grid.Nx;
+
+            for (var side = 0; side < 4; side++)
+            {
+                var nx = x + (side == 0 ? 1 : side == 1 ? -1 : 0);
+                var nz = z + (side == 2 ? 1 : side == 3 ? -1 : 0);
+                if (nx < 0 || nz < 0 || nx >= grid.Nx || nz >= grid.Nz) continue;
+
+                var next = nz * grid.Nx + nx;
+                if (grid.Reached[next] || !free[next]) continue;
+
+                grid.Reached[next] = true;
+                queue.Enqueue(next);
+            }
+        }
+
+        return grid;
+    }
+
+    static Vector3? FirstUnreachable(ReachGrid grid, List<Vector3> boxes)
+    {
+        foreach (var box in boxes)
+            if (!grid.Reached[grid.Index(box)]) return box;
+
+        return null;
+    }
+
+    /// 막힌 상자에서 가장 가까운 열린 칸까지 직선으로 나무를 걷어낸다. 격자 한 칸만큼 넉넉히
+    /// 비우지 않으면 통로가 뚫려도 칸 중심이 막힌 채로 남아 플러드 필이 지나가지 못한다.
+    static int Carve(List<Prop> props, ReachGrid grid, Vector3 from)
+    {
+        var target = from;
+        var best = float.MaxValue;
+
+        for (var i = 0; i < grid.Reached.Length; i++)
+        {
+            if (!grid.Reached[i]) continue;
+
+            var centre = grid.Centre(i);
+            var distance = Flat(centre - from).sqrMagnitude;
+            if (distance >= best) continue;
+
+            best = distance;
+            target = centre;
+        }
+
+        var removed = 0;
+        for (var i = props.Count - 1; i >= 0; i--)
+        {
+            var prop = props[i];
+            if (prop.Radius <= 0f) continue;
+
+            var clearance = prop.Radius + PlayerRadius + ReachCell;
+            if (DistanceToSegment(Flat(prop.World), Flat(from), Flat(target)) > clearance) continue;
+
+            props.RemoveAt(i);
+            removed++;
+        }
+
+        return removed;
+    }
+
+    static float DistanceToSegment(Vector3 point, Vector3 a, Vector3 b)
+    {
+        var ab = b - a;
+        var length = ab.sqrMagnitude;
+        var t = length > 0f ? Mathf.Clamp01(Vector3.Dot(point - a, ab) / length) : 0f;
+        return (point - (a + ab * t)).magnitude;
     }
 
     /// 바닥 풀을 맵에 맞춘다. 크기와 원점은 `MatchDirector`에서 온 값을 그대로 넘긴다 -

@@ -25,6 +25,7 @@ public sealed class MatchHudPresenter
     PlayerInteract boxHold;
     DashHarass dash;
     PlayerCarry carry;
+    PlayerCharacter character;
 
     /// 같은 팀 다른 사람의 손. 낮의 조작은 "재료를 옮기는 것"이 전부라(기획서 5.1)
     /// 팀원이 무엇을 들었는지가 곧 다음에 무엇을 할지다.
@@ -129,6 +130,13 @@ public sealed class MatchHudPresenter
     string BuildDetails(int team, Cafe cafe, Scoreboard board)
     {
         text.Clear();
+        if (phase.Current != Phase.Night && cafe != null) text.AppendLine(cafe.BuffSummary);
+        if (character == null && cachedPlayer != null) character = cachedPlayer.GetComponent<PlayerCharacter>();
+        if (character != null && character.HasPick)
+        {
+            var skillName = phase.Current == Phase.Day ? character.Def.DayName : character.Def.NightName;
+            text.AppendLine($"[1] {skillName} · {character.SkillCooldownRemaining:0.0}s");
+        }
 
         if (phase.Current == Phase.Transition && ledger != null)
         {
@@ -317,7 +325,7 @@ public sealed class MatchHudPresenter
 
             view.Show = true;
             view.Needle = gauge.Needle;
-            view.PerfectHalf = gauge.PerfectHalfWidth;
+            view.PerfectHalf = gauge.PerfectHalfWidth * (character != null && character.AffectedBy(2) ? 0.5f : 1f);
             view.GoodHalf = gauge.GoodHalfWidth;
 
             // 문자열은 표시할 0.1초가 바뀔 때만 다시 만든다. 매 프레임 만들면 그대로 GC다

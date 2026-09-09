@@ -40,10 +40,12 @@ public class CompletionGauge : NetworkBehaviour
     MatchDirector Director => cafe != null ? cafe.Director : null;
 
     public bool Active => active.Value;
+    public Station Station => station;
+    public void CancelServer() { if (IsServer) active.Value = false; }
 
     /// 판정 구간의 반폭. HUD가 침 뒤에 Perfect/Good 구간을 그리는 데 쓴다 (기획서 5.2).
     /// 판정과 표시가 같은 값을 읽어야 한다 — 화면에만 따로 적으면 둘이 어긋난다.
-    public float PerfectHalfWidth => perfectHalfWidth;
+    public float PerfectHalfWidth => perfectHalfWidth * (cafe != null && cafe.HasBuff(TeamBuff.Perfect) ? DayBalance.BuffPerfect : 1f);
     public float GoodHalfWidth => goodHalfWidth;
 
     /// 이 게이지가 붙은 설비의 이름. HUD가 어느 기계를 판정하는지 적는 데 쓴다.
@@ -61,10 +63,7 @@ public class CompletionGauge : NetworkBehaviour
         active.Value = true;
         startedAt.Value = NetworkManager.ServerTime.Time;
 
-        // 「제빵사」는 탈 때까지의 유예를 늘린다 (기획서 9.1). 게이지가 시작될 때 한 번만
-        // 묻는다 — 사건 하나짜리 자리라 팀 순회를 여기 둬도 된다.
-        windowNow.Value = PlayerCharacter.TeamHas(TeamId, DayPassive.Baker)
-            ? DayPassives.BakerWindow : window;
+        windowNow.Value = window;
     }
 
     /// 팀 번호가 아니라 소유 카페를 들고 있는다. MatchDirector는 자기 Awake에서 팀 번호를
@@ -140,12 +139,10 @@ public class CompletionGauge : NetworkBehaviour
     /// 누른 사람의 능력이고, 지금 굽고 있는 것이 찬 메뉴인지는 설비가 안다.
     Judgement JudgeFor(ulong clientId)
     {
+        var off = Mathf.Abs(Needle - 0.5f);
         var pc = PlayerCharacter.Of(clientId);
-        if (pc != null && pc.Has(DayPassive.IceMaster) &&
-            station != null && station.GaugeLaneIsCold)
-            return Judgement.Perfect;
-
-        return Judge(Needle);
+        var width = PerfectHalfWidth * (pc != null && pc.AffectedBy(2) ? 0.5f : 1f);
+        return off <= width ? Judgement.Perfect : off <= goodHalfWidth ? Judgement.Good : Judgement.Miss;
     }
 
     Judgement Judge(float pos)

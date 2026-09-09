@@ -168,7 +168,6 @@ public sealed class MatchFlow : MonoBehaviour
         SyncShelfPopup();
         SyncReturnPopup();
         SyncSettlementScreen();
-        SyncUpgradeScreen();
         SyncResultPopup();
     }
 

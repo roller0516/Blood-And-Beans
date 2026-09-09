@@ -74,6 +74,8 @@ public class PlayerInteractor : NetworkBehaviour
                 candidates.RemoveAt(i);
                 continue;
             }
+            if (behaviour is PlayerCarry carry &&
+                (carry.OwnerClientId == OwnerClientId || PlayerTeam.Of(carry.OwnerClientId) != PlayerTeam.Local())) continue;
             var distance = Vector3.SqrMagnitude(transform.position - behaviour.transform.position);
             if (distance >= bestDistance) continue;
             best = candidates[i];

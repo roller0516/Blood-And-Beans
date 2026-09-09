@@ -65,11 +65,11 @@ public sealed class UIRoomListScreen : UIScreen
     void RefreshTeamCountLabel()
     {
         if (teamCountLabel != null) teamCountLabel.text = $"{SelectedTeamCount}팀";
-        DevHud.SetInteractable(teamCountMinus, SelectedTeamCount > MinTeams);
-        DevHud.SetInteractable(teamCountPlus, SelectedTeamCount < maxTeamsUi);
+        UIExtentions.SetInteractable(teamCountMinus, SelectedTeamCount > MinTeams);
+        UIExtentions.SetInteractable(teamCountPlus, SelectedTeamCount < maxTeamsUi);
     }
 
-    public void Render(string statusText, IReadOnlyList<SteamLobby.RoomInfo> rooms, int selectedRoom)
+    public void Render(string statusText, IReadOnlyList<LobbyRoom> rooms, int selectedRoom)
     {
         if (status != null) status.text = statusText;
 
@@ -90,10 +90,10 @@ public sealed class UIRoomListScreen : UIScreen
             if (label != null) label.text = $"{room.Name}  {room.Members}/{room.Capacity}";
 
             UIButtons.Wire(row, () => onSelectRoom?.Invoke(index));
-            DevHud.SetInteractable(row, index != selectedRoom);
+            UIExtentions.SetInteractable(row, index != selectedRoom);
             spawnedRows.Add(row);
         }
 
-        DevHud.SetInteractable(joinButton, selectedRoom >= 0);
+        UIExtentions.SetInteractable(joinButton, selectedRoom >= 0);
     }
 }

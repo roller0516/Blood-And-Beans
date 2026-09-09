@@ -19,6 +19,7 @@ public class TeamLedger
     /// 이 판에 설치한 설비 업그레이드 (기획서 8장). 효과가 "그 판 동안 영구"라서 수명이
     /// 임대료 장부와 같다 — 판이 끝나면 원장과 함께 사라지고 다음 판으로 넘어가지 않는다.
     public TeamUpgrades Upgrades { get; } = new();
+    public TeamBuffs Buffs { get; } = new();
 
     /// 정산 시점에 적용되어 낮 하루와 이어지는 밤 동안만 유지된다 (기획서 3.3).
     /// 그 추적은 이미 `Rent.Penalty`가 한다. 별도 값으로 둔 이유는 낮 도중에 임대료를 내도

@@ -27,6 +27,7 @@ public class DevConsoleWindow : EditorWindow
     readonly DevConsoleGroup[] groups =
     {
         new SessionGroup(),
+        new PlatformGroup(),
         new PhaseCheatGroup(),
         new TeamCheatGroup(),
         new CharacterCheatGroup(),

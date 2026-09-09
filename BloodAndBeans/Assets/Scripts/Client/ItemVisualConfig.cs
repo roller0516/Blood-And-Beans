@@ -46,6 +46,8 @@ public class ItemVisualConfig : ScriptableObject
     public GameObject PrefabFor(CarryView view)
     {
         if (view.Empty) return null;
+        if (view.HasDish && !view.IsProduct && view.Ingredient == Ingredient.None)
+            view.Ingredient = view.DishIsPlate ? Ingredient.BreadBase : Ingredient.Bean;
 
         if (view.IsProduct)
         {

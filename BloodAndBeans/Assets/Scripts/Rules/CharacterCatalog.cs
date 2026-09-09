@@ -175,6 +175,19 @@ public static class CharacterCatalog
                         DayPassive.Baker, NightSkill.None),
     };
 
+    static CharacterCatalog()
+    {
+        // 캐릭터 ID와 밤 스킬은 보존하고 폐지된 낮 능력 표시만 교체한다 (v5.0 9.1).
+        for (var i = 0; i < All.Length; i++)
+        {
+            var old = All[i];
+            var skill = i % DayBalance.SkillNames.Length;
+            All[i] = new CharacterDef(old.Name, DayBalance.SkillNames[skill],
+                DayBalance.SkillEffects[skill] + " · 4초 / 쿨 35초 (임시)",
+                old.NightName, old.NightEffect, old.Day, old.Night);
+        }
+    }
+
     public static bool IsValid(int index) => index >= 0 && index < All.Length;
 
     /// 고르지 않은 상태. 팀 내 중복 픽 판정에서 "아무도 안 골랐다"와 구별해야 한다.

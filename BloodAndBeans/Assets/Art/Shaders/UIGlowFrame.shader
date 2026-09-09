@@ -79,6 +79,7 @@ Shader "BB/UI Glow Frame"
             #pragma vertex vert
             #pragma fragment frag
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
+            #include "UIRounded.hlsl"
 
             struct Attributes
             {
@@ -119,13 +120,6 @@ Shader "BB/UI Glow Frame"
                 return output;
             }
 
-            /// 둥근 사각형까지의 거리. 바깥이 양수다.
-            float RoundedBox(float2 p, float2 halfSize, float radius)
-            {
-                float2 q = abs(p) - halfSize + radius;
-                return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0) - radius;
-            }
-
             /// 테두리 위 한 점이 둘레의 어디인가 (0~1). 오른쪽 변 가운데 아래에서 시작해
             /// 반시계로 돈다. 정사각형이면 네 모서리가 정확히 0 / 0.25 / 0.5 / 0.75다 —
             /// 그래서 조각 4개에 `_Offset` 0이면 예전의 코너 브래킷과 같은 자리에 선다.
@@ -160,7 +154,7 @@ Shader "BB/UI Glow Frame"
                 float2 halfSize = float2(max(_Aspect, 1e-4), 1.0) - _Radius;
 
                 // 테두리까지의 거리. 선 위에서 0이다.
-                float edge = abs(RoundedBox(p, halfSize, _Radius)) - _Thickness;
+                float edge = abs(BB_RoundedBox(p, halfSize, _Radius)) - _Thickness;
 
                 // 심지는 또렷하게, 바깥은 지수로 번진다. smoothstep 하나로 하면 번짐이
                 // 딱 끊겨서 발광이 아니라 두꺼운 선으로 읽힌다.

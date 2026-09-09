@@ -3,6 +3,9 @@
 /// 카페 안에서 플레이어가 들고 있는 것.
 public struct HeldItem
 {
+    public bool HasDish;
+    public bool DishIsPlate;
+    public bool Dirty;
     public Ingredient Ingredient;    // 손에 든 가공 전 재료
     public bool IsProduct;
     public MenuId Menu;
@@ -17,7 +20,9 @@ public struct HeldItem
     /// 실제 개수. `default(HeldItem)`과 옛 코드가 만든 값이 0으로 오므로 최소 1로 읽는다.
     public int Amount => IsProduct || IsAssembly ? 1 : (Count < 1 ? 1 : Count);
 
-    public bool Empty => !IsProduct && Ingredient == Ingredient.None;
+    public bool Empty => !HasDish && !IsProduct && Ingredient == Ingredient.None;
+    public static HeldItem Dish(bool plate, bool dirty = false) => new()
+        { Ingredient = Ingredient.None, HasDish = true, DishIsPlate = plate, Dirty = dirty };
 
     /// 조리대에서 조립 중인 디저트 (기획서 5.1: 바탕에 재료를 얹은 뒤 오븐에 넣는다).
     /// 아직 굽지 않았으므로 완성품이 아니고, 낱개 재료도 아니라 통째로 옮겨 다닌다.
@@ -45,24 +50,93 @@ public struct HeldItem
 /// 규칙 판정에 쓰는 `HeldItem`은 서버만 든다 — `Recipe`가 관리 배열이라 복제할 수 없다.
 /// 대신 이름표에 필요한 만큼만 `CarryView`로 복제한다. 낮의 조작은 "재료를 옮기는 것"이
 /// 전부라(기획서 5.1) 무엇을 들었는지가 안 보이면 2인 분업 자체가 성립하지 않는다.
-public class PlayerCarry : NetworkBehaviour, IItemHolder
+public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
 {
     HeldItem held = HeldItem.Nothing;
 
     /// 표시용. 서버가 쓰고 전원이 읽는다. 초기값을 명시하는 이유는 `default`가
     /// "우유를 들고 있음"으로 읽히기 때문이다 (`CarryView.Nothing` 주석).
-    readonly NetworkVariable<CarryView> view = new(CarryView.Nothing);
+    readonly NetworkVariable<CarryView> view = new(CarryView.Nothing, NetworkVariableReadPermission.Owner);
+    readonly NetworkVariable<int> publicState = new();
+    readonly NetworkVariable<bool> bloodGlow = new();
+    CarryView teamView = CarryView.Nothing;
+    PlayerTeam playerTeam;
+    int ownerTeam = -1;
+    public int PublicState => publicState.Value;
+    public bool BloodGlow => bloodGlow.Value;
+    public string Prompt => "팀원 · F로 식기 교환";
+    public void BeginInteractionClient() => ExchangeRpc();
+    public void EndInteractionClient() { }
+    [Rpc(SendTo.Server)]
+    void RequestTeamViewRpc(RpcParams p = default)
+    {
+        var sender = p.Receive.SenderClientId;
+        if (ownerTeam < 0 || PlayerTeam.Of(sender) != ownerTeam) return;
+        TeamViewRpc(view.Value, RpcTarget.Single(sender, RpcTargetUse.Temp));
+    }
+    void OnTeamChanged(int team)
+    {
+        ownerTeam = team;
+        teamView = CarryView.Nothing;
+        if (!IsServer && IsSpawned) RequestTeamViewRpc();
+        if (IsServer && IsSpawned)
+            foreach (var client in NetworkManager.ConnectedClientsList)
+                if (PlayerTeam.Of(client.ClientId) == team)
+                    Of(client.ClientId)?.PublishTeamServer();
+    }
 
+    [Rpc(SendTo.Server)]
+    void ExchangeRpc(RpcParams p = default)
+    {
+        var sender = p.Receive.SenderClientId;
+        if (sender == OwnerClientId || director == null || director.Phase.Current != Phase.Day || Reserved) return;
+        var team = PlayerTeam.Of(sender);
+        if (team < 0 || team != PlayerTeam.Of(OwnerClientId)) return;
+        var other = Of(sender);
+        if (other == null || other.Reserved || (other.transform.position - transform.position).sqrMagnitude > 6.25f) return;
+        var item = held;
+        SetServer(other.Held);
+        other.SetServer(item);
+    }
+
+    void PublishTeamServer()
+    {
+        publicState.Value = held.Empty ? 0 : held.Dirty ? 2 : 1;
+        bloodGlow.Value = held.Ingredient == Ingredient.BloodBean ||
+            (held.Recipe != null && System.Array.IndexOf(held.Recipe, Ingredient.BloodBean) >= 0);
+        var team = PlayerTeam.Of(OwnerClientId);
+        foreach (var client in NetworkManager.ConnectedClientsList)
+            if (team >= 0 && PlayerTeam.Of(client.ClientId) == team && client.ClientId != OwnerClientId)
+                TeamViewRpc(view.Value, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+    }
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void TeamViewRpc(CarryView value, RpcParams p = default)
+    {
+        teamView = value;
+        ContentsChanged?.Invoke();
+    }
+
+    readonly NetworkVariable<bool> reserved = new();
+    public bool Reserved => reserved.Value;
+    public void ReserveServer(bool value) { if (IsServer) reserved.Value = value; }
+    public void SetDishServer(bool value, bool plate = false)
+    {
+        if (!IsServer) return;
+        var item = held;
+        item.HasDish = value;
+        item.DishIsPlate = plate;
+        SetServer(item);
+    }
     public HeldItem Held => held;
     public bool Empty => held.Empty;
 
     /// 팀원 화면이 읽는 값. 서버의 `Held`와 항상 같은 시점에 바뀐다.
-    public CarryView View => view.Value;
+    public CarryView View => IsServer || IsOwner ? view.Value : teamView;
 
     /// 손은 한 번에 하나만 든다 (`IngredientShelf.TakeRpc`의 `!carry.Empty` 검사).
     public event System.Action ContentsChanged;
     public int SlotCount => 1;
-    public CarryView SlotAt(int index) => index == 0 ? view.Value : CarryView.Nothing;
+    public CarryView SlotAt(int index) => index == 0 ? View : CarryView.Nothing;
     public int HighlightSlot => -1;
 
     MatchDirector director;
@@ -71,14 +145,22 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
     /// 표현이 구독을 걸 자리. 서버에도 걸린다 — 호스트의 화면도 클라이언트 화면이다.
     public override void OnNetworkSpawn()
     {
+        playerTeam = GetComponent<PlayerTeam>();
+        if (playerTeam != null) { playerTeam.TeamChanged += OnTeamChanged; OnTeamChanged(playerTeam.Team); }
         view.OnValueChanged += OnViewChanged;
+        publicState.OnValueChanged += OnPublicState;
+        bloodGlow.OnValueChanged += OnBloodGlow;
         MatchDirector.Bind(BindDirector);
         ContentsChanged?.Invoke();      // 스폰 시점의 값으로 한 번 그린다
     }
 
     public override void OnNetworkDespawn()
     {
+        if (IsServer && held.HasDish) director?.CafeOf(ownerTeam)?.Dishes?.SoilServer(held.DishIsPlate);
+        if (playerTeam != null) playerTeam.TeamChanged -= OnTeamChanged;
         view.OnValueChanged -= OnViewChanged;
+        publicState.OnValueChanged -= OnPublicState;
+        bloodGlow.OnValueChanged -= OnBloodGlow;
 
         MatchDirector.Unbind(BindDirector);
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
@@ -110,19 +192,22 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
     {
         if (!IsServer || p == Phase.Day || held.Empty) return;
 
-        if (held.IsProduct)
-            director?.CafeOf(PlayerTeam.Of(OwnerClientId))?.Dishes?.SoilServer();
+        if (held.IsProduct || held.HasDish)
+            director?.CafeOf(PlayerTeam.Of(OwnerClientId))?.Dishes?.SoilServer(held.DishIsPlate);
 
         ClearServer();
     }
 
     void OnViewChanged(CarryView _, CarryView __) => ContentsChanged?.Invoke();
+    void OnPublicState(int _, int __) => ContentsChanged?.Invoke();
+    void OnBloodGlow(bool _, bool __) => ContentsChanged?.Invoke();
 
     public void SetServer(HeldItem item)
     {
         if (!IsServer) return;
         held = item;
         view.Value = CarryView.Of(item);
+        PublishTeamServer();
     }
 
     /// 손에 든 재료 하나를 덜어낸다. 마지막 하나였으면 손이 빈다.
@@ -139,6 +224,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
 
         held.Count = left;
         view.Value = CarryView.Of(held);
+        PublishTeamServer();
     }
 
     /// 이 재료를 하나 더 받을 수 있는가. 빈손이거나 같은 재료를 한도 미만으로 들고 있을 때다.
@@ -147,8 +233,8 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
     /// 그대로 걸린다 — 막지 않으면 선반에서 빵 베이스를 하나 더 집는 순간 얹어 둔 재료가
     /// 통째로 사라진다.
     public bool CanTakeServer(Ingredient want, int limit) =>
-        held.Empty ||
-        (!held.IsProduct && !held.IsAssembly && held.Ingredient == want && held.Amount < limit);
+        !Reserved && (held.Empty ||
+        (!held.IsProduct && !held.IsAssembly && held.Ingredient == want && held.Amount < limit));
 
     /// 같은 재료를 하나 더 든다.
     public void AddOneServer(Ingredient want)
@@ -160,6 +246,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
             : new HeldItem { Ingredient = want, Count = held.Amount + 1 };
 
         view.Value = CarryView.Of(held);
+        PublishTeamServer();
     }
 
     public void ClearServer()
@@ -167,6 +254,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder
         if (!IsServer) return;
         held = HeldItem.Nothing;
         view.Value = CarryView.Nothing;
+        PublishTeamServer();
     }
 
     /// 클라이언트가 사라졌으면 null이다. static 맵이 표현하지 못하던 바로 그 경우다.

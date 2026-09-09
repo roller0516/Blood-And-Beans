@@ -1,23 +1,25 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using Steamworks;
-using Steamworks.Data;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-/// 스팀 로비 하나를 방으로 쓰는 매치메이킹. 방 목록·방 만들기·대기실·시작을 담당하고,
-/// 팀 정원 판정과 좌석 배정은 서버 권위인 `MatchSeating`이 한다.
+/// 방 하나를 다루는 매치메이킹. 방 목록·방 만들기·대기실·시작을 담당하고, 팀 정원 판정과
+/// 좌석 배정은 서버 권위인 `MatchSeating`이 한다.
+///
+/// 방을 **어디에** 두는지는 백엔드가 정한다 (`ILobbyBackend`). 빌드는 스팀 로비를 쓰고,
+/// 에디터는 개발 콘솔에서 고른 대로 스팀이거나 창끼리 붙는 로컬 로비다 — 이 클래스는
+/// 어느 쪽이든 같은 규칙으로 돈다.
 ///
 /// 런처 씬과 함께 살아남는다 (`SteamFacepunchTransport`가 아니라 이쪽이 스팀 세션을 든다).
 /// 방 목록은 접속 *전에* 떠야 하므로 스팀 초기화가 트랜스포트보다 먼저 필요하고,
 /// 매치를 끝내고 타이틀로 돌아올 때 세션이 살아 있어야 목록을 다시 받을 수 있다.
 ///
-/// 대기실은 NGO가 아니라 스팀 로비 멤버 데이터로 돈다. 아직 아무도 접속하지 않았으므로
-/// 팀별 인원을 물어볼 서버가 없다. 호스트가 시작을 누르는 순간부터 서버 권위로 넘어가고,
-/// 여기서 고른 팀은 접속 승인 페이로드로 실려 서버의 검사를 받는다.
+/// 대기실은 NGO가 아니라 로비 백엔드로 돈다. 아직 아무도 접속하지 않았으므로 팀별 인원을
+/// 물어볼 서버가 없다. 호스트가 시작을 누르는 순간부터 서버 권위로 넘어가고, 여기서 고른
+/// 팀은 접속 승인 페이로드로 실려 서버의 검사를 받는다.
 public class SteamLobby : MonoBehaviour
 {
     [Header("스팀")]
@@ -65,54 +67,21 @@ public class SteamLobby : MonoBehaviour
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
 
-    /// 방 이름 기본값. {0}에 스팀 이름이 들어간다.
+    /// 방 이름 기본값. {0}에 로비 표시 이름이 들어간다.
     [SerializeField] string roomNameFormat = "{0}의 방";
 
-    /// 로비 메타데이터 키. 목록 질의 필터로도 쓰이므로 값이 바뀌면 구버전 방이 안 보인다.
-    const string GameKey = "bb_game";
-    const string GameValue = "blood-and-beans";
-    const string NameKey = "bb_room";
-    const string HostKey = "bb_host";
-
-    /// 방을 만든 사람이 고른 팀 수 (기획서 10장). 로비 메타데이터로 적어 두지 않으면
-    /// 참가자는 자기 씬의 기본값(`teams`)으로 좌석을 짜서, 호스트가 3팀으로 만든 방에
-    /// 참가자만 4팀 좌석표를 들고 들어오는 불일치가 생긴다.
-    const string TeamsKey = "bb_teams";
-    const string LiveKey = "bb_live";
-
-    /// 멤버별 메타데이터 키. 대기실의 팀 선택이 여기로 오간다.
-    const string TeamKey = "bb_team";
-    const string ReadyKey = "bb_ready";
-    const string PickKey = "bb_pick";
-
-    readonly List<RoomInfo> rooms = new();
+    readonly List<LobbyRoom> rooms = new();
     readonly List<RoomMember> members = new();
     int[] occupancy = new int[0];
 
-    Lobby? current;
-    bool ownsSteamSession;
+    /// 방을 어디에 두는가. 무엇으로 돌지는 `NetPlatformSetting`이 정한다.
+    ILobbyBackend backend;
+
     bool subscribedToNetwork;
-    bool subscribedToSteam;
     bool alive = true;
 
-    /// 방 목록의 한 줄.
-    public readonly struct RoomInfo
-    {
-        public RoomInfo(Lobby lobby, string name, ulong hostSteamId, int members, int capacity)
-        {
-            Lobby = lobby;
-            Name = name;
-            HostSteamId = hostSteamId;
-            Members = members;
-            Capacity = capacity;
-        }
-
-        public Lobby Lobby { get; }
-        public string Name { get; }
-        public ulong HostSteamId { get; }
-        public int Members { get; }
-        public int Capacity { get; }
-    }
+    /// 지금 도는 플랫폼. 개발 콘솔이 표시하고 `SwitchPlatform`으로 바꾼다.
+    public NetPlatform Platform { get; private set; }
 
     /// 대기실의 한 사람.
     public readonly struct RoomMember
@@ -146,18 +115,18 @@ public class SteamLobby : MonoBehaviour
         public int Character { get; }
     }
 
-    /// 스팀이 살아 있는가. false면 방 목록도 방 만들기도 되지 않는다.
-    public bool Ready => SteamClient.IsValid;
+    /// 로비가 살아 있는가. false면 방 목록도 방 만들기도 되지 않는다.
+    public bool Ready => backend != null && backend.Ready;
 
     /// 마지막 상태 또는 실패 사유. 화면에 그대로 띄운다.
     public string Status { get; private set; } = string.Empty;
 
-    public IReadOnlyList<RoomInfo> Rooms => rooms;
+    public IReadOnlyList<LobbyRoom> Rooms => rooms;
     public IReadOnlyList<RoomMember> Members => members;
 
-    public bool InRoom => current.HasValue;
-    public bool IsRoomHost => current.HasValue && Ready && current.Value.IsOwnedBy(SteamClient.SteamId);
-    public string RoomName => current.HasValue ? current.Value.GetData(NameKey) : string.Empty;
+    public bool InRoom => backend != null && backend.InRoom;
+    public bool IsRoomHost => backend != null && backend.IsHost;
+    public string RoomName => backend != null ? backend.RoomName : string.Empty;
 
     /// 내가 고른 팀. 대기실에 들어갈 때 멤버 데이터로 기록된다.
     public int SelectedTeam { get; private set; }
@@ -193,7 +162,7 @@ public class SteamLobby : MonoBehaviour
 
         // 팀·준비와 같은 통로로 내보낸다. 서버 판정(`PlayerCharacter.PickRpc`)이 최종이지만,
         // 그건 스폰 뒤라서 로비 화면이 그때까지 남의 픽을 모른다 (기획서 3.4).
-        if (current.HasValue) current.Value.SetMemberData(PickKey, index.ToString());
+        WriteSelf();
 
         RefreshMembers();
         Changed?.Invoke();
@@ -216,9 +185,10 @@ public class SteamLobby : MonoBehaviour
     public int RoomCapacity => TeamCount * PlayersPerTeam;
 
     /// 방 이름 기본값. 입력 필드가 생기면 이 값을 초기값으로 쓴다.
-    public string SuggestedRoomName => string.Format(roomNameFormat, Ready ? SteamClient.Name : string.Empty);
+    public string SuggestedRoomName =>
+        string.Format(roomNameFormat, backend != null ? backend.SelfName : string.Empty);
 
-    /// 대기실에서 그 팀을 고른 사람 수. 서버가 아니라 스팀 로비가 답하는 값이라 참고용이고,
+    /// 대기실에서 그 팀을 고른 사람 수. 서버가 아니라 로비가 답하는 값이라 참고용이고,
     /// 최종 판정은 접속 승인이 한다.
     public int OccupancyOf(int team) => team >= 0 && team < occupancy.Length ? occupancy[team] : 0;
 
@@ -229,26 +199,10 @@ public class SteamLobby : MonoBehaviour
     public bool CanStartMatch =>
         IsRoomHost && members.Count > 0 && !AnyTeamOverfilled() && ReadyCount >= members.Count;
 
-    /// 같은 팀에서 이미 집어 간 캐릭터. 화면이 그 칸을 잠그는 데 쓴다 (기획서 3.4 · 9.1).
-    /// 최종 판정은 서버 한 곳이다 (`PlayerCharacter.PickRpc`, 기획서 9.3) — 여기는 표시용이다.
-    public IReadOnlyList<RoomMember> TeammatesWithPick(int team)
-    {
-        teammatePicks.Clear();
-        for (var i = 0; i < members.Count; i++)
-        {
-            var m = members[i];
-            if (m.IsSelf || m.Team != team) continue;
-            if (!CharacterCatalog.IsValid(m.Character)) continue;
-            teammatePicks.Add(m);
-        }
-        return teammatePicks;
-    }
-
-    readonly List<RoomMember> teammatePicks = new();
-
     void Awake()
     {
         ReconfigureSeating(teams);
+        UseBackend(NetPlatformSetting.Current);
     }
 
     /// 좌석표를 다시 짠다. 방을 만들 때(고른 팀 수)와 방에 들어갈 때(호스트가 고른 팀 수를
@@ -260,7 +214,56 @@ public class SteamLobby : MonoBehaviour
         occupancy = new int[Mathf.Max(1, TeamCount)];
     }
 
-    /// 스팀 세션을 연다. `GameManager`의 부팅 사슬이 부르며, Awake에서 스스로 열지 않는다 —
+    // --- 플랫폼 ---
+
+    /// 백엔드를 갈아 끼운다. 방 안이거나 접속 중이면 거절한다 — 도중에 바꾸면 남들 화면에
+    /// 내가 남은 채로 사라진다.
+    public bool SwitchPlatform(NetPlatform platform)
+    {
+        if (Platform == platform) return true;
+
+        var manager = NetworkManager.Singleton;
+        if (InRoom || (manager != null && manager.IsListening))
+        {
+            Fail("방을 나간 뒤에 플랫폼을 바꾼다.");
+            return false;
+        }
+
+        UseBackend(platform);
+        backend.Initialize();
+
+        rooms.Clear();
+        Status = backend.LastError;
+        Changed?.Invoke();
+        return true;
+    }
+
+    void UseBackend(NetPlatform platform)
+    {
+        if (backend != null)
+        {
+            backend.Changed -= OnBackendChanged;
+            backend.MatchStarted -= OnMatchStarted;
+            backend.Shutdown();
+        }
+
+        Platform = platform;
+        backend = platform == NetPlatform.Steam
+            ? new SteamLobbyBackend(steamAppId)
+            : (ILobbyBackend)new LocalLobbyBackend();
+
+        backend.Changed += OnBackendChanged;
+        backend.MatchStarted += OnMatchStarted;
+    }
+
+    /// 방의 무언가가 바뀌었다. 누가 들어오고 나갔든, 남이 팀·준비·픽을 눌렀든 여기로 온다.
+    void OnBackendChanged()
+    {
+        RefreshMembers();
+        Changed?.Invoke();
+    }
+
+    /// 로비 세션을 연다. `GameManager`의 부팅 사슬이 부르며, Awake에서 스스로 열지 않는다 —
     /// 무엇이 언제 초기화되는지를 호출 순서가 아니라 코드 한 줄로 읽게 하기 위해서다.
     ///
     /// Facepunch의 `SteamClient.Init`은 동기다. 그래도 한 프레임 양보하고 여는 이유는,
@@ -269,58 +272,33 @@ public class SteamLobby : MonoBehaviour
     public async UniTask InitializeAsync()
     {
         await UniTask.Yield();
-        InitializeSteam();
+
+        backend.Initialize();
+        Status = backend.LastError;
+        if (!string.IsNullOrEmpty(Status)) CDebug.LogWarning($"{name}: {Status}", this);
     }
 
     // NetworkManager는 이 오브젝트보다 늦게 깨어날 수 있다. Awake 순서에 기대지 않는다.
-    void OnEnable()
-    {
-        SubscribeToNetwork();
-        SubscribeToSteam();
-    }
+    void OnEnable() => SubscribeToNetwork();
 
     void Start() => SubscribeToNetwork();
 
-    void OnDisable()
-    {
-        UnsubscribeFromNetwork();
-        UnsubscribeFromSteam();
-    }
+    void OnDisable() => UnsubscribeFromNetwork();
 
-    /// 스팀 콜백 펌프. `SteamClient.Init(appId, asyncCallbacks: false)`로 열었으므로 이 호출이
-    /// 없으면 로비 생성·목록·입장 콜백이 영원히 오지 않는다. 매 프레임이어야 하는 몇 안 되는
-    /// 처리다.
-    void Update()
-    {
-        if (SteamClient.IsValid) SteamClient.RunCallbacks();
-    }
+    /// 백엔드 펌프. 스팀은 콜백을, 로컬 로비는 다른 창의 기록을 여기서 본다. 이것이 없으면
+    /// 남이 무엇을 했는지 영영 알 수 없어, 매 프레임이어야 하는 몇 안 되는 처리다.
+    void Update() => backend?.Pump();
 
     void OnDestroy()
     {
         alive = false;
-        current?.Leave();
-        current = null;
+        if (backend == null) return;
 
-        if (ownsSteamSession && SteamClient.IsValid) SteamClient.Shutdown();
-    }
-
-    void InitializeSteam()
-    {
-        if (SteamClient.IsValid) return;
-
-        try
-        {
-            SteamClient.Init(steamAppId, false);
-            ownsSteamSession = true;
-            Status = string.Empty;
-        }
-        catch (Exception e)
-        {
-            // 스팀이 꺼져 있거나 로그인되지 않은 상태다. 게임을 죽일 이유는 없고, 방 흐름만
-            // 잠근 채 로컬 테스트 경로를 남겨 둔다.
-            Status = $"스팀에 연결하지 못했다: {e.Message}";
-            CDebug.LogWarning($"{name}: {Status}", this);
-        }
+        backend.Changed -= OnBackendChanged;
+        backend.MatchStarted -= OnMatchStarted;
+        backend.LeaveRoom();
+        backend.Shutdown();
+        backend = null;
     }
 
     // --- 구독 ---
@@ -354,7 +332,8 @@ public class SteamLobby : MonoBehaviour
         if (localTransport == null) localTransport = manager.NetworkConfig.NetworkTransport;
         if (steamTransport == null) steamTransport = manager.GetComponentInChildren<SteamFacepunchTransport>(true);
 
-        if (steamTransport == null)
+        // 에디터 플랫폼은 스팀 트랜스포트를 쓰지 않으므로 없어도 문제가 없다.
+        if (steamTransport == null && Platform == NetPlatform.Steam)
             CDebug.LogError($"{name}: {nameof(SteamFacepunchTransport)}를 찾지 못했다. "
                           + "방에 접속할 수 없다.", this);
     }
@@ -371,45 +350,6 @@ public class SteamLobby : MonoBehaviour
         subscribedToNetwork = false;
     }
 
-    /// 스팀 쪽 이벤트는 static이다. 해제하지 않으면 죽은 컴포넌트가 계속 불린다.
-    void SubscribeToSteam()
-    {
-        if (subscribedToSteam) return;
-
-        SteamMatchmaking.OnLobbyMemberJoined += OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberLeave += OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberDisconnected += OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberDataChanged += OnMemberDataChanged;
-        SteamMatchmaking.OnLobbyDataChanged += OnLobbyDataChanged;
-        SteamMatchmaking.OnLobbyGameCreated += OnHostStartedMatch;
-        subscribedToSteam = true;
-    }
-
-    void UnsubscribeFromSteam()
-    {
-        if (!subscribedToSteam) return;
-
-        SteamMatchmaking.OnLobbyMemberJoined -= OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberLeave -= OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberDisconnected -= OnMembershipChanged;
-        SteamMatchmaking.OnLobbyMemberDataChanged -= OnMemberDataChanged;
-        SteamMatchmaking.OnLobbyDataChanged -= OnLobbyDataChanged;
-        SteamMatchmaking.OnLobbyGameCreated -= OnHostStartedMatch;
-        subscribedToSteam = false;
-    }
-
-    void OnMembershipChanged(Lobby lobby, Friend _) => RefreshMembersIfCurrent(lobby);
-    void OnMemberDataChanged(Lobby lobby, Friend _) => RefreshMembersIfCurrent(lobby);
-    void OnLobbyDataChanged(Lobby lobby) => RefreshMembersIfCurrent(lobby);
-
-    void RefreshMembersIfCurrent(Lobby lobby)
-    {
-        if (!current.HasValue || lobby.Id != current.Value.Id) return;
-
-        RefreshMembers();
-        Changed?.Invoke();
-    }
-
     // --- 방 목록 ---
 
     public async Task RefreshRoomsAsync()
@@ -419,52 +359,30 @@ public class SteamLobby : MonoBehaviour
         Status = "방 목록을 받는 중…";
         Changed?.Invoke();
 
-        Lobby[] found;
-        try
-        {
-            found = await SteamMatchmaking.LobbyList
-                                          .WithMaxResults(roomListLimit)
-                                          .WithKeyValue(GameKey, GameValue)
-                                          .RequestAsync();
-        }
-        catch (Exception e)
-        {
-            Fail($"방 목록을 받지 못했다: {e.Message}");
-            return;
-        }
+        var found = await backend.ListRoomsAsync(roomListLimit);
         if (!alive) return;
 
+        if (found == null)
+        {
+            Fail(backend.LastError);
+            return;
+        }
+
         rooms.Clear();
-        // 결과가 하나도 없으면 빈 배열이 아니라 null이 온다 (Facepunch LobbyQuery.RequestAsync).
-        if (found != null)
-            foreach (var lobby in found)
-            {
-                // 이미 시작한 방은 들어가 봐야 승인 전에 막힌다. 목록에서 뺀다.
-                if (!string.IsNullOrEmpty(lobby.GetData(LiveKey))) continue;
-                rooms.Add(Describe(lobby));
-            }
+        rooms.AddRange(found);
 
         Status = rooms.Count > 0 ? string.Empty : "방이 없다.";
         Changed?.Invoke();
     }
 
-    RoomInfo Describe(Lobby lobby)
-    {
-        var name = lobby.GetData(NameKey);
-        ulong.TryParse(lobby.GetData(HostKey), out var host);
-        var capacity = lobby.MaxMembers > 0 ? lobby.MaxMembers : RoomCapacity;
-        return new RoomInfo(lobby, string.IsNullOrEmpty(name) ? lobby.Id.ToString() : name,
-                            host, lobby.MemberCount, capacity);
-    }
-
     // --- 방 만들기 / 참가 ---
 
     /// 방을 만들고 대기실로 들어간다. 네트워크는 아직 뜨지 않는다 — 팀을 고르고 인원을
-    /// 확인하는 동안은 스팀 로비만으로 충분하고, 접속을 먼저 열면 대기실을 나가는 것과
+    /// 확인하는 동안은 로비만으로 충분하고, 접속을 먼저 열면 대기실을 나가는 것과
     /// 매치를 나가는 것이 같은 일이 돼 버린다.
     ///
     /// `teamCount`는 로비 UI가 만들기 전에 고른 값이다 (기획서 10장: 2/3/4팀). 정원
-    /// (`RoomCapacity`)이 이 값으로 정해지므로 로비를 만들기 *전에* 먼저 반영해야 한다.
+    /// (`RoomCapacity`)이 이 값으로 정해지므로 방을 만들기 *전에* 먼저 반영해야 한다.
     public async Task<bool> CreateRoomAsync(string roomName, int teamCount)
     {
         if (!Guard()) return false;
@@ -474,43 +392,25 @@ public class SteamLobby : MonoBehaviour
         Status = "방을 만드는 중…";
         Changed?.Invoke();
 
-        Lobby? created;
-        try
-        {
-            created = await SteamMatchmaking.CreateLobbyAsync(RoomCapacity);
-        }
-        catch (Exception e)
-        {
-            Fail($"방을 만들지 못했다: {e.Message}");
-            return false;
-        }
+        var created = await backend.CreateRoomAsync(roomName, RoomCapacity, TeamCount);
         if (!alive) return false;
 
-        if (!created.HasValue)
+        if (!created)
         {
-            Fail("방을 만들지 못했다.");
+            Fail(backend.LastError);
             return false;
         }
 
-        var lobby = created.Value;
-        lobby.MaxMembers = RoomCapacity;
-        lobby.SetData(GameKey, GameValue);
-        lobby.SetData(NameKey, roomName);
-        lobby.SetData(HostKey, SteamClient.SteamId.Value.ToString());
-        lobby.SetData(TeamsKey, TeamCount.ToString());
-        lobby.SetPublic();
-        lobby.SetJoinable(true);
-
-        EnterRoom(lobby);
+        EnterRoom();
         return true;
     }
 
     /// 방에 들어가 대기실을 연다. 접속은 호스트가 시작을 누를 때다.
-    public async Task<bool> JoinRoomAsync(RoomInfo room)
+    public async Task<bool> JoinRoomAsync(LobbyRoom room)
     {
         if (!Guard()) return false;
 
-        if (room.HostSteamId == 0)
+        if (room.HostId == 0)
         {
             Fail("방의 호스트를 알 수 없다.");
             return false;
@@ -519,38 +419,28 @@ public class SteamLobby : MonoBehaviour
         Status = "방에 들어가는 중…";
         Changed?.Invoke();
 
-        RoomEnter entered;
-        try
-        {
-            entered = await room.Lobby.Join();
-        }
-        catch (Exception e)
-        {
-            Fail($"방에 들어가지 못했다: {e.Message}");
-            return false;
-        }
+        var entered = await backend.JoinRoomAsync(room);
         if (!alive) return false;
 
-        if (entered != RoomEnter.Success)
+        if (!entered)
         {
-            Fail($"방에 들어가지 못했다: {entered}");
+            Fail(backend.LastError);
             return false;
         }
 
-        EnterRoom(room.Lobby);
+        EnterRoom();
         return true;
     }
 
-    void EnterRoom(Lobby lobby)
+    void EnterRoom()
     {
-        current = lobby;
         Status = string.Empty;
 
         // 참가자는 이 방의 팀 수를 몰랐다 — 자기 씬의 기본값(`teams`)이 아니라 방을 만든
         // 사람이 실제로 고른 값을 읽어야 한다. 값이 없거나(옛 방·다른 게임) 못 읽으면
         // 씬 기본값으로 되돌린다.
-        var teamCount = int.TryParse(lobby.GetData(TeamsKey), out var parsed) ? parsed : teams;
-        ReconfigureSeating(teamCount);
+        var teamCount = backend.RoomTeamCount;
+        ReconfigureSeating(teamCount > 0 ? teamCount : teams);
 
         // 내 팀을 바로 적어 둬야 남들 화면의 인원 표시에 내가 잡힌다.
         SelectTeam(FirstTeamWithRoom());
@@ -558,8 +448,7 @@ public class SteamLobby : MonoBehaviour
 
     public void LeaveRoom()
     {
-        current?.Leave();
-        current = null;
+        backend?.LeaveRoom();
         members.Clear();
         ClearOccupancy();
         selfReady = false;
@@ -580,19 +469,19 @@ public class SteamLobby : MonoBehaviour
         if (!InRoom || IsRoomHost) return;
 
         selfReady = !selfReady;
-        if (current.HasValue) current.Value.SetMemberData(ReadyKey, selfReady ? "1" : "0");
+        WriteSelf();
 
         RefreshMembers();
         Changed?.Invoke();
     }
 
-    /// 팀을 고른다. 스팀 로비 멤버 데이터로 적히므로 같은 방의 모두가 즉시 본다.
+    /// 팀을 고른다. 로비 멤버 데이터로 적히므로 같은 방의 모두가 즉시 본다.
     public void SelectTeam(int team)
     {
         if (team < 0 || team >= TeamCount) return;
 
         SelectedTeam = team;
-        if (current.HasValue) current.Value.SetMemberData(TeamKey, team.ToString());
+        WriteSelf();
 
         // 내 변경은 콜백을 기다리지 않고 바로 반영한다. 스팀은 자기 변경을 되돌려 주지
         // 않을 수도 있고, 그러면 내 선택만 화면에서 한 박자 늦는다.
@@ -600,43 +489,42 @@ public class SteamLobby : MonoBehaviour
         Changed?.Invoke();
     }
 
+    /// 팀·준비·픽은 언제나 함께 나간다. 셋을 따로 쓰면 어느 하나가 빠진 채로 남들 화면에
+    /// 그려지는 순간이 생긴다.
+    void WriteSelf()
+    {
+        if (backend != null && backend.InRoom)
+            backend.WriteSelf(SelectedTeam, selfReady, SelectedCharacter);
+    }
+
     void RefreshMembers()
     {
         members.Clear();
         ClearOccupancy();
-        if (!current.HasValue) return;
+        if (backend == null || !backend.InRoom) return;
 
-        var lobby = current.Value;
-        var ownerId = lobby.Owner.Id;
-        var selfId = Ready ? SteamClient.SteamId.Value : 0ul;
+        var ownerId = backend.RoomHostId;
+        var selfId = backend.SelfId;
+        var read = backend.ReadMembers();
 
-        foreach (var member in lobby.Members)
+        for (var i = 0; i < read.Count; i++)
         {
+            var member = read[i];
             var isSelf = member.Id == selfId;
             var isHost = member.Id == ownerId;
-            var team = isSelf ? SelectedTeam : ParseTeam(lobby.GetMemberData(member, TeamKey));
+            var team = isSelf ? SelectedTeam : member.Team;
 
             // 내 값은 멤버 데이터를 되읽지 않는다. 스팀이 방금 쓴 값을 곧바로 돌려준다는
             // 보장이 없어서, 눌렀는데 한 박자 뒤에야 켜지는 것처럼 보인다 (팀과 같은 이유).
-            var ready = isHost || (isSelf ? selfReady
-                                          : lobby.GetMemberData(member, ReadyKey) == "1");
+            var ready = isSelf ? selfReady : member.Ready;
+            var pick = isSelf ? SelectedCharacter : member.Character;
 
-            var pick = isSelf ? SelectedCharacter
-                              : ParsePick(lobby.GetMemberData(member, PickKey));
-            
             if (team >= 0 && team < occupancy.Length) occupancy[team]++;
 
             members.Add(new RoomMember(member.Id, member.Name, team,
                                        isSelf, isHost, ready, pick));
         }
     }
-
-    static int ParseTeam(string raw) =>
-        int.TryParse(raw, out var team) ? team : TeamSeats.NoPreference;
-
-    static int ParsePick(string raw) =>
-        int.TryParse(raw, out var pick) && CharacterCatalog.IsValid(pick)
-            ? pick : CharacterCatalog.NoPick;
 
     void ClearOccupancy()
     {
@@ -661,31 +549,28 @@ public class SteamLobby : MonoBehaviour
     // --- 시작 ---
 
     /// 호스트 전용. 방을 잠그고 호스트로 뜬 다음 게임 씬을 모두에게 로드시킨다.
-    /// 손님은 `SetGameServer`가 일으키는 `OnLobbyGameCreated`를 받고 붙는다 — 스팀이 이
-    /// 용도로 준 경로다.
+    /// 손님은 `AnnounceServer`가 일으키는 신호를 받고 붙는다.
     public bool StartMatch()
     {
-        if (!Guard() || !current.HasValue) return false;
+        if (!Guard() || !InRoom) return false;
         if (!IsRoomHost)
         {
             Fail("방장만 시작할 수 있다.");
             return false;
         }
 
-        var lobby = current.Value;
-        lobby.SetJoinable(false);
-        lobby.SetData(LiveKey, GameValue);
+        backend.CloseRoom();
 
         if (!StartNetwork(SelectedTeam, host: true, targetSteamId: 0)) return false;
 
-        // 손님에게 "여기로 붙어라"를 알린다. 호스트 자신도 이 콜백을 받으므로 걸러 낸다.
-        // 게임 씬은 `LoadGameSceneServer`가 서버 기동 이벤트에서 이미 걸었다.
-        lobby.SetGameServer(SteamClient.SteamId);
+        // 손님에게 "여기로 붙어라"를 알린다. 서버가 뜬 뒤여야 한다 — 게임 씬은
+        // `LoadGameSceneServer`가 서버 기동 이벤트에서 이미 걸었다.
+        backend.AnnounceServer();
         return true;
     }
 
-    /// 서버가 뜨면 게임 씬으로 넘어간다. 방에서 시작했든 개발 HUD의 Host 버튼을 눌렀든
-    /// 같은 곳으로 가야 한다 — 여기 말고 방 흐름 안에만 두면 스팀 없이 여는 로컬 테스트가
+    /// 서버가 뜨면 게임 씬으로 넘어간다. 방에서 시작했든 개발 콘솔의 Host 버튼을 눌렀든
+    /// 같은 곳으로 가야 한다 — 여기 말고 방 흐름 안에만 두면 로비 없이 여는 로컬 테스트가
     /// 타이틀에 갇힌다.
     void LoadGameSceneServer()
     {
@@ -708,31 +593,17 @@ public class SteamLobby : MonoBehaviour
         if (status != SceneEventProgressStatus.Started) Fail($"게임 씬을 불러오지 못했다: {status}");
     }
 
-    void OnHostStartedMatch(Lobby lobby, uint ip, ushort port, SteamId server)
+    /// 방장이 매치를 열었다. 붙을 곳이 방장인지는 백엔드가 이미 확인했다.
+    void OnMatchStarted(ulong serverId)
     {
-        if (!current.HasValue || lobby.Id != current.Value.Id) return;
-
-#if UNITY_EDITOR
-        // ParrelSync 등으로 에디터 창을 2개 띄우면 스팀 계정(SteamId)이 똑같습니다.
-        // 따라서 SteamId가 아니라 '내가 지금 서버(호스트)로 켜졌는가'로 호스트 여부를 판별해야 합니다.
-        var isAlreadyHost = NetworkManager.Singleton != null && NetworkManager.Singleton.IsServer;
-        if (!Ready || isAlreadyHost) return;
-#else
-        if (!Ready || server.Value == SteamClient.SteamId.Value) return;   // 호스트 자신
-#endif
-
-        // 붙을 곳은 방장이어야 한다. 스팀도 방 주인이 아닌 멤버의 SetLobbyGameServer를
-        // 막지만, 손님이 어디로 접속할지를 이벤트 값 하나만 믿고 정하지는 않는다.
-        var owner = current.Value.Owner.Id;
-        if (server.Value != owner)
-        {
-            Fail("방장이 아닌 곳에서 시작 신호가 왔다. 접속하지 않는다.");
-            return;
-        }
+        // 이미 떠 있으면 내가 그 방장이다. 스팀은 같은 계정으로 창을 두 개 띄우면 방장에게도
+        // 이 신호가 돌아와서, 계정이 아니라 "내가 서버인가"로 걸러야 한다.
+        var manager = NetworkManager.Singleton;
+        if (manager != null && manager.IsListening) return;
 
         // 바로 붙지 않는다. 기획서 10.1의 순서가 방 → 캐릭터 선택 → 매치라서, 손님도
         // 여기서 선택 화면을 먼저 보고 「확정」할 때 `JoinStartedMatch`로 붙는다.
-        pendingServer = server.Value;
+        pendingServer = serverId;
         MatchStarting?.Invoke();
     }
 
@@ -740,7 +611,7 @@ public class SteamLobby : MonoBehaviour
     /// 방장 자신은 위에서 걸러지므로 여기서 오르지 않는다 — 방장은 시작 버튼이 곧 이 신호다.
     public event Action MatchStarting;
 
-    /// 붙을 곳. `OnHostStartedMatch`가 방 주인인지까지 검증한 뒤에만 채운다.
+    /// 붙을 곳. `OnMatchStarted`가 방 주인인지까지 검증한 뒤에만 채운다.
     ulong pendingServer;
 
     /// 손님 전용. 캐릭터 선택에서 「확정」을 누르면 그때 붙는다.
@@ -767,26 +638,30 @@ public class SteamLobby : MonoBehaviour
 
         // 원하는 팀은 접속 승인 페이로드로 간다. 서버가 정원을 보고 받아들이거나 거절한다.
         manager.NetworkConfig.ConnectionData = MatchSeating.EncodeTeamRequest(team);
-        
-#if UNITY_EDITOR
-        manager.NetworkConfig.NetworkTransport = localTransport != null ? localTransport : steamTransport;
-#else
-        manager.NetworkConfig.NetworkTransport = steamTransport;
-#endif
-        
-        steamTransport.TargetSteamId = targetSteamId;
+
+        // 에디터 플랫폼은 스팀을 아예 켜지 않으므로 로컬 트랜스포트로 붙는다 — 같은 PC의
+        // 창끼리라 상대 주소가 필요 없다.
+        var useSteam = Platform == NetPlatform.Steam && steamTransport != null;
+        var transport = useSteam ? steamTransport : localTransport;
+        if (transport == null)
+        {
+            Fail("쓸 수 있는 트랜스포트가 없다.");
+            return false;
+        }
+
+        manager.NetworkConfig.NetworkTransport = transport;
+        if (useSteam) steamTransport.TargetSteamId = targetSteamId;
 
         var started = host ? manager.StartHost() : manager.StartClient();
         if (!started) Fail(host ? "호스트를 시작하지 못했다." : "접속을 시작하지 못했다.");
         return started;
     }
 
-    /// 매치가 끝나면 스팀 방에서도 나가고, 좌석을 비우고, 타이틀로 돌아간다.
+    /// 매치가 끝나면 방에서도 나가고, 좌석을 비우고, 타이틀로 돌아간다.
     /// 방에 남아 있으면 남들 목록에 죽은 방이 계속 뜬다.
     void OnNetworkStopped(bool _)
     {
-        current?.Leave();
-        current = null;
+        backend?.LeaveRoom();
         members.Clear();
         ClearOccupancy();
         selfReady = false;
@@ -806,7 +681,7 @@ public class SteamLobby : MonoBehaviour
 
     void Fail(string reason)
     {
-        Status = reason;
+        Status = string.IsNullOrEmpty(reason) ? "알 수 없는 이유로 실패했다." : reason;
         Changed?.Invoke();
     }
 
@@ -814,7 +689,11 @@ public class SteamLobby : MonoBehaviour
     {
         if (Ready) return true;
 
-        if (string.IsNullOrEmpty(Status)) Status = "스팀이 준비되지 않았다.";
+        if (string.IsNullOrEmpty(Status))
+            Status = backend != null && !string.IsNullOrEmpty(backend.LastError)
+                ? backend.LastError
+                : "로비가 준비되지 않았다.";
+
         Changed?.Invoke();
         return false;
     }

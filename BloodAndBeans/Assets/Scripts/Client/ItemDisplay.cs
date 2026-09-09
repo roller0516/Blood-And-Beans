@@ -85,6 +85,7 @@ public class ItemDisplay : MonoBehaviour
             if (anchor == null) continue;
 
             var view = slot < holder.SlotCount ? holder.SlotAt(slot) : CarryView.Nothing;
+            view.Burnt |= view.Dirty;
             var prefab = config.PrefabFor(view);
 
             if (prefab != sources[slot] || view.Burnt != burnt[slot])

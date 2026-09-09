@@ -58,7 +58,6 @@ public class CustomerQueue : NetworkBehaviour
         if (now == null || now.Current != Phase.Day)
         {
             ClearAll();
-            servedFirstToday = false;   // 다음 낮의 첫 손님에게 「붙임성」이 다시 걸린다
             return;
         }
 
@@ -92,22 +91,9 @@ public class CustomerQueue : NetworkBehaviour
         var menu = Menus.All[next.menu];
         var count = next.race == Race.Werewolf ? Random.Range(2, 4) : 1;
 
-        // 캐릭터 팀 패시브 (기획서 9.1). 손님 하나가 스폰될 때 한 번만 묻는다 — 손님이
-        // 스스로 팀을 뒤지면 순회가 손님 수만큼 늘어난다.
-        var patienceScale = PlayerCharacter.TeamHas(team, DayPassive.PopularCafe)
-            ? DayPassives.PatienceBonus : 1f;
-
-        // 「붙임성」은 *매장의* 첫 손님이다. 그날 처음 온 한 명에게만 걸린다.
-        var welcoming = servedFirstToday == false
-                     && PlayerCharacter.TeamHas(team, DayPassive.Welcoming);
-        if (!servedFirstToday) servedFirstToday = true;
-
         c.SetupServer(team, next.race, Menus.TagsOf(menu.Parts), MenuTag.None,
-                      menu.Parts.Length, count, patienceScale, welcoming);
+                      menu.Parts.Length, count);
     }
-
-    /// 오늘 첫 손님을 이미 내보냈는가. 「붙임성」이 그 한 명에게만 걸린다 (기획서 9.1).
-    bool servedFirstToday;
 
     readonly System.Collections.Generic.Queue<(Race race, int menu)> planned = new();
 
@@ -180,7 +166,6 @@ public class CustomerQueue : NetworkBehaviour
             foreach (var w in waiting)
                 if (w != null) w.AddPatienceServer(-burntPatiencePenalty);
 
-        Cafe.Of(this)?.Dishes?.SoilServer();
         if (c.CountServedServer()) Leave(index);
         return true;
     }

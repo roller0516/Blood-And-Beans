@@ -1,4 +1,4 @@
-using Unity.Netcode;
+﻿using Unity.Netcode;
 using Unity.Netcode.Components;
 using UnityEngine;
 
@@ -24,5 +24,11 @@ public static class PlayerTeleport
             player.transform.position = destination;
 
         if (controller != null) controller.enabled = true;
+
+        // 접지 높이도 목적지에 맞춘다. 목적지 y는 캡슐 바닥이 지면에 닿는 높이라
+        // (`MatchDirector.spawnHeight`) 그대로 넘긴다. 빠뜨리면 `PinToGround`가 옛
+        // 높이로 도로 끌어내려 캡슐이 지면에 박히고 걷지 못한다.
+        var move = player.GetComponent<PlayerMove>();
+        if (move != null) move.RebaseGroundServer(destination.y);
     }
 }

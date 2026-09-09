@@ -62,6 +62,26 @@ public class PlayerMove : NetworkBehaviour
 
     void Awake() => controller = GetComponent<CharacterController>();
 
+    /// 접지 높이를 이 y 기준으로 다시 잡는다. `groundLevelY`는 **캡슐 바닥이 지면에 닿는**
+    /// y이며, `OnNetworkSpawn`과 같은 식으로 skinWidth만큼 띄운 값이 접지 높이가 된다.
+    ///
+    /// 텔레포트는 y를 바꾸는데 `groundedY`는 스폰 시점 값으로 굳어 있다. 갱신하지 않으면
+    /// `PinToGround`가 매 프레임 옛 높이로 끌어내려 캡슐이 지면에 박히고, 박힌 채로는
+    /// 수평 이동이 통째로 먹힌다 — `OnNetworkSpawn` 주석이 설명한 그 상태다.
+    public void RebaseGroundServer(float groundLevelY)
+    {
+        if (!IsServer) return;
+        groundedY = groundLevelY + controller.skinWidth;
+    }
+
+    /// 서버가 이미 띄워 둔 y를 소유자가 그대로 받는다 (`PlayerPrediction.SnapTo`).
+    /// 여기서 skinWidth를 또 더하면 화해할 때마다 8cm씩 떠오른다.
+    public void AdoptGroundedOwner(float authoritativeY)
+    {
+        if (!IsOwner) return;
+        groundedY = authoritativeY;
+    }
+
     /// 위치를 직접 미는 기능이 그 구간 동안 조작을 죽인다. 서버만 부른다.
     ///
     /// 대시 돌진과 넉백은 LateUpdate에서 위치를 덮어쓴다. 그 사이 여기서 같이 밀면

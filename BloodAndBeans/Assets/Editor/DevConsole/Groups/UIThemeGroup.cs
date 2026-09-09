@@ -93,8 +93,8 @@ public class UIThemeGroup : DevConsoleGroup
         fields.TrackSerializedObjectValue(serialized, _ => ApplyLive());
     }
 
-    /// 재생 중인 씬의 글자 배율만 다시 칠한다. 색은 화면을 다시 만들 때 반영된다 —
-    /// 이미 그려진 이미지를 훑어 되돌리려면 원본 색을 따로 들고 있어야 하고,
+    /// 재생 중인 씬의 글자 배율과 모서리 반지름만 다시 칠한다. 색은 화면을 다시 만들 때
+    /// 반영된다 — 이미 그려진 이미지를 훑어 되돌리려면 원본 색을 따로 들고 있어야 하고,
     /// 그만한 값어치가 없다.
     void ApplyLive()
     {
@@ -104,6 +104,10 @@ public class UIThemeGroup : DevConsoleGroup
         var scalers = Object.FindObjectsByType<UIFontScale>(FindObjectsInactive.Include);
         foreach (var scaler in scalers)
             if (scaler != null) scaler.Apply(config.FontScale);
+
+        var rounds = Object.FindObjectsByType<UIRoundImage>(FindObjectsInactive.Include);
+        foreach (var round in rounds)
+            if (round != null) round.Apply();
     }
 
     /// 기본값 그대로인 애셋을 `Resources`에 만든다. 만들지 못하면 null을 돌려주고,

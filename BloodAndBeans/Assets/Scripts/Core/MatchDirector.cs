@@ -32,6 +32,15 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     [SerializeField] string mapId = RegenTable.DefaultMapId;
     public string MapId => mapId;
 
+    /// 이 씬의 숲을 만들어 낸 씨앗. `ForestMapBuilder`가 에디터에서 읽어 쓰고, 결과는 씬에
+    /// 구워진다 — 런타임에는 아무도 읽지 않으므로 복제하지 않는다. 다른 숲을 원하면 이 값을
+    /// 바꾸고 도구를 다시 돌린다.
+    [SerializeField] int mapSeed = 20260828;
+
+    /// 숲이 얼마나 빽빽한가. 1이면 기본 밀도, 0.5면 나무가 절반쯤으로 준다. 씨앗과 마찬가지로
+    /// `ForestMapBuilder`가 에디터에서만 읽는다.
+    [SerializeField, Range(0f, 1.5f)] float forestDensity = 1f;
+
     /// 맵의 원점. 숲과 카페 구역이 모두 여기를 기준으로 놓인다.
     [SerializeField] Vector3 cafeOrigin = Vector3.zero;
 
@@ -346,6 +355,9 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
         return areaCenter + new Vector3(corner.x * cafeCell.x * 0.5f, 0f, corner.y * cafeCell.y * 0.5f);
     }
+
+    public Vector3 PlazaCenter => cafeOrigin + Vector3.right *
+        (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
 
     /// 밤의 시작 지점 (기획서: 밤에는 모든 팀이 같은 숲에 선다). 팀마다 숲의 한 모서리를
     /// 받으므로 어느 팀도 다른 팀보다 숲 중앙에 가깝지 않다.

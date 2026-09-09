@@ -20,6 +20,8 @@ public static class DisplayNames
 
     public static string Of(Ingredient item)
     {
+        var buff = TeamBuffs.IndexOf(item);
+        if (buff >= 0) return TeamBuffs.Names[buff] + " 보석";
         var i = (int)item;
         return i >= 0 && i < IngredientNames.Length ? IngredientNames[i] : "—";
     }

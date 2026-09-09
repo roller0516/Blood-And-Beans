@@ -64,7 +64,7 @@ public class PlayerCharacter : NetworkBehaviour
         Mathf.Clamp(character.Value, 0, CharacterCatalog.All.Length - 1)];
 
     /// 이 플레이어가 그 낮 패시브를 가졌는가.
-    public bool Has(DayPassive passive) => HasPick && Def.Day == passive;
+    public bool Has(DayPassive passive) => false; // v5.0 9.1: 낮 패시브 폐지
 
     public NightSkill Skill => HasPick ? Def.Night : NightSkill.None;
 
@@ -127,7 +127,13 @@ public class PlayerCharacter : NetworkBehaviour
         if (queue == null && director != null && team != null)
             queue = director.CafeOf(team.Team)?.Queue;
 
-        if (IsServer) PushPassiveScaleServer();
+        if (IsServer)
+        {
+            debuff.Value = -1;
+            debuffUntil.Value = 0;
+            nextSkillAt.Value = 0;
+            PushPassiveScaleServer();
+        }
     }
 
     void OnCharacterChanged(int _, int __)
@@ -223,48 +229,54 @@ public class PlayerCharacter : NetworkBehaviour
 
     // --- 낮 패시브 중 이동에 걸리는 둘 (기획서 9.1) ---
 
+    readonly NetworkVariable<int> debuff = new(-1, NetworkVariableReadPermission.Owner);
+    readonly NetworkVariable<double> debuffUntil = new(0d, NetworkVariableReadPermission.Owner);
+    public int DaySkillIndex => HasPick ? Index % DayBalance.SkillNames.Length : -1;
+    public bool AffectedBy(int effect) => debuff.Value == effect && NetworkManager != null &&
+        NetworkManager.ServerTime.Time < debuffUntil.Value;
+    public float WorkScale(int effect) => AffectedBy(effect) ? 1.5f : 1f;
+    Cafe cachedCafe;
+
     void Update()
     {
         if (!IsServer) return;
-
-        // 강심장만 상태에 따라 켜졌다 꺼진다. 나머지 이동 패시브(잰걸음)는 고정이라
-        // 픽이 바뀔 때만 밀면 된다.
-        if (!Has(DayPassive.Stouthearted)) return;
-        if (Time.time < nextQueueCheck) return;
-        nextQueueCheck = Time.time + queueCheckInterval;
-
         PushPassiveScaleServer();
-    }
-
-    /// 캐릭터에서 나오는 이동속도 배수. 무게에서 나오는 배수와는 채널이 다르다 —
-    /// 둘을 한 값에 섞으면 어느 쪽이 바뀔 때 다른 쪽을 다시 계산해야 한다.
-    float PassiveSpeedScale
-    {
-        get
-        {
-            // 낮 패시브다 (기획서 9.1). 밤에는 걸리지 않는다 — 밤의 이동은 무게가 정한다.
-            if (director == null || director.Phase == null ||
-                director.Phase.Current != global::Phase.Day) return 1f;
-
-            if (Has(DayPassive.Swift)) return DayPassives.SwiftSpeed;
-
-            if (Has(DayPassive.Stouthearted) && queue != null &&
-                queue.Waiting.Count >= DayPassives.StoutheartedQueue)
-                return DayPassives.StoutheartedSpeed;
-
-            return 1f;
-        }
     }
 
     void PushPassiveScaleServer()
     {
         if (!IsServer || move == null) return;
+        if (cachedCafe == null && director != null && team != null) cachedCafe = director.CafeOf(team.Team);
+        var day = director != null && director.Phase.Current == Phase.Day;
+        var scale = day && cachedCafe != null && cachedCafe.HasBuff(TeamBuff.Move) ? DayBalance.BuffSpeed : 1f;
+        if (day && AffectedBy(0)) scale *= DayBalance.SlowScale;
+        if (Mathf.Approximately(scale, pushedPassiveScale)) return;
+        pushedPassiveScale = scale;
+        move.SetPassiveScaleServer(scale);
+    }
 
-        var want = PassiveSpeedScale;
-        if (Mathf.Approximately(want, pushedPassiveScale)) return;
-
-        pushedPassiveScale = want;
-        move.SetPassiveScaleServer(want);
+    bool UseDaySkillServer()
+    {
+        if (!HasPick || NetworkManager.ServerTime.Time < nextSkillAt.Value) return false;
+        PlayerCharacter target = null;
+        var distance = DayBalance.SkillReach * DayBalance.SkillReach;
+        foreach (var client in NetworkManager.ConnectedClientsList)
+        {
+            if (client.ClientId == OwnerClientId || PlayerTeam.Of(client.ClientId) == team.Team) continue;
+            var other = Of(client.ClientId);
+            if (other == null || PlayerTeam.Of(client.ClientId) < 0) continue;
+            var otherCafe = director.CafeOf(PlayerTeam.Of(client.ClientId));
+            if (otherCafe == null || otherCafe.HasBuff(TeamBuff.Resistance)) continue;
+            var d = (other.transform.position - transform.position).sqrMagnitude;
+            if (d > distance) continue;
+            distance = d;
+            target = other;
+        }
+        if (target == null) return false;
+        target.debuff.Value = DaySkillIndex;
+        target.debuffUntil.Value = NetworkManager.ServerTime.Time + DayBalance.SkillSeconds;
+        nextSkillAt.Value = NetworkManager.ServerTime.Time + DayBalance.SkillCooldown;
+        return true;
     }
 
     // --- 밤 액티브 (기획서 9.2) ---
@@ -273,6 +285,11 @@ public class PlayerCharacter : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     public void UseSkillRpc()
     {
+        if (director != null && director.Phase.Current == Phase.Day)
+        {
+            UseDaySkillServer();
+            return;
+        }
         var skill = Skill;
         if (!NightSkills.Exists(skill)) return;
 

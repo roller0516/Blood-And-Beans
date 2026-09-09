@@ -128,25 +128,22 @@ public sealed class TitlePresenter
         if (await lobby.JoinRoomAsync(room) && active) EnterRoom();
     }
 
-    /// 방에 들어가면 방 화면이다. 캐릭터 선택은 매치가 열릴 때 온다 (기획서 10.1의
-    /// 표 순서: 방 → 캐릭터 선택 → 매치).
-    void EnterRoom() => OpenRoom();
+    /// 방에 들어가면 곧바로 캐릭터 선택 화면이다. 대기실을 따로 거치지 않고 픽·준비·시작을
+    /// 한 화면에서 본다.
+    ///
+    /// 화면 프리팹을 이어 두지 않았으면 예전 대기실로 물러난다 — 여기서 멈추면 방에
+    /// 들어가고도 아무것도 못 한다.
+    void EnterRoom()
+    {
+        if (OpenScreen<UICharacterSelectScreen>() == null) { OpenRoom(); return; }
+        Render();
+    }
 
-    /// 방장이 다른 곳에서 시작을 눌렀다. 손님도 같은 자리에서 캐릭터를 고른다.
+    /// 방장이 매치를 열었다. 손님은 이미 캐릭터를 고른 상태이므로 바로 붙는다.
     void OnMatchStarting()
     {
         if (!active) return;
-        OpenCharacterSelect();
-    }
-
-    void OpenCharacterSelect()
-    {
-        var screen = OpenScreen<UICharacterSelectScreen>();
-
-        // 프리팹을 이어 두지 않았으면 선택을 건너뛰고 그대로 매치로 간다. 여기서 멈추면
-        // 시작 자체가 불가능해진다 — 기획서 9.3도 고르지 않은 채 시작하는 것을 허용한다.
-        if (screen == null) { ConfirmCharacter(); return; }
-        Render();
+        lobby.JoinStartedMatch();
     }
 
     void OpenRoom()
@@ -156,50 +153,31 @@ public sealed class TitlePresenter
         Render();
     }
 
-    /// 카드를 눌렀다. 확정 전까지는 로비에만 보관한다 (`SteamLobby.SelectCharacter`).
+    /// 카드를 눌렀다. 픽은 스팀 로비 멤버 데이터로 바로 나가 같은 방의 모두가 본다
+    /// (`SteamLobby.SelectCharacter`).
     public void SelectCharacter(int index) => lobby.SelectCharacter(index);
 
-    /// 팀 색은 아직 로비 상태가 아니다.
-    /// ponytail: 목업 2번의 네임플레이트 색 선택은 기획서에 규칙이 없다. 화면 안에서만
-    /// 유지되고 서버로 가지 않는다. 기획서에 색 규칙이 생기면 로비 멤버 데이터로 옮긴다.
-    public void SelectCharacterColor(int index) { }
-
-    /// 「확정」. 픽은 이미 로비에 들어가 있고(`SteamLobby.SelectCharacter`), 여기서
-    /// 실제로 매치가 열린다 — 방장은 서버를 띄우고 손님은 거기 붙는다.
+    /// 캐릭터 선택 화면 바닥의 큰 버튼. 방장에게는 「게임 시작」이고 나머지에게는
+    /// 「준비」다 (기획서 10.1). 글자와 잠금은 `UICharacterSelectScreen.SetLobby`가 그린다.
     ///
     /// 접속보다 픽이 먼저여야 한다. `PlayerCharacter.OnNetworkSpawn`이
-    /// `GameManager.SelectedCharacter`를 읽어 서버로 올리기 때문이다.
-    void ConfirmCharacter()
+    /// `GameManager.SelectedCharacter`를 읽어 서버로 올리기 때문이다 — 픽은 이미
+    /// 로비에 들어가 있으므로 여기서는 순서를 걱정하지 않는다.
+    void StartOrReady()
     {
         if (lobby.IsRoomHost) lobby.StartMatch();
-        else lobby.JoinStartedMatch();
-    }
-
-    /// 캐릭터 선택의 「뒤로」. 방으로 돌아간다.
-    ///
-    /// ponytail: 손님이 여기서 물러나면 이미 열린 매치에 붙을 길이 사라진다. 방장을
-    /// 기다리게 하지 않으려고 재입장 경로를 만들지 않았다 — 필요해지면 방 화면에
-    /// 「합류」를 단다.
-    void CancelCharacterSelect()
-    {
-        ui.PopScreen();
-        Render();
+        else lobby.ToggleReady();
     }
 
     public void SelectTeam(int team) => lobby.SelectTeam(team);
 
-    /// 방장의 「게임 시작」. 바로 뜨지 않고 캐릭터 선택을 먼저 연다 (기획서 10.1).
-    /// 실제 시작은 「확정」이 한다 (`ConfirmCharacter`).
-    public void StartMatch() => OpenCharacterSelect();
+    /// 방장의 「게임 시작」.
+    public void StartMatch() => lobby.StartMatch();
 
     public void LeaveRoom()
     {
         lobby.LeaveRoom();
-
-        // 캐릭터 선택이 열려 있으면 방 화면 위에 있다. 둘 다 걷어야 방 목록이 나온다.
-        if (ui.CurrentScreen is UICharacterSelectScreen) ui.PopScreen();
         ui.PopScreen();
-
         RefreshRooms();
     }
 
@@ -232,35 +210,54 @@ public sealed class TitlePresenter
                 break;
 
             case UICharacterSelectScreen pick:
-                // 같은 팀이 집어 간 칸을 보여 준다 (기획서 3.4: 팀원끼리는 서로의 픽이
-                // 보여야 9.1의 중복 픽 금지가 성립한다). 최종 판정은 서버 한 곳이다
-                // (`PlayerCharacter.PickRpc`, 기획서 9.3) — 이건 표시일 뿐이다.
+                // 방의 누가 무엇을 골랐는지 보여 준다 (기획서 3.4). 최종 판정은 서버
+                // 한 곳이다 (`PlayerCharacter.PickRpc`, 기획서 9.3) — 이건 표시일 뿐이다.
+                // 다섯째 인자는 팀이다. 캐릭터 선택창의 팀 칸이 곧 팀 선택이라 로비의
+                // 현재 팀으로 열고, 누르면 `SelectTeam`이 로비 멤버 데이터로 써서
+                // 같은 방의 모두가 즉시 본다.
                 pick.Bind(
-                    TeamClaims(),
+                    Claims(),
                     lobby.SelectedCharacter,
-                    0,
+                    lobby.SelectedTeam,
                     lobby.SuggestedRoomName,
                     "NIGHT ACTIVE",
                     "밤 액티브는 키보드 1로 쓴다 (기획서 9.2)",
-                    SelectCharacter, SelectCharacterColor, ConfirmCharacter, CancelCharacterSelect);
+                    SelectCharacter, SelectTeam, StartOrReady, LeaveRoom);
                 break;
         }
     }
 
-    /// 같은 팀이 이미 집어 간 칸. 매 갱신마다 리스트를 새로 만들지 않도록 재사용한다.
-    readonly List<UICharacterSelectScreen.Claim> teamClaims = new();
+    /// 방에서 이미 집어 간 칸. 매 갱신마다 리스트를 새로 만들지 않도록 재사용한다.
+    readonly List<UICharacterSelectScreen.Claim> claims = new();
 
-    IReadOnlyList<UICharacterSelectScreen.Claim> TeamClaims()
+    /// 방의 모두가 서로의 픽을 본다 — 누가 무엇을 골랐는지는 이름표로 뜬다.
+    /// 잠그는 것은 같은 팀의 픽뿐이다. 기획서 9.1의 중복 픽 금지가 팀 안에서만이라,
+    /// 다른 팀의 픽까지 막으면 고를 수 있는 칸이 팀 수만큼 줄어든다.
+    IReadOnlyList<UICharacterSelectScreen.Claim> Claims()
     {
-        teamClaims.Clear();
-        foreach (var mate in lobby.TeammatesWithPick(lobby.SelectedTeam))
-            teamClaims.Add(new UICharacterSelectScreen.Claim(
-                mate.Character, mate.Name, ClaimColor));
-        return teamClaims;
+        claims.Clear();
+        var members = lobby.Members;
+        for (var i = 0; i < members.Count; i++)
+        {
+            var member = members[i];
+            if (member.IsSelf || !CharacterCatalog.IsValid(member.Character)) continue;
+
+            claims.Add(new UICharacterSelectScreen.Claim(
+                member.Character, member.Name, TeamColorOf(member.Team),
+                member.Team == lobby.SelectedTeam));
+        }
+        return claims;
     }
 
-    /// 남이 집어 간 칸의 표시색. 기획서에 규칙이 없어 화면 안에서만 쓴다.
-    static readonly Color ClaimColor = new(0.55f, 0.58f, 0.62f, 1f);
+    /// 집어 간 사람의 팀 색. 카드 테두리가 이 색이라, 방의 모두가 어느 팀이 무엇을
+    /// 골랐는지 같은 색으로 본다.
+    ///
+    /// 팀을 아직 안 고른 사람(`TeamSeats.NoPreference`)은 팔레트 밖이라 패널 색으로 둔다.
+    static Color TeamColorOf(int team)
+    {
+        var palette = UITheme.TeamColors;
+        return team >= 0 && team < palette.Length ? palette[team] : UITheme.PanelDeep;
+    }
 
     void Render()
     {
@@ -280,6 +277,15 @@ public sealed class TitlePresenter
                             lobby.PlayersPerTeam, lobby.IsRoomHost, lobby.CanStartMatch,
                             lobby.OccupancyOf, lobby.TeamHasRoom,
                             lobby.SelfReady, lobby.ReadyCount);
+                break;
+
+            // 대기실이 곧 이 화면이다. 남의 픽과 준비 수는 스팀 로비 멤버 데이터가
+            // 바뀔 때마다 `SteamLobby.Changed`를 타고 여기로 온다.
+            case UICharacterSelectScreen pick:
+                pick.SetClaims(Claims());
+                pick.SetRoster(lobby.Members);
+                pick.SetLobby(lobby.IsRoomHost, lobby.CanStartMatch, lobby.SelfReady,
+                              lobby.ReadyCount, lobby.Members.Count);
                 break;
         }
     }

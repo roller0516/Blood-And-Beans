@@ -15,6 +15,9 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public MenuId Menu;
     public bool IsProduct;
     public bool Burnt;
+    public bool HasDish;
+    public bool DishIsPlate;
+    public bool Dirty;
 
     /// 조리대에서 조립 중인 디저트인가 (기획서 5.1). 완성품과 낱개 재료 사이의 상태라
     /// 이 표시가 없으면 재료 여러 개가 바탕 하나로만 보인다.
@@ -28,7 +31,7 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public static CarryView Nothing =>
         new() { Ingredient = Ingredient.None, Menu = MenuId.None };
 
-    public bool Empty => !IsProduct && Ingredient == Ingredient.None;
+    public bool Empty => !HasDish && !IsProduct && Ingredient == Ingredient.None;
 
     /// 아직 손에 들리지 않은 재료. 재료 칸이 자기 재고를 그릴 때 쓴다.
     public static CarryView Of(Ingredient ingredient) =>
@@ -43,6 +46,9 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
         IsProduct = item.IsProduct,
         Assembled = item.IsAssembly,
         Burnt = item.Burnt,
+        HasDish = item.HasDish,
+        DishIsPlate = item.DishIsPlate,
+        Dirty = item.Dirty,
         Count = item.IsAssembly ? item.Recipe.Length : (item.Empty ? 0 : item.Amount),
     };
 
@@ -60,6 +66,7 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
                 var name = Menu == MenuId.None ? "정체불명" : Menu.ToString();
                 return Burnt ? $"{name} (탄 것)" : name;
             }
+            if (HasDish && Ingredient == Ingredient.None) return $"{(Dirty ? "더러운" : "깨끗한")} {(DishIsPlate ? "접시" : "잔")}";
             if (Ingredient == Ingredient.None) return "빈손";
             if (Assembled) return $"{Ingredient} 조립 · 재료 {Count}개";
             return Count > 1 ? $"{Ingredient} ×{Count}" : Ingredient.ToString();
@@ -74,6 +81,9 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
         serializer.SerializeValue(ref Assembled);
         serializer.SerializeValue(ref Burnt);
         serializer.SerializeValue(ref Count);
+        serializer.SerializeValue(ref HasDish);
+        serializer.SerializeValue(ref DishIsPlate);
+        serializer.SerializeValue(ref Dirty);
     }
 
     /// `NetworkVariable`은 `IEquatable`을 구현한 타입이면 `Equals`로 변경을 판정한다
@@ -82,5 +92,5 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public bool Equals(CarryView other) =>
         Ingredient == other.Ingredient && Menu == other.Menu &&
         IsProduct == other.IsProduct && Assembled == other.Assembled &&
-        Burnt == other.Burnt && Count == other.Count;
+        Burnt == other.Burnt && Count == other.Count && HasDish == other.HasDish && DishIsPlate == other.DishIsPlate && Dirty == other.Dirty;
 }

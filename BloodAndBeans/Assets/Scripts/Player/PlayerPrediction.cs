@@ -125,6 +125,10 @@ public class PlayerPrediction : NetworkBehaviour
         transform.position = position;
         controller.enabled = true;
 
+        // 서버가 순간이동시켰다는 뜻이므로 접지 높이도 서버 값을 따른다. 안 맞추면
+        // `PinToGround`가 옛 높이로 끌어내리고 다음 화해가 다시 끌어올려 계속 싸운다.
+        GetComponent<PlayerMove>()?.AdoptGroundedOwner(position.y);
+
         error = Vector3.zero;
         history.Clear();
     }

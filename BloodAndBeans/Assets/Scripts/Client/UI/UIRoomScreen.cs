@@ -74,7 +74,7 @@ public sealed class UIRoomScreen : UIScreen
             var marker = mine ? "> " : string.Empty;
             if (teamLabels[team] != null)
                 teamLabels[team].text = $"{marker}팀 {team + 1}  {occupancyOf(team)}/{playersPerTeam}";
-            DevHud.SetInteractable(teamButtons[team], !mine && teamHasRoom(team));
+            UIExtentions.SetInteractable(teamButtons[team], !mine && teamHasRoom(team));
         }
 
         // 줄을 지우고 다시 만들지 않고 재사용한다. `Destroy`는 프레임 끝에야 도는데
@@ -110,7 +110,7 @@ public sealed class UIRoomScreen : UIScreen
         if (startButton != null)
         {
             startButton.gameObject.SetActive(isHost);
-            DevHud.SetInteractable(startButton, canStart);
+            UIExtentions.SetInteractable(startButton, canStart);
         }
 
         // 준비 버튼은 방장에게 없다. 시작 버튼과 자리를 나눠 쓰므로 둘이 동시에 뜨지 않는다.

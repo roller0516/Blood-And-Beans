@@ -38,7 +38,44 @@ public class Cafe : NetworkBehaviour
 
     public int UpgradeMask => upgrades.Value;
 
-    public bool HasUpgrade(UpgradeId id) => TeamUpgrades.HasInMask(upgrades.Value, id);
+    readonly NetworkList<int> buffDays = new();
+    public int BuffRemaining(TeamBuff buff) => (int)buff >= 0 && (int)buff < buffDays.Count ? buffDays[(int)buff] : 0;
+    public bool HasBuff(TeamBuff buff) => BuffRemaining(buff) > 0;
+    public string BuffSummary
+    {
+        get
+        {
+            var lines = new System.Collections.Generic.List<string>();
+            for (var i = 0; i < buffDays.Count; i++)
+                if (buffDays[i] > 0) lines.Add($"{TeamBuffs.Names[i]} · {buffDays[i]}일");
+            return lines.Count == 0 ? "활성 팀 버프 없음" : string.Join("\n", lines);
+        }
+    }
+
+    /// 귀환 정산이 재고 입금을 모두 마친 뒤 호출한다. 페이즈 구독 순서에 기대지 않는다.
+    public void ApplyHarvestBuffsServer()
+    {
+        if (!IsServer || Stock == null || director == null) return;
+        var ledger = director.LedgerOf(TeamId);
+        var day = director.Phase.Day;
+        if (ledger == null) return;
+        for (var i = 0; i < TeamBuffs.Materials.Length; i++)
+        {
+            var material = TeamBuffs.Materials[i];
+            if (Stock.CountOf(material) > 0)
+            {
+                ledger.Buffs.Apply((TeamBuff)i, day);
+                while (Stock.TakeServer(material)) { }
+            }
+            var remaining = ledger.Buffs.Remaining((TeamBuff)i, day);
+            if (buffDays.Count <= i) buffDays.Add(remaining);
+            else buffDays[i] = remaining;
+        }
+        Dishes?.ApplyBuffServer(HasBuff(TeamBuff.Dishes));
+    }
+
+    // 기획서 v5.0 8장: 구 설비 자동화는 폐지되었다.
+    public bool HasUpgrade(UpgradeId id) => false;
 
     /// 이 팀의 복귀 구역. 밤이 끝난 뒤 자기 귀환 결과를 읽는 통로다 (`MatchFlow`).
     ///
@@ -127,32 +164,7 @@ public class Cafe : NetworkBehaviour
     /// 검증한다 (AGENTS.md 「Netcode에서 쓰지 말아야 할 방식」). 이 검사가 없으면 남의
     /// 카페에 설비를 설치하고 그 팀의 업그레이드 재료를 대신 태울 수 있다.
     [Rpc(SendTo.Server)]
-    public void InstallUpgradeRpc(int upgrade, RpcParams p = default)
-    {
-        if (PlayerTeam.Of(p.Receive.SenderClientId) != TeamId) return;
-        if (director == null) return;
-
-        // 적용 시점은 전환뿐이다. 낮 도중에 설비가 늘어나면 그 낮의 주문이 발밑에서 바뀐다.
-        if (director.Phase == null || director.Phase.Current != Phase.Transition) return;
-
-        if (upgrade < 0 || upgrade >= UpgradeCatalog.All.Length) return;
-        var id = (UpgradeId)upgrade;
-
-        var ledger = director.LedgerOf(TeamId);
-        var stock = Stock;
-        if (ledger == null || stock == null) return;
-
-        var parts = stock.CountOf(Ingredient.UpgradePart);
-        if (!ledger.Upgrades.CanInstall(id, parts)) return;
-
-        // 재료를 먼저 뺀다. 표시를 먼저 켜면 차감이 도중에 실패했을 때 공짜 설비가 남는다.
-        var cost = ledger.Upgrades.CostOf(id);
-        for (var i = 0; i < cost; i++)
-            if (!stock.TakeServer(Ingredient.UpgradePart)) return;
-
-        ledger.Upgrades.MarkInstalled(id);
-        upgrades.Value = ledger.Upgrades.ToMask();
-    }
+    public void InstallUpgradeRpc(int upgrade, RpcParams p = default) { }
 
     /// 모든 설비는 자기 카페 밑에 붙어 있으므로, 소유 판정은 부모를 거슬러 올라가면 끝난다.
     public static Cafe Of(Component c) => c == null ? null : c.GetComponentInParent<Cafe>();
