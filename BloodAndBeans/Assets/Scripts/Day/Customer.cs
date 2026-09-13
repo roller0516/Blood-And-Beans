@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 
 /// 대기 중인 손님 한 명 (기획서 5.5). 선호 태그와 줄어드는 인내심 게이지를 들고 있다.
@@ -21,6 +21,9 @@ public class Customer : NetworkBehaviour
     /// 인내심이 닳지 않는 손님인가 (기획서 9.1 「붙임성」: 매장의 첫 손님).
     readonly NetworkVariable<bool> patient = new();
 
+    readonly NetworkVariable<int> queueIndex = new();
+    public int QueueIndex => queueIndex.Value;
+    public void SetQueueIndexServer(int index) { if (IsServer) queueIndex.Value = index; }
     public Race Kind => race.Value;
     public int TeamId => team.Value;
 

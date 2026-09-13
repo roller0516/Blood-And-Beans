@@ -39,6 +39,7 @@ public class MatchCameraDirector : MonoBehaviour
     /// TPP. 기본 시점이다. 비어 있으면 시점 전환이 없는 것으로 보고 쿼터뷰만 쓴다.
     [SerializeField] CinemachineCamera tppCamera;
 
+
     /// 브레인은 우선순위가 높은 쪽을 따른다.
     [SerializeField] int activePriority = 20;
     [SerializeField] int idlePriority = 0;
@@ -109,7 +110,13 @@ public class MatchCameraDirector : MonoBehaviour
         // 궤도 카메라는 도는 중심(Follow)과 보는 곳(LookAt)이 둘 다 있어야 한다.
         // LookAt이 비면 회전 구성기가 기준을 잃고 카메라가 한 방향만 본다.
         FollowPlayer(nightCamera, local.transform);
-        FollowPlayer(tppCamera, local.transform);
+
+        // TPP는 몸이 아니라 카메라 축을 따른다. 축은 플레이어의 자식이라 위치는 따라오고
+        // 회전만 마우스가 정한다 (`PlayerCameraRoot`). 축이 없으면 몸을 직접 따르는데,
+        // 그때는 걷는 방향으로 시야가 통째로 돈다.
+        var root = local.GetComponentInChildren<PlayerCameraRoot>(true);
+        if (root != null) FollowPlayer(tppCamera, root.transform);
+        else FollowPlayer(tppCamera, local.transform);
 
         team = local.GetComponent<PlayerTeam>();
         if (team != null)

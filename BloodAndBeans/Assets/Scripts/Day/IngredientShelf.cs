@@ -110,7 +110,8 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
             carry.ReserveServer(true);
             return;
         }
-        if (want == Ingredient.BloodBean && carry.Held.HasDish && carry.Held.Ingredient == Ingredient.Bean)
+        if (want == Ingredient.BloodBean && carry.Held.HasDish && !carry.Held.Dirty && !carry.Held.DishIsPlate &&
+            (carry.Held.Ingredient == Ingredient.None || carry.Held.Ingredient == Ingredient.Bean))
         {
             if (Stock == null || !Stock.TakeServer(want)) return;
             var replacement = HeldItem.Of(want);

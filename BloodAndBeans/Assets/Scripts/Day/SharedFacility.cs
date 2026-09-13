@@ -10,6 +10,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     [SerializeField] float reach = 2.5f;
     [SerializeField] Renderer statusRenderer;
     readonly NetworkVariable<bool> busy = new();
+    readonly NetworkVariable<int> occupyingTeam = new(-1);
     ulong user;
     PlayerCarry washing;
     double completesAt;
@@ -17,20 +18,28 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     MatchDirector director;
     public FacilityKind Kind => kind;
     public bool Busy => busy.Value;
+    public int OccupyingTeam => occupyingTeam.Value;
     public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
     string FacilityName => kind switch { FacilityKind.Coffee => "커피 머신", FacilityKind.Oven => "오븐",
         FacilityKind.Sink => "개수대", FacilityKind.Beans => "원두함", _ => "빵함" };
-    void Awake() => surface = GetComponent<Collider>();
+    void Awake()
+    {
+        surface = GetComponent<Collider>();
+        // 카페에서 복사한 모델의 팀 전용 레이어를 공용 설비 레이어로 맞춘다 (5.4.1).
+        foreach (var child in GetComponentsInChildren<Transform>(true)) child.gameObject.layer = gameObject.layer;
+    }
     public override void OnNetworkSpawn()
     {
         director = MatchDirector.Instance;
         busy.OnValueChanged += OnBusy;
+        occupyingTeam.OnValueChanged += OnTeam;
         OnBusy(false, busy.Value);
     }
-    public override void OnNetworkDespawn() => busy.OnValueChanged -= OnBusy;
+    public override void OnNetworkDespawn() { busy.OnValueChanged -= OnBusy; occupyingTeam.OnValueChanged -= OnTeam; }
+    void OnTeam(int _, int __) => OnBusy(false, Busy);
     void OnBusy(bool _, bool value)
     {
-        if (statusRenderer != null) statusRenderer.material.color = value ? Color.red : Color.green;
+        if (statusRenderer != null) TeamColors.TintWith(statusRenderer.gameObject, value ? TeamColors.Of(OccupyingTeam) : Color.white, 1f);
     }
     public void BeginInteractionClient() => UseRpc();
     public void EndInteractionClient() => EndRpc();
@@ -50,8 +59,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         if (kind == FacilityKind.Beans || kind == FacilityKind.Bread)
         {
             var plate = kind == FacilityKind.Bread;
-            if (carry.Empty) { if (!cafe.Dishes.ClaimServer(plate)) return; }
-            else if (!carry.Held.HasDish || carry.Held.IsProduct || carry.Held.Dirty || carry.Held.Ingredient != Ingredient.None || carry.Held.DishIsPlate != plate) return;
+            if (!carry.Held.HasDish || carry.Held.IsProduct || carry.Held.Dirty || carry.Held.Ingredient != Ingredient.None || carry.Held.DishIsPlate != plate) return;
             carry.SetServer(HeldItem.Of(kind == FacilityKind.Beans ? Ingredient.Bean : Ingredient.BreadBase));
             carry.SetDishServer(true, kind == FacilityKind.Bread);
             return;
@@ -63,6 +71,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
             if (carry.Empty && cafe.Dishes.TakeDirtyServer(out var dirtyPlate))
                 carry.SetServer(HeldItem.Dish(dirtyPlate, true));
             if (!carry.Held.Dirty) return;
+            occupyingTeam.Value = cafe.TeamId;
             busy.Value = true;
             user = id;
             washing = carry;
@@ -77,6 +86,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
             var station = gauge.Station;
             if (station == null || (kind == FacilityKind.Oven) != (station is Oven)) continue;
             if (!station.StartPublicServer(this, carry)) continue;
+            occupyingTeam.Value = cafe.TeamId;
             busy.Value = true;
             user = id;
             return;
@@ -102,5 +112,6 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         if (washing != null) washing.ReserveServer(false);
         washing = null;
         busy.Value = false;
+        occupyingTeam.Value = -1;
     }
 }

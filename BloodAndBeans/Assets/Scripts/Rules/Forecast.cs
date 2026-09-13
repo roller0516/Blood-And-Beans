@@ -66,15 +66,17 @@ public class Forecast
         for (var i = 0; i < orderCount; i++)
         {
             var bag = rng.NextDouble() < 0.7 ? fromPool : fromHeld;
+            if (americanos >= americanoCap)
+            {
+                var alternatives = bag.FindAll(index => !IsBasic(menus[index]));
+                if (alternatives.Count == 0) alternatives = fromPool.FindAll(index => !IsBasic(menus[index]));
+                if (alternatives.Count == 0) alternatives = fromHeld.FindAll(index => !IsBasic(menus[index]));
+                if (alternatives.Count > 0) bag = alternatives;
+            }
             var race = PickRace(rng, bag, menus);
             var pick = PickForRace(rng, bag, menus, race);
 
-            if (IsBasic(menus[pick]))
-            {
-                if (americanos >= americanoCap)
-                    pick = PickNonBasic(rng, bag, menus, race, pick);
-                if (IsBasic(menus[pick])) americanos++;
-            }
+            if (IsBasic(menus[pick])) americanos++;
 
             f.Orders[i] = pick;
             f.Races[i] = race;
@@ -189,15 +191,4 @@ public class Forecast
         };
     }
 
-    static int PickNonBasic(System.Random rng, List<int> bag,
-        IReadOnlyList<IReadOnlyList<Ingredient>> menus, Race race, int fallback)
-    {
-        var start = rng.Next(bag.Count);
-        for (var n = 0; n < bag.Count; n++)
-        {
-            var c = bag[(start + n) % bag.Count];
-            if (!IsBasic(menus[c]) && MatchesRace(menus[c], race)) return c;
-        }
-        return fallback; // 풀에 아메리카노밖에 없다. 상한을 양보한다.
-    }
 }

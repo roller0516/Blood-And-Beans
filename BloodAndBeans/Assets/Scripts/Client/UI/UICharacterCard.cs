@@ -22,6 +22,7 @@ public sealed class UICharacterCard : MonoBehaviour
 
     /// 종류 아이콘. FBX가 들어오기 전에는 스프라이트가 없어 자리색만 보인다.
     [SerializeField] Image portrait;
+    [SerializeField] GameObject selectedMark;
     [SerializeField] GameObject claimRoot;
     [SerializeField] RectTransform claimChip;
     [SerializeField] TMP_Text claimLabel;
@@ -35,6 +36,7 @@ public sealed class UICharacterCard : MonoBehaviour
         if (portrait != null)
         {
             portrait.sprite = icon;
+            portrait.preserveAspect = true;
             portrait.color = icon != null ? Color.white : UITheme.Placeholder;
         }
 
@@ -52,6 +54,7 @@ public sealed class UICharacterCard : MonoBehaviour
     public void SetSelected(bool on, Color teamColor)
     {
         selected = on;
+        if (selectedMark != null) selectedMark.SetActive(on);
         selectedColor = teamColor;
         RefreshBorder();
     }

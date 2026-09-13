@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 
 /// 한 팀의 카페. 설비가 찾아야 하는 것이 전부 여기 모여 있어서 낮 시스템이 static
@@ -20,7 +20,21 @@ public class Cafe : NetworkBehaviour
     /// 전부 한 색이 되어 형태가 사라진다.
     [SerializeField, Range(0f, 1f)] float teamTintStrength = 0.35f;
 
+    [SerializeField] Collider floor;
+    public Collider Floor => floor;
     public int TeamId => team.Value;
+    // 기획서 5.7.1: 누적 매출과 구분하며 청구액은 자기 팀에게만 복제한다.
+    readonly NetworkVariable<int> dayRevenueStart = new();
+    readonly NetworkVariable<int> dayBill = new();
+    public int DayBill => dayBill.Value;
+    public int DaySales => Board != null && TeamId >= 0 && TeamId < Board.TeamCount
+        ? Mathf.Max(0, Board.RevenueOf(TeamId) - dayRevenueStart.Value) : 0;
+    public void SetDayBudgetServer(int baseline, int bill)
+    {
+        if (!IsServer) return;
+        dayRevenueStart.Value = baseline;
+        dayBill.Value = bill;
+    }
 
     public Dish Dishes { get; private set; }
     public CustomerQueue Queue { get; private set; }

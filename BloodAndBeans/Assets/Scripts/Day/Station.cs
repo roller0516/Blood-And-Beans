@@ -12,12 +12,17 @@ public class Station : NetworkBehaviour, IItemHolder
     readonly NetworkVariable<double> doneAt = new();
     readonly NetworkVariable<Ingredient> ingredient = new(Ingredient.None);
     readonly NetworkVariable<Vector3> facilityPosition = new();
+    readonly NetworkVariable<ulong> operatorId = new(ulong.MaxValue);
+    readonly NetworkVariable<float> cookDuration = new();
     SharedFacility facility;
     PlayerCarry operatorCarry;
     CompletionGauge gauge;
     Cafe cafe;
     HeldItem input;
     public bool Disabled => disabled.Value;
+    public StationState State => state.Value;
+    public ulong OperatorId => operatorId.Value;
+    public float CookProgress => cookDuration.Value > 0f ? Mathf.Clamp01(1f - CookRemaining / cookDuration.Value) : 0f;
     public Vector3 FacilityPosition => facilityPosition.Value;
     public float CookRemaining => NetworkManager == null ? 0f : Mathf.Max(0f, (float)(doneAt.Value - NetworkManager.ServerTime.Time));
     public event System.Action ContentsChanged;
@@ -50,6 +55,7 @@ public class Station : NetworkBehaviour, IItemHolder
         facility = source;
         facilityPosition.Value = source.transform.position;
         operatorCarry = carry;
+        operatorId.Value = carry.OwnerClientId;
         input = item;
         ingredient.Value = item.Ingredient;
         carry.ClearServer();
@@ -57,8 +63,8 @@ public class Station : NetworkBehaviour, IItemHolder
         var seconds = this is Oven ? DayBalance.OvenSeconds : DayBalance.CoffeeSeconds;
         if (cafe.HasBuff(TeamBuff.Cook)) seconds /= DayBalance.BuffSpeed;
         var character = PlayerCharacter.Of(carry.OwnerClientId);
-        doneAt.Value = NetworkManager.ServerTime.Time + seconds *
-            cafe.Director.LedgerOf(cafe.TeamId).CraftSpeedScale * (character?.WorkScale(1) ?? 1f);
+        cookDuration.Value = seconds * cafe.Director.LedgerOf(cafe.TeamId).CraftSpeedScale * (character?.WorkScale(1) ?? 1f);
+        doneAt.Value = NetworkManager.ServerTime.Time + cookDuration.Value;
         state.Value = StationState.Cooking;
         return true;
     }
@@ -89,6 +95,7 @@ public class Station : NetworkBehaviour, IItemHolder
         if (operatorCarry != null) operatorCarry.ReserveServer(false);
         facility?.ReleaseServer();
         facility = null; operatorCarry = null;
+        operatorId.Value = ulong.MaxValue;
         ingredient.Value = Ingredient.None;
         state.Value = StationState.Idle;
     }
@@ -102,8 +109,6 @@ public class Station : NetworkBehaviour, IItemHolder
             IsProduct = true, Ingredient = Ingredient.None, Recipe = recipe, Menu = Menus.Match(recipe),
             GaugeMultiplier = CompletionGauge.MultiplierOf(judgement), Burnt = judgement == Judgement.Burnt });
         ReleaseServer();
-        // ponytail: 설비별 주문 배정이 없으므로 Perfect는 대기열 맨 앞 손님을 회복한다.
-        if (judgement == Judgement.Perfect) cafe.Queue?.RestoreFrontServer();
     }
 
     public static Transform PlayerOf(ulong clientId)

@@ -106,8 +106,13 @@ public class DashHarass : NetworkBehaviour
     {
         if (!IsServer) return;
 
-        if (Time.time < dashEnd) DashStepServer();
-        if (pushing) PushStepServer();
+        var moved = false;
+        if (Time.time < dashEnd) { DashStepServer(); moved = true; }
+        if (pushing) { PushStepServer(); moved = true; }
+
+        // 여기도 CharacterController로 민다. StepMove와 같은 이유로 y를 되돌린다
+        // (PlayerMove.PinToGround).
+        if (moved) move.PinToGround();
     }
 
     /// 돌진 한 틱. 앞으로 밀면서 경로 위에서 상대를 찾는다. 시전 순간 한 번만 검사하면

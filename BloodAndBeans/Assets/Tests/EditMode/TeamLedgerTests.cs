@@ -33,7 +33,7 @@ public class TeamLedgerTests
         Assert.AreEqual(RentPenalty.Tier1, ledger.Penalty);
 
         // 낮: 제작 속도 10% 감소 = 조리 시간 1.1배.
-        Assert.AreEqual(1.10f, ledger.CraftSpeedScale, 0.0001f);
+        Assert.AreEqual(0.9f, 1f / ledger.CraftSpeedScale, 0.0001f);
         Assert.IsFalse(ledger.MachineDown, "머신 불통은 2회부터다");
         Assert.IsFalse(ledger.BreaksDish, "그릇 파손은 3회부터다");
 

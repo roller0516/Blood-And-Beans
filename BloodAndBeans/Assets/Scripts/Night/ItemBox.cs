@@ -2,7 +2,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// 숲의 전리품 박스 (기획서 6.5). 씬에 배치되므로 씬과 함께 스폰된다.
+/// 숲의 전리품 박스 (기획서 6.5). 첫 밤에 `MatchDirector`가 프리팹으로 스폰한다.
 ///
 /// 한 상자는 *종류* 기준 5칸이다 (`LootSlots.MaxTypes`). 같은 재료는 한 칸에 쌓인다.
 /// 내용물은 팀 간 선착순이지만, 개봉과 공개 진행은 사람마다 따로 돈다.
@@ -22,8 +22,8 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 
     /// 이 자리에서 뽑힐 등급의 가중치 (기획서 6.3: 바깥 1등급 위주 / 중간 2등급 / 중심 3등급).
     /// 등급은 매 밤 리롤되지만 *어떤 등급이 잘 나오는가*는 자리가 정한다. 링 배치는
-    /// `ForestMapBuilder`가 하고 이 값을 심는다 — 여기서 중심까지의 거리를 다시 재면
-    /// 맵 모양이 바뀔 때마다 두 곳을 같이 고쳐야 한다.
+    /// `ForestMapBuilder`가 굽고, 밤마다 자리를 다시 뽑을 때는 `PlaceServer`가 갱신한다 —
+    /// 여기서 중심까지의 거리를 다시 재면 맵 모양이 바뀔 때마다 두 곳을 같이 고쳐야 한다.
     [SerializeField] Vector3Int tierWeights = new(1, 0, 0);
     [SerializeField] float openSeconds = 0.6f;
 
@@ -96,6 +96,12 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 초기값이 보였다 — 매 밤 리롤(6.3)과 어긋난다.
     readonly NetworkVariable<int> netTier = new();
 
+    /// 밤마다 서버가 다시 뽑는 자리 (`MatchDirector.ScatterBoxesServer`). 상자에는
+    /// NetworkTransform이 없으므로 이 값이 자리를 클라이언트로 나르는 유일한 통로다.
+    /// 안개 판정(`Cleared`)과 사거리 판정이 모두 transform을 보므로 양쪽이 같은 자리를
+    /// 알아야 한다.
+    readonly NetworkVariable<Vector3> netPosition = new();
+
     // --- 복제된 표시용 상태. 이 클라이언트의 세션 하나만 담는다 ---
     int[] localItems = System.Array.Empty<int>();
     int[] localCounts = System.Array.Empty<int>();
@@ -106,8 +112,8 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 
     public int Tier => netTier.Value > 0 ? netTier.Value : tier;
 
-    /// 숲에 깔린 상자가 아니라 쏟아진 더미인가 (기획서 6.7). 팀 수에 맞춰 상자를 솎을 때
-    /// 대상에서 빼야 한다 (`MatchDirector.ThinBoxesServer`) — 더미는 맵이 깔아 둔 자원이
+    /// 숲에 깔린 상자가 아니라 쏟아진 더미인가 (기획서 6.7). 밤마다 상자를 옮길 때
+    /// 대상에서 빼야 한다 (`MatchDirector.ScatterBoxesServer`) — 더미는 맵이 깔아 둔 자원이
     /// 아니라 플레이어가 만든 것이다.
     public bool Temporary => temporary;
 
@@ -141,15 +147,49 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     public override void OnNetworkSpawn()
     {
         director = MatchDirector.Instance;
-        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
-        if (!IsServer) return;
+        if (director != null)
+        {
+            director.Phase.PhaseEntered += OnPhaseEntered;
+            director.RegisterBox(this);
+        }
+        if (!IsServer)
+        {
+            netPosition.OnValueChanged += OnMovedByServer;
+            if (netPosition.Value != Vector3.zero) transform.position = netPosition.Value;
+            return;
+        }
+
+        netPosition.Value = transform.position;
         if (!temporary) ResetNightServer();
         else netTier.Value = tier;                 // 쏟아진 더미는 리롤하지 않는다
     }
 
+    void OnMovedByServer(Vector3 _, Vector3 now) => transform.position = now;
+
+    /// 서버가 이 상자를 오늘 밤의 자리로 옮긴다 (`MatchDirector.ScatterBoxesServer`).
+    /// 자리가 바뀌면 링도 바뀌므로 등급 가중치를 함께 받는다 (기획서 6.3: 바깥 1등급 ·
+    /// 중심 3등급) — 가중치만 그대로 두면 중심에서 옮겨 온 상자가 숲 끝에서 3등급을 뽑는다.
+    ///
+    /// 마지막에 다시 채우는 이유는 `PhaseEntered` 구독 순서 때문이다. 이 상자가 먼저
+    /// 리롤했다면 그것은 어제 자리의 가중치로 뽑은 등급이다.
+    public void PlaceServer(Vector3 world, Vector3Int weights)
+    {
+        if (!IsServer || temporary) return;
+
+        transform.position = world;
+        netPosition.Value = world;
+        tierWeights = weights;
+        ResetNightServer();
+    }
+
     public override void OnNetworkDespawn()
     {
-        if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
+        if (director != null)
+        {
+            director.Phase.PhaseEntered -= OnPhaseEntered;
+            director.UnregisterBox(this);
+        }
+        netPosition.OnValueChanged -= OnMovedByServer;
         CancelAllCasts();
         sessions.Clear();
     }

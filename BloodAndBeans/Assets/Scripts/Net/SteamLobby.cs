@@ -63,6 +63,8 @@ public class SteamLobby : MonoBehaviour
     /// 전투 씬 이름. 이 판의 게임 씬이 무엇인지 아는 유일한 자리다 —
     /// `NetworkAutoStart`가 "지금 그 씬에서 재생했는가"를 판단할 때 되읽는다.
     public string GameScene => gameScene;
+    [SerializeField] string[] mapScenes;
+    public bool IsGameScene(string scene) => scene == gameScene || (mapScenes != null && Array.IndexOf(mapScenes, scene) >= 0);
 
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
@@ -135,13 +137,28 @@ public class SteamLobby : MonoBehaviour
     public bool SelfReady => IsRoomHost || selfReady;
     bool selfReady;
 
-    /// 준비한 사람 수와 전체 인원. 화면이 「준비 N/M」으로 쓴다 (기획서 10.1).
+    /// 준비한 사람 수. 화면이 「준비 N/M」으로 쓴다 (기획서 10.1).
+    ///
+    /// **방장은 세지 않는다.** 방장은 준비 대신 시작 버튼을 쥐므로 (`SelfReady`가 항상 참),
+    /// 세면 아무도 준비하지 않아도 1/N으로 시작한다.
     public int ReadyCount
     {
         get
         {
             var n = 0;
-            for (var i = 0; i < members.Count; i++) if (members[i].IsReady) n++;
+            for (var i = 0; i < members.Count; i++)
+                if (members[i].IsReady && !members[i].IsHost) n++;
+            return n;
+        }
+    }
+
+    /// 준비를 눌러야 하는 사람 수. 방장을 뺀 손님 수다 — <see cref="ReadyCount"/>의 분모다.
+    public int ReadyTotal
+    {
+        get
+        {
+            var n = 0;
+            for (var i = 0; i < members.Count; i++) if (!members[i].IsHost) n++;
             return n;
         }
     }
@@ -197,7 +214,7 @@ public class SteamLobby : MonoBehaviour
     /// 호스트가 시작을 누를 수 있는가. 정원을 넘겨 고른 사람이 있으면 시작해 봐야 그 사람이
     /// 접속 승인에서 튕기고, 아직 준비하지 않은 사람이 있으면 기다린다 (기획서 10.1).
     public bool CanStartMatch =>
-        IsRoomHost && members.Count > 0 && !AnyTeamOverfilled() && ReadyCount >= members.Count;
+        IsRoomHost && members.Count > 0 && !AnyTeamOverfilled() && ReadyCount >= ReadyTotal;
 
     void Awake()
     {
@@ -446,6 +463,14 @@ public class SteamLobby : MonoBehaviour
         SelectTeam(FirstTeamWithRoom());
     }
 
+    // 결과 화면은 네트워크만 종료하고 로비 멤버십은 보존한다 (기획서 4.3).
+    public void ReturnToRoom()
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager != null && (manager.IsListening || manager.IsClient)) manager.Shutdown();
+        else OnNetworkStopped(false);
+    }
+
     public void LeaveRoom()
     {
         backend?.LeaveRoom();
@@ -559,9 +584,11 @@ public class SteamLobby : MonoBehaviour
             return false;
         }
 
+        if (!CanStartMatch) { Fail("모든 참가자의 준비와 팀 정원을 확인해 주세요."); return false; }
+        if (mapScenes != null && mapScenes.Length > 0) gameScene = mapScenes[UnityEngine.Random.Range(0, mapScenes.Length)];
         backend.CloseRoom();
 
-        if (!StartNetwork(SelectedTeam, host: true, targetSteamId: 0)) return false;
+        if (!StartNetwork(SelectedTeam, host: true, targetSteamId: 0)) { backend.ReopenRoom(); return false; }
 
         // 손님에게 "여기로 붙어라"를 알린다. 서버가 뜬 뒤여야 한다 — 게임 씬은
         // `LoadGameSceneServer`가 서버 기동 이벤트에서 이미 걸었다.
@@ -576,7 +603,7 @@ public class SteamLobby : MonoBehaviour
     {
         var manager = NetworkManager.Singleton;
         if (manager == null || !manager.IsServer) return;
-        if (SceneManager.GetActiveScene().name == gameScene) return;
+        if (IsGameScene(SceneManager.GetActiveScene().name)) return;
 
         StartCoroutine(LoadGameSceneServerCoroutine());
     }
@@ -637,7 +664,7 @@ public class SteamLobby : MonoBehaviour
         }
 
         // 원하는 팀은 접속 승인 페이로드로 간다. 서버가 정원을 보고 받아들이거나 거절한다.
-        manager.NetworkConfig.ConnectionData = MatchSeating.EncodeTeamRequest(team);
+        manager.NetworkConfig.ConnectionData = MatchSeating.EncodeTeamRequest(team, SelectedCharacter);
 
         // 에디터 플랫폼은 스팀을 아예 켜지 않으므로 로컬 트랜스포트로 붙는다 — 같은 PC의
         // 창끼리라 상대 주소가 필요 없다.
@@ -657,11 +684,11 @@ public class SteamLobby : MonoBehaviour
         return started;
     }
 
-    /// 매치가 끝나면 방에서도 나가고, 좌석을 비우고, 타이틀로 돌아간다.
-    /// 방에 남아 있으면 남들 목록에 죽은 방이 계속 뜬다.
+    /// 매치 연결을 정리하고 기존 방의 대기 화면으로 돌아간다.
+    /// 명시적 탈퇴는 LeaveRoom이 먼저 멤버십을 정리한다.
     void OnNetworkStopped(bool _)
     {
-        backend?.LeaveRoom();
+        if (InRoom) backend.ReopenRoom();
         members.Clear();
         ClearOccupancy();
         selfReady = false;
@@ -674,6 +701,8 @@ public class SteamLobby : MonoBehaviour
         // 좌석표는 런처와 함께 살아남으므로 씬을 다시 불러도 저절로 비지 않는다.
         Seating?.ResetForNewMatch();
 
+        WriteSelf();
+        RefreshMembers();
         Changed?.Invoke();
 
         if (SceneManager.GetActiveScene().name != titleScene) SceneManager.LoadScene(titleScene);
@@ -682,6 +711,7 @@ public class SteamLobby : MonoBehaviour
     void Fail(string reason)
     {
         Status = string.IsNullOrEmpty(reason) ? "알 수 없는 이유로 실패했다." : reason;
+
         Changed?.Invoke();
     }
 
@@ -694,6 +724,8 @@ public class SteamLobby : MonoBehaviour
                 ? backend.LastError
                 : "로비가 준비되지 않았다.";
 
+        WriteSelf();
+        RefreshMembers();
         Changed?.Invoke();
         return false;
     }

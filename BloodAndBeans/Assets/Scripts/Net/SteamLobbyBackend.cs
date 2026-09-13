@@ -320,6 +320,14 @@ public sealed class SteamLobbyBackend : ILobbyBackend
     }
 
     /// 손님은 이것이 일으키는 `OnLobbyGameCreated`를 받고 붙는다 — 스팀이 이 용도로 준 경로다.
+    public void ReopenRoom()
+    {
+        if (!current.HasValue || !IsHost) return;
+        var lobby = current.Value;
+        lobby.SetData(LiveKey, string.Empty);
+        lobby.SetJoinable(true);
+    }
+
     public void AnnounceServer()
     {
         if (Ready) current?.SetGameServer(SteamClient.SteamId);

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using Unity.Netcode;
 using UnityEngine.SceneManagement;
@@ -47,8 +48,35 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 밤 숲의 크기. 씬의 `Ground`와 같아야 팀이 지형 위에 선다.
     [SerializeField] Vector2 forestSize = new(60f, 60f);
 
+    /// 밤 숲의 가로·세로. 안개 격자가 이 값에서 유도된다 (`FogOfWar`) — 숫자를 옮겨 적지
+    /// 않고 여기 하나를 본다.
+    public Vector2 ForestSize => forestSize;
+
     /// 스폰을 모서리에서 숲 안쪽으로 들여놓는 거리. 0이면 지형 가장자리에 반쯤 걸쳐 선다.
     [SerializeField] float spawnInset = 6f;
+
+    [Header("밤 상자")]
+    /// 숲 상자 프리팹. 씬에 깔지 않고 첫 밤에 서버가 `nightBoxCount`개를 스폰한다.
+    /// `DefaultNetworkPrefabs`에 등록돼 있어야 클라이언트가 받는다.
+    [SerializeField] ItemBox boxPrefab;
+
+    /// 숲에 세울 상자 수. 0이면 상자가 없다.
+    ///
+    /// **기획서 6.3은 "박스의 위치는 맵마다 고정"이라고 못 박았다.** 밤마다 자리를 다시 뽑으므로
+    /// 그 절과 어긋난다 — 사용자 요청으로 연 문이다.
+    /// ponytail: 팀 수 비례(기획서 10장)를 적용하지 않는다. 필요하면 스폰 수에 teamCount를 곱한다.
+    [SerializeField] int nightBoxCount;
+
+    /// 상자끼리, 그리고 팀 스폰 자리와 벌리는 최소 거리. 붙어 있으면 한 번 개척으로 둘을
+    /// 다 먹고, 스폰 위에 서면 밤이 시작하자마자 주워진다.
+    [SerializeField] float boxSeparation = 7f;
+
+    /// 숲 가장자리에서 안으로 들여놓는 거리. 0이면 지형 끝에 반쯤 걸친다.
+    [SerializeField] float boxEdgeInset = 4f;
+
+    /// 자리 하나를 뽑는 시도 횟수. 다 실패하면 마지막 후보를 그대로 쓴다 — 상자가 겹치는
+    /// 것보다 밤이 시작하지 않는 쪽이 나쁘다.
+    [SerializeField] int boxPlaceAttempts = 24;
 
     [Header("카페")]
     [SerializeField] Cafe cafePrefab;
@@ -84,23 +112,33 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 안개 표시용 평면. NetworkObject가 없는 순수 뷰라서 피어마다 각자 하나씩 만든다.
     [SerializeField] GameObject fogPlanePrefab;
 
+    /// 카페 외관(`CafeDecor`). 남의 카페도 벽과 입구는 보여야 한다 (기획서 5.7.6 「이 등은
+    /// 전원에게 보인다」, 5.4.3-2 「광장 어디서든 자기 카페 입구가 보여야 한다」).
+    ///
+    /// 안개 평면과 같은 순수 뷰다 — 복제하지 않고 피어마다 각자 세운다. 카페 본체는
+    /// NetworkObject가 루트 하나뿐이라 복제를 열면 재고·설비·손님·예산이 함께 열린다.
+    /// 껍데기를 떼어 내면 내부를 팀 전용으로 둔 채 외관만 공개할 수 있다 (기획서 3.4 · 5.4-18).
+    [SerializeField] GameObject cafeShellPrefab;
+
     /// 스폰된 카페의 팀별 색인. 서버는 스폰하면서, 클라이언트는 복제를 받으면서 채운다.
     readonly Dictionary<int, Cafe> cafes = new();
 
     /// 같은 방식의 귀환 지점 색인.
     readonly Dictionary<int, ReturnZone> zones = new();
 
+    /// 스폰된 상자 명단. 상자를 훑는 쪽이 전역 탐색을 돌지 않게 한다
+    /// (AGENTS.md 「참조와 결합도」). 카페·귀환 지점과 같은 등록 방식이다.
+    readonly List<ItemBox> boxes = new();
+
+    public IReadOnlyList<ItemBox> Boxes => boxes;
+
     TeamLedger[] ledgers = new TeamLedger[0];
     GamePhase phase;
     int teamCount;
-
-    /// 씬이 상자를 깔아 둔 기준 팀 수 (기획서 10장의 최대 4팀). 실제 팀이 이보다 적으면
-    /// 그 비율만큼만 남긴다 (`ThinBoxesServer`).
-    int maxTeams = 1;
     bool subscribed;
 
-    /// 상자를 이미 솎았는가. 팀 수는 판 안에서 바뀌지 않으므로 한 번이면 끝이다.
-    bool boxesThinned;
+    /// 숲 상자를 이미 스폰했는가. 한 판에 한 번이고, 이후 밤에는 자리만 옮긴다.
+    bool boxesSpawned;
 
     public GamePhase Phase => phase;
     public int TeamCount => teamCount;
@@ -152,14 +190,14 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             return;
         }
 
-        maxTeams = Mathf.Max(1, seating.MaxTeams);
         ApplyTeamCount(seating.TeamCount);
 
-        // 첫 밤에 상자를 솎는다. 씬 오브젝트의 NetworkObject가 확실히 스폰돼 있는 가장
-        // 이른 시점이다 — `sceneLoaded`는 NGO의 씬 오브젝트 스폰과 순서가 보장되지 않는다.
+        // 밤마다 상자를 세운다. 첫 밤에는 스폰까지 한다.
         if (phase != null) phase.PhaseEntered += OnPhaseEntered;
 
         if (fogPlanePrefab != null) Instantiate(fogPlanePrefab);
+
+        SpawnCafeShells();
 
         // 팀 수와 시계가 다 선 뒤에 알린다. 그 전에 부르면 받은 쪽이 0팀짜리 판을 본다.
         ready?.Invoke(this);
@@ -223,7 +261,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
         for (var team = 0; team < teamCount; team++)
         {
-            var cafe = Instantiate(cafePrefab, CafePosition(team), Quaternion.identity);
+            var cafe = Instantiate(cafePrefab, CafePosition(team), CafeRotation(team));
             cafe.AssignTeamServer(team);
             cafe.BindDirectorServer(this);   // 카페 밑 설비들은 전역이 아니라 이 참조를 쓴다
 
@@ -256,55 +294,106 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         // `global::`을 붙이는 이유는 이 클래스에 `Phase`라는 프로퍼티(`GamePhase`)가 있어서
         // 그 이름이 열거형을 가리기 때문이다. 프로퍼티 이름을 바꾸면 저장소 곳곳의
         // `director.Phase`가 전부 따라 바뀐다.
-        if (boxesThinned || p != global::Phase.Night) return;
+        if (p != global::Phase.Night) return;
         if (NetworkManager.Singleton == null || !NetworkManager.Singleton.IsServer) return;
 
-        boxesThinned = true;
-        ThinBoxesServer();
+        ArrangeBoxesServer().Forget();
     }
 
-    /// 씬의 상자를 팀 수에 맞춰 솎아낸다 (기획서 10장: "팀 수에 따라 박스 수와 손님 수를
-    /// 비례 조정한다").
-    ///
-    /// 손님은 여기서 손댈 것이 없다. 대기열이 카페마다 하나씩이라 팀이 늘면 손님도 팀 수
-    /// 배로 늘어난다 — 이미 비례한다. 어긋나는 것은 숲 하나를 전원이 나눠 쓰는 상자뿐이다.
-    ///
-    /// 씬에는 최대 팀 수 기준으로 깔려 있으므로 팀이 적으면 그 비율만큼만 남긴다. 되돌리지
-    /// 않고 despawn하는 이유는 팀 수가 판 안에서 바뀌지 않기 때문이다.
-    void ThinBoxesServer()
+    /// 첫 밤의 `PhaseEntered`는 `GamePhase`가 스폰되는 순간 터진다. 같은 프레임의 씬 오브젝트
+    /// 스폰 스윕 안이라, 한 프레임 양보해 스폰이 끝난 뒤에 상자를 세운다.
+    async UniTaskVoid ArrangeBoxesServer()
     {
-        if (teamCount >= maxTeams) return;
+        await UniTask.NextFrame(this.GetCancellationTokenOnDestroy());
 
-        // 쏟아진 더미는 대상이 아니다. 그것은 맵이 깔아 둔 자원이 아니라 플레이어가
-        // 만든 것이고, 애초에 이 시점에 존재하지도 않는다.
-        var boxes = new List<ItemBox>();
-        foreach (var box in FindObjectsByType<ItemBox>(FindObjectsSortMode.None))
-            if (box != null && !box.Temporary && box.NetworkObject != null && box.NetworkObject.IsSpawned)
-                boxes.Add(box);
-
-        if (boxes.Count == 0) return;
-
-        // 정렬 없이는 `FindObjectsByType` 순서에 기대게 된다. 같은 판을 다시 열었을 때
-        // 다른 상자가 사라지면 맵이 판마다 달라 보인다.
-        boxes.Sort((a, b) => a.NetworkObjectId.CompareTo(b.NetworkObjectId));
-
-        var keep = Mathf.Clamp(
-            Mathf.RoundToInt(boxes.Count * (teamCount / (float)maxTeams)), 1, boxes.Count);
-
-        // 앞에서부터 자르지 않고 고르게 훑는다. 앞을 통째로 남기면 남은 상자가 스폰 순서
-        // 한쪽에 몰리고, 숲의 링 배치(기획서 6.3)가 한 방향만 비어 보인다.
-        var kept = 0;
-        for (var i = 0; i < boxes.Count; i++)
+        if (!boxesSpawned)
         {
-            // 남길 자리인가: i번째까지 남겨야 할 누적 개수가 방금 하나 늘었는가.
-            var want = (i + 1) * keep / boxes.Count;
-            if (want > kept) { kept = want; continue; }
-
-            boxes[i].NetworkObject.Despawn();
+            boxesSpawned = true;
+            SpawnBoxesServer();
         }
 
-        CDebug.Log($"{name}: 상자 {boxes.Count}개 중 {keep}개를 남겼다 "
-                 + $"(팀 {teamCount}/{maxTeams}, 기획서 10장).", this);
+        ScatterBoxesServer();
+    }
+
+    /// 숲 상자를 `nightBoxCount`개 스폰한다. 자리는 곧이어 `ScatterBoxesServer`가 정한다.
+    /// 숲은 전원이 공유하므로 관측자를 막지 않는다.
+    void SpawnBoxesServer()
+    {
+        if (nightBoxCount <= 0) return;
+        if (boxPrefab == null)
+        {
+            CDebug.LogError($"{name}: {nameof(boxPrefab)}이 비어 있다. 숲에 상자가 하나도 생기지 않는다.", this);
+            return;
+        }
+
+        // y는 프리팹 값을 쓴다. 중력이 없어(PlayerMove) 여기서 어긋나면 영영 뜬다.
+        var at = new Vector3(cafeOrigin.x, boxPrefab.transform.position.y, cafeOrigin.z);
+        for (var i = 0; i < nightBoxCount; i++)
+            Instantiate(boxPrefab, at, Quaternion.identity).NetworkObject.Spawn();
+    }
+
+    /// 밤마다 상자를 숲 안 아무 자리에나 다시 뿌린다 (사용자 요청).
+    ///
+    /// 자리가 바뀌면 링도 바뀌므로 등급 가중치를 함께 넘긴다 (기획서 6.3, `ForestRings`).
+    ///
+    /// ponytail: 나무를 피하지 않는다. 나무 콜라이더 반지름(≤1.1)에 플레이어 반지름을 더해도
+    /// 상자 사거리(2.5)보다 작아 닿기는 하지만, 수관 안에 박힌 상자는 눈에 안 띈다. 거슬리면
+    /// 레이어 마스크를 직렬화해 `Physics.CheckSphere`로 후보를 거른다.
+    void ScatterBoxesServer()
+    {
+        if (nightBoxCount <= 0) return;
+
+        var targets = new List<ItemBox>();
+        foreach (var box in boxes)
+            if (box != null && !box.Temporary && box.NetworkObject != null && box.NetworkObject.IsSpawned)
+                targets.Add(box);
+
+        if (targets.Count == 0) return;
+
+        // 등록 순서에 기대지 않는다. 같은 씨앗이 아니어도 순서가 흔들리면 원인을 좇기 어렵다.
+        targets.Sort((a, b) => a.NetworkObjectId.CompareTo(b.NetworkObjectId));
+
+        // 팀 스폰 자리를 먼저 채워 두면 상자가 그 위에 서지 않는다.
+        var taken = new List<Vector3>();
+        for (var team = 0; team < teamCount; team++) taken.Add(NightSpawnPosition(team, 0));
+
+        var half = forestSize * 0.5f - Vector2.one * boxEdgeInset;
+        var radius = Mathf.Min(forestSize.x, forestSize.y) * 0.5f;
+
+        foreach (var box in targets)
+        {
+            // 높이는 상자가 이미 안다. 중력이 없어서(PlayerMove) 여기서 어긋나면 영영 뜬다.
+            var y = box.transform.position.y;
+            var spot = box.transform.position;
+
+            for (var attempt = 0; attempt < boxPlaceAttempts; attempt++)
+            {
+                spot = cafeOrigin + new Vector3(Random.Range(-half.x, half.x), 0f,
+                                                Random.Range(-half.y, half.y));
+                spot.y = y;
+                if (FarEnough(spot, taken)) break;
+            }
+
+            taken.Add(spot);
+
+            var flat = new Vector2(spot.x - cafeOrigin.x, spot.z - cafeOrigin.z);
+            var w = ForestRings.WeightsFor(radius > 0f ? flat.magnitude / radius : 1f);
+            box.PlaceServer(spot, new Vector3Int(w.T1, w.T2, w.T3));
+        }
+
+        CDebug.Log($"{name}: 상자 {targets.Count}개를 {Phase.Day}일차 자리로 다시 뿌렸다.", this);
+    }
+
+    /// 이미 잡힌 자리들과 `boxSeparation`만큼 떨어졌는가. 높이는 보지 않는다 — 평면 탑다운이다.
+    bool FarEnough(Vector3 spot, List<Vector3> taken)
+    {
+        for (var i = 0; i < taken.Count; i++)
+        {
+            var dx = spot.x - taken[i].x;
+            var dz = spot.z - taken[i].z;
+            if (dx * dx + dz * dz < boxSeparation * boxSeparation) return false;
+        }
+        return true;
     }
 
     /// 귀환 지점은 숲 모서리에 선다 (기획서 6.8 "소환 위치"). 카페 구역은 숲 바깥이라
@@ -358,6 +447,35 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     public Vector3 PlazaCenter => cafeOrigin + Vector3.right *
         (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
+
+    /// 카페 외관을 팀마다 하나씩, 본체와 같은 자리·같은 회전으로 세운다.
+    ///
+    /// 서버가 스폰하는 본체와 달리 여기서 만드는 것은 이 피어의 화면에만 있다. 팀 수는
+    /// `GameManager.Seating`이 들고 있어 클라이언트도 서버와 같은 값을 본다.
+    void SpawnCafeShells()
+    {
+        if (cafeShellPrefab == null)
+        {
+            CDebug.LogError($"{name}: {nameof(cafeShellPrefab)}이 비어 있다. "
+                          + "남의 카페가 광장에서 보이지 않는다 (기획서 5.4.3-2).", this);
+            return;
+        }
+
+        for (var team = 0; team < teamCount; team++)
+            Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
+    }
+
+    /// 카페 입구가 광장 중앙을 보도록 돌린다. 입구는 카페 로컬 -Z다 (`CafeDecor/EntryRunner`가
+    /// z -4.6, 반대편 z +14에 `BackPanel`). 그래서 정면(+Z)을 광장 반대쪽으로 둔다.
+    ///
+    /// 네 칸이 모두 같은 회전이면 팀마다 입구에서 광장까지의 방향이 달라진다. 격자 칸이
+    /// 광장 중앙 기준 대각 대칭이라 거리는 이미 같고, 회전만 맞추면 광장 중앙이 어느 팀
+    /// 카페의 로컬 좌표에서도 같은 점이 된다 — 입구에서 광장까지의 경로가 팀마다 같아진다.
+    Quaternion CafeRotation(int team)
+    {
+        var away = CafePosition(team) - PlazaCenter;
+        return away.sqrMagnitude > 0f ? Quaternion.LookRotation(away, Vector3.up) : Quaternion.identity;
+    }
 
     /// 밤의 시작 지점 (기획서: 밤에는 모든 팀이 같은 숲에 선다). 팀마다 숲의 한 모서리를
     /// 받으므로 어느 팀도 다른 팀보다 숲 중앙에 가깝지 않다.
@@ -420,6 +538,16 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     }
 
     public ReturnZone ZoneOf(int team) => zones.TryGetValue(team, out var zone) ? zone : null;
+
+    public void RegisterBox(ItemBox box)
+    {
+        if (box != null && !boxes.Contains(box)) boxes.Add(box);
+    }
+
+    public void UnregisterBox(ItemBox box)
+    {
+        if (box != null) boxes.Remove(box);
+    }
 
     /// 서버 전용. 명단에 있는 팀이면 절대 null이 아니다.
     public TeamLedger LedgerOf(int team) =>

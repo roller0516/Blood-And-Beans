@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 
 /// 소유자는 크기가 제한된 입력 의도만 보내고, transform의 권위는 서버가 가진다.
@@ -23,6 +23,7 @@ public class PlayerMove : NetworkBehaviour
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
     CharacterController controller;
+    GamePhase phase;
 
     /// 이 시각까지는 조작 입력을 무시한다. 대시 돌진·넉백처럼 위치를 직접 미는 기능이
     /// 여기를 올린다. 이동은 누가 올렸는지 묻지 않는다 — 그래서 상태이상이 늘어도
@@ -57,8 +58,17 @@ public class PlayerMove : NetworkBehaviour
     /// (collisionFlags가 Sides로 온다) 대신 위로 밀려난다. 그것을 `PinToGround`가 매
     /// 프레임 도로 끌어내리므로, 캐릭터는 제자리에서 위아래로 떨기만 하고 걷지 못한다.
     /// 8cm 띄워 두면 그 싸움 자체가 없어진다.
-    public override void OnNetworkSpawn() =>
+    public override void OnNetworkSpawn()
+    {
         groundedY = transform.position.y + controller.skinWidth;
+        MatchDirector.Bind(BindDirector);
+    }
+    void BindDirector(MatchDirector director) => phase = director != null ? director.Phase : null;
+    public override void OnNetworkDespawn()
+    {
+        MatchDirector.Unbind(BindDirector);
+        phase = null;
+    }
 
     void Awake() => controller = GetComponent<CharacterController>();
 
@@ -136,6 +146,8 @@ public class PlayerMove : NetworkBehaviour
 
     void Update()
     {
+        if (phase != null && (phase.Finished || phase.Current == Phase.Transition))
+        { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (IsServer)
         {
             if (Time.time < suppressedUntil) return;
@@ -174,9 +186,14 @@ public class PlayerMove : NetworkBehaviour
     /// 위아래로도 밀어낸다. 중력이 없어서 그 오차를 되돌릴 힘이 없으므로 한 번 뜨거나
     /// 박히면 영구히 남는다. 그래서 이동을 마칠 때마다 접지 높이로 되돌린다.
     ///
+    /// **`controller.Move`를 부르는 곳은 직후에 반드시 이것을 부른다.** 예전에는
+    /// `StepMove`만 불렀고, LateUpdate에서 미는 예측 화해(`PlayerPrediction`)와 돌진·넉백
+    /// (`DashHarass`)이 올린 y는 되돌리는 곳이 없었다 — 카메라가 그 y를 그대로 읽어서
+    /// 걸을 때마다 위아래로 떨었고, 벽·나무에 붙어 교정이 커질수록 심해졌다.
+    ///
     /// 컨트롤러를 잠깐 꺼야 대입이 남는다. 켜진 채로 대입하면 컨트롤러가 자기 내부
     /// 위치를 다시 써 넣는다 (PlayerTeleport, PlayerPrediction.SnapTo와 같은 이유).
-    void PinToGround()
+    public void PinToGround()
     {
         var position = transform.position;
         if (Mathf.Approximately(position.y, groundedY)) return;
@@ -186,11 +203,16 @@ public class PlayerMove : NetworkBehaviour
         controller.enabled = true;
     }
 
+    // 소유자 입력도 비유한 값은 허용하지 않는다.
+    public static Vector2 SanitizeInput(Vector2 input) =>
+        float.IsNaN(input.x) || float.IsInfinity(input.x) || float.IsNaN(input.y) || float.IsInfinity(input.y)
+            ? Vector2.zero : Vector2.ClampMagnitude(input, 1f);
+
     public void SetInputClient(Vector2 input)
     {
         if (!IsOwner) return;
 
-        var clamped = Vector2.ClampMagnitude(input, 1f);
+        var clamped = SanitizeInput(input);
         predictedInput = clamped;
         SetInputRpc(clamped);
     }
@@ -198,7 +220,7 @@ public class PlayerMove : NetworkBehaviour
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
     void SetInputRpc(Vector2 input)
     {
-        serverInput = Vector2.ClampMagnitude(input, 1f);
+        serverInput = SanitizeInput(input);
 
         // 입력을 놓는 순간(0,0)에는 갱신하지 않는다. 멈춰 서면 마지막 방향을 그대로 본다.
         if (serverInput.sqrMagnitude > 0.0001f)

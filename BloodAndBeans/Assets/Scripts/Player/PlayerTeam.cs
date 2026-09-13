@@ -64,7 +64,7 @@ public class PlayerTeam : NetworkBehaviour
         if (director == null) return;
 
         director.ApplyTeamVisibilityServer(OwnerClientId, team.Value);
-        foreach (var box in FindObjectsByType<ItemBox>(FindObjectsSortMode.None))
+        foreach (var box in director.Boxes)
             box.SendStateToClientServer(OwnerClientId, team.Value);
         //GetComponent<FogOfWar>()?.JoinTeamServer();
         StartCoroutine(ApplyVisibilityAfterSceneSpawn(director));

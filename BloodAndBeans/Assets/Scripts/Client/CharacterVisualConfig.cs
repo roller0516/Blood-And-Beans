@@ -18,13 +18,21 @@ public class CharacterVisualConfig : ScriptableObject
     [System.Serializable]
     public struct Entry
     {
+        [Tooltip("저장 호환을 위한 외형 ID. 낮 스킬을 바꿔도 이 값은 유지한다.")]
         public DayPassive id;
 
-        [Tooltip("FBX를 중첩한 프리팹. FBX 루트는 읽기 전용이라 직접 꽂을 수 없다.")]
+        [Tooltip("FBX를 중첩한 프리팹. 모델·Animator·CharacterModel을 담고 게임 로직과 충돌체는 넣지 않는다.")]
         public GameObject model;
 
         [Tooltip("선택창 하단 스트립의 아이콘. 비면 카드가 글자만 보여 준다.")]
         public Sprite icon;
+
+        [Tooltip("선택창과 인게임에 공통 적용할 발 위치 보정.")]
+        public Vector3 localPosition;
+        [Tooltip("정면은 +Z. 임포트 모델의 방향을 보정한다.")]
+        public Vector3 localEulerAngles;
+        [Tooltip("공통 모델 크기 배율. 0은 기존 데이터 호환을 위해 1로 취급한다.")]
+        [Min(0f)] public float scale;
     }
 
     [SerializeField] Entry[] entries;
@@ -43,6 +51,27 @@ public class CharacterVisualConfig : ScriptableObject
         return placeholderModel;
     }
 
+    /// 양쪽 화면이 같은 보정과 레이어 처리를 쓴다. 모델 교체가 게임 규칙에 닿지 않는다.
+    public GameObject SpawnModel(DayPassive id, Transform parent, int layer)
+    {
+        var prefab = ModelFor(id);
+        if (prefab == null || parent == null) return null;
+        var model = Instantiate(prefab, parent);
+        model.transform.localPosition = Vector3.zero;
+        model.transform.localRotation = Quaternion.identity;
+        if (entries != null)
+            foreach (var entry in entries)
+            {
+                if (entry.id != id || entry.model == null) continue;
+                model.transform.localPosition = entry.localPosition;
+                model.transform.localRotation = Quaternion.Euler(entry.localEulerAngles);
+                model.transform.localScale *= entry.scale > 0f ? entry.scale : 1f;
+                break;
+            }
+        foreach (var child in model.GetComponentsInChildren<Transform>(true))
+            child.gameObject.layer = layer;
+        return model;
+    }
     /// 하단 스트립의 아이콘. 없으면 null이고 카드는 글자만 보여 준다.
     public Sprite IconFor(DayPassive id)
     {

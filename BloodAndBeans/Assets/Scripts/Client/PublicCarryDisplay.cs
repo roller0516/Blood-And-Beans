@@ -9,8 +9,9 @@ public sealed class PublicCarryDisplay : MonoBehaviour
     [SerializeField] Color heldColor = Color.white;
     [SerializeField] Color dirtyColor = new(0.35f, 0.2f, 0.1f);
     [SerializeField] Color bloodColor = Color.red;
-    readonly MaterialPropertyBlock properties = new();
+    MaterialPropertyBlock properties;
     static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
+    void Awake() => properties = new MaterialPropertyBlock();
     void OnEnable()
     {
         carry.ContentsChanged += Refresh;

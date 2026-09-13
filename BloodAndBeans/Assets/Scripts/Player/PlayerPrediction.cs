@@ -35,6 +35,7 @@ public class PlayerPrediction : NetworkBehaviour
     [SerializeField] float historySeconds = 1f;
 
     CharacterController controller;
+    PlayerMove move;
     PredictionHistory history;
     Vector3 error;
 
@@ -42,7 +43,11 @@ public class PlayerPrediction : NetworkBehaviour
     /// 예측할 것이 없다.
     public bool Predicting => IsSpawned && IsOwner && !IsServer;
 
-    void Awake() => controller = GetComponent<CharacterController>();
+    void Awake()
+    {
+        controller = GetComponent<CharacterController>();
+        move = GetComponent<PlayerMove>();
+    }
 
     public override void OnNetworkSpawn()
     {
@@ -111,6 +116,11 @@ public class PlayerPrediction : NetworkBehaviour
 
         // 대입이 아니라 Move다. 교정이 벽과 설비를 뚫고 지나가지 않는다.
         controller.Move(step);
+
+        // Move는 겹침을 풀며 y를 올린다. 여기서 되돌리지 않으면 다음 Update의 StepMove가
+        // 내릴 때까지 남고, 그 사이에 도는 카메라가 그 y를 읽는다 (PlayerMove.PinToGround).
+        move.PinToGround();
+
         error -= step;
     }
 
@@ -127,7 +137,7 @@ public class PlayerPrediction : NetworkBehaviour
 
         // 서버가 순간이동시켰다는 뜻이므로 접지 높이도 서버 값을 따른다. 안 맞추면
         // `PinToGround`가 옛 높이로 끌어내리고 다음 화해가 다시 끌어올려 계속 싸운다.
-        GetComponent<PlayerMove>()?.AdoptGroundedOwner(position.y);
+        move.AdoptGroundedOwner(position.y);
 
         error = Vector3.zero;
         history.Clear();

@@ -15,6 +15,10 @@ public class Dish : NetworkBehaviour
     readonly NetworkVariable<int> usedPlates = new();
     bool buff;
     bool broken;
+    public event System.Action CleanChanged;
+    void OnClean(int previous, int current) => CleanChanged?.Invoke();
+    public override void OnNetworkDespawn()
+    { cleanCups.OnValueChanged -= OnClean; cleanPlates.OnValueChanged -= OnClean; }
     public int Clean => cleanCups.Value + cleanPlates.Value;
     public int Dirty => dirtyCups.Value + dirtyPlates.Value;
     public int InUse => usedCups.Value + usedPlates.Value;
@@ -31,6 +35,7 @@ public class Dish : NetworkBehaviour
     }
     public override void OnNetworkSpawn()
     {
+        cleanCups.OnValueChanged += OnClean; cleanPlates.OnValueChanged += OnClean;
         if (!IsServer) return;
         cleanCups.Value = cups; cleanPlates.Value = plates;
     }

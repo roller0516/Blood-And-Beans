@@ -134,12 +134,7 @@ public readonly struct CharacterDef
 /// 밤 액티브는 9.2 표에서 가져온다.
 public static class CharacterCatalog
 {
-    // ponytail: 밤 액티브는 기획서 9.2 표에서 취소선(안개탄)을 뺀 5종뿐인데 낮 패시브는
-    // 9.1에 8종이 있다. 없는 스킬을 지어내지 않고 남는 세 칸은 "미정"으로 둔다.
-    // 캐릭터 종 수 자체가 14장 #10 미결이라, 종 수가 정해지면 이 표도 함께 맞춘다.
-    const string Undecided = "미정";
-    const string UndecidedNote = "밤 액티브 미정 (기획서 9.2 후보 5종 · 14장 #10)";
-
+    // ponytail: #10 캐릭터 수 미결. 기존 8개 ID에 정의된 밤 5종을 재사용하며 확정 시 표를 교체한다.
     public static readonly CharacterDef[] All =
     {
         new("잰걸음",   "잰걸음",   "이동속도 +25%",
@@ -163,16 +158,16 @@ public static class CharacterCatalog
                         DayPassive.IceMaster, NightSkill.Illusion),
 
         new("붙임성",   "붙임성",   "매장의 첫 손님은 인내심이 닳지 않는다",
-                        Undecided,  UndecidedNote,
-                        DayPassive.Welcoming, NightSkill.None),
+                        "메아리", "주변 안개를 걷는다 (쿨 40초)",
+                        DayPassive.Welcoming, NightSkill.Echo),
 
         new("강심장",   "강심장",   "대기 손님이 3명 이상일 때 이동속도 +40%",
-                        Undecided,  UndecidedNote,
-                        DayPassive.Stouthearted, NightSkill.None),
+                        "추적", "숨겨진 가방을 찾아낸다 (쿨 30초)",
+                        DayPassive.Stouthearted, NightSkill.Track),
 
         new("제빵사",   "제빵사",   "오븐이 탈 때까지의 유예가 10초 → 20초",
-                        Undecided,  UndecidedNote,
-                        DayPassive.Baker, NightSkill.None),
+                        "환각", "빈 가짜 가방을 심는다 (쿨 45초)",
+                        DayPassive.Baker, NightSkill.Illusion),
     };
 
     static CharacterCatalog()
@@ -183,7 +178,7 @@ public static class CharacterCatalog
             var old = All[i];
             var skill = i % DayBalance.SkillNames.Length;
             All[i] = new CharacterDef(old.Name, DayBalance.SkillNames[skill],
-                DayBalance.SkillEffects[skill] + " · 4초 / 쿨 35초 (임시)",
+                DayBalance.SkillEffects[skill] + $" · {DayBalance.SkillSeconds:0.#}초 / 쿨 {DayBalance.SkillCooldown:0.#}초 (임시)",
                 old.NightName, old.NightEffect, old.Day, old.Night);
         }
     }

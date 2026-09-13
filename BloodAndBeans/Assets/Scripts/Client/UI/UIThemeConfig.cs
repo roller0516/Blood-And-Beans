@@ -65,6 +65,13 @@ public class UIThemeConfig : ScriptableObject
     [Header("구분선")]
     [SerializeField, Min(0.1f)] float ruleHeight = 1f;
 
+    [System.Serializable] public struct DayIcon { public Ingredient item; public Sprite sprite; }
+    [SerializeField] DayIcon[] dayIcons = System.Array.Empty<DayIcon>();
+    public Sprite DaySprite(Ingredient item)
+    {
+        foreach (var entry in dayIcons) if (entry.item == item) return entry.sprite;
+        return null;
+    }
     public Vector2 StageSize => stageSize;
 
     public Color Ink => ink;

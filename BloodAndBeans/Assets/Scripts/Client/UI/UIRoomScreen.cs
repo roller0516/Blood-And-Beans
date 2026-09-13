@@ -63,7 +63,7 @@ public sealed class UIRoomScreen : UIScreen
     public void Render(string title, string statusText, IReadOnlyList<SteamLobby.RoomMember> members,
                        int selectedTeam, int playersPerTeam, bool isHost, bool canStart,
                        Func<int, int> occupancyOf, Predicate<int> teamHasRoom,
-                       bool selfReady, int readyNow)
+                       bool selfReady, int readyNow, int readyTotal)
     {
         if (roomTitle != null) roomTitle.text = title;
         if (status != null) status.text = statusText;
@@ -122,6 +122,6 @@ public sealed class UIRoomScreen : UIScreen
         }
 
         // 방장은 누구를 기다리는지, 손님은 몇 명이 남았는지 같은 숫자를 본다.
-        if (readyCount != null) readyCount.text = $"준비 {readyNow}/{members.Count}";
+        if (readyCount != null) readyCount.text = $"준비 {readyNow}/{readyTotal}";
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine.SceneManagement;
@@ -10,10 +10,9 @@ using UnityEngine;
 /// 다시 적으면 맵을 넓힐 때 두 곳을 같이 고쳐야 하고, 한쪽만 고치면 팀이 지형 밖에서 시작한다.
 /// 그래서 이 도구는 `SerializedObject`로 그 값을 읽어 쓴다.
 ///
-/// 나무는 `NetworkObject`가 없는 순수 표현이라 씬에 그대로 굽는다. 상자는 씬 NetworkObject지만
-/// 위치를 여기서 정한다 — 기획서 6.3의 "박스의 위치는 맵마다 고정"은 판마다 흔들리지 않는다는
-/// 뜻이고, 같은 절이 "지형·통로·박스 배치는 레벨 디자인 영역"이라고 했다. 씨앗으로 굽는 편집
-/// 시점이 그 레벨 디자인이고, 구워진 뒤로는 고정이다. 런타임에는 아무것도 생성하지 않는다.
+/// 나무는 `NetworkObject`가 없는 순수 표현이라 씬에 그대로 굽는다.
+/// ponytail: 숲 상자는 이제 런타임에 `MatchDirector`가 프리팹으로 스폰한다. 씬에 상자가 없으면
+/// 아래의 상자 배치·통로 검사는 0개로 돈다. 런타임 자리에 통로를 보장하려면 그쪽으로 옮긴다.
 public static class ForestMapBuilder
 {
     const string MenuPath = "Tools/Blood & Beans/숲 맵 생성";
@@ -163,16 +162,7 @@ public static class ForestMapBuilder
     static readonly string[] TierMeshModels = { "box", "chest", "box-large" };
     static readonly string[] TierMaterialNames = { "Box_T1", "Box_T2", "Box_T3" };
 
-    /// 링별 등급 가중치 (기획서 6.3). 바깥 1등급 위주 · 중간 2등급 · 중심 3등급.
-    /// 0으로 잘라내지 않고 꼬리를 남긴 이유는 매 밤 리롤이 의미를 가지려면 링 안에서도
-    /// 뽑기가 흔들려야 하기 때문이다.
-    static readonly Vector3Int OuterWeights = new(8, 2, 0);
-    static readonly Vector3Int MidWeights = new(2, 7, 1);
-    static readonly Vector3Int CoreWeights = new(0, 2, 8);
-
-    /// 링 경계. 숲 반지름에 대한 비율이다.
-    const float CoreRingRatio = 0.25f;
-    const float MidRingRatio = 0.55f;
+    // 링별 등급 가중치는 `ForestRings`에 있다 (기획서 6.3). 런타임 재배치와 같은 표를 본다.
 
     /// 상자를 뿌릴 링. 링마다 상자 수를 이 비중으로 나누고, 링 안에서는 섹터를 균등하게
     /// 잘라 하나씩 놓는다 — 순수 난수로 뿌리면 한쪽 모서리에 몰려서 스폰 자리에 따라
@@ -317,8 +307,12 @@ public static class ForestMapBuilder
         PaintGround(scene);
         EditorSceneManager.MarkSceneDirty(scene);
 
+        // 안개 격자는 숲 크기에서 런타임에 유도된다 (`FogOfWar.ApplyGrid`). 여기 적는 것은
+        // 저장되는 값이 아니라 "이 숲이면 격자가 이만큼 된다"는 확인용이다 — 숲을 키웠을 때
+        // 안개가 따라왔는지 눈으로 보라고 남긴다.
         Debug.Log($"숲 맵 생성: 씨앗 {seed}, 나무·수풀 {planted}개, 상자 {boxes.Length}개. "
-                + $"숲 {forestSize.x}x{forestSize.y}, 원점 {origin}.");
+                + $"숲 {forestSize.x}x{forestSize.y}, 원점 {origin}. "
+                + $"안개 격자는 숲에서 유도된다 (월드 ±{Mathf.Max(forestSize.x, forestSize.y) * 0.5f:F0} + 시야 반경).");
     }
 
     /// 팀 스폰 자리. `MatchDirector.NightSpawnPosition`과 같은 식이다 — 어긋나면 팀이
@@ -619,9 +613,8 @@ public static class ForestMapBuilder
             flat.y = 0f;
             var ratio = radius > 0f ? flat.magnitude / radius : 1f;
 
-            var weights = ratio < CoreRingRatio ? CoreWeights
-                        : ratio < MidRingRatio ? MidWeights
-                        : OuterWeights;
+            var w = ForestRings.WeightsFor(ratio);
+            var weights = new Vector3Int(w.T1, w.T2, w.T3);
 
             var boxSo = new SerializedObject(box);
             boxSo.FindProperty("tierWeights").vector3IntValue = weights;

@@ -239,18 +239,14 @@ public sealed class CharacterStage : MonoBehaviour
 
         if (!CharacterCatalog.IsValid(character) || visuals == null) return;
 
-        var prefab = visuals.ModelFor(CharacterCatalog.All[character].Day);
-        if (prefab == null) return;
+        spawned[seat] = visuals.SpawnModel(CharacterCatalog.All[character].Day, seats[seat], gameObject.layer);
+    }
 
-        var model = Instantiate(prefab, seats[seat]);
-        model.transform.localPosition = Vector3.zero;
-        model.transform.localRotation = Quaternion.identity;
-
-        // 레이어는 아트가 아니라 여기서 덮는다. FBX 프리팹이 어떤 레이어로 들어오든
-        // 무대 카메라가 보는 레이어여야 한다.
-        SetLayerRecursive(model, gameObject.layer);
-
-        spawned[seat] = model;
+    public void SetTeam(int seat, int team)
+    {
+        if (seat < 0 || seat >= SeatCount || spawned[seat] == null) return;
+        var appearance = spawned[seat].GetComponent<CharacterModel>();
+        if (appearance != null) appearance.Tint(TeamColors.Of(team), 1f);
     }
 
     /// 자리 수를 넘는 칸을 비운다. 사람이 나가면 그 자리 모델도 사라져야 한다.
@@ -278,10 +274,4 @@ public sealed class CharacterStage : MonoBehaviour
         return true;
     }
 
-    static void SetLayerRecursive(GameObject target, int layer)
-    {
-        target.layer = layer;
-        for (var i = 0; i < target.transform.childCount; i++)
-            SetLayerRecursive(target.transform.GetChild(i).gameObject, layer);
-    }
 }

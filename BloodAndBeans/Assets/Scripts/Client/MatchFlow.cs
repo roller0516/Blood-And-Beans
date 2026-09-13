@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -161,7 +161,7 @@ public sealed class MatchFlow : MonoBehaviour
 
             // 완성 게이지도 매 프레임이다. 침이 초당 1.4회 왕복해서 0.1초마다 옮기면
             // 노릴 수 없는 계단이 된다 (기획서 5.2).
-            hud.SetCompletionGauge(presenter.Gauge);
+            hud.SetCompletionGauge(default);
         }
 
         SyncLootPopup();
@@ -414,7 +414,7 @@ public sealed class MatchFlow : MonoBehaviour
         // ponytail: "한 판 더"는 재시작 경로가 없어 넘기지 않는다. 팝업이 그 버튼을
         // 잠근다. 매치 재시작이 생기면 여기에 이어 준다.
         popup.Bind(phase.Day, revenue, PlayerTeam.Local(), null,
-                   lobby != null ? lobby.LeaveRoom : (System.Action)null, null);
+                   lobby != null ? lobby.ReturnToRoom : (System.Action)null, null);
         resultPopupOpen = true;
     }
 

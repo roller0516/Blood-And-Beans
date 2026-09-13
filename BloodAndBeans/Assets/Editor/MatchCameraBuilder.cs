@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
@@ -20,26 +21,27 @@ public static class MatchCameraBuilder
 {
     const string MenuPath = "Tools/Blood & Beans/매치 카메라 세우기";
     const string TppCameraName = "TppCamera";
+    const string TppPivotName = "CameraPivot";
 
-    /// 궤도의 중심. 플레이어 원점 기준의 눈높이다.
-    static readonly Vector3 TppTargetOffset = new(0f, 1.4f, 0f);
+    /// 축이 플레이어 원점보다 얼마나 위인가. 눈높이다 (`CameraPivot.eyeHeight`).
+    const float TppEyeHeight = 1.4f;
 
-    /// 플레이어에서 카메라까지의 거리.
-    const float TppRadius = 3.5f;
+    /// 축에서 카메라까지의 거리.
+    const float TppCameraDistance = 3.5f;
 
-    /// 화면에서 플레이어를 한쪽으로 밀어 어깨 너머를 만든다. Aim 뒤에 걸리는 로컬
-    /// 오프셋이라 카메라를 돌려도 어깨 쪽이 따라 바뀌지 않는다.
+    /// 어깨 오프셋. 축 기준 로컬이라 카메라를 돌려도 어깨 쪽이 따라 바뀌지 않는다.
     static readonly Vector3 TppShoulder = new(0.6f, 0f, 0f);
 
-    /// 카메라가 장애물에서 유지하는 거리. 어깨 오프셋이 디오클루더보다 뒤에(Aim 뒤에)
-    /// 걸리므로 그 폭보다 넉넉해야 한다 — 벽에 딱 붙여 세우면 옆으로 민 만큼 다시 벽
-    /// 안으로 들어간다.
-    const float TppCameraRadius = 0.75f;
+    /// 손이 어깨보다 얼마나 위인가. 세로로 돌릴 때 캐릭터가 화면에서 오르내리는 폭을 잡는다.
+    const float TppVerticalArmLength = 0.4f;
 
-    /// 카메라를 밀어낼 레이어. Default만 본다. 카페는 팀별 레이어(CafeTeam0~3)에 있고
-    /// 남의 팀 카페는 컬링으로 보이지 않는데(TeamVision), 그것까지 넣으면 화면에 없는
-    /// 벽이 카메라를 당긴다.
-    static readonly LayerMask TppOccluders = 1 << 0;
+    /// 0이면 왼쪽 어깨, 1이면 오른쪽.
+    const float TppCameraSide = 1f;
+
+    /// 카메라가 목표를 쫓는 반응 시간(초). 카메라 로컬 축마다 따로다.
+    static readonly Vector3 TppDamping = new(0.1f, 0.5f, 0.3f);
+
+
 
     /// 위아래로 볼 수 있는 각도. 아래로 조금 넘겨야 발밑의 상자가 보인다.
     static readonly Vector2 TppPitchRange = new(-15f, 55f);
@@ -84,15 +86,12 @@ public static class MatchCameraBuilder
         var tppProperty = so.FindProperty("tppCamera");
         var nightCamera = so.FindProperty("nightCamera").objectReferenceValue as CinemachineCamera;
 
-        // 쿼터뷰에서 걷어내기 전에 입력 배선을 먼저 챙긴다. Input Action 참조는 씬에만 있고
-        // 코드로 다시 만들 수 없다 — 지우고 나면 어느 액션이었는지 알 방법이 없다.
-        var inputActions = ReadInputActions(nightCamera);
 
         var camera = tppProperty.objectReferenceValue as CinemachineCamera;
         if (camera == null) camera = Find(director.transform);
         if (camera == null) camera = Create(director.transform);
 
-        ConfigureTpp(camera, so.FindProperty("idlePriority").intValue, inputActions);
+        ConfigureTpp(camera, so.FindProperty("idlePriority").intValue);
         var frozen = ConfigureQuarter(nightCamera);
 
         tppProperty.objectReferenceValue = camera;
@@ -124,140 +123,47 @@ public static class MatchCameraBuilder
 
     /// 값은 매번 다시 넣는다. 위 상수를 고치고 다시 돌리면 반영되어야 한다.
     ///
-    /// `CinemachineThirdPersonFollow`가 아니라 궤도를 쓴다. 어깨 추적기는 대상의 회전을
-    /// 그대로 따르도록 만들어져 있어서, 플레이어를 이동 방향으로 돌리는 이 프로젝트에서는
-    /// (`PlayerMove.StepMove`) 마우스가 끼어들 자리가 없다 — 화면이 고정된 것처럼 보인다.
-    /// 궤도는 마우스가 축을 직접 돌리고, 어깨 너머 구도는 Aim 뒤의 오프셋으로 만든다.
-    static void ConfigureTpp(CinemachineCamera camera, int idlePriority,
-                             InputActionEntry[] inputActions)
+    /// 리그는 `CinemachineThirdPersonFollow` 하나다. 위치·회전·어깨 오프셋이 전부 그 안에
+    /// 있어서, 예전의 궤도 + 회전 구성기 + 오프셋 + 디오클루더 넷이 하나로 줄었다.
+    ///
+    /// **Follow 대상은 여기서 정하지 않는다.** 어깨 추적기는 대상의 회전을 그대로 쓰는데,
+    /// 그 대상은 런타임에 스폰되는 플레이어의 자식 `PlayerCameraRoot`다. 스폰 시점에
+    /// `MatchCameraDirector`가 꽂는다.
+    static void ConfigureTpp(CinemachineCamera camera, int idlePriority)
     {
         // 우선순위는 `MatchCameraDirector`가 매 전환마다 다시 정한다. 여기서는 재생 전에
         // 이 카메라가 브레인을 뺏지 않도록 쉬는 값으로만 둔다.
         camera.Priority = idlePriority;
-
         camera.Lens.FieldOfView = TppFieldOfView;
 
-        Remove<CinemachineThirdPersonFollow>(camera.gameObject);
+        // 궤도 리그를 걷어낸다. 넷이 하던 일을 ThirdPersonFollow 하나가 한다.
+        Remove<CinemachineOrbitalFollow>(camera.gameObject);
+        Remove<CinemachineRotationComposer>(camera.gameObject);
+        Remove<CinemachineCameraOffset>(camera.gameObject);
+        Remove<CinemachineDeoccluder>(camera.gameObject);
 
-        var orbit = Ensure<CinemachineOrbitalFollow>(camera.gameObject);
-        orbit.TargetOffset = TppTargetOffset;
-        orbit.OrbitStyle = CinemachineOrbitalFollow.OrbitStyles.Sphere;
-        orbit.Radius = TppRadius;
+        // 마우스는 이제 플레이어의 카메라 축이 직접 읽는다 (`PlayerInputRouter` →
+        // `PlayerCameraRoot`). Starter Assets와 같은 방식이라 Cinemachine 입력 컴포넌트가
+        // 필요 없다. 감도도 축과 함께 산다.
+        Remove<LookSensitivity>(camera.gameObject);
+        Remove<CinemachineInputAxisController>(camera.gameObject);
 
-        orbit.HorizontalAxis.Range = new Vector2(-180f, 180f);
-        orbit.HorizontalAxis.Wrap = true;
+        var follow = Ensure<CinemachineThirdPersonFollow>(camera.gameObject);
+        follow.CameraDistance = TppCameraDistance;
+        follow.ShoulderOffset = TppShoulder;
+        follow.VerticalArmLength = TppVerticalArmLength;
+        follow.CameraSide = TppCameraSide;
+        follow.Damping = TppDamping;
 
-        orbit.VerticalAxis.Range = TppPitchRange;
-        orbit.VerticalAxis.Center = TppPitchStart;
-        orbit.VerticalAxis.Value = TppPitchStart;
+        // 카메라는 충돌을 보지 않는다. 숲이 빽빽해서(나무 콜라이더 656개) 켜 두면 나무에
+        // 닿지 않고 걷기만 해도 카메라가 계속 앞으로 당겨졌다 돌아온다 — 측정에서 정상
+        // 보행 중 33% 프레임이 3.5m를 못 지켰고 최소 0.02m까지 파고들었다.
+        follow.AvoidObstacles = new CinemachineThirdPersonFollow.ObstacleSettings { Enabled = false };
 
-        // 궤도는 위치만 정한다. 어디를 보는지는 Aim이 정해야 플레이어가 화면에 남는다.
-        Ensure<CinemachineRotationComposer>(camera.gameObject);
-
-        // 어깨 너머는 Aim 뒤에 거는 로컬 오프셋으로 만든다. 궤도 중심을 옆으로 밀면
-        // 카메라가 도는 축까지 같이 밀려 좌우 회전이 비뚤어진다.
-        var offset = Ensure<CinemachineCameraOffset>(camera.gameObject);
-        offset.ApplyAfter = CinemachineCore.Stage.Aim;
-        offset.Offset = TppShoulder;
-
-        // 마우스 감도는 설정 팝업이 이 컴포넌트를 통해 만진다. 카메라를 다시 세워도
-        // 붙어 있어야 한다 — 없으면 팝업의 감도 줄이 통째로 사라진다.
-        Ensure<LookSensitivity>(camera.gameObject);
-
-        // 벽이 끼면 카메라를 앞으로 당긴다. 언리얼 스프링암의 bDoCollisionTest 자리다.
-        // 없으면 나무와 카페 벽을 그냥 통과한다. 쿼터뷰는 붙이지 않는다 — 위에서 내려다보는
-        // 각이라 막힐 일이 드물고, 나무마다 카메라가 내려오면 그게 더 산만하다.
-        var deoccluder = Ensure<CinemachineDeoccluder>(camera.gameObject);
-        deoccluder.CollideAgainst = TppOccluders;
-        deoccluder.TransparentLayers = 0;
-        deoccluder.IgnoreTag = string.Empty;
-        deoccluder.MinimumDistanceFromTarget = 0.3f;
-
-        // 이 구조체에는 필드 초기화가 없어서 AddComponent 직후 Enabled가 false다. 통째로 넣는다.
-        deoccluder.AvoidObstacles = new CinemachineDeoccluder.ObstacleAvoidance
-        {
-            Enabled = true,
-            DistanceLimit = 0f,
-            MinimumOcclusionTime = 0f,
-            CameraRadius = TppCameraRadius,
-
-            // 궤도를 따라 앞으로 당긴다. 스프링암과 같은 해법이라 시점 비교의 기준이 흔들리지 않는다.
-            Strategy = CinemachineDeoccluder.ObstacleAvoidance.ResolutionStrategy.PullCameraForward,
-            MaximumEffort = 4,
-            SmoothingTime = 0f,
-            Damping = 0.4f,
-            DampingWhenOccluded = 0.2f,
-        };
-
-        // 대시 연출의 화면 흔들림은 임펄스로 온다(`DashVisuals`). 리스너가 없으면 이 시점만
-        // 조용해서, 시점을 비교하는 도중에 연출이 사라진 것처럼 보인다.
+        // 대시 연출의 화면 흔들림은 임펄스로 온다(`DashVisuals`).
         Ensure<CinemachineImpulseListener>(camera.gameObject);
 
-        WireInput(camera.gameObject, inputActions);
         EditorUtility.SetDirty(camera);
-    }
-
-    // ── 입력 ──────────────────────────────────────────────────────
-
-    /// 축 하나의 입력 배선. 이름이 열쇠다 — Cinemachine이 축마다 "Look Orbit X"처럼
-    /// 이름을 붙이고, 그 이름으로만 어느 축인지 알 수 있다.
-    readonly struct InputActionEntry
-    {
-        public readonly string Name;
-        public readonly InputActionReference Action;
-
-        public InputActionEntry(string name, InputActionReference action)
-        {
-            Name = name;
-            Action = action;
-        }
-    }
-
-    static InputActionEntry[] ReadInputActions(CinemachineCamera source)
-    {
-        var controller = source != null
-            ? source.GetComponent<CinemachineInputAxisController>()
-            : null;
-        if (controller == null) return System.Array.Empty<InputActionEntry>();
-
-        var entries = new InputActionEntry[controller.Controllers.Count];
-        for (var i = 0; i < entries.Length; i++)
-        {
-            var axis = controller.Controllers[i];
-            entries[i] = new InputActionEntry(axis.Name, axis.Input.InputAction);
-        }
-        return entries;
-    }
-
-    static void WireInput(GameObject go, InputActionEntry[] inputActions)
-    {
-        var controller = Ensure<CinemachineInputAxisController>(go);
-
-        // 축은 궤도 컴포넌트가 신고한다. 이 호출 전에는 목록이 비어 있어 감도를 넣을 곳이 없다.
-        controller.SynchronizeControllers();
-
-        var wired = 0;
-        foreach (var axis in controller.Controllers)
-        {
-            foreach (var entry in inputActions)
-            {
-                if (entry.Name != axis.Name || entry.Action == null) continue;
-
-                axis.Input.InputAction = entry.Action;
-                wired++;
-                break;
-            }
-
-            // 반경 축("Orbit Scale")은 건드리지 않는다. 마우스에 물리면 거리가 멋대로 변한다.
-            if (axis.Name.EndsWith(" X")) axis.Input.Gain = TppLookGain.x;
-            else if (axis.Name.EndsWith(" Y")) axis.Input.Gain = TppLookGain.y;
-        }
-
-        if (wired == 0)
-            Debug.LogWarning("TPP 카메라에 물릴 Input Action을 쿼터뷰에서 찾지 못했다. Inspector에서 "
-                           + "Cinemachine Input Axis Controller의 Input Action을 직접 지정한다.");
-
-        EditorUtility.SetDirty(controller);
     }
 
     // ── 쿼터뷰 ────────────────────────────────────────────────────

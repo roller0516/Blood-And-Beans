@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -120,7 +120,20 @@ public sealed class MatchHudPresenter
         // 대시는 밤과 낮 모두 쓴다 (기획서 11장 조작 표). 전환은 조작을 받지 않는다.
         if (phase.Current != Phase.Transition) FillDash(ref model);
 
-        model.Details = BuildDetails(team, cafe, board);
+        model.IsDay = phase.Current == Phase.Day;
+        if (model.IsDay && cafe != null)
+        {
+            model.Revenue = $"오늘 매출 {cafe.DaySales:N0} / {cafe.DayBill:N0}G";
+            model.RentMet = cafe.DayBill > 0 && cafe.DaySales >= cafe.DayBill;
+            model.DayRemaining = phase.Remaining;
+            model.ShowDash = false;
+            text.Clear();
+            if (board != null)
+                foreach (var rankedTeam in board.Ranking())
+                    text.Append($"{(rankedTeam == team ? "●" : "")} {DisplayNames.Team(rankedTeam)} {board.RevenueOf(rankedTeam):N0}   ");
+            model.Ranking = text.ToString();
+        }
+        model.Details = model.IsDay ? string.Empty : BuildDetails(team, cafe, board);
         model.Prompt = interactor != null && !string.IsNullOrEmpty(interactor.Prompt)
             ? $"[F] {interactor.Prompt}"
             : null;
@@ -132,10 +145,17 @@ public sealed class MatchHudPresenter
         text.Clear();
         if (phase.Current != Phase.Night && cafe != null) text.AppendLine(cafe.BuffSummary);
         if (character == null && cachedPlayer != null) character = cachedPlayer.GetComponent<PlayerCharacter>();
-        if (character != null && character.HasPick)
+        if (character != null && character.HasPick && phase.Current != Phase.Transition)
         {
             var skillName = phase.Current == Phase.Day ? character.Def.DayName : character.Def.NightName;
             text.AppendLine($"[1] {skillName} · {character.SkillCooldownRemaining:0.0}s");
+        }
+
+        if (phase.Current == Phase.Day && character != null)
+        {
+            var effect = character.ActiveDebuff;
+            if (effect >= 0 && effect < DayBalance.SkillNames.Length)
+                text.AppendLine($"방해 · {DayBalance.SkillNames[effect]} · {character.DebuffRemaining:0.0}초");
         }
 
         if (phase.Current == Phase.Transition && ledger != null)

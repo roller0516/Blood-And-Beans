@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -37,6 +37,11 @@ public class PlayerInputRouter : NetworkBehaviour
     InputAction dumpAction;
     InputAction buryAction;
     InputAction skillAction;
+    InputAction lookAction;
+
+    /// 이 플레이어의 카메라 축. 소유자만 돌린다 (`PlayerCameraRoot`).
+    PlayerCameraRoot cameraRoot;
+    public string SkillBinding => skillAction != null ? skillAction.GetBindingDisplayString() : string.Empty;
 
     public override void OnNetworkSpawn()
     {
@@ -47,6 +52,7 @@ public class PlayerInputRouter : NetworkBehaviour
         inventory = GetComponent<PlayerInventory>();
         dash = GetComponent<DashHarass>();
         character = GetComponent<PlayerCharacter>();
+        cameraRoot = GetComponentInChildren<PlayerCameraRoot>(true);
         moveAction = actions.FindAction("Player/Move", true);
         interactAction = actions.FindAction("Player/Interact", true);
         dashAction = actions.FindAction("Player/Jump", true);
@@ -64,6 +70,7 @@ public class PlayerInputRouter : NetworkBehaviour
         // 9.2가 밤 액티브를 정의하면서 그 문장은 낡았다. 차이를 보고만 하고 임의로 한쪽을
         // 바꾸지 않는다 (AGENTS.md) — 키는 9.2를 따라야 스킬이 존재할 수 있다.
         skillAction = actions.FindAction("Player/Previous", true);
+        lookAction = actions.FindAction("Player/Look", true);
 
         moveAction.performed += OnMove;
         moveAction.canceled += OnMove;
@@ -87,6 +94,7 @@ public class PlayerInputRouter : NetworkBehaviour
         dumpAction.performed -= OnDump;
         buryAction.performed -= OnBury;
         if (skillAction != null) skillAction.performed -= OnSkill;
+        if (cameraRoot != null) cameraRoot.Look = Vector2.zero;
     }
 
     /// 밤 액티브 스킬 (기획서 9.2). 쿨다운과 페이즈 검사는 전부 서버가 한다 —
@@ -129,6 +137,22 @@ public class PlayerInputRouter : NetworkBehaviour
         var raw = moveAction.ReadValue<Vector2>();
         if (raw.sqrMagnitude <= 0.0001f) return;
         Send(raw);
+    }
+
+    /// 마우스 델타를 카메라 축에 넘긴다 (Starter Assets의 `StarterAssetsInputs.look` 자리).
+    ///
+    /// `LateUpdate`인 이유는 축이 같은 타이밍에 회전을 적용하기 때문이다. `Update`에서
+    /// 넣으면 이번 프레임 것이 다음 프레임에 쓰여 한 박자 늦는다.
+    ///
+    /// 커서가 풀려 있으면 넣지 않는다. 그것이 곧 "지금 마우스는 UI 것"이라는 뜻이라
+    /// (`UIManager.ApplyInputGates`), 슬롯을 누르려 움직인 마우스가 시점까지 돌리지 않는다.
+    void LateUpdate()
+    {
+        if (!IsOwner || cameraRoot == null) return;
+
+        cameraRoot.Look = lookAction != null && Cursor.lockState == CursorLockMode.Locked && !Blocked
+            ? lookAction.ReadValue<Vector2>()
+            : Vector2.zero;
     }
 
     /// 화면 기준 입력을 월드 방향으로 돌려 보낸다.

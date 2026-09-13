@@ -259,12 +259,13 @@ public sealed class UICharacterSelectScreen : UIScreen
             if (seat >= stage.SeatCount) continue;
 
             stage.SetSeat(seat, member.Character);
+            stage.SetTeam(seat, member.Team);
 
             if (seat >= nameplates.Length || nameplates[seat] == null) continue;
 
             var plate = nameplates[seat];
-            var color = member.Team >= 0 && member.Team < palette.Length
-                ? palette[member.Team] : UITheme.PanelDeep;
+            var color = member.Team >= 0 && member.Team < teamSlots.Length
+                ? TeamColors.Of(member.Team) : UITheme.PanelDeep;
 
             // 방장에게는 준비 개념이 없다 (기획서 10.1). 로비는 방장을 항상 준비로 치므로
             // 걸러 주지 않으면 방장 머리 위에 「준비」가 계속 붙어 있다.
@@ -286,7 +287,7 @@ public sealed class UICharacterSelectScreen : UIScreen
     /// 방장은 시작 버튼을 쥐고 나머지는 준비를 누른다 — 둘이 같은 버튼 자리를 나눠 쓴다.
     public void SetLobby(bool isHost, bool canStart, bool selfReady, int readyNow, int total)
     {
-        if (waitLabel != null) waitLabel.text = "준비";
+        if (waitLabel != null) waitLabel.text = "준비한 크루";
         if (timer != null) timer.text = $"{readyNow}/{total}";
 
         if (confirmLabel != null)
@@ -463,7 +464,7 @@ public sealed class UICharacterSelectScreen : UIScreen
     void Select(int index, bool notify)
     {
         var all = CharacterCatalog.All;
-        if (index < 0 || index >= all.Length || index >= cards.Count) return;
+        if (index < 0 || index >= all.Length || index >= cards.Count || LockedAt(index)) return;
 
         selected = index;
         RefreshSelection();
@@ -489,8 +490,8 @@ public sealed class UICharacterSelectScreen : UIScreen
         get
         {
             var palette = UITheme.TeamColors;
-            return colorIndex >= 0 && colorIndex < palette.Length
-                ? palette[colorIndex] : UITheme.PanelDeep;
+            return colorIndex >= 0 && colorIndex < teamSlots.Length
+                ? TeamColors.Of(colorIndex) : UITheme.PanelDeep;
         }
     }
 
@@ -502,7 +503,7 @@ public sealed class UICharacterSelectScreen : UIScreen
         {
             if (teamSlots[i] == null) continue;
             var index = i;
-            var color = i < palette.Length ? palette[i] : UITheme.PanelDeep;
+            var color = TeamColors.Of(i);
             teamSlots[i].Bind($"팀 {i + 1}", color, () => SelectColor(index, true));
         }
     }
@@ -516,7 +517,7 @@ public sealed class UICharacterSelectScreen : UIScreen
             if (teamSlots[i] != null) teamSlots[i].SetSelected(i == index);
 
         if (nameplateSwatch != null && index < UITheme.TeamColors.Length)
-            nameplateSwatch.color = UITheme.TeamColors[index];
+            nameplateSwatch.color = TeamColors.Of(index);
 
         // 팀 색이 바뀌면 고른 카드도 따라 바뀐다.
         RefreshSelection();

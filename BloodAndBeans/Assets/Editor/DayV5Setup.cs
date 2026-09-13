@@ -77,6 +77,78 @@ public static class DayV5Setup
         return "공용 머신 3 / 오븐 2 / 개수대 3 / 재료함 2, 카페 마무리 칸 7 연결";
     }
 
+    public static string SetupDishRacks()
+    {
+        if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이를 종료한 뒤 적용한다.");
+        var cafe = PrefabUtility.LoadPrefabContents(CafePath);
+        try
+        {
+            var source = cafe.GetComponentInChildren<PrepIsland>(true);
+            for (var i = 0; i < 2; i++)
+            {
+                var rackName = i == 0 ? "CupRack" : "PlateRack";
+                if (cafe.transform.Find(rackName) != null) continue;
+                var root = Object.Instantiate(source.gameObject, cafe.transform);
+                root.name = rackName;
+                // ponytail: 카페 실치수는 14장 #4 미결. 기존 보관대 옆에 배치하고 레벨 확정 시 조정한다.
+                root.transform.localPosition = new Vector3(i == 0 ? -7 : 7, 0.5f, 4);
+                Object.DestroyImmediate(root.GetComponent<PrepIsland>());
+                var rack = root.AddComponent<DishRack>();
+                var serialized = new SerializedObject(rack);
+                serialized.FindProperty("plate").boolValue = i == 1;
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+            }
+            PrefabUtility.SaveAsPrefabAsset(cafe, CafePath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(cafe); }
+        return "카페 잔·접시 수령대 연결";
+    }
+    public static string SetupWorldGauges()
+    {
+        if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이를 종료한 뒤 적용한다.");
+        const string gaugePath = "Assets/Art/UI/Prefabs/Parts/UICompletionGauge.prefab";
+        if (AssetDatabase.LoadAssetAtPath<GameObject>(gaugePath) == null)
+        {
+            var hud = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab");
+            var fields = new SerializedObject(hud.GetComponent<UIMatchHudScreen>());
+            var source = (RectTransform)fields.FindProperty("completionBar").objectReferenceValue;
+            var root = new GameObject("UICompletionGauge", typeof(RectTransform), typeof(Canvas), typeof(UICompletionGauge));
+            try
+            {
+                var canvas = root.GetComponent<Canvas>();
+                canvas.renderMode = RenderMode.WorldSpace;
+                var rect = (RectTransform)root.transform;
+                rect.sizeDelta = new Vector2(420, 80);
+                rect.localScale = Vector3.one * 0.007f;
+                var bar = Object.Instantiate(source, root.transform, false);
+                bar.gameObject.SetActive(true);
+                bar.anchorMin = bar.anchorMax = bar.pivot = new Vector2(0.5f, 0.5f);
+                bar.anchoredPosition = Vector2.zero;
+                var serialized = new SerializedObject(root.GetComponent<UICompletionGauge>());
+                serialized.FindProperty("canvas").objectReferenceValue = canvas;
+                serialized.FindProperty("bar").objectReferenceValue = bar;
+                serialized.FindProperty("good").objectReferenceValue = bar.Find("GoodZone");
+                serialized.FindProperty("perfect").objectReferenceValue = bar.Find("PerfectZone");
+                serialized.FindProperty("needle").objectReferenceValue = bar.Find("Needle");
+                serialized.FindProperty("label").objectReferenceValue = bar.GetComponentInChildren<TMPro.TMP_Text>(true);
+                serialized.ApplyModifiedPropertiesWithoutUndo();
+                foreach (var graphic in root.GetComponentsInChildren<UnityEngine.UI.Graphic>(true)) graphic.raycastTarget = false;
+                PrefabUtility.SaveAsPrefabAsset(root, gaugePath);
+            }
+            finally { Object.DestroyImmediate(root); }
+        }
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(gaugePath);
+        var cafe = PrefabUtility.LoadPrefabContents(CafePath);
+        try
+        {
+            foreach (var gauge in cafe.GetComponentsInChildren<CompletionGauge>(true))
+                if (gauge.GetComponentInChildren<UICompletionGauge>(true) == null)
+                    PrefabUtility.InstantiatePrefab(prefab, gauge.transform);
+            PrefabUtility.SaveAsPrefabAsset(cafe, CafePath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(cafe); }
+        return "팀 전용 설비별 월드 게이지 연결";
+    }
     static void Hide(GameObject root)
     {
         foreach (var renderer in root.GetComponentsInChildren<Renderer>(true)) renderer.enabled = false;

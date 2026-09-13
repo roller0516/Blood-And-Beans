@@ -12,8 +12,16 @@ using UnityEngine;
 public class FogOfWar : NetworkBehaviour
 {
     [SerializeField] float cellSize = 1f;
-    [SerializeField] int halfCells = 120;       // 격자 범위: 월드 좌표 -120~120
     [SerializeField] float revealRadius = 7f;
+
+    /// 숲을 못 찾았을 때만 쓰는 임시 반경(칸). 실제 값은 `ApplyGrid`가 정한다.
+    const int FallbackHalfCells = 64;
+
+    /// 격자 반경(칸). **직렬화하지 않는다 — `MatchDirector.ForestSize`에서 유도한다.**
+    /// 예전에는 Inspector 값이었고, 숲이 60에서 100으로 커졌을 때 따라가지 않아 격자가
+    /// 맵의 51.8%만 덮었다. 스폰 자리(±44)와 상자 17개 중 3개가 격자 밖이었고, 밖은
+    /// `CellIndex`의 Clamp로 가장자리 한 줄에 접혀 「개척자의 딜레마」가 성립하지 않았다.
+    int halfCells = FallbackHalfCells;
     [SerializeField] float sampleInterval = 0.15f;
 
     /// 판 전체가 공유하는 걷힌 칸. 도메인 리로드를 꺼도 이전 플레이가 새어 나오지 않도록
@@ -73,6 +81,26 @@ public class FogOfWar : NetworkBehaviour
         sharedHalfCells = halfCells;
     }
 
+    /// 격자를 숲에 맞춘다. **숲만 덮는다** — 안개는 밤 전용이고(기획서 6.1) 카페는
+    /// 숲에서 `cafeAreaGap`만큼 떨어져 있어서, 카페까지 덮으려 들면 칸 수만 몇 배가 된다.
+    ///
+    /// 숲 절반에 `revealRadius`를 더한다. 가장자리에 선 플레이어가 걷는 원이 격자 밖으로
+    /// 나가면 그만큼이 경계 칸에 접혀 맵 밖을 걷은 것으로 기록된다.
+    void ApplyGrid(Vector2 forestSize)
+    {
+        var reach = Mathf.Max(forestSize.x, forestSize.y) * 0.5f + revealRadius;
+        var half = Mathf.Max(1, Mathf.CeilToInt(reach / Mathf.Max(0.01f, cellSize)));
+        if (half == halfCells) return;
+
+        halfCells = half;
+        sharedHalfCells = half;
+        sharedCellSize = cellSize;
+
+        // 규격이 바뀌면 옛 인덱스는 다른 칸을 가리킨다. 남겨 두면 엉뚱한 자리가 걷힌다.
+        Revealed.Clear();
+        Changed?.Invoke(null);
+    }
+
     /// 로컬 플레이어 없이도 답한다. 서버 판정이 `Local()`에 기대면 안 된다 — 로컬 플레이어가
     /// 아직 스폰되지 않았거나(씬 전환) 애초에 없으면(전용 서버) 검사가 통째로 열려 버려서,
     /// 안개 밖 상자를 누구나 여는 상태가 된다. 걷힌 칸은 어차피 전원이 공유한다(6.1-3).
@@ -108,7 +136,10 @@ public class FogOfWar : NetworkBehaviour
         if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
 
         director = next;
-        if (director != null) director.Phase.PhaseEntered += OnPhaseEntered;
+        if (director == null) return;
+
+        director.Phase.PhaseEntered += OnPhaseEntered;
+        ApplyGrid(director.ForestSize);
     }
 
     /// 로컬 플레이어의 안개. 클라이언트에서는 이 인스턴스가 채워져야 한다.

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using Unity.Netcode;
 using UnityEngine;
@@ -155,6 +155,8 @@ public class TransitionLedger : NetworkBehaviour
         var forecasts = new Forecast[TeamCount];
         for (var team = 0; team < TeamCount; team++)
         {
+            director.CafeOf(team)?.SetDayBudgetServer(revenueAtDayStart[team],
+                Rent.Due(dayClosing) + director.LedgerOf(team).Rent.Debt);
             forecasts[team] = Forecast.Build(seed, RegenPool(), menus, HeldByTeam(team), ordersPerDay);
             director.CafeOf(team)?.Queue?.SetDayPlanServer(forecasts[team]);
         }

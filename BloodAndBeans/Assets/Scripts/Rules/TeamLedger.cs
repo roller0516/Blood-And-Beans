@@ -1,4 +1,4 @@
-﻿/// 한 팀의 매치 내 상태: 얼마를 빚졌고 그 대가가 무엇인지.
+/// 한 팀의 매치 내 상태: 얼마를 빚졌고 그 대가가 무엇인지.
 ///
 /// 원래는 `static Dictionary<int, RentPenalty>`였고 플레이 세션보다 오래 살아남아 매치를
 /// 시작할 때마다 손으로 비워야 했다 (아키텍처_v1.0.md §1.5). MatchDirector가 소유하는
@@ -30,8 +30,8 @@ public class TeamLedger
 
     // --- 낮 (기획서 3.3) ---
 
-    /// 제작 시간에 곱하는 값이므로 속도 10% 감소는 제작 시간 1.1배다.
-    public float CraftSpeedScale => Penalty == RentPenalty.None ? 1f : 1.10f;
+    /// 제작 시간에 곱하는 값이므로 속도 10% 감소는 제작 시간 1/0.9배다 (기획서 3.3).
+    public float CraftSpeedScale => Penalty == RentPenalty.None ? 1f : 1f / 0.9f;
     public bool MachineDown => Penalty >= RentPenalty.Tier2;
     public bool BreaksDish => Penalty >= RentPenalty.Tier3;
 

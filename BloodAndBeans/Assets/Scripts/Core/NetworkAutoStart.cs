@@ -19,7 +19,7 @@ public class NetworkAutoStart : MonoBehaviour
 
     /// 전투 씬을 열어 둔 채 재생했다. 로비를 거칠 방법이 없으므로 바로 붙는다.
     bool StartedInGameScene() =>
-        lobby != null && SceneManager.GetActiveScene().name == lobby.GameScene;
+        lobby != null && lobby.IsGameScene(SceneManager.GetActiveScene().name);
 
     /// 지금 접속을 시작한다. 이미 떠 있으면 아무 일도 하지 않는다.
     public void StartNow()

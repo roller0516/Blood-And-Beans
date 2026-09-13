@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -7,8 +7,19 @@ public class PlayerInteractor : NetworkBehaviour
 {
     readonly List<IInteractable> candidates = new();
     IInteractable current;
+    PlayerCarry localCarry;
+    void Awake() => localCarry = GetComponent<PlayerCarry>();
 
-    public string Prompt => Nearest()?.Prompt ?? string.Empty;
+    public string Prompt
+    {
+        get
+        {
+            var target = Nearest();
+            if (target is SharedFacility facility && localCarry != null && localCarry.View.Dirty && !facility.Busy && facility.Kind != FacilityKind.Sink)
+                return "세척 필요";
+            return target?.Prompt ?? string.Empty;
+        }
+    }
 
     /// 지금 상호작용 중인 대상. `BeginClient`와 `EndClient` 사이에만 있다. 어떤 박스를
     /// 잡고 있는지 아는 유일한 지점이라 루팅 창을 여닫는 쪽이 여기를 읽는다.
@@ -63,6 +74,40 @@ public class PlayerInteractor : NetworkBehaviour
         else GetComponent<PlayerInventory>()?.DumpRpc();
     }
 
+    bool CanPrompt(MonoBehaviour target)
+    {
+        var director = MatchDirector.Instance;
+        if (director == null || director.Phase.Current != Phase.Day || localCarry == null) return true;
+        var held = localCarry.View;
+        if (target is SharedFacility facility)
+            return facility.Busy || (!localCarry.Reserved && CanUseFacility(facility.Kind, held));
+        if (localCarry.Reserved) return false;
+        if (target is DishRack rack) return held.Empty && !rack.SlotAt(0).Empty;
+        if (target is Counter) return held.IsProduct;
+        if (target is PrepIsland island) return !held.Empty || island.SlotCount > 0;
+        if (target is IngredientShelf shelf)
+            return shelf.LocalPlayerNear && shelf.SlotCountAt(0) > 0 && !held.Dirty &&
+                (held.IsProduct || (shelf.SlotItem(0) == Ingredient.BloodBean && held.HasDish && !held.DishIsPlate &&
+                    (held.Ingredient == Ingredient.None || held.Ingredient == Ingredient.Bean)));
+        if (target is PlayerCarry other) return !other.Reserved && (!held.Empty || !other.View.Empty);
+        return true;
+    }
+    // 기획서 5.7.4: 손 상태로 불가능한 프롬프트는 숨긴다. 실행 권한은 RPC가 재검증한다.
+    public static bool CanUseFacility(FacilityKind kind, CarryView held)
+    {
+        if (!held.HasDish) return false;
+        if (kind == FacilityKind.Sink) return held.Dirty || held.IsProduct || held.Ingredient != Ingredient.None;
+        if (held.Dirty) return true; // 「세척 필요」는 예외 안내다.
+        if (held.IsProduct) return false;
+        return kind switch
+        {
+            FacilityKind.Beans => !held.DishIsPlate && held.Ingredient == Ingredient.None,
+            FacilityKind.Bread => held.DishIsPlate && held.Ingredient == Ingredient.None,
+            FacilityKind.Coffee => !held.DishIsPlate && (held.Ingredient == Ingredient.Bean || held.Ingredient == Ingredient.BloodBean),
+            FacilityKind.Oven => held.DishIsPlate && held.Ingredient == Ingredient.BreadBase,
+            _ => false,
+        };
+    }
     IInteractable Nearest()
     {
         IInteractable best = null;
@@ -76,6 +121,7 @@ public class PlayerInteractor : NetworkBehaviour
             }
             if (behaviour is PlayerCarry carry &&
                 (carry.OwnerClientId == OwnerClientId || PlayerTeam.Of(carry.OwnerClientId) != PlayerTeam.Local())) continue;
+            if (!CanPrompt(behaviour)) continue;
             var distance = Vector3.SqrMagnitude(transform.position - behaviour.transform.position);
             if (distance >= bestDistance) continue;
             best = candidates[i];

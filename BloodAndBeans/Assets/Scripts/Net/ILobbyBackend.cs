@@ -108,6 +108,9 @@ public interface ILobbyBackend
     /// 방장 전용. 방을 잠가 목록에서 뺀다. 서버는 아직 뜨지 않았다.
     void CloseRoom();
 
+    // 매치 연결만 끝내고 같은 방에서 다시 준비한다 (기획서 4.3).
+    void ReopenRoom();
+
     /// 방장 전용. 「여기로 붙어라」를 알린다. 서버가 뜬 뒤에 부른다 — 먼저 알리면 손님이
     /// 아직 없는 서버로 접속한다.
     void AnnounceServer();

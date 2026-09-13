@@ -28,8 +28,11 @@ public static class RegenTable
     ///
     /// ponytail: 지금은 기본 맵 한 벌뿐이다. 실제 맵이 정해지면 그 맵의 ID로 항목을
     /// 추가한다 — `DT_Regen`이 생기면 이 표 자체를 데이터 에셋으로 옮긴다.
+    public const string BerryGroveMapId = "berry-grove";
+
     static readonly Dictionary<string, Ingredient[]> ByMap = new()
     {
+        [BerryGroveMapId] = new[] { Ingredient.Milk, Ingredient.Cream, Ingredient.Berry, Ingredient.Ice },
         [DefaultMapId] = new[]
         {
             Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate,

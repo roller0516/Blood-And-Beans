@@ -7,6 +7,9 @@ public static class DayBalance
     public static readonly int Machines = 3;
     public static readonly int Sinks = 3;
     public static readonly int BuffDays = 3;
+    // 기획서 5.7.2: 인내심 링의 촉박·위급 경계.
+    public static readonly float PatienceWarning = 0.5f;
+    public static readonly float PatienceUrgent = 0.2f;
 
     // ponytail: 14장 #41~43 미결. 임시 플레이를 사용자 승인으로 적용하며 확정 시 이 표를 교체한다.
     public static readonly float BuffSpeed = 1.2f;

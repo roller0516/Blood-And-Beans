@@ -1,4 +1,4 @@
-using NUnit.Framework;
+﻿using NUnit.Framework;
 
 /// 기획서 6.5.1 (개봉·담기 홀드) / 6.6 (대시 중단) / 6.7 (무게 → 이동속도).
 public class NightRuleTests
@@ -168,5 +168,20 @@ public class NightRuleTests
     public void TheShiftCannotFallOffTheTable()
     {
         Assert.AreEqual(0.01f, LoadBands.SpeedMultiplierShifted(5f, true), 0.0001f);
+    }
+
+    /// 기획서 6.3: 바깥은 1등급 위주, 중심은 3등급. 상자가 밤마다 자리를 옮기므로
+    /// (`MatchDirector.ScatterBoxesServer`) 자리와 등급이 같은 표에서 나와야 한다.
+    [Test]
+    public void ForestRingWeightsFollowDistanceFromCentre()
+    {
+        var core = ForestRings.WeightsFor(0f);
+        var mid = ForestRings.WeightsFor(0.4f);
+        var outer = ForestRings.WeightsFor(1f);
+
+        Assert.That(core.T3, Is.GreaterThan(core.T1), "중심은 3등급이 잘 나와야 한다");
+        Assert.That(mid.T2, Is.GreaterThan(mid.T1).And.GreaterThan(mid.T3));
+        Assert.That(outer.T1, Is.GreaterThan(outer.T3), "바깥은 1등급 위주다");
+        Assert.That(outer.T3, Is.Zero, "숲 끝에서 3등급이 나오면 중심에 갈 이유가 없다");
     }
 }

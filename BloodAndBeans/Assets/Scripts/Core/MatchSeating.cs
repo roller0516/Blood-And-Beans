@@ -33,6 +33,9 @@ public class MatchSeating
     /// 자리를 잡지 않으면 두 클라이언트가 같은 마지막 자리를 동시에 통과할 수 있다.
     readonly Dictionary<ulong, int> reservedSeats = new();
 
+    readonly Dictionary<ulong, int> characters = new();
+    public int CharacterOf(ulong clientId) => characters.TryGetValue(clientId, out var pick) ? pick : CharacterCatalog.NoPick;
+
     TeamSeats seats;
     int forcedSeat = NoForcedSeat;
 
@@ -89,6 +92,7 @@ public class MatchSeating
         TeamCount = count;
         seats = new TeamSeats(TeamCount, playersPerTeam);
         reservedSeats.Clear();
+        characters.Clear();
         if (forcedSeat >= TeamCount) forcedSeat = NoForcedSeat;
     }
 
@@ -112,7 +116,13 @@ public class MatchSeating
 
     /// 클라이언트가 고른 팀을 접속 승인 페이로드로 싣고 푸는 단 한 쌍. 로비와 서버가 같은
     /// 형식을 쓰게 하려고 여기 둔다.
-    public static byte[] EncodeTeamRequest(int team) => BitConverter.GetBytes(team);
+    public static byte[] EncodeTeamRequest(int team, int character = CharacterCatalog.NoPick)
+    {
+        var payload = new byte[sizeof(int) * 2];
+        BitConverter.GetBytes(team).CopyTo(payload, 0);
+        BitConverter.GetBytes(character).CopyTo(payload, sizeof(int));
+        return payload;
+    }
 
     public static int DecodeTeamRequest(byte[] payload) =>
         payload != null && payload.Length >= sizeof(int)
@@ -135,6 +145,12 @@ public class MatchSeating
             return;
         }
 
+        var pick = request.Payload != null && request.Payload.Length >= sizeof(int) * 2
+            ? BitConverter.ToInt32(request.Payload, sizeof(int)) : CharacterCatalog.NoPick;
+        if (!CharacterCatalog.IsValid(pick)) pick = CharacterCatalog.NoPick;
+        foreach (var entry in reservedSeats)
+            if (entry.Value == seat && CharacterOf(entry.Key) == pick) pick = CharacterCatalog.NoPick;
+        characters[request.ClientNetworkId] = pick;
         reservedSeats[request.ClientNetworkId] = seat;
         response.Approved = true;
         response.CreatePlayerObject = true;
@@ -147,6 +163,7 @@ public class MatchSeating
         if (!reservedSeats.TryGetValue(clientId, out var seat)) return;
 
         reservedSeats.Remove(clientId);
+        characters.Remove(clientId);
         seats.Release(seat);
     }
 

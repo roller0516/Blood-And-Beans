@@ -84,7 +84,6 @@ public class FogRenderer : MonoBehaviour
         if (!ReferenceEquals(next, fog))
         {
             fog = next;
-            if (mask == null) Build();
             Subscribe();
             RebuildFromState();
         }
@@ -123,6 +122,10 @@ public class FogRenderer : MonoBehaviour
     /// 현재 걷힘 상태를 마스크에 그대로 옮긴다. 밤 초기화와 늦은 합류 스냅샷이 쓴다.
     void RebuildFromState()
     {
+        // 격자는 숲 크기에서 유도되므로 바인딩 뒤에 바뀔 수 있다 (`FogOfWar.ApplyGrid`).
+        // 낡은 크기의 텍스처를 그대로 쓰면 월드 좌표가 엉뚱한 텍셀로 떨어진다.
+        if (mask == null || mask.width != fog.Side) Build();
+
         var count = fog.Side * fog.Side;
         for (int c = 0; c < count; c++) cells[c] = fog.IsRevealedCell(c) ? Revealed : Hidden;
         maskDirty = true;

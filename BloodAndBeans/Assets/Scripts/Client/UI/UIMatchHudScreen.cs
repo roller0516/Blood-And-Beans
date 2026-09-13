@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -124,6 +124,15 @@ public sealed class UIMatchHudScreen : UIScreen
 
     /// 이번 경보의 종을 이미 울렸는가. 경보가 꺼지면 풀려서 다음 밤에 다시 울린다.
     bool alarmRung;
+    [Header("낮 상단 띠")]
+    [SerializeField] GameObject dayHeader;
+    [SerializeField] TMP_Text dayRanking;
+    [SerializeField] TMP_Text dayClock;
+    [SerializeField] TMP_Text dayRevenue;
+    [SerializeField] GameObject[] nightHeader;
+    [SerializeField] Color rentMetColor = new(0.45f, 0.85f, 0.5f);
+    // ponytail: 경고 시점은 PDF 목업의 30초. 밸런스 확정 시 인스펙터에서 조정한다.
+    [SerializeField] float rentWarningSeconds = 30f;
 
     /// 가방 연출의 목적지. 절대 null이 아니다.
     public RectTransform BagAnchor => bagIcon;
@@ -153,6 +162,16 @@ public sealed class UIMatchHudScreen : UIScreen
     /// 부르는 쪽이 기억해야 한다.
     public void Render(in MatchHudModel model)
     {
+        if (dayHeader != null) dayHeader.SetActive(model.IsDay);
+        if (nightHeader != null) foreach (var part in nightHeader) if (part != null) part.SetActive(!model.IsDay);
+        if (model.IsDay)
+        {
+            SetText(dayRanking, model.Ranking);
+            SetText(dayClock, $"{model.Day}   {model.Timer.Split('.')[0]}");
+            SetText(dayRevenue, model.Revenue);
+            if (dayRevenue != null) dayRevenue.color = model.RentMet ? rentMetColor :
+                model.DayRemaining <= rentWarningSeconds ? Color.Lerp(accent, alarmColor, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f)) : accent;
+        }
         SetText(dayText, model.Day);
         SetText(phaseText, model.PhaseName);
         SetText(timerText, model.Timer);
@@ -321,6 +340,10 @@ public sealed class UIMatchHudScreen : UIScreen
 /// 넘기면 어느 칸에 무엇이 들어갈지를 화면이 다시 파싱해야 한다.
 public struct MatchHudModel
 {
+    public bool IsDay;
+    public bool RentMet;
+    public float DayRemaining;
+    public string Ranking;
     public string Day;          // "2일차"
     public string PhaseName;    // "야간 탐색"
     public string Timer;        // "02:46.021"

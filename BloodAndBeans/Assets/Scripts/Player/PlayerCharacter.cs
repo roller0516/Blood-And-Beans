@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 
 /// 플레이어 한 명이 고른 캐릭터와 그 능력 (기획서 9장).
@@ -57,6 +57,7 @@ public class PlayerCharacter : NetworkBehaviour
     /// 마지막으로 이동에 밀어 넣은 패시브 배수. 같은 값을 매번 다시 밀지 않는다.
     float pushedPassiveScale = 1f;
 
+    public event System.Action<int> CharacterChanged;
     public int Index => character.Value;
     public bool HasPick => CharacterCatalog.IsValid(character.Value);
 
@@ -89,12 +90,8 @@ public class PlayerCharacter : NetworkBehaviour
         MatchDirector.Bind(BindDirector);
         character.OnValueChanged += OnCharacterChanged;
 
-        // 로비에서 고른 값을 지금 넘긴다. 선택 화면은 플레이어 오브젝트가 서기 전에도
-        // 열리므로(타이틀 씬) 픽이 `SteamLobby`에 보관돼 있다.
-        if (!IsOwner) return;
-
-        var pending = GameManager.SelectedCharacter;
-        if (CharacterCatalog.IsValid(pending)) PickRpc(pending);
+        // 접속 승인 때 고정한 픽만 서버에서 적용한다 (기획서 9.3).
+        if (IsServer) character.Value = GameManager.Seating.CharacterOf(OwnerClientId);
     }
 
     public override void OnNetworkDespawn()
@@ -136,8 +133,9 @@ public class PlayerCharacter : NetworkBehaviour
         }
     }
 
-    void OnCharacterChanged(int _, int __)
+    void OnCharacterChanged(int _, int index)
     {
+        CharacterChanged?.Invoke(index);
         if (IsServer) PushPassiveScaleServer();
     }
 
@@ -148,7 +146,7 @@ public class PlayerCharacter : NetworkBehaviour
     [Rpc(SendTo.Server)]
     public void PickRpc(int index, RpcParams p = default)
     {
-        if (p.Receive.SenderClientId != OwnerClientId) return;
+        if (p.Receive.SenderClientId != OwnerClientId || director != null) return;
         if (!CharacterCatalog.IsValid(index)) return;
 
         // 팀 내 중복 픽 금지 (기획서 9.1). 판정이 여기 한 곳뿐이라 동시에 같은 칸을
@@ -231,6 +229,9 @@ public class PlayerCharacter : NetworkBehaviour
 
     readonly NetworkVariable<int> debuff = new(-1, NetworkVariableReadPermission.Owner);
     readonly NetworkVariable<double> debuffUntil = new(0d, NetworkVariableReadPermission.Owner);
+    public float DebuffRemaining => NetworkManager == null || !IsSpawned ? 0f :
+        Mathf.Max(0f, (float)(debuffUntil.Value - NetworkManager.ServerTime.Time));
+    public int ActiveDebuff => DebuffRemaining > 0f ? debuff.Value : -1;
     public int DaySkillIndex => HasPick ? Index % DayBalance.SkillNames.Length : -1;
     public bool AffectedBy(int effect) => debuff.Value == effect && NetworkManager != null &&
         NetworkManager.ServerTime.Time < debuffUntil.Value;
@@ -349,8 +350,10 @@ public class PlayerCharacter : NetworkBehaviour
     /// (기획서 6.5.3) 뒤에 오는 사람도 그대로 본다.
     bool AppraiseServer()
     {
+        if (director == null) return false;
+
         var hit = false;
-        foreach (var box in FindObjectsByType<ItemBox>(FindObjectsSortMode.None))
+        foreach (var box in director.Boxes)
         {
             if (box == null || !box.NetworkObject.IsSpawned) continue;
             if (Vector3.Distance(box.transform.position, transform.position) > appraiseRadius) continue;

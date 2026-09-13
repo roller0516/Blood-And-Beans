@@ -13,14 +13,22 @@ public class PlayerLook : NetworkBehaviour
     /// 캐릭터는 팀을 한눈에 알아봐야 하므로 카페와 달리 그대로 물들인다.
     [SerializeField, Range(0f, 1f)] float tintStrength = 1f;
 
+    [SerializeField] CharacterVisualConfig visuals;
+    [SerializeField] Transform modelRoot;
+    [SerializeField] GameObject defaultModel;
+    PlayerCharacter character;
+    GameObject model;
+    CharacterModel appearance;
     PlayerTeam playerTeam;
     Tween flash;
 
-    void Awake() => playerTeam = GetComponent<PlayerTeam>();
+    void Awake() { playerTeam = GetComponent<PlayerTeam>(); character = GetComponent<PlayerCharacter>(); }
 
     public override void OnNetworkSpawn()
     {
         playerTeam.TeamChanged += Apply;
+        character.CharacterChanged += SetCharacter;
+        SetCharacter(character.Index);
         Apply(playerTeam.Team);
     }
 
@@ -29,6 +37,7 @@ public class PlayerLook : NetworkBehaviour
         flash?.Kill();
         flash = null;
         if (playerTeam != null) playerTeam.TeamChanged -= Apply;
+        if (character != null) character.CharacterChanged -= SetCharacter;
     }
 
     /// 잠깐 다른 색으로 물들였다가 팀 색으로 되돌린다. 대시에 맞은 순간을 알리는 데 쓴다.
@@ -41,10 +50,28 @@ public class PlayerLook : NetworkBehaviour
 
         var team = TeamColors.Of(playerTeam.Team);
         flash = DOVirtual.Color(color, team, Mathf.Max(0.01f, seconds),
-                                c => TeamColors.TintWith(gameObject, c, tintStrength))
+                                Tint)
                          .SetLink(gameObject)
                          .OnKill(() => Apply(playerTeam.Team));
     }
 
-    void Apply(int team) => TeamColors.Tint(gameObject, team, tintStrength);
+    void SetCharacter(int index)
+    {
+        if (visuals == null || modelRoot == null) return;
+        if (model != null) { model.SetActive(false); Destroy(model); }
+        model = CharacterCatalog.IsValid(index)
+            ? visuals.SpawnModel(CharacterCatalog.All[index].Day, modelRoot, gameObject.layer) : null;
+        appearance = model != null ? model.GetComponent<CharacterModel>() : null;
+        if (defaultModel != null) defaultModel.SetActive(model == null);
+        Apply(playerTeam.Team);
+    }
+
+    void Apply(int team) => Tint(TeamColors.Of(team));
+
+    void Tint(Color color)
+    {
+        if (appearance != null) appearance.Tint(color, tintStrength);
+        else if (model == null && defaultModel != null)
+            TeamColors.TintWith(defaultModel, color, tintStrength);
+    }
 }

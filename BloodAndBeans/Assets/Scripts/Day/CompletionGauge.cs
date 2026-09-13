@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 using UnityEngine;
 
 public enum Judgement { Perfect, Good, Miss, Burnt }
@@ -14,6 +14,8 @@ public class CompletionGauge : NetworkBehaviour
     [SerializeField] float sweepsPerSecond = 1.4f;
     [SerializeField] float perfectHalfWidth = 0.05f;   // 중앙 0.5로부터의 거리
     [SerializeField] float goodHalfWidth = 0.16f;
+    // ponytail: 팀원 보조 거리는 설비 기본 사거리와 같게 시작한다. 레벨 확정 시 조정한다.
+    [SerializeField] float assistReach = 2.5f;
 
     readonly NetworkVariable<bool> active = new();
     readonly NetworkVariable<double> startedAt = new();
@@ -25,14 +27,7 @@ public class CompletionGauge : NetworkBehaviour
     /// 서버 전용. Station이 구독해서 제작 결과를 받는다.
     public System.Action<Judgement> OnResult;
 
-    // ponytail: F 한 번은 *자기 카페의* 살아 있는 게이지 중 가장 오래된 것을 멈춘다.
-    // 내 기계 둘이 동시에 끝나면 오래된 것부터 처리된다. 플레이에서 어색하면 설비별
-    // 조준을 추가한다.
-    //
-    // 후보 집합은 이 카페의 게이지뿐이다. 예전에는 모든 카페의 게이지를 담은 static
-    // 리스트였고, 그래서 카페 B의 게이지가 더 오래됐을 때 카페 A의 플레이어가 B의 오븐을
-    // 판정했다 (아키텍처_v1.0.md §1.2). 지나치게 넓은 목록을 필터링하는 대신 목록 자체를
-    // 좁혀서 틀릴 여지를 없앴다.
+    // 기획서 5.2: 로컬 입력은 점유자 기준이며 팀원 보조는 서버가 거리로 검증한다.
     Cafe cafe;
 
     /// 조립 루트는 전역이 아니라 소속 카페에서 받는다. 설비마다 따로 찾으면 카페별로
@@ -100,13 +95,24 @@ public class CompletionGauge : NetworkBehaviour
         var cafe = director.CafeOf(team);
         if (cafe == null) return null;
 
-        CompletionGauge best = null;
+        var manager = NetworkManager.Singleton;
+        if (manager == null) return null;
+        foreach (var g in cafe.Gauges)
+            if (g != null && g.IsDay && g.station != null && g.station.OperatorId == manager.LocalClientId)
+                return g.Active ? g : null;
+        var player = manager.LocalClient?.PlayerObject;
+        if (player == null) return null;
+        CompletionGauge nearest = null;
+        var distance = float.MaxValue;
         foreach (var g in cafe.Gauges)
         {
-            if (g == null || !g.active.Value || !g.IsDay) continue;
-            if (best == null || g.startedAt.Value < best.startedAt.Value) best = g;
+            if (g == null || !g.Active || !g.IsDay || g.station == null) continue;
+            var candidate = Vector3.Distance(player.transform.position, g.station.FacilityPosition);
+            if (candidate > g.assistReach || candidate >= distance) continue;
+            nearest = g;
+            distance = candidate;
         }
-        return best;
+        return nearest;
     }
 
     public static bool TryStopLocalClient()
@@ -126,7 +132,12 @@ public class CompletionGauge : NetworkBehaviour
         if (!IsDay || !active.Value || TeamId < 0) return;
         if (PlayerTeam.Of(p.Receive.SenderClientId) != TeamId) return;
 
-        Finish(JudgeFor(p.Receive.SenderClientId));
+        // 기획서 5.2: 점유자의 게이지를 멈춘다. 팀원은 설비 옆에서 도울 수 있다.
+        var sender = p.Receive.SenderClientId;
+        var player = Station.PlayerOf(sender);
+        if (player == null || (sender != station.OperatorId &&
+            Vector3.Distance(player.position, station.FacilityPosition) > assistReach)) return;
+        Finish(Remaining <= 0f ? Judgement.Burnt : JudgeFor(p.Receive.SenderClientId));
     }
 
     void Finish(Judgement j)

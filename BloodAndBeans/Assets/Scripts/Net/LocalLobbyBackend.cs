@@ -376,6 +376,14 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         Write();
     }
 
+    public void ReopenRoom()
+    {
+        if (!IsHost) return;
+        self.live = false;
+        self.serverId = 0;
+        Write();
+    }
+
     public void AnnounceServer()
     {
         self.serverId = self.id;
@@ -386,10 +394,11 @@ public sealed class LocalLobbyBackend : ILobbyBackend
     /// 여기서 오르지 않는다.
     void NotifyMatchStart()
     {
-        if (announced || !InRoom || IsHost) return;
+        if (!InRoom || IsHost) return;
 
         var host = Host();
-        if (host == null || host.serverId == 0) return;
+        if (host == null || host.serverId == 0) { announced = false; return; }
+        if (announced) return;
 
         announced = true;
         MatchStarted?.Invoke(host.serverId);

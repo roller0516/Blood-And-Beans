@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
@@ -44,7 +44,8 @@ public sealed class TitlePresenter
         lobby.MatchStarting += OnMatchStarting;
         SubscribeToNetwork();
 
-        OpenScreen<UITitleMenuScreen>();
+        if (lobby.InRoom) EnterRoom();
+        else OpenScreen<UITitleMenuScreen>();
     }
 
     public void Disable()
@@ -220,7 +221,7 @@ public sealed class TitlePresenter
                     lobby.SelectedCharacter,
                     lobby.SelectedTeam,
                     lobby.SuggestedRoomName,
-                    "NIGHT ACTIVE",
+                    "밤  /  탐색 스킬",
                     "밤 액티브는 키보드 1로 쓴다 (기획서 9.2)",
                     SelectCharacter, SelectTeam, StartOrReady, LeaveRoom);
                 break;
@@ -256,7 +257,7 @@ public sealed class TitlePresenter
     static Color TeamColorOf(int team)
     {
         var palette = UITheme.TeamColors;
-        return team >= 0 && team < palette.Length ? palette[team] : UITheme.PanelDeep;
+        return team >= 0 && team < palette.Length ? TeamColors.Of(team) : UITheme.PanelDeep;
     }
 
     void Render()
@@ -276,7 +277,7 @@ public sealed class TitlePresenter
                 room.Render(lobby.RoomName, status, lobby.Members, lobby.SelectedTeam,
                             lobby.PlayersPerTeam, lobby.IsRoomHost, lobby.CanStartMatch,
                             lobby.OccupancyOf, lobby.TeamHasRoom,
-                            lobby.SelfReady, lobby.ReadyCount);
+                            lobby.SelfReady, lobby.ReadyCount, lobby.ReadyTotal);
                 break;
 
             // 대기실이 곧 이 화면이다. 남의 픽과 준비 수는 스팀 로비 멤버 데이터가
@@ -285,7 +286,7 @@ public sealed class TitlePresenter
                 pick.SetClaims(Claims());
                 pick.SetRoster(lobby.Members);
                 pick.SetLobby(lobby.IsRoomHost, lobby.CanStartMatch, lobby.SelfReady,
-                              lobby.ReadyCount, lobby.Members.Count);
+                              lobby.ReadyCount, lobby.ReadyTotal);
                 break;
         }
     }

@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -24,9 +24,14 @@ public class CustomerQueue : NetworkBehaviour
     [SerializeField] int maxWaiting = 4;
     [SerializeField] float spawnSeconds = 8f;   // ponytail: 임시값, 기획서 14장 #1
     [SerializeField] float slotSpacing = 1.5f;
+    // ponytail: 계단식 대기열 깊이 초안. 카운터 실치수 확정 후 조정한다 (5.7.2).
+    [SerializeField] float slotStagger = 0.45f;
 
     // ponytail: 탄 것을 팔았을 때의 인내심 감소는 기획서 14장 #6, 아직 미결정이다.
     [SerializeField] float burntPatiencePenalty = 10f;
+
+    // ponytail: 회복량은 14장 #22 미결. 기존 25%를 유지하며 확정 시 조정한다.
+    [SerializeField, Range(0f, 1f)] float perfectPatienceRecovery = 0.25f;
 
     readonly List<Customer> waiting = new();
     public IReadOnlyList<Customer> Waiting => waiting;
@@ -86,6 +91,7 @@ public class CustomerQueue : NetworkBehaviour
         var team = myCafe != null ? myCafe.TeamId : -1;
         myCafe?.Director?.ShowToTeamServer(c.NetworkObject, team);
         waiting.Add(c);
+        c.SetQueueIndexServer(waiting.Count - 1);
 
         var next = planned.Dequeue();
         var menu = Menus.All[next.menu];
@@ -110,7 +116,7 @@ public class CustomerQueue : NetworkBehaviour
                 planned.Enqueue((forecast.Races[i], forecast.Orders[i]));
     }
 
-    Vector3 SlotPosition(int index) => transform.position + transform.right * (index * slotSpacing);
+    Vector3 SlotPosition(int index) => transform.position + transform.right * (index * slotSpacing) + transform.forward * (index % 2 * slotStagger);
 
     void Leave(int index)
     {
@@ -128,15 +134,7 @@ public class CustomerQueue : NetworkBehaviour
     void Reflow()
     {
         for (int i = 0; i < waiting.Count; i++)
-            if (waiting[i] != null) waiting[i].transform.position = SlotPosition(i);
-    }
-
-    public void RestoreFrontServer()
-    {
-        if (!IsServer || waiting.Count == 0) return;
-        // 최대치의 몫으로 회복시킨다. 종족표를 다시 읽으면 「인기 카페」로 늘어난 몫이
-        // 빠져서, 패시브가 걸린 팀만 Perfect 회복이 상대적으로 작아진다.
-        waiting[0].AddPatienceServer(waiting[0].PatienceMax * 0.25f);
+            if (waiting[i] != null) { waiting[i].transform.position = SlotPosition(i); waiting[i].SetQueueIndexServer(i); }
     }
 
     /// 서버 권위 서빙. 누군가 물건을 받았으면 true를 돌려준다.
@@ -150,6 +148,8 @@ public class CustomerQueue : NetworkBehaviour
         if (index < 0) return false;
 
         var c = waiting[index];
+        if (!item.Burnt && Mathf.Approximately(item.GaugeMultiplier, CompletionGauge.MultiplierOf(Judgement.Perfect)))
+            c.AddPatienceServer(c.PatienceMax * perfectPatienceRecovery);
         Served?.Invoke(new ServeInfo
         {
             Menu = item.Menu,
