@@ -1,4 +1,4 @@
-﻿/// 사용자에게 보이는 이름. 재료와 손님 종족의 한글 표기를 한 곳에 모은다.
+/// 사용자에게 보이는 이름. 재료와 손님 종족의 한글 표기를 한 곳에 모은다.
 ///
 /// 화면마다 문자열을 박아 두면 같은 재료가 화면에 따라 다른 이름으로 나온다. 규칙과
 /// 같은 어셈블리에 두는 이유는 이름의 출처가 기획서 표이고(7.1 재료 · 5.5 손님 종족),
@@ -17,6 +17,19 @@ public static class DisplayNames
     {
         "좀비", "뱀파이어", "유령", "해골", "늑대인간", "마녀",
     };
+
+    // 기획서 7.2 메뉴 표. `MenuId` 열거자 순서와 같아야 한다.
+    static readonly string[] MenuNames =
+    {
+        "핫 아메리카노", "아이스 아메리카노", "카페라떼", "아인슈페너", "카페모카", "아이스라떼",
+        "초코 브라우니", "아몬드 쿠키", "크림 케이크", "베리 타르트", "아이스모카",
+    };
+
+    public static string Of(MenuId menu)
+    {
+        var i = (int)menu;
+        return i >= 0 && i < MenuNames.Length ? MenuNames[i] : "—";
+    }
 
     public static string Of(Ingredient item)
     {

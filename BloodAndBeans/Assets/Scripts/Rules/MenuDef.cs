@@ -7,6 +7,7 @@ public enum MenuId
     None = -1,
     HotAmericano, IcedAmericano, CafeLatte, Einspanner, CafeMocha, IcedLatte,
     ChocoBrownie, AlmondCookie, CreamCake, BerryTart,
+    IcedMocha,
 }
 
 [System.Flags]
@@ -31,23 +32,23 @@ public readonly struct MenuDef
     }
 }
 
-/// 기획서 7.2의 메뉴 10종을 재료 집합으로 표현한 표. Day/와 Economy/가 함께 읽는다.
+/// 기획서 7.2의 메뉴 11종을 재료 집합으로 표현한 표. Day/와 Economy/가 함께 읽는다.
 public static class Menus
 {
-    // ponytail: 가격은 임시값이다 (기획서 14장에 가격표가 없다). 확정된 제약은
-    // 아메리카노만으로는 임대료를 감당할 수 없어야 한다는 것뿐이다. 나중에 DT_Menu로 옮긴다.
+    // 기획서 7.2의 기본가. 조합법 표시와 판매 정산이 같은 표를 쓴다.
     public static readonly MenuDef[] All =
     {
-        new(MenuId.HotAmericano,  30, Ingredient.Bean),
-        new(MenuId.IcedAmericano, 35, Ingredient.Bean, Ingredient.Ice),
-        new(MenuId.CafeLatte,     50, Ingredient.Bean, Ingredient.Milk),
-        new(MenuId.Einspanner,    60, Ingredient.Bean, Ingredient.Cream),
-        new(MenuId.CafeMocha,     70, Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate),
-        new(MenuId.IcedLatte,     65, Ingredient.Bean, Ingredient.Milk, Ingredient.Ice),
-        new(MenuId.ChocoBrownie,  55, Ingredient.BreadBase, Ingredient.Chocolate),
-        new(MenuId.AlmondCookie,  50, Ingredient.BreadBase, Ingredient.Almond),
-        new(MenuId.CreamCake,     65, Ingredient.BreadBase, Ingredient.Cream),
-        new(MenuId.BerryTart,     70, Ingredient.BreadBase, Ingredient.Berry),
+        new(MenuId.HotAmericano, 5, Ingredient.Bean),
+        new(MenuId.IcedAmericano, 10, Ingredient.Bean, Ingredient.Ice),
+        new(MenuId.CafeLatte, 11, Ingredient.Bean, Ingredient.Milk),
+        new(MenuId.Einspanner, 16, Ingredient.Bean, Ingredient.Cream),
+        new(MenuId.CafeMocha, 28, Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate),
+        new(MenuId.IcedLatte, 24, Ingredient.Bean, Ingredient.Milk, Ingredient.Ice),
+        new(MenuId.IcedMocha, 38, Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate, Ingredient.Ice),
+        new(MenuId.ChocoBrownie, 19, Ingredient.BreadBase, Ingredient.Chocolate),
+        new(MenuId.AlmondCookie, 17, Ingredient.BreadBase, Ingredient.Almond),
+        new(MenuId.CreamCake, 21, Ingredient.BreadBase, Ingredient.Cream),
+        new(MenuId.BerryTart, 23, Ingredient.BreadBase, Ingredient.Berry),
     };
 
     /// 디저트의 바탕 (기획서 5.1: "빵 베이스를 꺼내 조리대에 올린다").

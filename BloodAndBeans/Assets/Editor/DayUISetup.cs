@@ -11,13 +11,11 @@ public static class DayUISetup
     const string CafePath = "Assets/Art/Environment/Prefabs/Cafe.prefab";
     const string CustomerPath = "Assets/Art/Environment/Prefabs/Customer.prefab";
     const string HudPath = "Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab";
-    const string PopupPath = "Assets/Art/UI/Prefabs/Popup/UIBoxLootPopup.prefab";
     static UIThemeConfig Theme => Resources.Load<UIThemeConfig>(UIThemeConfig.AssetName);
     static TMP_FontAsset Font => TMP_Settings.defaultFontAsset;
     public static string Apply()
     {
         if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이 종료 후 적용한다.");
-        CopyIcons();
         MakeIcon();
         MakeBadge();
         MakeOrder();
@@ -100,34 +98,6 @@ public static class DayUISetup
         source.maxDistance = 40f;
         return source;
     }
-    static void CopyIcons()
-    {
-        var source = new SerializedObject(AssetDatabase.LoadAssetAtPath<GameObject>(PopupPath).GetComponent<UIBoxLootPopup>());
-        var icons = source.FindProperty("icons");
-        var theme = new SerializedObject(Theme);
-        var target = theme.FindProperty("dayIcons"); target.arraySize = icons.arraySize;
-        for (var i = 0; i < icons.arraySize; i++)
-        {
-            target.GetArrayElementAtIndex(i).FindPropertyRelative("item").intValue = icons.GetArrayElementAtIndex(i).FindPropertyRelative("Item").intValue;
-            target.GetArrayElementAtIndex(i).FindPropertyRelative("sprite").objectReferenceValue = icons.GetArrayElementAtIndex(i).FindPropertyRelative("Sprite").objectReferenceValue;
-        }
-        // 기존 3D 재료 프리팹에서 구운 미리보기 아이콘을 빈 칸에만 연결한다.
-        var items = new[] { Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate, Ingredient.Almond,
-            Ingredient.Berry, Ingredient.Ice, Ingredient.BloodBean, Ingredient.Bean, Ingredient.BreadBase };
-        foreach (var item in items)
-        {
-            var index = -1;
-            for (var i = 0; i < target.arraySize; i++)
-                if (target.GetArrayElementAtIndex(i).FindPropertyRelative("item").intValue == (int)item) { index = i; break; }
-            if (index < 0) { index = target.arraySize; target.arraySize++; }
-            var entry = target.GetArrayElementAtIndex(index);
-            entry.FindPropertyRelative("item").intValue = (int)item;
-            var sprite = entry.FindPropertyRelative("sprite");
-            if (sprite.objectReferenceValue == null || index >= icons.arraySize)
-                sprite.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Day_" + item + ".png");
-        }
-        theme.ApplyModifiedPropertiesWithoutUndo();
-    }
     static void MakeIcon()
     {
         var path = Parts + "UIDayItemIcon.prefab";
@@ -156,7 +126,7 @@ public static class DayUISetup
             var view = root.gameObject.AddComponent<UIIngredientBadge>();
             var icon = (GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UIDayItemIcon.prefab"), root);
             Stretch((RectTransform)icon.transform);
-            Set(view, "canvas", root.GetComponent<Canvas>()); Set(view, "icon", icon.GetComponent<UIDayItemIcon>()); Set(view, "theme", Theme);
+            Set(view, "canvas", root.GetComponent<Canvas>()); Set(view, "icon", icon.GetComponent<UIDayItemIcon>());
             PrefabUtility.SaveAsPrefabAsset(root.gameObject, path);
         }
         finally { Object.DestroyImmediate(root.gameObject); }
@@ -170,7 +140,7 @@ public static class DayUISetup
         {
             var view = root.gameObject.AddComponent<UICustomerOrder>();
             var back = Image(root, "Back", Theme.Panel); Stretch(back.rectTransform);
-            var ring = Rect("Patience", root).gameObject.AddComponent<UIRing>(); Stretch(ring.rectTransform); ring.raycastTarget = false;
+            var ring = Ring(root, "Patience"); Stretch(ring.rectTransform);
             var row = Rect("Icons", root); Stretch(row, 12);
             var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>(); layout.spacing = 6; layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandWidth = layout.childForceExpandHeight = false;
@@ -185,15 +155,31 @@ public static class DayUISetup
         if (root.GetComponentInChildren<UIDaySkillSlot>(true) != null) return;
         var rect = Rect("SkillSlot", root.transform);
         rect.anchorMin = rect.anchorMax = rect.pivot = Vector2.zero;
-        rect.anchoredPosition = new Vector2(24, 24); rect.sizeDelta = new Vector2(100, 120);
+        rect.anchoredPosition = new Vector2(24, 24); rect.sizeDelta = new Vector2(100, 128);
         rect.gameObject.AddComponent<CanvasGroup>().blocksRaycasts = false;
         var view = rect.gameObject.AddComponent<UIDaySkillSlot>();
-        var back = Image(rect, "Back", Theme.Panel); Stretch(back.rectTransform);
-        var icon = Image(rect, "Icon", Color.white); Stretch(icon.rectTransform, 12); icon.preserveAspect = true;
-        var ring = Rect("Cooldown", rect).gameObject.AddComponent<UIRing>(); Stretch(ring.rectTransform); ring.raycastTarget = false;
-        var label = Text(rect, "KeyAndTime", 20); Stretch(label.rectTransform); label.alignment = TextAlignmentOptions.Bottom;
-        Set(view, "icon", icon); Set(view, "cooldown", ring); Set(view, "label", label);
-        Set(view, "visuals", Resources.Load<CharacterVisualConfig>(CharacterVisualConfig.AssetName));
+        var circle = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSprite);
+        var back = Image(rect, "Back", Theme.Panel); Circle(back, circle);
+        var fill = Image(rect, "Cooldown", Color.white); Circle(fill, circle);
+        fill.type = UnityEngine.UI.Image.Type.Filled;
+        fill.fillMethod = UnityEngine.UI.Image.FillMethod.Vertical;
+        fill.fillOrigin = (int)UnityEngine.UI.Image.OriginVertical.Bottom;
+        var count = Text(rect, "Count", 40); Circle(count.rectTransform); count.alignment = TextAlignmentOptions.Center;
+        var key = Text(rect, "Key", 20); key.alignment = TextAlignmentOptions.Bottom;
+        key.rectTransform.anchorMin = Vector2.zero; key.rectTransform.anchorMax = new Vector2(1, 0);
+        key.rectTransform.pivot = new Vector2(.5f, 0); key.rectTransform.sizeDelta = new Vector2(0, 24);
+        Set(view, "cooldown", fill); Set(view, "count", count); Set(view, "key", key);
+    }
+    const string CircleSprite = "Assets/Art/UI/Sprites/Ingame/Circle.png";
+    /// 슬롯 위쪽 100×100 정원 자리. 아래 28은 키 글자 몫이다.
+    static void Circle(RectTransform rect)
+    {
+        rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(.5f, 1);
+        rect.anchoredPosition = Vector2.zero; rect.sizeDelta = new Vector2(100, 100);
+    }
+    static void Circle(UnityEngine.UI.Image image, Sprite sprite)
+    {
+        image.sprite = sprite; image.raycastTarget = false; Circle(image.rectTransform);
     }
     static void Header(GameObject root)
     {
@@ -229,6 +215,18 @@ public static class DayUISetup
     {
         var root = Rect(name, null); root.sizeDelta = size; root.localScale = Vector3.one * .008f;
         root.localPosition = Vector3.up * height; root.gameObject.AddComponent<Canvas>().renderMode = RenderMode.WorldSpace; return root;
+    }
+    // 줄어드는 링 (기획서 5.7.1). 시작 위치와 방향은 만든 뒤 프리팹에서 바꿀 수 있다.
+    static UnityEngine.UI.Image Ring(Transform parent, string name)
+    {
+        var ring = Image(parent, name, Color.white);
+        ring.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Ingame/Ring.png");
+        ring.type = UnityEngine.UI.Image.Type.Filled;
+        ring.fillMethod = UnityEngine.UI.Image.FillMethod.Radial360;
+        ring.fillOrigin = (int)UnityEngine.UI.Image.Origin360.Top;
+        ring.fillClockwise = true;
+        ring.raycastTarget = false;
+        return ring;
     }
     static UnityEngine.UI.Image Image(Transform parent, string name, Color color)
     {

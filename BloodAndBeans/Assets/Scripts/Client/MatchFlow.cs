@@ -1,4 +1,5 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -27,7 +28,15 @@ public sealed class MatchFlow : MonoBehaviour
     /// 설정 팝업을 여닫는 액션. 액션 이름 표기는 `PlayerInputRouter`와 같은 방식이다.
     const string CancelActionPath = "UI/Cancel";
 
+    /// HUD 조합식 패널을 여닫는 액션. 캐릭터 선택창의 정보 패널과 같은 F1·패드 Y다.
+    const string TogglePanelActionPath = "UI/TogglePanel";
+
     InputAction cancel;
+    InputAction togglePanel;
+    const string MoveActionPath = "Player/Move";
+    const string InteractActionPath = "Player/Interact";
+    InputAction recipeMove;
+    InputAction recipeInteract;
 
     MatchHudPresenter presenter;
     UIMatchHudScreen hud;
@@ -45,6 +54,9 @@ public sealed class MatchFlow : MonoBehaviour
     bool returnPopupOpen;
     float returnPopupUntil;
 
+    /// 첫 밤 시작 전 로딩 창. 떠 있을 때만 값이 있다.
+    UILoadingPopup loading;
+
     /// 최종 결산을 이미 띄웠는가. 판이 끝나는 것은 한 번뿐이라 다시 열지 않는다.
     bool resultPopupOpen;
 
@@ -58,7 +70,13 @@ public sealed class MatchFlow : MonoBehaviour
     /// 다시 뜨면 정산을 볼 수가 없다.
     bool upgradesDismissed;
 
-    void Start()
+    /// HUD·팝업이 재료 아이콘·가방·캐릭터 초상을 꺼낸다.
+    const ResourceManager.SpriteTables Sprites = ResourceManager.SpriteTables.All;
+
+    /// 불러오기를 시작했는가. 시작하지 않은 채 파괴되면 놓을 것도 없다.
+    bool acquired;
+
+    async UniTaskVoid Start()
     {
         // 없으면 `Instance`가 만든다. 여기서 만들지 않으므로 씬 배선도 필요 없다.
         var ui = UIManager.Instance;
@@ -68,6 +86,16 @@ public sealed class MatchFlow : MonoBehaviour
             enabled = false;
             return;
         }
+
+        // HUD와 그 스프라이트를 먼저 불러 둔다. 그동안 Update가 팝업을 먼저 열지 않게 멈춰 둔다.
+        enabled = false;
+        acquired = true;
+        var token = this.GetCancellationTokenOnDestroy();
+        await UniTask.WhenAll(
+            ui.LoadAsync<UIMatchHudScreen>(token),
+            ui.LoadAsync<UILoadingPopup>(token),
+            ResourceManager.Instance.PreloadSpritesAsync(Sprites, token));
+        enabled = true;
 
         if (phase == null)
         {
@@ -105,6 +133,28 @@ public sealed class MatchFlow : MonoBehaviour
         cancel = actions.FindAction(CancelActionPath, true);
         cancel.performed += OnCancel;
         cancel.Enable();
+
+        togglePanel = actions.FindAction(TogglePanelActionPath, true);
+        togglePanel.performed += OnToggleRecipe;
+        togglePanel.Enable();
+        recipeMove = actions.FindAction(MoveActionPath, true);
+        recipeInteract = actions.FindAction(InteractActionPath, true);
+        recipeMove.performed += OnRecipeActivity;
+        recipeInteract.started += OnRecipeActivity;
+    }
+
+    /// F1 한 번에 HUD의 조합식 패널을 펴고 다시 누르면 접는다. 팝업이 떠 있거나 HUD가
+    /// 가려져 있으면(정산 화면) 건드리지 않는다.
+    void OnToggleRecipe(InputAction.CallbackContext _)
+    {
+        var ui = UIManager.Instance;
+        if (ui == null || hud == null || ui.PopupDepth > 0 || ui.CurrentScreen != hud) return;
+        hud.ToggleRecipe();
+    }
+
+    void OnRecipeActivity(InputAction.CallbackContext _)
+    {
+        if (hud != null && hud.RecipeOpen) hud.ToggleRecipe(false);
     }
 
     /// ESC 한 번에 설정을 열고, 다시 누르면 닫는다.
@@ -124,7 +174,19 @@ public sealed class MatchFlow : MonoBehaviour
         }
 
         if (ui.PopupDepth > 0) return;
+        if (hud != null && hud.RecipeOpen)
+        {
+            hud.ToggleRecipe(false);
+            return;
+        }
+        OpenSettingsAsync(ui).Forget();
+    }
 
+    /// 처음 여는 순간에는 프리팹을 불러와야 한다. 기다리는 사이 다른 팝업이 떴으면 얹지 않는다.
+    async UniTaskVoid OpenSettingsAsync(UIManager ui)
+    {
+        await ui.LoadAsync<UISettingsPopup>(this.GetCancellationTokenOnDestroy());
+        if (ui.PopupDepth > 0) return;
         var popup = ui.PushPopup<UISettingsPopup>();
         popup?.Bind(ui.PopPopup);
     }
@@ -134,20 +196,30 @@ public sealed class MatchFlow : MonoBehaviour
     void OnDestroy()
     {
         if (cancel != null) cancel.performed -= OnCancel;
+        if (togglePanel != null) togglePanel.performed -= OnToggleRecipe;
+        if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;
+        if (recipeInteract != null) recipeInteract.started -= OnRecipeActivity;
 
         var cafe = LocalCafe;
         if (cafe != null) cafe.UpgradesChanged -= OnUpgradesReplicated;
 
+        if (!acquired) return;
+        ResourceManager.Instance.ReleaseSprites(Sprites);
+
         var ui = UIManager.Instance;
         if (ui == null) return;
 
-        ui.UnloadPopups();
+        ui.PopAllPopups();
         ui.ClearScreens();
+        ui.UnloadUnused();
     }
 
     void Update()
     {
         presenter?.Tick(Time.unscaledTime);
+        if (hud != null && hud.RecipeOpen && recipeMove != null
+            && recipeMove.ReadValue<Vector2>() != Vector2.zero)
+            hud.ToggleRecipe(false);
 
         // 게이지는 0.6초 남짓이라 HUD 갱신 주기(0.1초)로 그리면 여섯 칸짜리 계단이 된다.
         // 문자열을 만들지 않는 스케일 대입 하나라 매 프레임 불러도 된다.
@@ -164,11 +236,35 @@ public sealed class MatchFlow : MonoBehaviour
             hud.SetCompletionGauge(default);
         }
 
+        SyncLoadingPopup();
         SyncLootPopup();
         SyncShelfPopup();
         SyncReturnPopup();
         SyncSettlementScreen();
         SyncResultPopup();
+    }
+
+    /// 방 인원이 다 모여 첫 밤이 시작될 때까지 로딩 창으로 덮는다. 모이는 시점은 서버가 정한다.
+    /// 시작 전에는 다른 팝업이 뜰 일이 없어 이 창이 항상 맨 위다.
+    void SyncLoadingPopup()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        var waiting = phase == null || !phase.IsSpawned || !phase.Started;
+        if (!waiting)
+        {
+            if (loading == null) return;
+            if (ui.CurrentPopup == loading) ui.PopPopup();
+            loading = null;
+            return;
+        }
+
+        if (loading == null) loading = ui.PushPopup<UILoadingPopup>();
+        if (loading == null) return;     // 아직 불러오는 중이면 다음 프레임에 다시 연다
+
+        var spawned = phase != null && phase.IsSpawned;
+        loading.SetProgress(spawned ? phase.JoinedPlayers : 0, spawned ? phase.ExpectedPlayers : 0);
     }
 
     /// 전환 페이즈(10초) 동안 정산 화면을 띄운다 (기획서 4장: 매출/임대료 결과 · 순위 ·
@@ -202,7 +298,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (settlement == null)
         {
             settlement = ui.PushScreen<UIDaySettlementScreen>();
-            if (settlement == null) return;      // 프리팹 미연결은 UIManager가 알린다
+            if (settlement == null) return;      // 아직 불러오는 중이면 다음 프레임에 다시 연다
             BindSettlement();
         }
 
@@ -239,7 +335,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (upgrades == null)
         {
             upgrades = ui.PushScreen<UIFacilityUpgradeScreen>();
-            if (upgrades == null) return;        // 프리팹 미연결은 UIManager가 알린다
+            if (upgrades == null) return;        // 아직 불러오는 중이면 다음 프레임에 다시 연다
             BindUpgrades();
         }
 
@@ -405,7 +501,7 @@ public sealed class MatchFlow : MonoBehaviour
         for (var team = 0; team < board.TeamCount; team++) revenue.Add(board.RevenueOf(team));
 
         var popup = ui.PushPopup<UIMatchResultPopup>();
-        if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
+        if (popup == null) return;      // 아직 불러오는 중이면 다음 프레임에 다시 연다
 
         // 로비 복귀는 `SteamLobby.LeaveRoom`이 씬 전환까지 처리한다. 판이 끝나는 것은
         // 한 번뿐이라 여기서 한 번 찾는다 — 주기 실행이 아니다 (AGENTS.md).
@@ -447,17 +543,17 @@ public sealed class MatchFlow : MonoBehaviour
 
         if (returnPopupOpen || !zone.HasResult) return;
 
-        // 창을 못 띄우더라도 소비한다. 남겨 두면 매 프레임 다시 시도한다.
-        var outcome = zone.Outcome;
-        var kept = zone.KeptCount;
-        var lost = zone.LostCount;
-        var lossPercent = zone.LossPercent;
-        zone.ConsumeResult();
-
+        // 창이 아직 불러오는 중이면 결과를 남겨 두고 다음 프레임에 다시 연다.
+        // 불러오기에 실패한 창은 UIManager가 한 번 알리고 계속 null을 주므로, 그때는 소비하고 넘긴다.
         var popup = ui.PushPopup<UIReturnResultPopup>();
-        if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
+        if (popup == null)
+        {
+            if (ui.FailedToLoad<UIReturnResultPopup>()) zone.ConsumeResult();
+            return;
+        }
 
-        popup.Bind(outcome, kept, lost, lossPercent);
+        popup.Bind(zone.Outcome, zone.KeptCount, zone.LostCount, zone.LossPercent);
+        zone.ConsumeResult();
         returnPopupOpen = true;
         returnPopupUntil = Time.unscaledTime + returnPopupSeconds;
     }
@@ -479,17 +575,21 @@ public sealed class MatchFlow : MonoBehaviour
         var box = candidate != null && candidate.Opened ? candidate : null;
         if (ReferenceEquals(box, lootBox)) return;
 
-        lootBox = box;
-
         if (lootOpen)
         {
             ui.PopPopup();
             lootOpen = false;
         }
-        if (box == null) return;
+        if (box == null)
+        {
+            lootBox = null;
+            return;
+        }
 
+        // 창이 아직 불러오는 중이면 박스를 기억하지 않는다. 다음 프레임에 같은 박스로 다시 연다.
         var popup = ui.PushPopup<UIBoxLootPopup>();
-        if (popup == null) return;      // 프리팹 미연결은 UIManager가 오류로 알린다
+        if (popup == null) return;
+        lootBox = box;
 
         var hold = presenter.BoxHold;
         popup.Bind(box, hold.TakeSlotClient, presenter.Bag,
@@ -526,16 +626,17 @@ public sealed class MatchFlow : MonoBehaviour
             ui.PopPopup();
         }
 
-        gridShelf = shelf;
+        gridShelf = null;
         if (shelf == null) return;
 
         var popup = ui.PushPopup<UIBoxLootPopup>();
-        if (popup == null)              // 프리팹 미연결은 UIManager가 오류로 알린다
+        if (popup == null)
         {
-            gridShelf = null;
-            shelf.CloseGridClient();
+            // 불러오는 중이면 다음 프레임에 다시 연다. 실패한 창이면 토글을 꺼서 매번 시도하지 않게 한다.
+            if (ui.FailedToLoad<UIBoxLootPopup>()) shelf.CloseGridClient();
             return;
         }
+        gridShelf = shelf;
 
         // 가방은 밤의 물건이다. 낮에는 손으로 옮기므로 무게 표시도 연출도 없다.
         popup.Bind(shelf, shelf.TakeSlotClient, null, null);

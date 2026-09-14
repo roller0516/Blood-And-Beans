@@ -1,0 +1,69 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: UI_Ingame
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: UI_Ingame
+  m_GUID: 73eb468c66e8caa4f86670cd6d024ff3
+  m_SerializeEntries:
+  - m_GUID: 1ce141e4aa30db148835a87100715e67
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2dc2e45187e778b418a6bda008af756e
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIBoxLootPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4bc1f8a30773ce5439da457f0b4c6ef4
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIMatchResultPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d127637506aa6834a83959cc9fc17c8e
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIFacilityUpgradeScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d783505837252ef47ad2fc093d31bca0
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIReturnResultPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d8cbae517917bd24e9eae7ec5c1e948f
+    m_Address: Assets/Art/UI/Atlases/Ingame.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dc59c0fb28eec314c9703bc60281029c
+    m_Address: Assets/Art/UI/Prefabs/Popup/UILoadingPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2ff9e42860840943b53b9d2a7e1d608
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIDaySettlementScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 8c9770d6b40a7124bba692cb7c953e3b, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 9d52f6e67f9c89241974384a24afbbf4, type: 2}
+    - {fileID: 11400000, guid: ac38ec99eb9c0154489b3acb096b4b96, type: 2}
+    m_SchemaDisplayOrder:
+    - UI_Ingame_BundledAssetGroupSchema
+    - UI_Ingame_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

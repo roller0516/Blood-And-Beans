@@ -239,7 +239,7 @@ public sealed class CharacterStage : MonoBehaviour
 
         if (!CharacterCatalog.IsValid(character) || visuals == null) return;
 
-        spawned[seat] = visuals.SpawnModel(CharacterCatalog.All[character].Day, seats[seat], gameObject.layer);
+        spawned[seat] = visuals.SpawnModel(CharacterCatalog.All[character].Id, seats[seat], gameObject.layer);
     }
 
     public void SetTeam(int seat, int team)

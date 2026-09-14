@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -6,8 +7,7 @@ using UnityEngine;
 /// **고르는 것은 화면이고 확정하는 것은 서버다.** 팀 내 중복 픽 금지(9.1)는 두 클라이언트가
 /// 각자 판정할 수 없다 — 동시에 같은 칸을 누르면 둘 다 통과한다. 그래서 판정은 여기 한 곳뿐이다.
 ///
-/// 낮 패시브는 상시라 발동 지점이 없고, 효과가 걸리는 자리(이동·손님·설거지·손·게이지)가
-/// 각자 이 컴포넌트에 물어본다. 밤 액티브만 입력을 받는다 (9.2).
+/// 스킬 키 하나로 낮에는 낮 액티브(9.1.2), 밤에는 밤 액티브(9.2)를 쓴다. 쿨타임 칸도 하나다.
 ///
 /// 픽은 전원에게 공개된다. 기획서 3.1이 비공개로 둔 것은 재료·설비·캐릭터인데, 그것은
 /// *상대 팀에게* 감춘다는 뜻이고 캐릭터 선택 화면(9.1 중복 픽 금지)은 팀원의 픽을 보여
@@ -34,9 +34,6 @@ public class PlayerCharacter : NetworkBehaviour
     /// 「추적」이 찾아낸 가방을 보여 주는 시간.
     [SerializeField] float trackRevealSeconds = 6f;
 
-    /// 강심장이 큐 길이를 다시 보는 간격. 대기 인원은 프레임마다 바뀌지 않는다.
-    [SerializeField] float queueCheckInterval = 0.25f;
-
     readonly NetworkVariable<int> character = new(CharacterCatalog.NoPick);
 
     /// 다음 액티브를 쓸 수 있는 서버 시각. 소유자만 읽으면 되므로 쿨다운 표시도 소유자 몫이다.
@@ -48,13 +45,7 @@ public class PlayerCharacter : NetworkBehaviour
     MatchDirector director;
     GamePhase subscribedPhase;
 
-    /// 강심장 판정에 쓰는 자기 팀 대기열. 팀이 정해질 때 한 번 찾는다 — 주기 실행 안에서
-    /// 컴포넌트를 조회하지 않기 위해서다 (AGENTS.md 참조와 결합도).
-    CustomerQueue queue;
-
-    float nextQueueCheck;
-
-    /// 마지막으로 이동에 밀어 넣은 패시브 배수. 같은 값을 매번 다시 밀지 않는다.
+    /// 마지막으로 이동에 밀어 넣은 캐릭터 배수. 같은 값을 매번 다시 밀지 않는다.
     float pushedPassiveScale = 1f;
 
     public event System.Action<int> CharacterChanged;
@@ -63,9 +54,6 @@ public class PlayerCharacter : NetworkBehaviour
 
     public CharacterDef Def => CharacterCatalog.All[
         Mathf.Clamp(character.Value, 0, CharacterCatalog.All.Length - 1)];
-
-    /// 이 플레이어가 그 낮 패시브를 가졌는가.
-    public bool Has(DayPassive passive) => false; // v5.0 9.1: 낮 패시브 폐지
 
     public NightSkill Skill => HasPick ? Def.Night : NightSkill.None;
 
@@ -83,12 +71,15 @@ public class PlayerCharacter : NetworkBehaviour
     {
         team = GetComponent<PlayerTeam>();
         move = GetComponent<PlayerMove>();
+        controller = GetComponent<CharacterController>();
+        carry = GetComponent<PlayerCarry>();
     }
 
     public override void OnNetworkSpawn()
     {
         MatchDirector.Bind(BindDirector);
         character.OnValueChanged += OnCharacterChanged;
+        shortcutUntil.OnValueChanged += OnShortcut;
 
         // 접속 승인 때 고정한 픽만 서버에서 적용한다 (기획서 9.3).
         if (IsServer) character.Value = GameManager.Seating.CharacterOf(OwnerClientId);
@@ -98,6 +89,7 @@ public class PlayerCharacter : NetworkBehaviour
     {
         MatchDirector.Unbind(BindDirector);
         character.OnValueChanged -= OnCharacterChanged;
+        shortcutUntil.OnValueChanged -= OnShortcut;
 
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
@@ -114,20 +106,16 @@ public class PlayerCharacter : NetworkBehaviour
         subscribedPhase = phase;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered += OnPhaseEntered;
 
-        queue = null;    // 판이 바뀌면 카페도 바뀐다
+        cachedCafe = null;    // 판이 바뀌면 카페도 바뀐다
     }
 
     void OnPhaseEntered(Phase p)
     {
-        // 카페는 낮이 처음 시작될 때쯤 이미 스폰돼 있다. 페이즈 경계는 프레임 수에
-        // 비례하지 않는 사건이라 여기서 한 번 찾아 캐시해도 된다.
-        if (queue == null && director != null && team != null)
-            queue = director.CafeOf(team.Team)?.Queue;
-
         if (IsServer)
         {
-            debuff.Value = -1;
-            debuffUntil.Value = 0;
+            // 낮 액티브 효과는 그 낮 안에서만 산다.
+            glideUntil = 0d;
+            refineReady.Value = false;
             nextSkillAt.Value = 0;
             PushPassiveScaleServer();
         }
@@ -158,11 +146,9 @@ public class PlayerCharacter : NetworkBehaviour
 
     /// 개발 치트. 서버가 픽을 직접 박는다.
     ///
-    /// **팀 내 중복 픽 금지(기획서 9.1)를 건너뛴다.** 같은 패시브를 둘에게 걸어 보는 것이
-    /// 이 치트를 만든 이유다 — 정규 경로(`PickRpc`)로는 그 조합을 만들 수 없어서 팀 단위
-    /// 패시브(인기 카페·붙임성·제빵사)가 짝꿍에게도 걸리는지 확인할 방법이 없었다.
+    /// **팀 내 중복 픽 금지(기획서 9.1)를 건너뛴다.** 같은 스킬을 둘에게 걸어 보는 검증용이다.
     ///
-    /// `CharacterCatalog.NoPick`을 주면 픽을 지운다. 패시브 없는 상태와 비교하는 데 쓴다.
+    /// `CharacterCatalog.NoPick`을 주면 픽을 지운다. 스킬 없는 상태와 비교하는 데 쓴다.
     public void SetCharacterCheatServer(int index)
     {
         if (!IsServer) return;
@@ -191,27 +177,6 @@ public class PlayerCharacter : NetworkBehaviour
         return false;
     }
 
-    /// 이 팀의 누군가가 그 패시브를 가졌는가 (기획서 9.1의 가게 단위 능력).
-    ///
-    /// 순회가 들어가므로 **주기 실행에서 부르지 않는다.** 부르는 곳은 손님 스폰과 게이지
-    /// 시작처럼 사건 한 번짜리 자리뿐이다.
-    public static bool TeamHas(int teamId, DayPassive passive)
-    {
-        if (teamId < 0) return false;
-
-        var nm = NetworkManager.Singleton;
-        if (nm == null) return false;
-
-        foreach (var client in nm.ConnectedClientsList)
-        {
-            if (PlayerTeam.Of(client.ClientId) != teamId) continue;
-
-            var pc = Of(client.ClientId);
-            if (pc != null && pc.Has(passive)) return true;
-        }
-        return false;
-    }
-
     public static PlayerCharacter Of(ulong clientId)
     {
         var nm = NetworkManager.Singleton;
@@ -225,18 +190,29 @@ public class PlayerCharacter : NetworkBehaviour
         return po != null ? po.GetComponent<PlayerCharacter>() : null;
     }
 
-    // --- 낮 패시브 중 이동에 걸리는 둘 (기획서 9.1) ---
+    // --- 낮 액티브 (기획서 9.1.2) ---
 
-    readonly NetworkVariable<int> debuff = new(-1, NetworkVariableReadPermission.Owner);
-    readonly NetworkVariable<double> debuffUntil = new(0d, NetworkVariableReadPermission.Owner);
-    public float DebuffRemaining => NetworkManager == null || !IsSpawned ? 0f :
-        Mathf.Max(0f, (float)(debuffUntil.Value - NetworkManager.ServerTime.Time));
-    public int ActiveDebuff => DebuffRemaining > 0f ? debuff.Value : -1;
-    public int DaySkillIndex => HasPick ? Index % DayBalance.SkillNames.Length : -1;
-    public bool AffectedBy(int effect) => debuff.Value == effect && NetworkManager != null &&
-        NetworkManager.ServerTime.Time < debuffUntil.Value;
-    public float WorkScale(int effect) => AffectedBy(effect) ? 1.5f : 1f;
+    public DaySkill DaySkill => HasPick ? Def.Day : DaySkill.None;
+
+    /// 「활공」이 끝나는 서버 시각. 속도는 `PlayerMove`의 복제 배수로 소유자에게 간다.
+    double glideUntil;
+
+    /// 「지름길」이 끝나는 서버 시각. 통과는 피어마다 물리에서 풀어야 하므로 전원이 읽는다.
+    readonly NetworkVariable<double> shortcutUntil = new();
+
+    /// 「정제」가 장전돼 있는가. 다음 한 잔에서 소모된다.
+    readonly NetworkVariable<bool> refineReady = new(false, NetworkVariableReadPermission.Owner);
+    public bool RefineReady => refineReady.Value;
+
     Cafe cachedCafe;
+    CharacterController controller;
+    PlayerCarry carry;
+
+    Cafe CafeServer()
+    {
+        if (cachedCafe == null && director != null && team != null) cachedCafe = director.CafeOf(team.Team);
+        return cachedCafe;
+    }
 
     void Update()
     {
@@ -247,37 +223,103 @@ public class PlayerCharacter : NetworkBehaviour
     void PushPassiveScaleServer()
     {
         if (!IsServer || move == null) return;
-        if (cachedCafe == null && director != null && team != null) cachedCafe = director.CafeOf(team.Team);
+        var cafe = CafeServer();
         var day = director != null && director.Phase.Current == Phase.Day;
-        var scale = day && cachedCafe != null && cachedCafe.HasBuff(TeamBuff.Move) ? DayBalance.BuffSpeed : 1f;
-        if (day && AffectedBy(0)) scale *= DayBalance.SlowScale;
+        var scale = day && cafe != null && cafe.HasBuff(TeamBuff.Move) ? DayBalance.BuffSpeed : 1f;
+        if (day && NetworkManager.ServerTime.Time < glideUntil) scale *= DaySkills.GlideSpeed;
         if (Mathf.Approximately(scale, pushedPassiveScale)) return;
         pushedPassiveScale = scale;
         move.SetPassiveScaleServer(scale);
     }
 
+    /// 발동에 실패하면 쿨타임을 태우지 않는다 (밤 액티브와 같은 계약).
     bool UseDaySkillServer()
     {
-        if (!HasPick || NetworkManager.ServerTime.Time < nextSkillAt.Value) return false;
-        PlayerCharacter target = null;
-        var distance = DayBalance.SkillReach * DayBalance.SkillReach;
-        foreach (var client in NetworkManager.ConnectedClientsList)
+        var skill = DaySkill;
+        var now = NetworkManager.ServerTime.Time;
+        if (skill == DaySkill.None || now < nextSkillAt.Value) return false;
+
+        switch (skill)
         {
-            if (client.ClientId == OwnerClientId || PlayerTeam.Of(client.ClientId) == team.Team) continue;
-            var other = Of(client.ClientId);
-            if (other == null || PlayerTeam.Of(client.ClientId) < 0) continue;
-            var otherCafe = director.CafeOf(PlayerTeam.Of(client.ClientId));
-            if (otherCafe == null || otherCafe.HasBuff(TeamBuff.Resistance)) continue;
-            var d = (other.transform.position - transform.position).sqrMagnitude;
-            if (d > distance) continue;
-            distance = d;
-            target = other;
+            case DaySkill.Ignite:
+                if (!IgniteServer()) return false;
+                break;
+            case DaySkill.Glide:
+                glideUntil = now + DaySkills.GlideSeconds;
+                break;
+            case DaySkill.Refine:
+                if (refineReady.Value) return false;   // 1회성이라 겹쳐 쌓지 않는다
+                refineReady.Value = true;
+                break;
+            case DaySkill.Shortcut:
+                shortcutUntil.Value = now + DaySkills.ShortcutSeconds;
+                break;
+            case DaySkill.Swallow:
+                if (!SwallowServer()) return false;
+                break;
         }
-        if (target == null) return false;
-        target.debuff.Value = DaySkillIndex;
-        target.debuffUntil.Value = NetworkManager.ServerTime.Time + DayBalance.SkillSeconds;
-        nextSkillAt.Value = NetworkManager.ServerTime.Time + DayBalance.SkillCooldown;
+
+        nextSkillAt.Value = now + DaySkills.CooldownOf(skill);
         return true;
+    }
+
+    /// 불붙이기 — 내가 조리 중인 설비를 찾는다. 설비를 쓰고 있지 않으면 발동하지 않는다.
+    bool IgniteServer()
+    {
+        var cafe = CafeServer();
+        if (cafe == null) return false;
+        foreach (var gauge in cafe.Gauges)
+            if (gauge != null && gauge.Station != null && gauge.Station.IgniteServer(OwnerClientId)) return true;
+        return false;
+    }
+
+    /// 삼키기 — 1회 1개. 이미 그만큼 진행된 식기에는 걸지 않는다.
+    bool SwallowServer()
+    {
+        if (carry == null || carry.Reserved || !carry.Held.Dirty || carry.Held.WashProgress >= DaySkills.SwallowProgress) return false;
+        var item = carry.Held;
+        item.WashProgress = DaySkills.SwallowProgress;
+        carry.SetServer(item);
+        return true;
+    }
+
+    /// 정제를 쓴다. 장전돼 있었으면 true.
+    public bool ConsumeRefineServer()
+    {
+        if (!IsServer || !refineReady.Value) return false;
+        refineReady.Value = false;
+        return true;
+    }
+
+    /// 지름길 — 모든 피어가 같은 쌍의 충돌을 끈다. 서버만 끄면 소유자 예측이 막혀 화해가 당긴다.
+    /// 끝은 `LocalTime`으로 잰다. 클라이언트의 `ServerTime`은 RTT+버퍼만큼 늦어 서버보다 한참 늦게 끝난다.
+    /// `LocalTime`이면 오차가 반 RTT 안쪽으로 줄어든다. 서버에서는 두 시각이 같다.
+    void OnShortcut(double _, double until)
+    {
+        var seconds = (float)(until - NetworkManager.LocalTime.Time);
+        if (seconds > 0f) PassThroughAsync(seconds).Forget();
+    }
+
+    async UniTaskVoid PassThroughAsync(float seconds)
+    {
+        SetPassThrough(true);
+        var cancelled = await UniTask.Delay(System.TimeSpan.FromSeconds(seconds),
+            cancellationToken: this.GetCancellationTokenOnDestroy()).SuppressCancellationThrow();
+        if (!cancelled) SetPassThrough(false);
+    }
+
+    /// 발동과 종료에 한 번씩 도는 순회다. 효과 도중 새로 스폰된 플레이어는 막힌다 (2.5초라 무시한다).
+    void SetPassThrough(bool ignore)
+    {
+        if (controller == null || NetworkManager == null || NetworkManager.SpawnManager == null) return;
+        foreach (var player in NetworkManager.SpawnManager.PlayerObjects)
+        {
+            if (player == null || player == NetworkObject || !player.TryGetComponent<CharacterController>(out var other)) continue;
+            // 둘이 겹쳤으면 늦게 끝나는 쪽이 쌍을 되돌린다. 시계가 아니라 종료 시각을 비교해야
+            // 두 피어 시계 오차로 서로 미루다 영구히 통과로 남는 일이 없다.
+            var keep = ignore || (player.TryGetComponent<PlayerCharacter>(out var pc) && pc.shortcutUntil.Value > shortcutUntil.Value);
+            Physics.IgnoreCollision(controller, other, keep);
+        }
     }
 
     // --- 밤 액티브 (기획서 9.2) ---
@@ -296,7 +338,7 @@ public class PlayerCharacter : NetworkBehaviour
 
         // 밤에만 쓴다 (기획서 9.2: "밤의 경우"). 낮에는 발동 자체가 없다.
         if (director == null || director.Phase == null ||
-            director.Phase.Current != Phase.Night) return;
+            !director.Phase.Started || director.Phase.Current != Phase.Night) return;
 
         var now = NetworkManager.ServerTime.Time;
         if (now < nextSkillAt.Value) return;

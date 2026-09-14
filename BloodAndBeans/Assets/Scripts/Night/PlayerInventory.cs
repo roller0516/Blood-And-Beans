@@ -14,7 +14,6 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerMove))]
 public class PlayerInventory : NetworkBehaviour
 {
-    [SerializeField] float capacity = 20f;
     [SerializeField] ItemBox pilePrefab;
 
     /// 땅에 묻는 가방. 비워야 대시를 쓸 수 있으므로 기동성과 맞바꾸는 선택이다.
@@ -164,8 +163,8 @@ public class PlayerInventory : NetworkBehaviour
     public float Carried => carried.Value;
 
     /// 표시 전용. 가방 용량(KG). 적재량을 비율만이 아니라 절대값으로도 보여 준다.
-    public float Capacity => capacity;
-    public float LoadRatio => carried.Value / capacity;
+    public float Capacity => NightBalance.BagCapacity;
+    public float LoadRatio => carried.Value / NightBalance.BagCapacity;
     public int Count => items.Count;
 
     /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.

@@ -13,7 +13,6 @@ public class DashHarass : NetworkBehaviour
     [SerializeField, Range(5f, 8f)] float cooldown = 6f;   // 기획서 6.6: 5~8초
     [SerializeField] float reach = 1.6f;
     [SerializeField] float knockback = 3f;       // 약 1.5타일
-    [SerializeField] float spillShare = 0.1f;
     [SerializeField] float spawnProtectionSeconds = 15f;
 
     [Header("돌진")]
@@ -224,7 +223,7 @@ public class DashHarass : NetworkBehaviour
         // 기준선은 `LoadBands.OverloadRatio` 하나다. 겉보기(기획서 6.6 "겉보기에도
         // 표시된다")와 같은 값을 써야 부풀어 보이는 상대가 실제로 흘린다.
         var spilled = inv != null && load >= LoadBands.OverloadRatio;
-        if (spilled) inv.DropShareServer(spillShare, victim.transform.position);
+        if (spilled) inv.DropShareServer(NightBalance.DashSpillShare, victim.transform.position);
         victim.GetComponent<PlayerInteract>()?.InterruptServer();
 
         var dir = victim.transform.position - transform.position;

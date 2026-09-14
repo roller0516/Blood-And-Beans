@@ -9,7 +9,7 @@ public class EconomyRuleTests
     [Test]
     public void RentTableMatchesTheDoc()
     {
-        int[] expected = { 60, 100, 160, 250, 380, 560, 800 };
+        int[] expected = { 50, 80, 120, 180, 260, 360, 480 };
         for (var day = 1; day <= 7; day++)
             Assert.AreEqual(expected[day - 1], Rent.Due(day), $"{day}일차 임대료");
     }
@@ -17,8 +17,8 @@ public class EconomyRuleTests
     [Test]
     public void DaysOutsideTheTableClampToItsEnds()
     {
-        Assert.AreEqual(60, Rent.Due(0));
-        Assert.AreEqual(800, Rent.Due(8), "7일이 마지막이므로 그 뒤는 마지막 값을 유지한다");
+        Assert.AreEqual(50, Rent.Due(0));
+        Assert.AreEqual(480, Rent.Due(8), "7일이 마지막이므로 그 뒤는 마지막 값을 유지한다");
     }
 
     // --- 3.2 부채 이월 (이자 없음) ---
@@ -29,10 +29,10 @@ public class EconomyRuleTests
         var rent = new Rent();
 
         Assert.AreEqual(40, rent.Settle(1, 40), "40만 있으면 40만 낸다");
-        Assert.AreEqual(20, rent.Debt, "60 - 40 = 20이 이월된다");
+        Assert.AreEqual(10, rent.Debt, "50 - 40 = 10이 이월된다");
 
-        // 2일차: 100 + 이월 20 = 120. 이자가 붙지 않는다.
-        Assert.AreEqual(120, rent.Settle(2, 500));
+        // 2일차: 80 + 이월 10 = 90. 이자가 붙지 않는다.
+        Assert.AreEqual(90, rent.Settle(2, 500));
         Assert.AreEqual(0, rent.Debt);
     }
 
@@ -41,14 +41,14 @@ public class EconomyRuleTests
     {
         var rent = new Rent();
         Assert.AreEqual(0, rent.Settle(1, 0));
-        Assert.AreEqual(60, rent.Debt);
+        Assert.AreEqual(50, rent.Debt);
     }
 
     [Test]
     public void OverpayingClearsButDoesNotCredit()
     {
         var rent = new Rent();
-        Assert.AreEqual(60, rent.Settle(1, 1000), "낼 것보다 더 내지는 않는다");
+        Assert.AreEqual(50, rent.Settle(1, 1000), "낼 것보다 더 내지는 않는다");
         Assert.AreEqual(0, rent.Debt);
     }
 
@@ -98,8 +98,11 @@ public class EconomyRuleTests
         return menus;
     }
 
+    // 3일차부터 인기 재료가 3종이다. 일차를 따로 보지 않는 테스트는 그 뒤 날짜로 뽑는다.
+    const int AnyDay = 3;
+
     static Forecast Build(int seed, IReadOnlyList<Ingredient> pool, int orders) =>
-        Forecast.Build(seed, pool, AllMenus(), pool, orders);
+        Forecast.Build(seed, AnyDay, pool, AllMenus(), pool, orders);
 
     [Test]
     public void PopularIngredientsComeFromTonightsForestPoolOnly()
@@ -117,14 +120,15 @@ public class EconomyRuleTests
     }
 
     [Test]
-    public void PopularIngredientCountIsTwoOrThree()
+    public void PopularIngredientCountIsTwoOnDaysOneAndTwoThenThree()
     {
-        for (var seed = 0; seed < 50; seed++)
-        {
-            var n = Build(seed, FullPool, 8).Popular.Length;
-            Assert.GreaterOrEqual(n, 2, $"seed {seed}");
-            Assert.LessOrEqual(n, 3, $"seed {seed}");
-        }
+        // 기획서 5.6.1: 1·2일차 2종, 3일차부터 3종.
+        int[] expected = { 2, 2, 3, 3, 3, 3, 3 };
+        for (var day = 1; day <= 7; day++)
+            for (var seed = 0; seed < 20; seed++)
+                Assert.AreEqual(expected[day - 1],
+                    Forecast.Build(seed, day, FullPool, AllMenus(), FullPool, 8).Popular.Length,
+                    $"{day}일차 seed {seed}");
     }
 
     [Test]
@@ -171,7 +175,7 @@ public class EconomyRuleTests
 
         for (var seed = 0; seed < 30; seed++)
         {
-            var f = Forecast.Build(seed, pool, menus, pool, 8);
+            var f = Forecast.Build(seed, AnyDay, pool, menus, pool, 8);
             foreach (var o in f.Orders)
             {
                 foreach (var ing in menus[o])
@@ -197,7 +201,7 @@ public class EconomyRuleTests
 
         for (var seed = 0; seed < 100; seed++)
         {
-            var forecast = Forecast.Build(seed, pool, menus, held, 20);
+            var forecast = Forecast.Build(seed, AnyDay, pool, menus, held, 20);
             foreach (var order in forecast.Orders)
                 Assert.That(order, Is.Not.EqualTo(0), "보유 후보가 리젠 풀을 빌려 두 재료 메뉴를 만들었다");
         }
@@ -229,7 +233,7 @@ public class EconomyRuleTests
     public void AnEmptyPoolDoesNotThrow()
     {
         // 첫 밤에는 팀 재고가 비어 있다.
-        var f = Forecast.Build(5, new Ingredient[0], AllMenus(), new Ingredient[0], 8);
+        var f = Forecast.Build(5, 1, new Ingredient[0], AllMenus(), new Ingredient[0], 8);
         Assert.IsNotNull(f.Orders);
         Assert.IsNotNull(f.Popular);
     }

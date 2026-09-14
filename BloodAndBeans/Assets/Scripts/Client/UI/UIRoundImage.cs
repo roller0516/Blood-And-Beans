@@ -25,6 +25,7 @@ using UnityEngine.UI;
 /// 유니티 기본 UI 머티리얼을 대상으로 일어나 라운드가 사라진다.
 [DisallowMultipleComponent]
 [ExecuteInEditMode]
+[RequireComponent(typeof(Image))]
 public class UIRoundImage : BaseMeshEffect
 {
     /// 이 이미지만 다른 반지름을 쓸 때 채운다. 음수면 테마 값을 따른다.

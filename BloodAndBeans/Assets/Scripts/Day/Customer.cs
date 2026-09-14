@@ -44,22 +44,26 @@ public class Customer : NetworkBehaviour
     /// 「붙임성」이 걸린 첫 손님인가 (기획서 9.1).
     public bool Patient => patient.Value;
 
-    // ponytail: 임시값이다. 기획서 14장이 인내심 길이와 가격 폭을 열어 뒀고, 상대적인
-    // 순서(좀비는 길고 싸다, 뱀파이어는 짧고 비싸다, 마녀가 가장 비싸다)만 확정돼 있다.
-    // 표가 생기면 DT_Passive/DT_Menu로 옮긴다.
+    /// 종족별 인내심(초). 기획서 5.5 표.
     public static float PatienceOf(Race s) => s switch
     {
-        Race.Zombie => 90f,
-        Race.Vampire => 30f,
-        _ => 60f,
+        Race.Zombie => 70f,
+        Race.Ghost => 45f,
+        Race.Skeleton => 45f,
+        Race.Werewolf => 55f,
+        Race.Vampire => 28f,
+        Race.Witch => 50f,
+        _ => 50f,
     };
 
     /// 종족별 가격 가중치. 실제 공식은 Economy가 소유하고, 이 값은 그 입력 중 하나다.
+    /// 기획서 5.5 표.
     public static float PriceWeightOf(Race s) => s switch
     {
-        Race.Zombie => 0.7f,
-        Race.Vampire => 1.4f,
-        Race.Witch => 1.8f,
+        Race.Zombie => 0.8f,
+        Race.Werewolf => 1.1f,
+        Race.Vampire => 1.3f,
+        Race.Witch => 1.45f,
         _ => 1.0f,
     };
 

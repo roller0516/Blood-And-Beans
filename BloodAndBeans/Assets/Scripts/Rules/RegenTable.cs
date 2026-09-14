@@ -6,9 +6,8 @@ using System.Collections.Generic;
 /// 재료·블러드 빈 비중이 오른다". 그래서 이 표가 정하는 것도 하나뿐이다: **그날 밤
 /// 3등급 상자가 중심부 보상으로 채우는 칸 수.**
 ///
-/// 흔한 재료 풀 자체는 일차가 아니라 *맵*이 정한다 (10장 첫 줄: "맵마다 리젠되는 재료
-/// 타입이 정해져 있다"). 일차로 흔한 재료를 잠그면 만들 수 있는 메뉴가 같이 줄어
-/// 초반의 낮이 통째로 빈약해진다 — 기획서가 요구한 것은 그게 아니다.
+/// 흔한 재료는 *맵*이 종류를 정하고(10장), *일차*가 가중치를 정한다 (6.3.2).
+/// 가중치 0인 날에는 그 재료가 리젠되지 않는다 — 초콜렛은 3일차, 베리는 4일차부터다.
 ///
 /// 등급 분포는 여기서 건드리지 않는다. 어느 등급이 잘 나오는가는 자리가 정하고
 /// (기획서 6.3, `ItemBox.tierWeights`), 여기는 그 등급이 무엇을 담는가만 정한다.
@@ -61,6 +60,30 @@ public static class RegenTable
     /// `mapId`가 `ByMap`에 없으면(맵 데이터가 아직 없거나 오타) 기본 풀로 떨어진다.
     /// 여기서 예외를 던지면 등록 안 된 맵마다 그 밤의 파밍이 통째로 멈춘다 — 자리를
     /// 비우는 것보다는 기본 재료라도 내주는 쪽이 낫다.
-    public static IReadOnlyList<Ingredient> PoolFor(string mapId, int day) =>
-        ByMap.TryGetValue(mapId, out var pool) ? pool : ByMap[DefaultMapId];
+    // 기획서 6.3.2 표. 1~7일차 가중치.
+    static readonly Dictionary<Ingredient, int[]> DayWeights = new()
+    {
+        [Ingredient.Milk] = new[] { 35, 30, 25, 22, 20, 18, 18 },
+        [Ingredient.Ice] = new[] { 35, 28, 22, 20, 18, 17, 17 },
+        [Ingredient.Cream] = new[] { 30, 22, 18, 16, 15, 15, 15 },
+        [Ingredient.Almond] = new[] { 0, 20, 15, 13, 13, 13, 13 },
+        [Ingredient.Chocolate] = new[] { 0, 0, 20, 17, 17, 18, 18 },
+        [Ingredient.Berry] = new[] { 0, 0, 0, 12, 17, 19, 19 },
+    };
+
+    /// 그날의 가중치. 표에 없는 재료는 0이다.
+    public static int WeightOf(Ingredient item, int day) =>
+        DayWeights.TryGetValue(item, out var row)
+            ? row[System.Math.Min(System.Math.Max(day, 1), row.Length) - 1]
+            : 0;
+
+    /// 맵의 재료 중 그날 가중치가 있는 것. 페이즈 경계에서만 불리므로 목록을 새로 만든다.
+    public static IReadOnlyList<Ingredient> PoolFor(string mapId, int day)
+    {
+        var map = ByMap.TryGetValue(mapId, out var pool) ? pool : ByMap[DefaultMapId];
+        var today = new List<Ingredient>(map.Length);
+        foreach (var item in map)
+            if (WeightOf(item, day) > 0) today.Add(item);
+        return today;
+    }
 }

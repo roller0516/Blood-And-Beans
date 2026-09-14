@@ -68,6 +68,14 @@ public class PlayerPrediction : NetworkBehaviour
         history.Record(NetworkManager.LocalTime.Tick, transform.position);
     }
 
+    /// 예측을 시작하는 첫 프레임에 PlayerNetworkTransform이 한 번 부른다. 그 전에 받은 위치는
+    /// 비교할 예측이 없어 절대 위치로 맞춘다.
+    public void AdoptAuthorityClient(Vector3 serverPosition)
+    {
+        if (!Predicting || history == null) return;
+        SnapTo(serverPosition);
+    }
+
     /// 권위 상태가 도착할 때마다 PlayerNetworkTransform이 부른다.
     public void ReconcileClient(int serverTick, Vector3 serverPosition)
     {

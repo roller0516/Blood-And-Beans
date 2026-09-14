@@ -12,14 +12,31 @@ public class GamePhase : NetworkBehaviour
     /// 1:30을 말하지만, 밤 길이가 바뀌면 "끝나기 30초 전"이 그 뜻이다.
     [SerializeField] float returnAlarmSeconds = 30f;
 
+    /// 방 인원이 다 붙기를 기다리는 한도. 캐릭터 선택에서 나간 손님 하나가 판 전체를 붙잡지 않게 한다.
+    // ponytail: 임시값. 기획서 10.1에 매치 시작 대기 규칙이 없다. 생기면 그 절의 값으로 옮긴다
+    [SerializeField] float startTimeoutSeconds = 60f;
+
     readonly NetworkVariable<Phase> phase = new();
     readonly NetworkVariable<int> day = new();
     readonly NetworkVariable<double> endsAt = new();
     readonly NetworkVariable<bool> finished = new();
 
+    /// 방 인원이 다 모여 첫 밤이 시작됐는가. 그 전에는 시계가 돌지 않는다 — 늦게 붙은 손님이
+    /// 캐릭터 선택과 로딩에 쓴 시간만큼 밤을 잃지 않게 한다.
+    readonly NetworkVariable<bool> started = new();
+    readonly NetworkVariable<int> joinedPlayers = new();
+    readonly NetworkVariable<int> expectedPlayers = new();
+
     public Phase Current => phase.Value;
     public int Day => day.Value;
     public bool Finished => finished.Value;
+    public bool Started => started.Value;
+    public int JoinedPlayers => joinedPlayers.Value;
+    public int ExpectedPlayers => expectedPlayers.Value;
+
+    /// 씬 로드를 마친 클라이언트. 서버 전용이다.
+    readonly System.Collections.Generic.HashSet<ulong> loadedClients = new();
+    double startDeadline;
     public float Remaining =>
         Mathf.Max(0f, (float)(endsAt.Value - NetworkManager.ServerTime.Time));
     public float Elapsed => Mathf.Max(0f, Duration(Current) - Remaining);
@@ -61,12 +78,52 @@ public class GamePhase : NetworkBehaviour
         if (!IsServer)
         {
             phase.OnValueChanged += OnPhaseReplicated;
+            started.OnValueChanged += OnStartedReplicated;
             return;
         }
 
         day.Value = 1;
         finished.Value = false;   // 다시 스폰된 루프가 영구 종료 상태로 남으면 안 된다
         skipToDay = NoSkipTarget; // 이전 매치의 치트가 새 판까지 따라오면 안 된다
+        started.Value = false;
+
+        // 로비를 거치지 않은 시작(자동 접속·개발 콘솔)은 인원을 모르므로 기다리지 않는다.
+        var seating = GameManager.Seating;
+        expectedPlayers.Value = seating != null ? seating.ExpectedPlayers : 0;
+        startDeadline = NetworkManager.ServerTime.Time + startTimeoutSeconds;
+
+        loadedClients.Clear();
+        if (IsHost) loadedClients.Add(NetworkManager.LocalClientId);
+        NetworkManager.SceneManager.OnSceneEvent += OnSceneEventServer;
+        NetworkManager.OnClientDisconnectCallback += OnClientLeftServer;
+        TryStartServer();
+    }
+
+    /// 씬 동기화를 마친 손님을 센다. 늦게 붙는 손님은 `SynchronizeComplete`, 씬 로드 때 이미
+    /// 붙어 있던 손님은 `LoadComplete`로 온다.
+    void OnSceneEventServer(SceneEvent e)
+    {
+        if (started.Value) return;
+        if (e.SceneEventType != SceneEventType.SynchronizeComplete
+            && e.SceneEventType != SceneEventType.LoadComplete) return;
+
+        loadedClients.Add(e.ClientId);
+        TryStartServer();
+    }
+
+    void OnClientLeftServer(ulong clientId)
+    {
+        if (!started.Value && loadedClients.Remove(clientId)) joinedPlayers.Value = loadedClients.Count;
+    }
+
+    void TryStartServer()
+    {
+        if (started.Value) return;
+
+        joinedPlayers.Value = loadedClients.Count;
+        if (loadedClients.Count < expectedPlayers.Value && NetworkManager.ServerTime.Time < startDeadline) return;
+
+        started.Value = true;
         Enter(Phase.Night);
     }
 
@@ -90,6 +147,7 @@ public class GamePhase : NetworkBehaviour
     void Update()
     {
         if (!IsServer || finished.Value) return;
+        if (!started.Value) { TryStartServer(); return; }   // 한도 초과 확인. 인원은 이벤트가 센다
 
         // 치트가 걸려 있으면 목표 날짜에 닿을 때까지 매 프레임 마감을 당긴다. 전이는 어디까지나
         // 아래 정규 경로가 한 프레임에 하나씩 처리한다.
@@ -111,9 +169,22 @@ public class GamePhase : NetworkBehaviour
         Enter(NextPhase(phase.Value));
     }
 
-    public override void OnNetworkDespawn() => phase.OnValueChanged -= OnPhaseReplicated;
+    public override void OnNetworkDespawn()
+    {
+        phase.OnValueChanged -= OnPhaseReplicated;
+        started.OnValueChanged -= OnStartedReplicated;
+        if (!IsServer || NetworkManager == null) return;
+        if (NetworkManager.SceneManager != null) NetworkManager.SceneManager.OnSceneEvent -= OnSceneEventServer;
+        NetworkManager.OnClientDisconnectCallback -= OnClientLeftServer;
+    }
 
     void OnPhaseReplicated(Phase _, Phase now) => PhaseEntered?.Invoke(now);
+
+    /// 첫 밤은 페이즈 값이 기본값(밤) 그대로라 `phase` 변경으로는 오지 않는다. 시작 신호로 알린다.
+    void OnStartedReplicated(bool _, bool now)
+    {
+        if (now) PhaseEntered?.Invoke(phase.Value);
+    }
 
     void Enter(Phase p)
     {

@@ -15,8 +15,6 @@ public sealed class UICompletionGauge : MonoBehaviour
     CompletionGauge gauge;
     Cafe cafe;
     Camera cameraView;
-    PlayerCharacter character;
-    Unity.Netcode.NetworkObject localPlayer;
     int lastTenths = -1;
     bool lastTarget;
     void Awake()
@@ -38,7 +36,6 @@ public sealed class UICompletionGauge : MonoBehaviour
         var player = manager != null && manager.LocalClient != null ? manager.LocalClient.PlayerObject : null;
         transform.position = (player != null ? Vector3.Lerp(player.transform.position, gauge.Station.FacilityPosition, 0.5f) : gauge.Station.FacilityPosition) + offset;
         if (cameraView != null) transform.forward = cameraView.transform.forward;
-        if (player != localPlayer) { localPlayer = player; character = player != null ? player.GetComponent<PlayerCharacter>() : null; }
         var cooking = gauge.Station.State == StationState.Cooking;
         good.gameObject.SetActive(!cooking);
         perfect.gameObject.SetActive(!cooking);
@@ -51,7 +48,7 @@ public sealed class UICompletionGauge : MonoBehaviour
         if (cooking) { label.text = gauge.Station is Oven ? "굽는 중" : "추출 중"; lastTenths = -1; return; }
         var width = bar.rect.width;
         SetWidth(good, width * gauge.GoodHalfWidth * 2f);
-        SetWidth(perfect, width * gauge.PerfectHalfWidth * 2f * (character != null && character.AffectedBy(2) ? 0.5f : 1f));
+        SetWidth(perfect, width * gauge.PerfectHalfWidth * 2f);
         needle.anchoredPosition = new Vector2((gauge.Needle - 0.5f) * width, 0f);
         var target = CompletionGauge.LocalTarget() == gauge;
         var tenths = Mathf.CeilToInt(gauge.Remaining * 10f);

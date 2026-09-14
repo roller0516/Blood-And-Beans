@@ -5451,7 +5451,7 @@ Transform:
   m_GameObject: {fileID: 7432659168480402945}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.08, y: 0, z: 11.47}
+  m_LocalPosition: {x: 2.25, y: 0, z: 9.1}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -5487,11 +5487,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   customerPrefab: {fileID: 397695399714067981, guid: 5a9856f8fdef19a45906100835701fb8, type: 3}
   maxWaiting: 4
-  spawnSeconds: 8
   slotSpacing: 1.5
-  slotStagger: 0.45
-  burntPatiencePenalty: 10
-  perfectPatienceRecovery: 0.25
+  slotStagger: 0
 --- !u!114 &4151856092055359088
 MonoBehaviour:
   m_ObjectHideFlags: 0

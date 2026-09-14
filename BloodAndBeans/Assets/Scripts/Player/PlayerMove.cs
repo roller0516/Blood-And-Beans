@@ -146,7 +146,7 @@ public class PlayerMove : NetworkBehaviour
 
     void Update()
     {
-        if (phase != null && (phase.Finished || phase.Current == Phase.Transition))
+        if (phase != null && (!phase.Started || phase.Finished || phase.Current == Phase.Transition))
         { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (IsServer)
         {

@@ -11,6 +11,9 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     [SerializeField] Renderer statusRenderer;
     readonly NetworkVariable<bool> busy = new();
     readonly NetworkVariable<int> occupyingTeam = new(-1);
+
+    /// 「불붙이기」가 남긴 과열이 끝나는 서버 시각. 그때까지 누구도 쓰지 못한다 (기획서 9.1.2).
+    readonly NetworkVariable<double> hotUntil = new();
     ulong user;
     PlayerCarry washing;
     double completesAt;
@@ -19,7 +22,8 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public FacilityKind Kind => kind;
     public bool Busy => busy.Value;
     public int OccupyingTeam => occupyingTeam.Value;
-    public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
+    public bool Hot => NetworkManager != null && IsSpawned && NetworkManager.ServerTime.Time < hotUntil.Value;
+    public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : Hot ? "달아오름" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
     string FacilityName => kind switch { FacilityKind.Coffee => "커피 머신", FacilityKind.Oven => "오븐",
         FacilityKind.Sink => "개수대", FacilityKind.Beans => "원두함", _ => "빵함" };
     void Awake()
@@ -52,7 +56,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public void UseRpc(RpcParams p = default)
     {
         var id = p.Receive.SenderClientId;
-        if (director == null || director.Phase.Current != Phase.Day || Busy || !Near(id)) return;
+        if (director == null || director.Phase.Current != Phase.Day || Busy || Hot || !Near(id)) return;
         var cafe = director.CafeOf(PlayerTeam.Of(id));
         var carry = PlayerCarry.Of(id);
         if (cafe == null || carry == null || carry.Reserved) return;
@@ -78,7 +82,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
             carry.ReserveServer(true);
             var scale = cafe.HasBuff(TeamBuff.Wash) ? DayBalance.BuffSpeed : 1f;
             completesAt = NetworkManager.ServerTime.Time + DayBalance.WashSeconds *
-                (PlayerCharacter.Of(id)?.WorkScale(3) ?? 1f) / scale;
+                (1f - Mathf.Clamp01(carry.Held.WashProgress)) / scale;
             return;
         }
         foreach (var gauge in cafe.Gauges)
@@ -106,6 +110,11 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         washing.SetServer(HeldItem.Dish(washing.Held.DishIsPlate));
         ReleaseServer();
     }
+    public void OverheatServer(float seconds)
+    {
+        if (IsServer) hotUntil.Value = NetworkManager.ServerTime.Time + seconds;
+    }
+
     public void ReleaseServer()
     {
         if (!IsServer) return;

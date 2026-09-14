@@ -72,4 +72,7 @@ public abstract class UIView : MonoBehaviour
 
     /// 가려지거나 스택에서 내려갈 때. `OnShow`에서 건 구독을 반드시 여기서 푼다.
     public virtual void OnHide() { }
+
+    /// `UIManager`가 이 뷰를 파괴하기 직전. 남이 맡겨 둔 오브젝트를 품고 있으면 여기서 내보낸다.
+    public virtual void OnUnload() { }
 }

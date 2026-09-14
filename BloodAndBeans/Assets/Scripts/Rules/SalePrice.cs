@@ -13,16 +13,15 @@ public static class SalePrice
 {
     public const float PopularBonus = 0.30f;
 
-    // ponytail: 기획서 14장 #12에서 최상급 원두 배율이 미결정이다.
-    // 1.5는 임시값이다. 수치가 정해지면 DT_Bean으로 옮긴다.
-    public const float BloodBeanMultiplier = 1.5f;
+    // 기획서 1.4 · 7.2: 블러드 빈을 쓰면 커피 판매가 ×3.
+    public const float BloodBeanMultiplier = 3f;
 
     public static float GaugeMultiplier(Gauge g) => g switch
     {
         Gauge.Perfect => 1.3f,
         Gauge.Good => 1.0f,
         Gauge.Miss => 0.7f,
-        _ => 0.3f,
+        _ => 0.2f,   // 기획서 5.2: 탐 ×0.2
     };
 
     /// 메뉴에 인기 재료가 몇 개 들어 있는지 센다. 메뉴는 재료 집합이라 중복이

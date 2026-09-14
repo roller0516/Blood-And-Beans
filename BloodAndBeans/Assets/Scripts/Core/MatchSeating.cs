@@ -58,6 +58,13 @@ public class MatchSeating
     public int Capacity => TeamCount * playersPerTeam;
     public int ForcedSeat => forcedSeat;
 
+    /// 이 판에 들어오기로 한 인원(방장 포함). 첫 밤은 이만큼 모여야 시작한다 (`GamePhase`).
+    /// 0이면 모른다 — 로비를 거치지 않은 시작이라 기다리지 않는다.
+    public int ExpectedPlayers { get; private set; }
+
+    /// 방장이 시작을 누른 순간의 방 인원을 적는다.
+    public void ExpectPlayers(int count) => ExpectedPlayers = Mathf.Max(0, count);
+
     /// 접속 승인과 퇴장 처리를 건다. 여러 번 불러도 안전하다.
     ///
     /// 승인 콜백은 `StartHost`보다 먼저 걸려 있어야 한다. 늦으면 호스트는 멀쩡히 뜨고
@@ -93,6 +100,7 @@ public class MatchSeating
         seats = new TeamSeats(TeamCount, playersPerTeam);
         reservedSeats.Clear();
         characters.Clear();
+        ExpectedPlayers = 0;
         if (forcedSeat >= TeamCount) forcedSeat = NoForcedSeat;
     }
 

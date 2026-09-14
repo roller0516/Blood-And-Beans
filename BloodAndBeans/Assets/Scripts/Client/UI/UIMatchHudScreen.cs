@@ -1,4 +1,4 @@
-using TMPro;
+﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,8 +21,8 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] UIBagStatus bagStatus;
 
     /// 가방 아이콘의 두 얼굴. 비어 있거나 꽉 찼으면 닫힌 쪽, 그 사이에는 열린 쪽이다.
-    [SerializeField] Sprite bagClosedSprite;
-    [SerializeField] Sprite bagOpenSprite;
+    Sprite bagClosedSprite;
+    Sprite bagOpenSprite;
 
     /// 가방이 열려 보이는 적재 구간의 위쪽 끝. 이 값을 넘으면 더 들어가지 않으므로 닫는다.
     ///
@@ -33,6 +33,24 @@ public sealed class UIMatchHudScreen : UIScreen
     
     /// 화면 중앙에서 내리는 양. 정확히 가운데는 캐릭터와 겹친다.
     [SerializeField] float castBarDrop = 90f;
+
+    /// 월드 좌표를 따라가는 표식(주문 말풍선·재료 배지)이 올라가는 층. HUD 맨 아래에 깐다.
+    /// ponytail: 표식끼리 앞뒤 정렬은 하지 않는다. 겹쳐 보이는 일이 생기면 카메라 거리로 정렬한다.
+    [SerializeField] RectTransform worldMarkers;
+
+    [Header("조합식 — F1로 여닫는 중앙 패널")]
+    /// 화면 중앙 패널. HUD 요소에 가리지 않게 `RecipeWrap`이 HUD 맨 위 자식이다.
+    [SerializeField] GameObject recipePanel;
+    [SerializeField] Button recipeTabButton;
+
+    /// 펴져 있으면 ◀(접기), 접혀 있으면 ▶(펴기)다.
+    [SerializeField] TMP_Text recipeTabGlyph;
+    [SerializeField] UIRecipeRow recipeRowPrefab;
+    [SerializeField] RectTransform recipeContent;
+    [SerializeField] RectTransform recipeDessertContent;
+    UIRecipeRow[] recipeRows;
+    bool recipeAvailable;
+    public bool RecipeOpen => recipePanel != null && recipePanel.activeSelf;
 
     [Header("귀환 경보")]
     // 밤 마감 30초 전에 울리는 종소리 (기획서 6.4). 애셋이 아직 없어서 비워 둘 수 있고,
@@ -138,7 +156,7 @@ public sealed class UIMatchHudScreen : UIScreen
     public RectTransform BagAnchor => bagIcon;
 
     /// HUD는 누르는 곳이 없다. 밤에는 마우스가 카메라를 돌리므로 커서를 잠근다.
-    public override bool WantsCursor => false;
+    public override bool WantsCursor => recipePanel != null && recipePanel.activeSelf;
 
     protected override void Awake()
     {
@@ -148,7 +166,86 @@ public sealed class UIMatchHudScreen : UIScreen
         // 매번 덮인다.
         if (bagFill != null) bagFillImage = bagFill.GetComponent<Image>();
         if (bagIcon != null) bagIconImage = bagIcon.GetComponent<Image>();
+
+        var resources = ResourceManager.Instance;
+        bagClosedSprite = resources.GetSprite(ResourceManager.BagClosed);
+        bagOpenSprite = resources.GetSprite(ResourceManager.BagOpen);
+
+        // 메뉴표는 판 중에 바뀌지 않는다. 화면이 재사용되므로 한 번만 만든다.
+        recipeRows = new UIRecipeRow[Menus.All.Length];
+        for (var i = 0; i < Menus.All.Length; i++)
+        {
+            var menu = Menus.All[i];
+            var dessert = System.Array.IndexOf(menu.Parts, Menus.DessertBase) >= 0;
+            var parent = dessert && recipeDessertContent != null ? recipeDessertContent : recipeContent;
+            recipeRows[i] = Instantiate(recipeRowPrefab, parent);
+            recipeRows[i].Bind(menu);
+        }
+        UIButtons.Wire(recipeTabButton, () => ToggleRecipe());
+        SetRecipeOpen(false);
     }
+
+    /// 조합식 패널을 접거나 편다. <paramref name="force"/>를 주면 그 상태로 맞춘다.
+    public void ToggleRecipe(bool? force = null)
+    {
+        SetRecipeOpen(recipeAvailable && (force ?? !RecipeOpen));
+        // 펼친 동안은 탭을 누르고 스크롤해야 하므로 커서를 푼다 (`WantsCursor`).
+        UIManager.Instance.RefreshInputGates();
+    }
+
+    void SetRecipeOpen(bool open)
+    {
+        recipePanel.SetActive(open);
+        if (recipeTabGlyph != null) recipeTabGlyph.text = "F1";
+    }
+
+    public void RenderRecipes(TeamStock stock, System.Collections.Generic.IReadOnlyList<Ingredient> popular)
+    {
+        if (!RecipeOpen || recipeRows == null) return;
+        foreach (var row in recipeRows) row.Render(stock, popular);
+    }
+
+    /// 표식은 진열대·손님이 주인이다(주인이 자기 OnDestroy에서 지운다). HUD가 내려갈 때 같이 파괴되지
+    /// 않게 층 밖으로 내보낸다. HUD가 다시 뜨면 `PlaceMarker`가 다시 데려온다.
+    public override void OnUnload()
+    {
+        for (var i = worldMarkers.childCount - 1; i >= 0; i--) worldMarkers.GetChild(i).SetParent(null, false);
+        markerDepth.Clear();
+    }
+
+    /// 표식마다 마지막으로 잰 카메라 깊이. 가까운 표식이 위에 그려지도록 형제 순서를 맞추는 데 쓴다.
+    readonly System.Collections.Generic.Dictionary<Transform, float> markerDepth = new();
+
+    /// 표식을 이 층으로 옮기고 월드 좌표 위에 놓는다. 카메라 뒤면 false다.
+    public bool PlaceMarker(RectTransform marker, Vector3 world, Camera view)
+    {
+        if (marker.parent != worldMarkers) marker.SetParent(worldMarkers, false);
+
+        var screenPoint = view.WorldToScreenPoint(world);
+        if (screenPoint.z <= 0f) return false;
+
+        markerDepth[marker] = screenPoint.z;
+        SortMarker(marker, screenPoint.z);
+
+        // Overlay 캔버스라 변환에 카메라를 넘기지 않는다.
+        if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(worldMarkers, screenPoint, null, out var local))
+            return false;
+        if (marker.anchoredPosition != local) marker.anchoredPosition = local;
+        return true;
+    }
+
+    /// 먼 표식이 앞(먼저 그려짐), 가까운 표식이 뒤에 오게 이웃과 비교해 한 칸씩 옮긴다.
+    /// 표식은 매 프레임 조금씩만 움직이므로 전체 정렬 없이 이것으로 순서가 유지된다.
+    void SortMarker(Transform marker, float depth)
+    {
+        var index = marker.GetSiblingIndex();
+        var target = index;
+        while (target > 0 && DepthOf(worldMarkers.GetChild(target - 1)) < depth) target--;
+        while (target < worldMarkers.childCount - 1 && DepthOf(worldMarkers.GetChild(target + 1)) > depth) target++;
+        if (target != index) marker.SetSiblingIndex(target);
+    }
+
+    float DepthOf(Transform marker) => markerDepth.TryGetValue(marker, out var depth) ? depth : float.MaxValue;
 
     /// 무게 구간에 맞는 색. 표가 비어 있으면 기존 강조색으로 떨어진다 — 색이 없다고
     /// 게이지가 사라지면 안 된다.
@@ -162,6 +259,9 @@ public sealed class UIMatchHudScreen : UIScreen
     /// 부르는 쪽이 기억해야 한다.
     public void Render(in MatchHudModel model)
     {
+        recipeAvailable = model.IsDay;
+        if (recipeTabButton != null) recipeTabButton.gameObject.SetActive(recipeAvailable);
+        if (!recipeAvailable && RecipeOpen) ToggleRecipe(false);
         if (dayHeader != null) dayHeader.SetActive(model.IsDay);
         if (nightHeader != null) foreach (var part in nightHeader) if (part != null) part.SetActive(!model.IsDay);
         if (model.IsDay)

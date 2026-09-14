@@ -60,7 +60,7 @@ public class PlayerLook : NetworkBehaviour
         if (visuals == null || modelRoot == null) return;
         if (model != null) { model.SetActive(false); Destroy(model); }
         model = CharacterCatalog.IsValid(index)
-            ? visuals.SpawnModel(CharacterCatalog.All[index].Day, modelRoot, gameObject.layer) : null;
+            ? visuals.SpawnModel(CharacterCatalog.All[index].Id, modelRoot, gameObject.layer) : null;
         appearance = model != null ? model.GetComponent<CharacterModel>() : null;
         if (defaultModel != null) defaultModel.SetActive(model == null);
         Apply(playerTeam.Team);

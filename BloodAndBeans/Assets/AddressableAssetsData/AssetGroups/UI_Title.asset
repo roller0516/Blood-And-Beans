@@ -1,0 +1,54 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: UI_Title
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: UI_Title
+  m_GUID: ffa22a996ee14e74ca9e165b4a6ed25f
+  m_SerializeEntries:
+  - m_GUID: 0db625a503f93d34d9c48ee506bd2b8b
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIRoomScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4eeb29d62e43b9f43902d1a0c9e7090f
+    m_Address: Assets/Art/UI/Prefabs/Screen/UICharacterSelectScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78eda180869e4fd4b89f628f4f68fa10
+    m_Address: Assets/Art/UI/Atlases/Title.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4299716988a97f469548a40bc070cce
+    m_Address: Assets/Art/UI/Prefabs/Screen/UITitleMenuScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed40ca0ded62d9e4e97c9cc91cd843d8
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIRoomListScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 8c9770d6b40a7124bba692cb7c953e3b, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: aba7354c87682cf48aec632ea2c011ae, type: 2}
+    - {fileID: 11400000, guid: 3100925aaee06ef47bb490f7cb44fb8d, type: 2}
+    m_SchemaDisplayOrder:
+    - UI_Title_BundledAssetGroupSchema
+    - UI_Title_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

@@ -19,18 +19,17 @@ public enum IngredientRarity
 
 public static class Ingredients
 {
-    // ponytail: 임시 무게값 — 기획서 14장 #3에서 미결정으로 남아 있다.
-    // 지금까지 확정된 것은 순서(얼음이 가볍고 원두/업그레이드가 무겁다)뿐이다.
+    // 기획서 6.7: 얼음 0.5 · 일반 재료 1 · 블러드 빈과 보석 3. 100% 기준선은 10이다(`PlayerInventory.capacity`).
     static readonly float[] Weight =
     {
         1.0f, // Milk
         1.0f, // Cream
-        0.8f, // Chocolate
-        0.6f, // Almond
-        0.7f, // Berry
-        0.3f, // Ice
-        2.5f, // BloodBean
-        3.0f, // UpgradePart
+        1.0f, // Chocolate
+        1.0f, // Almond
+        1.0f, // Berry
+        0.5f, // Ice
+        3.0f, // BloodBean
+        3.0f, // UpgradePart (보석 전부가 이 값을 쓴다)
         1.2f, // Bean
         1.0f, // BreadBase
     };

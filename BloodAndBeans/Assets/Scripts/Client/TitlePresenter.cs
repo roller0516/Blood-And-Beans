@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -45,7 +46,7 @@ public sealed class TitlePresenter
         SubscribeToNetwork();
 
         if (lobby.InRoom) EnterRoom();
-        else OpenScreen<UITitleMenuScreen>();
+        else OpenScreenAsync<UITitleMenuScreen>().Forget();
     }
 
     public void Disable()
@@ -81,14 +82,19 @@ public sealed class TitlePresenter
     // 타이틀 → 방 목록 → 대기실은 되돌아갈 수 있는 흐름이라 스택으로 쌓는다.
     // "뒤로"와 "방 나가기"는 스택을 하나 내리는 것과 같다.
 
-    public void OpenRooms()
+    public void OpenRooms() => OpenRoomsAsync().Forget();
+
+    async UniTaskVoid OpenRoomsAsync()
     {
-        OpenScreen<UIRoomListScreen>();
-        RefreshRooms();
+        if (await OpenScreenAsync<UIRoomListScreen>() != null) RefreshRooms();
     }
 
-    public void OpenSettings()
+    public void OpenSettings() => OpenSettingsAsync().Forget();
+
+    async UniTaskVoid OpenSettingsAsync()
     {
+        await ui.LoadAsync<UISettingsPopup>();
+        if (!active) return;
         var popup = ui.PushPopup<UISettingsPopup>();
         popup?.Bind(ui.PopPopup);
     }
@@ -134,9 +140,15 @@ public sealed class TitlePresenter
     ///
     /// 화면 프리팹을 이어 두지 않았으면 예전 대기실로 물러난다 — 여기서 멈추면 방에
     /// 들어가고도 아무것도 못 한다.
-    void EnterRoom()
+    void EnterRoom() => EnterRoomAsync().Forget();
+
+    async UniTaskVoid EnterRoomAsync()
     {
-        if (OpenScreen<UICharacterSelectScreen>() == null) { OpenRoom(); return; }
+        if (await OpenScreenAsync<UICharacterSelectScreen>() == null)
+        {
+            if (active) OpenRoomAsync().Forget();
+            return;
+        }
         Render();
     }
 
@@ -147,10 +159,11 @@ public sealed class TitlePresenter
         lobby.JoinStartedMatch();
     }
 
-    void OpenRoom()
+    async UniTaskVoid OpenRoomAsync()
     {
-        var screen = OpenScreen<UIRoomScreen>();
-        screen?.BuildTeams(lobby.TeamCount);
+        var screen = await OpenScreenAsync<UIRoomScreen>();
+        if (screen == null) return;
+        screen.BuildTeams(lobby.TeamCount);
         Render();
     }
 
@@ -187,10 +200,13 @@ public sealed class TitlePresenter
 
     // --- 그리기 ---
 
-    T OpenScreen<T>() where T : UIScreen
+    /// 처음 여는 화면은 프리팹을 불러와야 한다. 기다리는 사이 타이틀을 떠났으면 열지 않는다.
+    async UniTask<T> OpenScreenAsync<T>() where T : UIScreen
     {
+        await ui.LoadAsync<T>();
+        if (!active) return null;
         var screen = ui.PushScreen<T>();
-        BindAll();
+        if (screen != null) BindAll();
         return screen;
     }
 

@@ -587,6 +587,7 @@ public class SteamLobby : MonoBehaviour
         if (!CanStartMatch) { Fail("모든 참가자의 준비와 팀 정원을 확인해 주세요."); return false; }
         if (mapScenes != null && mapScenes.Length > 0) gameScene = mapScenes[UnityEngine.Random.Range(0, mapScenes.Length)];
         backend.CloseRoom();
+        Seating.ExpectPlayers(members.Count);
 
         if (!StartNetwork(SelectedTeam, host: true, targetSteamId: 0)) { backend.ReopenRoom(); return false; }
 

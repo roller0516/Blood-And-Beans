@@ -28,12 +28,6 @@ using UnityEngine.UI;
 /// 드러날 때마다 RPC를 보내면 5칸에 RPC 5개다.
 public sealed class UIBoxLootPopup : UIPopup
 {
-    [Serializable] struct IngredientIcon
-    {
-        public Ingredient Item;
-        public Sprite Sprite;
-    }
-
     [Header("머리")]
     [SerializeField] TMP_Text tierLabel;
     [SerializeField] TMP_Text title;
@@ -76,8 +70,6 @@ public sealed class UIBoxLootPopup : UIPopup
     /// 가려진 칸에 뜨는 남은 시간 안내. 공개 간격은 `ItemBox.revealInterval`이 정한다.
     const string RevealHint = "IN 1s";
 
-    /// 재료 아이콘. 비워 두면 이름 글자로만 그린다 — 아트가 붙기 전에도 규칙은 확인된다.
-    [SerializeField] IngredientIcon[] icons = Array.Empty<IngredientIcon>();
 
     /// 날아가는 사본이 붙을 곳. 칸보다 위에 그려져야 해서 프리팹에 따로 둔다.
     [SerializeField] RectTransform flyLayer;
@@ -216,7 +208,7 @@ public sealed class UIBoxLootPopup : UIPopup
                 DisplayNames.Of(item),
                 count < 0 ? "∞" : count > 1 ? $"×{count}" : string.Empty,
                 $"{Ingredients.WeightOf(item) * Mathf.Max(count, 1):0.0} KG",
-                SpriteOf(item),
+                ResourceManager.Instance.IngredientSprite(item),
                 rarity);
 
             if (previousRevealed >= 0 && i >= previousRevealed
@@ -249,13 +241,6 @@ public sealed class UIBoxLootPopup : UIPopup
         if (slot == null) return;
         slot.Bind(() => OnSlotClicked(index));
         slot.HideTooltip();
-    }
-
-    Sprite SpriteOf(Ingredient item)
-    {
-        for (var i = 0; i < icons.Length; i++)
-            if (icons[i].Item == item) return icons[i].Sprite;
-        return null;
     }
 
     /// 칸을 눌렀다. 실제로 담기는지는 서버가 정하므로 연출은 요청과 함께 바로 시작한다 —

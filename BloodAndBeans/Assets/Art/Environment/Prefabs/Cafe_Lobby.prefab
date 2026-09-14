@@ -115,6 +115,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Cafe
   ShowTopMostFoldoutHeaderGroup: 1
   teamTintStrength: 0.35
+  floor: {fileID: 0}
 --- !u!1 &257374549106301384
 GameObject:
   m_ObjectHideFlags: 0
@@ -434,7 +435,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   offer: 00000000
   reach: 2.5
-  needsShelfUpgrade: 1
 --- !u!114 &8316398553831206196
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -791,7 +791,7 @@ Transform:
   m_GameObject: {fileID: 7432659168480402945}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0.08, y: 0, z: 11.47}
+  m_LocalPosition: {x: 3.37, y: 0, z: 9.900001}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -810,9 +810,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Dish
   ShowTopMostFoldoutHeaderGroup: 1
-  total: 4
-  extraDishes: 2
-  dishwasherSeconds: 6
+  cups: 2
+  plates: 2
 --- !u!114 &2737626604428793901
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -828,9 +827,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   customerPrefab: {fileID: 397695399714067981, guid: 5a9856f8fdef19a45906100835701fb8, type: 3}
   maxWaiting: 4
-  spawnSeconds: 8
   slotSpacing: 1.5
-  burntPatiencePenalty: 10
+  slotStagger: 0
 --- !u!114 &4151856092055359088
 MonoBehaviour:
   m_ObjectHideFlags: 0

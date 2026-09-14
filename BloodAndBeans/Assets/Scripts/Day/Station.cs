@@ -62,8 +62,7 @@ public class Station : NetworkBehaviour, IItemHolder
         carry.ReserveServer(true);
         var seconds = this is Oven ? DayBalance.OvenSeconds : DayBalance.CoffeeSeconds;
         if (cafe.HasBuff(TeamBuff.Cook)) seconds /= DayBalance.BuffSpeed;
-        var character = PlayerCharacter.Of(carry.OwnerClientId);
-        cookDuration.Value = seconds * cafe.Director.LedgerOf(cafe.TeamId).CraftSpeedScale * (character?.WorkScale(1) ?? 1f);
+        cookDuration.Value = seconds * cafe.Director.LedgerOf(cafe.TeamId).CraftSpeedScale;
         doneAt.Value = NetworkManager.ServerTime.Time + cookDuration.Value;
         state.Value = StationState.Cooking;
         return true;
@@ -88,12 +87,29 @@ public class Station : NetworkBehaviour, IItemHolder
         if (returnInput && operatorCarry != null && operatorCarry.IsSpawned) operatorCarry.SetServer(input);
         else if (cafe != null && cafe.IsSpawned) cafe.Dishes.SoilServer(input.DishIsPlate);
         gauge.CancelServer();
+        // 완성하지 않고 놓으면 과열도 없다. 방해만 하는 사용을 막는다 (5.4 · 9.1.2).
+        ignited = false;
         ReleaseServer();
     }
+    /// 「불붙이기」 (기획서 9.1.2). 이 플레이어가 조리 중인 설비일 때만 걸린다 — 먼저 써야 발동한다.
+    public bool IgniteServer(ulong clientId)
+    {
+        if (!IsServer || state.Value != StationState.Cooking || operatorId.Value != clientId || ignited) return false;
+        var remaining = CookRemaining;
+        if (remaining <= 0f) return false;
+        doneAt.Value -= remaining * DaySkills.IgniteCut;
+        ignited = true;
+        return true;
+    }
+    bool ignited;
+
     void ReleaseServer()
     {
         if (operatorCarry != null) operatorCarry.ReserveServer(false);
         facility?.ReleaseServer();
+        // 놓은 뒤 달아오른다. 나와 팀원도 예외가 없다 (9.1.2).
+        if (ignited && facility != null) facility.OverheatServer(DaySkills.OverheatSeconds);
+        ignited = false;
         facility = null; operatorCarry = null;
         operatorId.Value = ulong.MaxValue;
         ingredient.Value = Ingredient.None;
@@ -104,6 +120,9 @@ public class Station : NetworkBehaviour, IItemHolder
         if (!IsServer || state.Value != StationState.Gauge) return;
         if (operatorCarry == null || !operatorCarry.IsSpawned || facility == null || !facility.Near(operatorCarry.OwnerClientId))
         { CancelServer(operatorCarry != null && operatorCarry.IsSpawned); return; }
+        // 「정제」는 점유자의 다음 한 잔을 Perfect로 확정한다 (9.1.2). 탄 것은 한 잔으로 치지 않는다.
+        if (judgement != Judgement.Burnt && PlayerCharacter.Of(operatorCarry.OwnerClientId)?.ConsumeRefineServer() == true)
+            judgement = Judgement.Perfect;
         var recipe = new[] { input.Ingredient };
         operatorCarry.SetServer(new HeldItem { HasDish = true, DishIsPlate = input.DishIsPlate,
             IsProduct = true, Ingredient = Ingredient.None, Recipe = recipe, Menu = Menus.Match(recipe),

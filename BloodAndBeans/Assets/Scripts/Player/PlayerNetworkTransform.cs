@@ -14,6 +14,9 @@ public class PlayerNetworkTransform : NetworkTransform
     PlayerPrediction prediction;
     Quaternion authorityRotation = Quaternion.identity;
     bool hasAuthorityRotation;
+    Vector3 authorityPosition;
+    bool hasAuthorityPosition;
+    bool adoptedAuthority;
 
     bool OwnerPredicts => prediction != null && prediction.Predicting;
 
@@ -33,6 +36,14 @@ public class PlayerNetworkTransform : NetworkTransform
             return;
         }
 
+        // 예측이 켜지기 전에 온 위치(스폰 동기화, 스폰 직후 순간이동)는 적용되지 않은 채
+        // 남는다. 늦게 붙은 손님이 원점에 서 있다가 첫 이동에서 수십 m 튀었다. 한 번 맞춘다.
+        if (!adoptedAuthority && hasAuthorityPosition)
+        {
+            adoptedAuthority = true;
+            prediction.AdoptAuthorityClient(authorityPosition);
+        }
+
         if (hasAuthorityRotation) transform.rotation = authorityRotation;
     }
 
@@ -41,9 +52,20 @@ public class PlayerNetworkTransform : NetworkTransform
     {
         base.OnNetworkTransformStateUpdated(ref oldState, ref newState);
 
+        // 축 단위로 쌓는다. 델타는 임계값을 넘은 축만 싣고, 수신 버퍼의 안 온 축은 0으로
+        // 남아 있다. GetPosition()을 통째로 쓰면 첫 이동에서 안 움직인 축이 0으로 잡혀
+        // 화해가 원점 쪽으로 당기거나 y=0으로 스냅했다. 초기 동기화(전 축)도 여기로 온다.
+        if (newState.HasPositionChange)
+        {
+            var p = newState.GetPosition();
+            if (newState.HasPositionX) authorityPosition.x = p.x;
+            if (newState.HasPositionY) authorityPosition.y = p.y;
+            if (newState.HasPositionZ) authorityPosition.z = p.z;
+            hasAuthorityPosition = true;
+        }
+
         if (!OwnerPredicts) return;
 
-        // 바뀐 항목만 값이 들어 있다. HasPositionChange가 false면 GetPosition()은 0을 준다.
         if (newState.HasRotAngleChange)
         {
             authorityRotation = newState.GetRotation();
@@ -51,6 +73,6 @@ public class PlayerNetworkTransform : NetworkTransform
         }
 
         if (newState.HasPositionChange)
-            prediction.ReconcileClient(newState.GetNetworkTick(), newState.GetPosition());
+            prediction.ReconcileClient(newState.GetNetworkTick(), authorityPosition);
     }
 }

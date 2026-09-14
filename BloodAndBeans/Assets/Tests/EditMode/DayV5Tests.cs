@@ -30,6 +30,37 @@ public class DayV5Tests
         Assert.IsFalse(dish.Equals(CarryView.Nothing));
     }
 
+    /// 기획서 9.1.1 짝 · 9.1.3 쿨타임 · 9.1.2 삼키기 0.9초.
+    [Test]
+    public void DaySkillsFollowNightPairAndCooldownTable()
+    {
+        Assert.AreEqual(DaySkill.Ignite, DaySkills.Of(NightSkill.WillOWisp));
+        Assert.AreEqual(DaySkill.Glide, DaySkills.Of(NightSkill.Echo));
+        Assert.AreEqual(DaySkill.Refine, DaySkills.Of(NightSkill.Appraise));
+        Assert.AreEqual(DaySkill.Shortcut, DaySkills.Of(NightSkill.Track));
+        Assert.AreEqual(DaySkill.Swallow, DaySkills.Of(NightSkill.Illusion));
+        Assert.AreEqual(DaySkill.None, DaySkills.Of(NightSkill.None));
+
+        Assert.AreEqual(14f, DaySkills.CooldownOf(DaySkill.Shortcut));
+        Assert.AreEqual(15f, DaySkills.CooldownOf(DaySkill.Ignite));
+        Assert.AreEqual(18f, DaySkills.CooldownOf(DaySkill.Refine));
+        Assert.AreEqual(22f, DaySkills.CooldownOf(DaySkill.Glide));
+        Assert.AreEqual(22f, DaySkills.CooldownOf(DaySkill.Swallow));
+        Assert.AreEqual(0.9f, DayBalance.WashSeconds * (1f - DaySkills.SwallowProgress), 0.0001f);
+
+        // 9.1.1: 5종이고 스킬이 겹치지 않아야 팀 내 중복 픽 금지가 스킬 중복 금지가 된다.
+        Assert.AreEqual(5, CharacterCatalog.All.Length);
+        var nights = new System.Collections.Generic.HashSet<NightSkill>();
+        var ids = new System.Collections.Generic.HashSet<CharacterId>();
+        foreach (var c in CharacterCatalog.All)
+        {
+            Assert.IsTrue(nights.Add(c.Night), c.Name);
+            Assert.IsTrue(ids.Add(c.Id), c.Name);
+            Assert.AreEqual(DaySkills.Of(c.Night), c.Day);
+            Assert.AreEqual(DaySkills.NameOf(c.Day), c.DayName);
+        }
+    }
+
 }
 
 public class DayV5RuntimeTests

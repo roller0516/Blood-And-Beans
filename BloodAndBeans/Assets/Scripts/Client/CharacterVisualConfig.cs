@@ -12,20 +12,15 @@ public class CharacterVisualConfig : ScriptableObject
 {
     public const string AssetName = "CharacterVisualConfig";
 
-    /// 키가 `DayPassive`인 이유는 `CharacterCatalog.All`의 배열 인덱스가 흔들리기 때문이다
-    /// (종 수가 기획서 14장 #10 미결). 인덱스로 짝지으면 카탈로그에 한 줄 끼워 넣는 순간
-    /// 표 전체가 한 칸씩 밀린다. 낮 패시브는 종류와 1:1이라 안정적인 식별자다.
+    /// 키가 배열 인덱스가 아니라 `CharacterId`인 이유는 카탈로그 순서가 바뀌어도 표가 밀리지 않게 하려는 것이다.
     [System.Serializable]
     public struct Entry
     {
         [Tooltip("저장 호환을 위한 외형 ID. 낮 스킬을 바꿔도 이 값은 유지한다.")]
-        public DayPassive id;
+        public CharacterId id;
 
         [Tooltip("FBX를 중첩한 프리팹. 모델·Animator·CharacterModel을 담고 게임 로직과 충돌체는 넣지 않는다.")]
         public GameObject model;
-
-        [Tooltip("선택창 하단 스트립의 아이콘. 비면 카드가 글자만 보여 준다.")]
-        public Sprite icon;
 
         [Tooltip("선택창과 인게임에 공통 적용할 발 위치 보정.")]
         public Vector3 localPosition;
@@ -42,7 +37,7 @@ public class CharacterVisualConfig : ScriptableObject
     [SerializeField] GameObject placeholderModel;
 
     /// 이 종류가 무대에 세울 프리팹. 표에 없거나 빈 칸이면 대역이 선다.
-    public GameObject ModelFor(DayPassive id)
+    public GameObject ModelFor(CharacterId id)
     {
         if (entries != null)
             for (var i = 0; i < entries.Length; i++)
@@ -52,7 +47,7 @@ public class CharacterVisualConfig : ScriptableObject
     }
 
     /// 양쪽 화면이 같은 보정과 레이어 처리를 쓴다. 모델 교체가 게임 규칙에 닿지 않는다.
-    public GameObject SpawnModel(DayPassive id, Transform parent, int layer)
+    public GameObject SpawnModel(CharacterId id, Transform parent, int layer)
     {
         var prefab = ModelFor(id);
         if (prefab == null || parent == null) return null;
@@ -71,14 +66,5 @@ public class CharacterVisualConfig : ScriptableObject
         foreach (var child in model.GetComponentsInChildren<Transform>(true))
             child.gameObject.layer = layer;
         return model;
-    }
-    /// 하단 스트립의 아이콘. 없으면 null이고 카드는 글자만 보여 준다.
-    public Sprite IconFor(DayPassive id)
-    {
-        if (entries == null) return null;
-        for (var i = 0; i < entries.Length; i++)
-            if (entries[i].id == id) return entries[i].icon;
-
-        return null;
     }
 }

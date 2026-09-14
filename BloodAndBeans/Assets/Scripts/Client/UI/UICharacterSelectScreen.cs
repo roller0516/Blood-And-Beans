@@ -50,10 +50,6 @@ public sealed class UICharacterSelectScreen : UIScreen
     [SerializeField] UICharacterCard cardPrefab;
     [SerializeField] RectTransform cardRoot;
 
-    [Header("무대")]
-    /// 3D 모델과 아이콘의 출처. 비면 무대가 비고 카드는 글자만 보여 준다.
-    [SerializeField] CharacterVisualConfig visuals;
-
     /// 무대는 화면 프리팹의 자식이 될 수 없다. 캔버스 루트의 스케일이 자식에게 그대로
     /// 내려가서 3D 모델까지 같이 줄어든다. 그래서 따로 찍어 씬에 세운다.
     [SerializeField] CharacterStage stagePrefab;
@@ -205,7 +201,7 @@ public sealed class UICharacterSelectScreen : UIScreen
             var index = i;
             var card = Instantiate(cardPrefab, cardRoot);
             card.name = $"Card{i}";
-            card.Bind(all[i].Name, visuals != null ? visuals.IconFor(all[i].Day) : null,
+            card.Bind(all[i].Name, ResourceManager.Instance.CrewSprite(all[i].Id),
                       () => Select(index, true));
             cards.Add(card);
         }

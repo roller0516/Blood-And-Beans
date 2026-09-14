@@ -151,9 +151,7 @@ public class CompletionGauge : NetworkBehaviour
     Judgement JudgeFor(ulong clientId)
     {
         var off = Mathf.Abs(Needle - 0.5f);
-        var pc = PlayerCharacter.Of(clientId);
-        var width = PerfectHalfWidth * (pc != null && pc.AffectedBy(2) ? 0.5f : 1f);
-        return off <= width ? Judgement.Perfect : off <= goodHalfWidth ? Judgement.Good : Judgement.Miss;
+        return off <= PerfectHalfWidth ?Judgement.Perfect : off <= goodHalfWidth ? Judgement.Good : Judgement.Miss;
     }
 
     Judgement Judge(float pos)
@@ -170,6 +168,6 @@ public class CompletionGauge : NetworkBehaviour
         Judgement.Perfect => 1.3f,
         Judgement.Good => 1.0f,
         Judgement.Miss => 0.7f,
-        _ => 0.3f,
+        _ => 0.2f,   // 기획서 5.2: 탐 ×0.2
     };
 }

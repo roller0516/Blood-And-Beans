@@ -7,19 +7,17 @@ public static class DayBalance
     public static readonly int Machines = 3;
     public static readonly int Sinks = 3;
     public static readonly int BuffDays = 3;
+    // 기획서 5.5: 낮이 시작되면 이 간격으로 대기 슬롯 수만큼 들어오고, 그 뒤로는 자리가 비는 즉시 들어온다.
+    public static readonly float FirstEntrySeconds = 2f;
+    // 기획서 5.2: Perfect는 그 손님의 최대 인내심을 이 비율만큼 회복시킨다.
+    public static readonly float PerfectPatienceRecovery = 0.15f;
     // 기획서 5.7.2: 인내심 링의 촉박·위급 경계.
     public static readonly float PatienceWarning = 0.5f;
     public static readonly float PatienceUrgent = 0.2f;
 
-    // ponytail: 14장 #41~43 미결. 임시 플레이를 사용자 승인으로 적용하며 확정 시 이 표를 교체한다.
+    // ponytail: v5.0 임시 버프 수치. 8장 보석 6종 수치로 교체한다. 낮 스킬 수치는 `DaySkills`에 있다.
     public static readonly float BuffSpeed = 1.2f;
     public static readonly float BuffPerfect = 1.5f;
-    public static readonly float SkillSeconds = 4f;
-    public static readonly float SkillCooldown = 35f;
-    public static readonly float SkillReach = 8f;
-    public static readonly float SlowScale = 0.65f;
-    public static readonly string[] SkillNames = { "끈적한 발걸음", "엉킨 손", "흔들리는 집중", "거품 장난", "긴장한 마무리" };
-    public static readonly string[] SkillEffects = { "가까운 상대 이동속도 35% 감소", "가까운 상대 조리 시간 50% 증가", "가까운 상대 Perfect 폭 50% 감소", "가까운 상대 세척 시간 50% 증가", "가까운 상대 마무리 시간 50% 증가" };
 }
 
 public enum TeamBuff { Dishes, Move, Perfect, Resistance, Wash, Cook, Finish, Serve }

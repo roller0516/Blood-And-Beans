@@ -22,20 +22,14 @@ public class CustomerQueue : NetworkBehaviour
 {
     [SerializeField] Customer customerPrefab;
     [SerializeField] int maxWaiting = 4;
-    [SerializeField] float spawnSeconds = 8f;   // ponytail: 임시값, 기획서 14장 #1
     [SerializeField] float slotSpacing = 1.5f;
     // ponytail: 계단식 대기열 깊이 초안. 카운터 실치수 확정 후 조정한다 (5.7.2).
     [SerializeField] float slotStagger = 0.45f;
 
-    // ponytail: 탄 것을 팔았을 때의 인내심 감소는 기획서 14장 #6, 아직 미결정이다.
-    [SerializeField] float burntPatiencePenalty = 10f;
-
-    // ponytail: 회복량은 14장 #22 미결. 기존 25%를 유지하며 확정 시 조정한다.
-    [SerializeField, Range(0f, 1f)] float perfectPatienceRecovery = 0.25f;
-
     readonly List<Customer> waiting = new();
     public IReadOnlyList<Customer> Waiting => waiting;
     double nextSpawn;
+    int enteredToday;   // 오늘 들어온 손님 수. 첫 진입 간격을 둘지 가른다
 
     Cafe ownerCafe;
     GamePhase clock;
@@ -74,8 +68,13 @@ public class CustomerQueue : NetworkBehaviour
         }
 
         if (waiting.Count >= maxWaiting || planned.Count == 0) return;
-        if (NetworkManager.ServerTime.Time < nextSpawn) return;
-        nextSpawn = NetworkManager.ServerTime.Time + spawnSeconds;
+        // 기획서 5.5: 첫 진입만 간격을 두고, 그 뒤로는 자리가 비는 즉시 들어온다.
+        if (enteredToday < maxWaiting)
+        {
+            if (NetworkManager.ServerTime.Time < nextSpawn) return;
+            nextSpawn = NetworkManager.ServerTime.Time + DayBalance.FirstEntrySeconds;
+        }
+        enteredToday++;
         Spawn();
     }
 
@@ -128,6 +127,8 @@ public class CustomerQueue : NetworkBehaviour
 
     void ClearAll()
     {
+        enteredToday = 0;
+        nextSpawn = 0;
         for (int i = waiting.Count - 1; i >= 0; i--) Leave(i);
     }
 
@@ -144,12 +145,19 @@ public class CustomerQueue : NetworkBehaviour
         if (!IsServer || !item.IsProduct || item.Recipe == null) return false;
 
         var tags = Menus.TagsOf(item.Recipe);
-        var index = waiting.FindIndex(c => c != null && c.Accepts(tags, item.Recipe.Length));
+        // 대기 순서가 아니라, 이 완성품을 원하는 손님 중 남은 인내심이 가장 적은 손님이 받는다.
+        var index = -1;
+        for (var i = 0; i < waiting.Count; i++)
+        {
+            var candidate = waiting[i];
+            if (candidate == null || !candidate.Accepts(tags, item.Recipe.Length)) continue;
+            if (index < 0 || candidate.Patience < waiting[index].Patience) index = i;
+        }
         if (index < 0) return false;
 
         var c = waiting[index];
         if (!item.Burnt && Mathf.Approximately(item.GaugeMultiplier, CompletionGauge.MultiplierOf(Judgement.Perfect)))
-            c.AddPatienceServer(c.PatienceMax * perfectPatienceRecovery);
+            c.AddPatienceServer(c.PatienceMax * DayBalance.PerfectPatienceRecovery);
         Served?.Invoke(new ServeInfo
         {
             Menu = item.Menu,
@@ -160,11 +168,6 @@ public class CustomerQueue : NetworkBehaviour
             RacePriceWeight = Customer.PriceWeightOf(c.Kind),
             BasePrice = Menus.BasePriceOf(item.Menu),
         });
-
-        // 탄 것을 팔면 매장 전체 분위기가 나빠진다 (기획서 5.3).
-        if (item.Burnt)
-            foreach (var w in waiting)
-                if (w != null) w.AddPatienceServer(-burntPatiencePenalty);
 
         if (c.CountServedServer()) Leave(index);
         return true;

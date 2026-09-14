@@ -135,10 +135,10 @@ public void StopRpc(RpcParams p = default)
 `GamePhase`가 표준 사례다 — `phase`·`day`·`endsAt`·`finished` 넷을 `NetworkVariable`로
 두고, 남은 시간은 **서버 시각에서 계산**한다. 타이머를 복제하지 않는다.
 
-## 5. 싱글턴 — 셋으로 닫혀 있다
+## 5. 싱글턴
 
 `Core/Singletons/`에 `Singleton`·`MonoSingleton`·`PersistentMonoSingleton` 세 기반이 있고,
-**실제 사용처는 정확히 셋뿐이다.**
+현재 사용처는 아래 셋이다.
 
 | 클래스 | 기반 | 수명 | 왜 싱글턴인가 |
 |---|---|---|---|
@@ -146,8 +146,6 @@ public void StopRpc(RpcParams p = default)
 | `MatchDirector` | `MonoSingleton` | 한 판 | 판의 권위. 씬과 함께 죽는다 |
 | `UIManager` | `MonoSingleton` | 씬 | 화면 스택의 주인 |
 
-**넷째를 만들지 않는다.** `CLAUDE.md`가 새 싱글턴을 금지한다. 위 셋은 "전역이라 편해서"가
-아니라 **수명이 씬보다 길거나 판 전체에 하나뿐인 것이 물리적으로 참인** 경우다.
 
 ### GameManager의 자가 부팅
 
@@ -265,6 +263,6 @@ grep -rn "MethodNameServer" BloodAndBeans/Assets/Scripts
 
 ## 10. 이 구조를 바꾸려 할 때
 
-어셈블리를 추가하거나, 참조 방향을 늘리거나, 싱글턴을 하나 더 만들거나, 폴더 계층을
+어셈블리를 추가하거나, 참조 방향을 늘리거나, 폴더 계층을
 늘리는 변경은 **사용자 승인 사항이다.** 컴파일이 통과한다는 것은 승인이 아니다.
 왜 기존 경계로는 안 되는지를 먼저 설명한다.

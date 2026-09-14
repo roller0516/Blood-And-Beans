@@ -46,7 +46,7 @@ public class DayRuleTests
         Assert.AreEqual(130, SalePrice.Calculate(100, Gauge.Perfect, BeanGrade.Normal, false, HotAmericano, Popular));
         Assert.AreEqual(100, SalePrice.Calculate(100, Gauge.Good, BeanGrade.Normal, false, HotAmericano, Popular));
         Assert.AreEqual(70, SalePrice.Calculate(100, Gauge.Miss, BeanGrade.Normal, false, HotAmericano, Popular));
-        Assert.AreEqual(30, SalePrice.Calculate(100, Gauge.Burnt, BeanGrade.Normal, false, HotAmericano, Popular));
+        Assert.AreEqual(20, SalePrice.Calculate(100, Gauge.Burnt, BeanGrade.Normal, false, HotAmericano, Popular));
     }
 
     // --- 5.6.2 원두 등급은 커피 한정 ---
@@ -54,7 +54,7 @@ public class DayRuleTests
     [Test]
     public void BeanGradeAppliesToCoffeeOnly()
     {
-        Assert.AreEqual(150, SalePrice.Calculate(100, Gauge.Good, BeanGrade.Blood, false, HotAmericano, Popular));
+        Assert.AreEqual(300, SalePrice.Calculate(100, Gauge.Good, BeanGrade.Blood, false, HotAmericano, Popular));
         Assert.AreEqual(100, SalePrice.Calculate(100, Gauge.Good, BeanGrade.Blood, true, HotAmericano, Popular),
             "디저트에는 원두 등급 배수가 붙지 않는다");
     }
@@ -62,8 +62,8 @@ public class DayRuleTests
     [Test]
     public void AllMultipliersStack()
     {
-        // 100 × 1.3 × 1.5 × 1.6 = 312
-        Assert.AreEqual(312,
+        // 100 × 1.3 × 3 × 1.6 = 624
+        Assert.AreEqual(624,
             SalePrice.Calculate(100, Gauge.Perfect, BeanGrade.Blood, false, IcedMocha, Popular));
     }
 
@@ -87,6 +87,14 @@ public class DayRuleTests
             Menus.Match(new[] { Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate }));
     }
 
+    [Test]
+    public void IcedMochaMatchesFourPartsAndUsesItsOwnPrice()
+    {
+        var parts = new[] { Ingredient.Ice, Ingredient.Chocolate, Ingredient.Milk, Ingredient.Bean };
+        Assert.AreEqual(MenuId.IcedMocha, Menus.Match(parts));
+        Assert.AreEqual(38, Menus.BasePriceOf(Menus.Match(parts)));
+        Assert.AreEqual(3, SalePrice.PopularCount(parts, new[] { Ingredient.Milk, Ingredient.Chocolate, Ingredient.Ice }));
+    }
     [Test]
     public void BloodBeanIsASubstitutionNotItsOwnMenu()
     {

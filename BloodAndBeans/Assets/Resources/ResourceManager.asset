@@ -1,0 +1,158 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d1a405a7e129e84eb92b32c0f9de83c, type: 3}
+  m_Name: ResourceManager
+  m_EditorClassIdentifier: BB.Client::ResourceManager
+  namedSprites:
+  - id: BagIcon
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BagIcon
+  - id: BagIcon_Open
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BagIcon_Open
+  ingredientSprites:
+  - id: 0
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Milk
+  - id: 1
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Cream
+  - id: 2
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Chocolate
+  - id: 3
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Almond
+  - id: 4
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Berry
+  - id: 5
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Ice
+  - id: 6
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_BloodBean
+  - id: 7
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Dishes
+  - id: 8
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_Bean
+  - id: 9
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Day_BreadBase
+  - id: 10
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Move
+  - id: 11
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Perfect
+  - id: 12
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Resistance
+  - id: 13
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Wash
+  - id: 14
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Cook
+  - id: 15
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Finish
+  - id: 16
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: BuffGem_Serve
+  menuSprites:
+  - id: 0
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_HotAmericano
+  - id: 1
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_IcedAmericano
+  - id: 2
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_CafeLatte
+  - id: 3
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_Einspanner
+  - id: 4
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_CafeMocha
+  - id: 5
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_IcedLatte
+  - id: 10
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_IcedMocha
+  - id: 6
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_ChocoBrownie
+  - id: 7
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_AlmondCookie
+  - id: 8
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_CreamCake
+  - id: 9
+    sprite:
+      atlasGuid: d8cbae517917bd24e9eae7ec5c1e948f
+      spriteName: Menu_BerryTart
+  crewSprites:
+  - id: 0
+    sprite:
+      atlasGuid: fcc18e15bebfc4a49a12807b2d62a07b
+      spriteName: Crew_Swift
+  - id: 1
+    sprite:
+      atlasGuid: fcc18e15bebfc4a49a12807b2d62a07b
+      spriteName: Crew_PopularCafe
+  - id: 2
+    sprite:
+      atlasGuid: fcc18e15bebfc4a49a12807b2d62a07b
+      spriteName: Crew_Tidy
+  - id: 3
+    sprite:
+      atlasGuid: fcc18e15bebfc4a49a12807b2d62a07b
+      spriteName: Crew_Ambidextrous
+  - id: 4
+    sprite:
+      atlasGuid: fcc18e15bebfc4a49a12807b2d62a07b
+      spriteName: Crew_IceMaster

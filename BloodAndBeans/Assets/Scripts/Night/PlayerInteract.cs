@@ -16,24 +16,11 @@ public class PlayerInteract : NetworkBehaviour
 
     ItemBox serverHeld;     // 서버 측 진실. 대시 중단과 칸 담기가 여기로 간다
 
-    /// 캐스팅을 시작한 시각. 게이지 표시는 표시 전용이라 로컬에서 잰다 — 권위 있는
-    /// 진행도는 서버의 `HoldTimer`에 있다.
-    float castStart;
-    bool casting;
-
     /// 지금 루팅 창을 띄워야 할 박스. 세션이 닫히면 `ItemBox.Opened`가 false가 된다.
     public ItemBox LootBox => held;
 
-    /// 개봉 게이지 진행도(0~1). 표시 전용이다.
-    public float CastProgress01
-    {
-        get
-        {
-            if (!casting || held == null || held.Opened) return 0f;
-            var required = Mathf.Max(held.RequiredSecondsFor(PlayerTeam.Local()), 0.01f);
-            return Mathf.Clamp01((Time.time - castStart) / required);
-        }
-    }
+    /// 개봉 게이지 진행도(0~1). 서버가 알려 준 캐스팅 상태를 읽는다 (`ItemBox.CastProgress01`).
+    public float CastProgress01 => held != null && !held.Opened ? held.CastProgress01 : 0f;
 
     public void BeginBoxClient(ItemBox box)
     {
@@ -45,8 +32,6 @@ public class PlayerInteract : NetworkBehaviour
             held = box;
         }
 
-        castStart = Time.time;
-        casting = true;
         HoldBeginRpc(held.NetworkObject);
     }
 
@@ -54,7 +39,6 @@ public class PlayerInteract : NetworkBehaviour
     public void EndBoxClient()
     {
         if (!IsOwner) return;
-        casting = false;
         if (held != null) HoldEndRpc();
     }
 
@@ -71,7 +55,6 @@ public class PlayerInteract : NetworkBehaviour
         if (!IsOwner || held == null) return;
         CloseBoxRpc();
         held = null;
-        casting = false;
     }
 
     public override void OnNetworkDespawn()

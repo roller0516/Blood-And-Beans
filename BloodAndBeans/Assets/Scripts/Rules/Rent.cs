@@ -6,8 +6,8 @@ public enum RentPenalty { None, Tier1, Tier2, Tier3 }
 /// 팀당 인스턴스 하나, 서버 전용이다.
 public class Rent
 {
-    // ponytail: 기획서 3.2의 하드코딩 표. 일차가 데이터가 되면 DT_Rent로 옮긴다.
-    static readonly int[] Table = { 60, 100, 160, 250, 380, 560, 800 };
+    // 기획서 3.2의 표.
+    static readonly int[] Table = { 50, 80, 120, 180, 260, 360, 480 };
 
     /// 표를 넘는 일차는 마지막 임대료로 고정한다. 기획서에 8일차 이후 행이 없다 (3.2).
     /// Mathf 대신 System.Math를 쓰는 이유는 BB.Rules가 UnityEngine을 참조하지 않기 때문이다.

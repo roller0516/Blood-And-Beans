@@ -22,21 +22,27 @@ public class Forecast
     /// 예보 패널 헤더에 쓰는 종족별 인원수.
     public int[] RaceCounts = new int[6];
 
-    // ponytail: 기획서 14장 #14에서 인기 재료 개수가 미결정이다. 2~3은 기획서가
-    // 명시한 기본값이다. 개당 +30%도 마찬가지이며 그 값은 SalePrice에 있다.
-    const int MinPopular = 2, MaxPopular = 3;
+    /// 인기 재료 개수 (기획서 5.6.1): 1·2일차 2종, 3일차부터 3종.
+    public static int PopularCountOn(int day) => day <= 2 ? 2 : 3;
 
-    // ponytail: 종족 가중치가 균등하다. 기획서에 분포가 없다. 나중에 조정하거나 표로 뺀다.
-    static readonly Race[] RaceBag =
+    // 등장 분포 (기획서 5.5): 좀비 30% · 늑대인간 10% · 나머지 15%씩. 5% 한 칸.
+    static readonly Race[] RaceBag = Bag(
+        (Race.Zombie, 6), (Race.Ghost, 3), (Race.Skeleton, 3),
+        (Race.Werewolf, 2), (Race.Vampire, 3), (Race.Witch, 3));
+
+    static Race[] Bag(params (Race race, int share)[] shares)
     {
-        Race.Zombie, Race.Zombie, Race.Vampire, Race.Vampire,
-        Race.Ghost, Race.Skeleton, Race.Werewolf, Race.Witch,
-    };
+        var bag = new List<Race>();
+        foreach (var (race, share) in shares)
+            for (var i = 0; i < share; i++) bag.Add(race);
+        return bag.ToArray();
+    }
 
     /// `menus`는 숲 재료만 담은 재료 집합이다. 원두/빵 베이스는 항상 상비이므로(7.1)
     /// 빈 집합은 기본 핫 아메리카노를 뜻한다.
     public static Forecast Build(
         int seed,
+        int day,
         IReadOnlyList<Ingredient> regenPool,
         IReadOnlyList<IReadOnlyList<Ingredient>> menus,
         IReadOnlyList<Ingredient> teamHeld,
@@ -47,7 +53,7 @@ public class Forecast
 
         // 인기 재료는 숲에서만 나온다 (5.6.1). 항상 재고가 있는 상비 재료에 보너스를 주면
         // 모든 메뉴에 똑같이 붙어서 아무 의미가 없다.
-        f.Popular = PickPopular(rng, Forageable(regenPool));
+        f.Popular = PickPopular(rng, Forageable(regenPool), PopularCountOn(day));
 
         // 5.5 규칙 1: 오늘 밤 풀로 만들 수 있는 메뉴만 후보다. 원두와 빵 베이스는 항상
         // 상비이므로(7.1) 제작 가능 판정은 이 둘이 있다고 전제해야 한다.
@@ -114,10 +120,10 @@ public class Forecast
         return outp;
     }
 
-    static Ingredient[] PickPopular(System.Random rng, IReadOnlyList<Ingredient> pool)
+    static Ingredient[] PickPopular(System.Random rng, IReadOnlyList<Ingredient> pool, int count)
     {
         var src = new List<Ingredient>(pool);
-        var want = Math.Min(rng.Next(MinPopular, MaxPopular + 1), src.Count);
+        var want = Math.Min(count, src.Count);
         var outp = new Ingredient[want];
         for (var i = 0; i < want; i++)
         {

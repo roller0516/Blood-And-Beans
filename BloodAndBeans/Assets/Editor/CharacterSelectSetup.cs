@@ -16,7 +16,7 @@ public static class CharacterSelectSetup
     const string ScreenPath = "Assets/Art/UI/Prefabs/Screen/UICharacterSelectScreen.prefab";
     const string StagePath = "Assets/Art/Environment/Prefabs/CharacterStage.prefab";
     const string CardPath = "Assets/Art/UI/Prefabs/Parts/UICharacterCard.prefab";
-    const string SpritesPath = "Assets/Art/UI/Sprites/";
+    const string SpritesPath = "Assets/Art/UI/Sprites/CharacterSelect/";
     const string MaterialsPath = "Assets/Art/Environment/Materials/";
     static readonly Color Ink = new(.075f, .105f, .11f);
     static readonly Color Panel = new(.12f, .17f, .17f);
@@ -258,7 +258,7 @@ public static class CharacterSelectSetup
         for(var i=0;i<entries.arraySize;i++)
         {
             var entry=entries.GetArrayElementAtIndex(i);
-            var id=(DayPassive)entry.FindPropertyRelative("id").intValue;
+            var id=(CharacterId)entry.FindPropertyRelative("id").intValue;
             var scene=EditorSceneManager.NewPreviewScene();
             RenderTexture rt=null;
             try
@@ -279,7 +279,6 @@ public static class CharacterSelectSetup
                 var importer=(TextureImporter)AssetImporter.GetAtPath(path);
                 importer.textureType=TextureImporterType.Sprite;importer.spriteImportMode=SpriteImportMode.Single;importer.alphaIsTransparency=true;
                 importer.mipmapEnabled=false;importer.textureCompression=TextureImporterCompression.Uncompressed;importer.SaveAndReimport();
-                entry.FindPropertyRelative("icon").objectReferenceValue=AssetDatabase.LoadAssetAtPath<Sprite>(path);
             }
             finally{if(rt!=null){rt.Release();Object.DestroyImmediate(rt);}EditorSceneManager.ClosePreviewScene(scene);}
         }
@@ -431,15 +430,15 @@ public sealed class CharacterVisualConfigEditor : Editor
     {
         foreach (var character in CharacterCatalog.All)
         {
-            var model = config.ModelFor(character.Day);
+            var model = config.ModelFor(character.Id);
             if (model == null || model.GetComponent<CharacterModel>() == null)
                 throw new InvalidOperationException(character.Name + ": Model과 루트 CharacterModel을 연결하세요.");
             if (model.GetComponentInChildren<Collider>(true) != null || model.GetComponentInChildren<Rigidbody>(true) != null)
                 throw new InvalidOperationException(character.Name + ": 충돌체와 Rigidbody는 외형이 아니라 Player에 두세요.");
             foreach (var animator in model.GetComponentsInChildren<Animator>(true))
                 if (animator.applyRootMotion) throw new InvalidOperationException(character.Name + ": Apply Root Motion을 끄세요.");
-            if (config.IconFor(character.Day) == null)
-                throw new InvalidOperationException(character.Name + ": 초상 이미지를 연결하세요.");
+            if (ResourceManager.Instance.CrewSprite(character.Id) == null)
+                throw new InvalidOperationException(character.Name + ": 초상이 CharacterSelect 아틀라스에 없습니다.");
         }
         CDebug.Log("캐릭터 모델·초상 연결 확인 완료");
     }

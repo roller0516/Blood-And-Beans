@@ -2,13 +2,16 @@ using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
-/// 현재 구현된 캐릭터 스킬을 낮·밤 같은 자리에서 표시한다 (PDF 6쪽).
+/// 현재 캐릭터 스킬의 쿨타임을 낮·밤 같은 자리에서 표시한다 (기획서 5.7.1).
+/// 원 안에는 남은 초만 뜨고, 게이지는 아래에서 위로 찬다. 방향은 프리팹의 Filled 설정이 정한다.
 public sealed class UIDaySkillSlot : MonoBehaviour
 {
-    [SerializeField] UnityEngine.UI.Image icon;
-    [SerializeField] UIRing cooldown;
-    [SerializeField] TMP_Text label;
-    [SerializeField] CharacterVisualConfig visuals;
+    /// Filled · Vertical · Bottom 원 이미지.
+    [SerializeField] UnityEngine.UI.Image cooldown;
+    /// 원 안의 남은 초.
+    [SerializeField] TMP_Text count;
+    /// 원 아래의 스킬 키.
+    [SerializeField] TMP_Text key;
     [SerializeField] AudioSource readySound;
     PlayerCharacter character;
     PlayerInputRouter input;
@@ -29,15 +32,14 @@ public sealed class UIDaySkillSlot : MonoBehaviour
         group.alpha = visible ? 1f : 0f;
         if (!visible) { wasCooling = false; return; }
         var remaining = character.SkillCooldownRemaining;
-        var duration = director.Phase.Current == Phase.Day ? DayBalance.SkillCooldown : NightSkills.CooldownOf(character.Skill);
-        cooldown.Amount = duration > 0f ? 1f - Mathf.Clamp01(remaining / duration) : 1f;
+        var duration = director.Phase.Current == Phase.Day ? DaySkills.CooldownOf(character.DaySkill) : NightSkills.CooldownOf(character.Skill);
+        cooldown.fillAmount = character.HasPick && duration > 0f ? 1f - Mathf.Clamp01(remaining / duration) : 0f;
         if (wasCooling && remaining <= 0f) { flashedAt = Time.unscaledTime; if (readySound != null && readySound.clip != null) readySound.Play(); }
         wasCooling = remaining > 0f;
-        cooldown.color = Time.unscaledTime - flashedAt < .4f ? Color.white : new Color(1f, .8f, .35f);
+        cooldown.color = Time.unscaledTime - flashedAt < .4f ? Color.white : new Color(1f, .8f, .35f, .85f);
         if (Time.unscaledTime < refreshAt) return;
         refreshAt = Time.unscaledTime + .1f;
-        icon.sprite = character.HasPick ? visuals.IconFor(character.Def.Day) : null;
-        icon.color = character.HasPick ? Color.white : Color.gray;
-        label.text = character.HasPick ? $"{input?.SkillBinding}  {(remaining > 0f ? Mathf.CeilToInt(remaining).ToString() : "준비")}" : "미선택";
+        count.text = character.HasPick && remaining > 0f ? Mathf.CeilToInt(remaining).ToString() : string.Empty;
+        key.text = character.HasPick ? input?.SkillBinding : string.Empty;
     }
 }

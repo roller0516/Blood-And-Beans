@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using UnityEngine;
 
 /// 타이틀 씬의 조립 지점. UIManager와 SteamLobby를 이어 Presenter를 만든다.
@@ -11,6 +12,12 @@ public sealed class TitleFlow : MonoBehaviour
     [SerializeField] string gameTitle = "Blood & Beans";
 
     TitlePresenter presenter;
+
+    /// 캐릭터 선택 카드가 초상을 꺼낸다.
+    const ResourceManager.SpriteTables Sprites = ResourceManager.SpriteTables.Crews;
+
+    /// 불러오기를 시작했는가. 시작하지 않은 채 파괴되면 놓을 것도 없다.
+    bool acquired;
 
     void Awake()
     {
@@ -37,9 +44,25 @@ public sealed class TitleFlow : MonoBehaviour
     }
 
     /// UIManager가 팀 수를 아는 시점(로비 준비 후)에 첫 화면을 연다.
-    void Start() => presenter?.Enable();
+    /// 화면이 꺼내는 스프라이트를 먼저 불러 둔다. 화면 프리팹은 UIManager가 열 때 불러온다.
+    async UniTaskVoid Start()
+    {
+        if (presenter == null) return;
+        acquired = true;
+        await ResourceManager.Instance.PreloadSpritesAsync(Sprites, this.GetCancellationTokenOnDestroy());
+        presenter.Enable();
+    }
 
     void OnDisable() => presenter?.Disable();
+
+    void OnDestroy()
+    {
+        if (!acquired) return;
+        // 스택은 떠날 때(HideAllUI) 이미 비웠다. 남은 이 씬의 뷰를 놓는다.
+        var ui = UIManager.Instance;
+        if (ui != null) ui.UnloadUnused();
+        ResourceManager.Instance.ReleaseSprites(Sprites);
+    }
 
     /// 매치에 접속되면 로비 UI는 물러난다.
     ///
@@ -51,7 +74,7 @@ public sealed class TitleFlow : MonoBehaviour
         var ui = UIManager.Instance;
         if (ui == null) return;
 
-        ui.UnloadPopups();
+        ui.PopAllPopups();
         ui.ClearScreens();
     }
 

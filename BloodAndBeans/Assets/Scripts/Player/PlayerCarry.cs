@@ -6,6 +6,9 @@ public struct HeldItem
     public bool HasDish;
     public bool DishIsPlate;
     public bool Dirty;
+
+    /// 더러운 식기의 세척 진행 0~1. 「삼키기」가 미리 올려 둔다 (기획서 9.1.2).
+    public float WashProgress;
     public Ingredient Ingredient;    // 손에 든 가공 전 재료
     public bool IsProduct;
     public MenuId Menu;

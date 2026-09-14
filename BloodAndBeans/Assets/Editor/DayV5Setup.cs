@@ -200,44 +200,28 @@ public static class DayV5Setup
         }
         finally { PrefabUtility.UnloadPrefabContents(player); }
     }
+    // 연결은 하지 않는다. 화면은 ResourceManager가 Ingame 아틀라스에서 이름으로 꺼낸다.
     static void SetupGemIcons()
     {
-        const string path = "Assets/Art/UI/Prefabs/Popup/UIBoxLootPopup.prefab";
-        var popup = PrefabUtility.LoadPrefabContents(path);
-        try
+        for (var i = 0; i < TeamBuffs.Materials.Length; i++)
         {
-            var serialized = new SerializedObject(popup.GetComponent<UIBoxLootPopup>());
-            var icons = serialized.FindProperty("icons");
-            for (var i = 0; i < TeamBuffs.Materials.Length; i++)
-            {
-                var imagePath = "Assets/Art/UI/Sprites/BuffGem_" + (TeamBuff)i + ".png";
-                var texture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
-                var color = Color.HSVToRGB(i / 8f, 0.65f, 1f);
-                for (var y = 0; y < 32; y++)
-                    for (var x = 0; x < 32; x++)
-                    {
-                        var radius = Mathf.Abs(x - 15.5f) + Mathf.Abs(y - 15.5f);
-                        texture.SetPixel(x, y, radius > 14 ? Color.clear : radius > 11 ? color * 0.65f : color);
-                    }
-                texture.Apply();
-                System.IO.File.WriteAllBytes(imagePath, texture.EncodeToPNG());
-                Object.DestroyImmediate(texture);
-                AssetDatabase.ImportAsset(imagePath);
-                var importer = (TextureImporter)AssetImporter.GetAtPath(imagePath);
-                importer.textureType = TextureImporterType.Sprite;
-                importer.spriteImportMode = SpriteImportMode.Single;
-                importer.SaveAndReimport();
-                var index = -1;
-                for (var j = 0; j < icons.arraySize; j++)
-                    if (icons.GetArrayElementAtIndex(j).FindPropertyRelative("Item").intValue == (int)TeamBuffs.Materials[i]) index = j;
-                if (index < 0) { index = icons.arraySize; icons.arraySize++; }
-                var entry = icons.GetArrayElementAtIndex(index);
-                entry.FindPropertyRelative("Item").intValue = (int)TeamBuffs.Materials[i];
-                entry.FindPropertyRelative("Sprite").objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>(imagePath);
-            }
-            serialized.ApplyModifiedPropertiesWithoutUndo();
-            PrefabUtility.SaveAsPrefabAsset(popup, path);
+            var imagePath = "Assets/Art/UI/Sprites/Ingame/BuffGem_" + (TeamBuff)i + ".png";
+            var texture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
+            var color = Color.HSVToRGB(i / 8f, 0.65f, 1f);
+            for (var y = 0; y < 32; y++)
+                for (var x = 0; x < 32; x++)
+                {
+                    var radius = Mathf.Abs(x - 15.5f) + Mathf.Abs(y - 15.5f);
+                    texture.SetPixel(x, y, radius > 14 ? Color.clear : radius > 11 ? color * 0.65f : color);
+                }
+            texture.Apply();
+            System.IO.File.WriteAllBytes(imagePath, texture.EncodeToPNG());
+            Object.DestroyImmediate(texture);
+            AssetDatabase.ImportAsset(imagePath);
+            var importer = (TextureImporter)AssetImporter.GetAtPath(imagePath);
+            importer.textureType = TextureImporterType.Sprite;
+            importer.spriteImportMode = SpriteImportMode.Single;
+            importer.SaveAndReimport();
         }
-        finally { PrefabUtility.UnloadPrefabContents(popup); }
     }
 }

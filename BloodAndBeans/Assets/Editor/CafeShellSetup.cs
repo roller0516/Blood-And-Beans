@@ -38,6 +38,9 @@ public static class CafeShellSetup
     }
 
     /// 본체에서 장식을 떼어 껍데기 프리팹으로 저장한다. 이미 떼어 낸 뒤면 기존 껍데기를 쓴다.
+    /// 모든 카메라가 그리는 Unity 기본 레이어(Default). 광장(`SharedPlaza`)과 같다.
+    const int PublicLayer = 0;
+
     static GameObject Extract()
     {
         var cafe = PrefabUtility.LoadPrefabContents(CafePath);
@@ -57,6 +60,9 @@ public static class CafeShellSetup
             decor.localPosition = Vector3.zero;
             decor.localRotation = Quaternion.identity;
             decor.localScale = Vector3.one;
+
+            // 본체는 팀 전용 레이어라 그대로 떼면 그 팀 카메라에만 보인다. 외관은 전원 공개다 (5.4.3-2).
+            foreach (var t in decor.GetComponentsInChildren<Transform>(true)) t.gameObject.layer = PublicLayer;
 
             var shell = PrefabUtility.SaveAsPrefabAsset(decor.gameObject, ShellPath);
 

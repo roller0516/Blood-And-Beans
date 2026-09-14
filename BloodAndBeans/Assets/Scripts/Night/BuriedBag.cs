@@ -27,10 +27,8 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     [SerializeField] float reach = 2f;
 
     /// 아군이 도로 메는 데 걸리는 시간. 적이 태우는 쪽보다 짧다 — 자기 물건이다.
-    [SerializeField] float retrieveSeconds = 0.6f;
 
     /// 적이 소각을 완료하는 데 걸리는 시간 (기획서: F키를 꾹 눌러 캐스팅).
-    [SerializeField] float burnSeconds = 3f;
 
     /// 캐스팅이 끊기는 이동 거리. 상자 루팅과 같은 규칙이다 — 움직이면 취소된다.
     /// 넉백으로 밀려나도 같은 거리로 걸리므로 피격 취소가 함께 성립한다.
@@ -115,7 +113,9 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     {
         if (director != null) director.Phase.PhaseEntered -= OnPhaseEntered;
         ownerTeam.OnValueChanged -= OnOwnerTeamChanged;
-        CancelAllHolds();
+        // 디스폰 중에는 RPC를 보내지 않는다. 클라이언트 쪽 가방도 함께 사라진다.
+        hold.CancelAll();
+        holds.Clear();
     }
 
     /// 밤이 끝나면 회수되지 않은 가방은 그대로 사라진다. 안에 있던 것은 전량 소실이다
@@ -187,6 +187,22 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         if (items != null) contents.AddRange(items);
     }
 
+    /// 서버가 잰 홀드 시작 시각. NaN이면 홀드 중이 아니다 (`ItemBox.CastProgress01`과 같은 방식).
+    double castStartedAt = double.NaN;
+    float castRequired;
+
+    /// 회수·소각 게이지 진행도(0~1). 서버가 취소하면 곧바로 0이 된다.
+    public float CastProgress01 => double.IsNaN(castStartedAt) || castRequired <= 0f
+        ? 0f
+        : Mathf.Clamp01((float)(NetworkManager.ServerTime.Time - castStartedAt) / castRequired);
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void CastStateRpc(double startedAt, float requiredSeconds, RpcParams p = default)
+    {
+        castStartedAt = startedAt;
+        castRequired = requiredSeconds;
+    }
+
     public void BeginInteractionClient() => BeginHoldRpc();
 
     public void EndInteractionClient() => EndHoldRpc();
@@ -208,7 +224,10 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         if (team < 0) return;
 
         holds[clientId] = new Hold { Body = body, Team = team, From = body.position };
-        hold.Begin(clientId, NetworkManager.ServerTime.Time);
+        var now = NetworkManager.ServerTime.Time;
+        hold.Begin(clientId, now);
+        CastStateRpc(now, team == ownerTeam.Value ? NightBalance.BagRetrieveSeconds : NightBalance.BagBurnSeconds,
+            RpcTarget.Single(clientId, RpcTargetUse.Temp));
     }
 
     [Rpc(SendTo.Server)]
@@ -285,7 +304,7 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
         var mine = h.Team == ownerTeam.Value;
         var now = NetworkManager.ServerTime.Time;
-        if (!hold.TryConsume(clientId, now, mine ? retrieveSeconds : burnSeconds)) return;
+        if (!hold.TryConsume(clientId, now, mine ? NightBalance.BagRetrieveSeconds : NightBalance.BagBurnSeconds)) return;
 
         if (mine) RetrieveServer(clientId);
         else BurnServer();
@@ -335,12 +354,16 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
     void CancelHold(ulong clientId)
     {
+        if (hold.Holding(clientId)) CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
         hold.Cancel(clientId);
         holds.Remove(clientId);
     }
 
     void CancelAllHolds()
     {
+        // `scratch`를 쓰지 않는다. 틱 순회 도중 `DespawnServer`에서 불린다.
+        foreach (var clientId in holds.Keys)
+            CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
         hold.CancelAll();
         holds.Clear();
     }

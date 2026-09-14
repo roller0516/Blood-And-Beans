@@ -78,6 +78,7 @@ MonoBehaviour:
   count: {fileID: 8355857106501940077}
   popular: {r: 1, g: 0.78, b: 0.25, a: 1}
   blood: {r: 1, g: 0.2, b: 0.25, a: 1}
+  missingAlpha: 0.25
 --- !u!1 &1438208155442474948
 GameObject:
   m_ObjectHideFlags: 0
@@ -164,6 +165,7 @@ GameObject:
   - component: {fileID: 597347165176352273}
   - component: {fileID: 3993077086318660636}
   - component: {fileID: 8355857106501940077}
+  - component: {fileID: 9194538681410442602}
   m_Layer: 0
   m_Name: Count
   m_TagString: Untagged
@@ -185,11 +187,11 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 6214961737900610996}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
+  m_AnchorMin: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_Pivot: {x: 1, y: 0}
 --- !u!222 &3993077086318660636
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -290,6 +292,20 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &9194538681410442602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4953977495448623612}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3245ec927659c4140ac4f8d17403cc18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
+  m_HorizontalFit: 2
+  m_VerticalFit: 2
 --- !u!1 &5909276777501572309
 GameObject:
   m_ObjectHideFlags: 0

@@ -23,7 +23,6 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 오늘 밤 이 자리에서 뽑힐 등급의 가중치 (기획서 6.3.1 「구역 × 일차」 퍼센트).
     /// 밤마다 `MatchDirector`가 자리와 함께 `PlaceServer`로 넘긴다 — 표는 `ForestRings`에 있다.
     [SerializeField] Vector3Int tierWeights = new(1, 0, 0);
-    [SerializeField] float openSeconds = 0.6f;
 
     /// 칸 하나가 정체를 드러내는 간격 (기획서: 스킵 없이 1초 간격, 5칸이면 5초).
     [SerializeField] float revealInterval = 1f;
@@ -188,7 +187,9 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
             director.UnregisterBox(this);
         }
         netPosition.OnValueChanged -= OnMovedByServer;
-        CancelAllCasts();
+        // 디스폰 중에는 RPC를 보내지 않는다. 클라이언트 쪽 상자도 함께 사라진다.
+        hold.CancelAll();
+        castTeam.Clear();
         sessions.Clear();
     }
 
@@ -281,15 +282,42 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 남의 팀 값이나 사라진 값으로 개봉 시간을 계산한다.
     void CancelCast(ulong clientId)
     {
+        if (hold.Holding(clientId)) CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
         hold.Cancel(clientId);
         castTeam.Remove(clientId);
     }
 
     void CancelAllCasts()
     {
+        foreach (var clientId in castTeam.Keys)
+            CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
         hold.CancelAll();
         castTeam.Clear();
     }
+
+    /// 캐스팅 게이지를 잡고 있는 본인에게 알린다. 시작·반감 때만 나간다 — 진행도는 서버 시계로 클라이언트가 계산한다.
+    void SendCastStartServer(ulong clientId, int team)
+    {
+        var now = NetworkManager.ServerTime.Time;
+        CastStateRpc(now - hold.Elapsed(clientId, now), RequiredSecondsFor(team),
+            RpcTarget.Single(clientId, RpcTargetUse.Temp));
+    }
+
+    /// NaN이면 캐스팅이 끝났다(완료·취소).
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void CastStateRpc(double startedAt, float requiredSeconds, RpcParams p = default)
+    {
+        castStartedAt = startedAt;
+        castRequired = requiredSeconds;
+    }
+
+    double castStartedAt = double.NaN;
+    float castRequired;
+
+    /// 이 클라이언트의 개봉 게이지(0~1). 서버가 잰 시작 시각 기준이라 서버가 취소하면 곧바로 0이 된다.
+    public float CastProgress01 => double.IsNaN(castStartedAt) || castRequired <= 0f
+        ? 0f
+        : Mathf.Clamp01((float)(NetworkManager.ServerTime.Time - castStartedAt) / castRequired);
 
     static PlayerMove MoverOf(ulong clientId)
     {
@@ -380,6 +408,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 
         castTeam[clientId] = team;
         hold.Begin(clientId, NetworkManager.ServerTime.Time);
+        SendCastStartServer(clientId, team);
     }
 
     /// F를 놓았다. 캐스팅만 버린다 — 이미 열린 루팅 세션은 F와 무관하게 유지된다.
@@ -411,6 +440,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         if (!castTeam.TryGetValue(clientId, out var team)) return;   // 이 상자를 잡고 있지 않았다
 
         hold.Halve(clientId, NetworkManager.ServerTime.Time, RequiredSecondsFor(team));
+        SendCastStartServer(clientId, team);
     }
 
     /// 서버 전용. 남은 칸이 하나도 없는가.
@@ -435,7 +465,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     public float RequiredSecondsFor(int team)
     {
         var ledger = director != null ? director.LedgerOf(team) : null;
-        return openSeconds * (ledger != null ? ledger.BoxOpenScale : 1f);
+        return NightBalance.BoxOpenSeconds * (ledger != null ? ledger.BoxOpenScale : 1f);
     }
 
     /// 쏟아진 그대로를 담아 더미를 만든다. 종류가 넘치면 상자를 쪼개는 것은 호출자의
@@ -493,7 +523,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         // 흔한 재료도 그날 리젠 풀 안에서만 뽑는다. 상자에 심어 둔 풀은 "이 자리에서
         // 무엇이 나올 수 있는가"고, 리젠 표는 "오늘 숲이 무엇을 내놓는가"다 — 교집합이
         // 그날 실제로 나오는 것이다.
-        DrawInto(TodaysCommon(day), types - stacks.Count);
+        DrawWeightedInto(TodaysCommon(day), types - stacks.Count, day);
     }
 
     /// 상자가 가진 풀과 그날 리젠 표의 교집합 (기획서 10장). 교집합이 비면 상자 자신의
@@ -508,6 +538,32 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
                 if (commonPool[i] == today[j]) { picked.Add(commonPool[i]); break; }
 
         return picked.Count > 0 ? picked.ToArray() : commonPool;
+    }
+
+    /// `DrawInto`와 같되 그날의 가중치로 뽑는다 (기획서 6.3.2). 가중치가 전부 0이면 고르게 뽑는다.
+    void DrawWeightedInto(Ingredient[] pool, int count, int day)
+    {
+        if (pool == null || count <= 0) return;
+
+        var remaining = new List<Ingredient>(pool);
+        for (var i = 0; i < count && remaining.Count > 0; i++)
+        {
+            var total = 0;
+            foreach (var item in remaining) total += RegenTable.WeightOf(item, day);
+            var pick = 0;
+            if (total <= 0) pick = Random.Range(0, remaining.Count);
+            else
+            {
+                var roll = Random.Range(0, total);
+                for (; pick < remaining.Count - 1; pick++)
+                {
+                    roll -= RegenTable.WeightOf(remaining[pick], day);
+                    if (roll < 0) break;
+                }
+            }
+            stacks.Add(new LootStack(remaining[pick], Random.Range(stackSize.x, stackSize.y + 1)));
+            remaining.RemoveAt(pick);
+        }
     }
 
     /// 풀에서 서로 다른 종류를 `count`칸만큼 뽑는다. 같은 종류가 두 칸이 되면 안 된다 —

@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: UI_Shared
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: UI_Shared
+  m_GUID: 23db0c2d3ec508f45b0aee36fd48d1d1
+  m_SerializeEntries:
+  - m_GUID: 6ae7f9171df1e394d9ef87a65cc928d4
+    m_Address: Assets/Art/UI/Prefabs/Popup/UISettingsPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 8c9770d6b40a7124bba692cb7c953e3b, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: 5540a06afbac5c740a19f7d020a14478, type: 2}
+    - {fileID: 11400000, guid: 008e86c2192789541ae05aba6bfc14b6, type: 2}
+    m_SchemaDisplayOrder:
+    - UI_Shared_BundledAssetGroupSchema
+    - UI_Shared_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

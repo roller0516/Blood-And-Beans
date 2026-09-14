@@ -17,11 +17,11 @@ public static class CompletionSetup
         entries.arraySize = CharacterCatalog.All.Length;
         for (var i = 0; i < entries.arraySize; i++)
         {
-            var path = CharacterFolder + "Ghost_" + CharacterCatalog.All[i].Day + ".prefab";
+            var path = CharacterFolder + "Ghost_" + CharacterCatalog.All[i].Id + ".prefab";
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null)
             {
-                var root = new GameObject("Ghost_" + CharacterCatalog.All[i].Day);
+                var root = new GameObject("Ghost_" + CharacterCatalog.All[i].Id);
                 PrefabUtility.InstantiatePrefab(source, root.transform);
                 // 임시 몬스터 실루엣. 최종 모델이 오면 표시 설정의 프리팹만 교체한다 (#37).
                 var crown = GameObject.CreatePrimitive(i % 2 == 0 ? PrimitiveType.Capsule : PrimitiveType.Cube);
@@ -35,7 +35,7 @@ public static class CompletionSetup
                 Object.DestroyImmediate(root);
             }
             var entry = entries.GetArrayElementAtIndex(i);
-            entry.FindPropertyRelative("id").enumValueIndex = (int)CharacterCatalog.All[i].Day;
+            entry.FindPropertyRelative("id").enumValueIndex = (int)CharacterCatalog.All[i].Id;
             entry.FindPropertyRelative("model").objectReferenceValue = prefab;
         }
         data.ApplyModifiedPropertiesWithoutUndo();

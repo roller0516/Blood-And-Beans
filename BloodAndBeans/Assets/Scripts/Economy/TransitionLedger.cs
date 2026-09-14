@@ -157,7 +157,7 @@ public class TransitionLedger : NetworkBehaviour
         {
             director.CafeOf(team)?.SetDayBudgetServer(revenueAtDayStart[team],
                 Rent.Due(dayClosing) + director.LedgerOf(team).Rent.Debt);
-            forecasts[team] = Forecast.Build(seed, RegenPool(), menus, HeldByTeam(team), ordersPerDay);
+            forecasts[team] = Forecast.Build(seed, dayClosing, RegenPool(), menus, HeldByTeam(team), ordersPerDay);
             director.CafeOf(team)?.Queue?.SetDayPlanServer(forecasts[team]);
         }
         Tomorrow = forecasts.Length > 0 ? forecasts[0] : null;

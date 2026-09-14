@@ -1,4 +1,4 @@
-using System.Text;
+﻿using System.Text;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -67,6 +67,11 @@ public sealed class MatchHudPresenter
 
         var model = BuildModel();
         view.Render(model);
+        if (model.IsDay && view.RecipeOpen)
+        {
+            var cafe = director != null ? director.CafeOf(PlayerTeam.Local()) : null;
+            view.RenderRecipes(cafe != null ? cafe.Stock : null, ledger != null ? ledger.PopularShown : null);
+        }
     }
 
     MatchHudModel BuildModel()
@@ -120,7 +125,7 @@ public sealed class MatchHudPresenter
         // 대시는 밤과 낮 모두 쓴다 (기획서 11장 조작 표). 전환은 조작을 받지 않는다.
         if (phase.Current != Phase.Transition) FillDash(ref model);
 
-        model.IsDay = phase.Current == Phase.Day;
+        model.IsDay = phase.Current == Phase.Day && !phase.Finished;
         if (model.IsDay && cafe != null)
         {
             model.Revenue = $"오늘 매출 {cafe.DaySales:N0} / {cafe.DayBill:N0}G";
@@ -149,13 +154,6 @@ public sealed class MatchHudPresenter
         {
             var skillName = phase.Current == Phase.Day ? character.Def.DayName : character.Def.NightName;
             text.AppendLine($"[1] {skillName} · {character.SkillCooldownRemaining:0.0}s");
-        }
-
-        if (phase.Current == Phase.Day && character != null)
-        {
-            var effect = character.ActiveDebuff;
-            if (effect >= 0 && effect < DayBalance.SkillNames.Length)
-                text.AppendLine($"방해 · {DayBalance.SkillNames[effect]} · {character.DebuffRemaining:0.0}초");
         }
 
         if (phase.Current == Phase.Transition && ledger != null)
@@ -306,7 +304,16 @@ public sealed class MatchHudPresenter
 
     /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `UIMatchHudScreen`의 일이고,
     /// 여기는 값만 넘긴다. HUD 글자 덩어리에 섞으면 오른쪽 열에 붙어 시선에서 벗어난다.
-    public float CastProgress01 => boxHold != null ? boxHold.CastProgress01 : 0f;
+    public float CastProgress01
+    {
+        get
+        {
+            // 묻은 가방 회수·소각도 같은 막대를 쓴다. 다 파내면 서버가 디스폰하므로 파괴 판정을 거친다.
+            if (interactor != null && interactor.Current is BuriedBag bag && bag != null)
+                return bag.CastProgress01;
+            return boxHold != null ? boxHold.CastProgress01 : 0f;
+        }
+    }
 
 
     /// 완성 게이지 한 프레임분 (기획서 5.2). 침 위치와 판정 구간만 담는다 — 화면 어디에
@@ -345,7 +352,7 @@ public sealed class MatchHudPresenter
 
             view.Show = true;
             view.Needle = gauge.Needle;
-            view.PerfectHalf = gauge.PerfectHalfWidth * (character != null && character.AffectedBy(2) ? 0.5f : 1f);
+            view.PerfectHalf = gauge.PerfectHalfWidth;
             view.GoodHalf = gauge.GoodHalfWidth;
 
             // 문자열은 표시할 0.1초가 바뀔 때만 다시 만든다. 매 프레임 만들면 그대로 GC다
