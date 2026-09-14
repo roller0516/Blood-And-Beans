@@ -63,8 +63,42 @@ public static class DayUISetup
         });
         Edit(HudPath, Header);
         Edit(HudPath, Skill);
+        Edit(Parts + "UICustomerOrder.prefab", root => Set(root.GetComponent<UICustomerOrder>(), "warning", Sound(root, true)));
+        Edit(HudPath, root =>
+        {
+            var skill = root.GetComponentInChildren<UIDaySkillSlot>(true);
+            Set(skill, "readySound", Sound(skill.gameObject, false));
+        });
         AssetDatabase.SaveAssets();
         return "낮 상단 띠 · 재료 배지 · 손님 말풍선 · 월드 조리 진행 바 연결";
+    }
+    public static int ApplyScene()
+    {
+        if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이 종료 후 적용한다.");
+        var count = 0;
+        foreach (var facility in Object.FindObjectsByType<SharedFacility>(FindObjectsInactive.Include, FindObjectsSortMode.None))
+        {
+            if (facility.Kind != FacilityKind.Beans && facility.Kind != FacilityKind.Bread) continue;
+            if (facility.GetComponentInChildren<UIIngredientBadge>(true) != null) continue;
+            PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UIIngredientBadge.prefab"), facility.transform);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(facility.gameObject.scene);
+            count++;
+        }
+        return count;
+    }
+    static AudioSource Sound(GameObject root, bool spatial)
+    {
+        var source = root.GetComponent<AudioSource>();
+        if (source == null) source = root.AddComponent<AudioSource>();
+        source.clip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Art/Audio/sfx_bell.wav");
+        source.playOnAwake = false;
+        source.spatialBlend = spatial ? 1f : 0f;
+        source.rolloffMode = AudioRolloffMode.Linear;
+        // ponytail: 기존 종소리로 피드백을 연결한다. 전용 효과음이 준비되면 프리팹에서 교체한다.
+        source.volume = 0.35f;
+        source.minDistance = 3f;
+        source.maxDistance = 40f;
+        return source;
     }
     static void CopyIcons()
     {
@@ -76,6 +110,21 @@ public static class DayUISetup
         {
             target.GetArrayElementAtIndex(i).FindPropertyRelative("item").intValue = icons.GetArrayElementAtIndex(i).FindPropertyRelative("Item").intValue;
             target.GetArrayElementAtIndex(i).FindPropertyRelative("sprite").objectReferenceValue = icons.GetArrayElementAtIndex(i).FindPropertyRelative("Sprite").objectReferenceValue;
+        }
+        // 기존 3D 재료 프리팹에서 구운 미리보기 아이콘을 빈 칸에만 연결한다.
+        var items = new[] { Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate, Ingredient.Almond,
+            Ingredient.Berry, Ingredient.Ice, Ingredient.BloodBean, Ingredient.Bean, Ingredient.BreadBase };
+        foreach (var item in items)
+        {
+            var index = -1;
+            for (var i = 0; i < target.arraySize; i++)
+                if (target.GetArrayElementAtIndex(i).FindPropertyRelative("item").intValue == (int)item) { index = i; break; }
+            if (index < 0) { index = target.arraySize; target.arraySize++; }
+            var entry = target.GetArrayElementAtIndex(index);
+            entry.FindPropertyRelative("item").intValue = (int)item;
+            var sprite = entry.FindPropertyRelative("sprite");
+            if (sprite.objectReferenceValue == null || index >= icons.arraySize)
+                sprite.objectReferenceValue = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Day_" + item + ".png");
         }
         theme.ApplyModifiedPropertiesWithoutUndo();
     }

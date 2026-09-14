@@ -80,7 +80,7 @@ public class PlayerInteractor : NetworkBehaviour
         if (director == null || director.Phase.Current != Phase.Day || localCarry == null) return true;
         var held = localCarry.View;
         if (target is SharedFacility facility)
-            return facility.Busy || (!localCarry.Reserved && CanUseFacility(facility.Kind, held));
+            return facility.Busy || (!localCarry.Reserved && CanUseFacility(facility.Kind, held, director.CafeOf(PlayerTeam.Local())?.Dishes?.Dirty ?? 0));
         if (localCarry.Reserved) return false;
         if (target is DishRack rack) return held.Empty && !rack.SlotAt(0).Empty;
         if (target is Counter) return held.IsProduct;
@@ -93,8 +93,9 @@ public class PlayerInteractor : NetworkBehaviour
         return true;
     }
     // 기획서 5.7.4: 손 상태로 불가능한 프롬프트는 숨긴다. 실행 권한은 RPC가 재검증한다.
-    public static bool CanUseFacility(FacilityKind kind, CarryView held)
+    public static bool CanUseFacility(FacilityKind kind, CarryView held, int dirtyStock = 0)
     {
+        if (kind == FacilityKind.Sink && held.Empty) return dirtyStock > 0;
         if (!held.HasDish) return false;
         if (kind == FacilityKind.Sink) return held.Dirty || held.IsProduct || held.Ingredient != Ingredient.None;
         if (held.Dirty) return true; // 「세척 필요」는 예외 안내다.

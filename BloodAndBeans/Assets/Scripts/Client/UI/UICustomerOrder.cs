@@ -38,11 +38,12 @@ public sealed class UICustomerOrder : MonoBehaviour
         if (cafe == null) cafe = MatchDirector.Instance?.CafeOf(customer.TeamId);
         if (floor == null && cafe != null) floor = cafe.Floor;
         if (ledger == null && MatchDirector.Instance != null) ledger = MatchDirector.Instance.GetComponent<TransitionLedger>();
-        var visible = cafe != null && cafe.TeamId == PlayerTeam.Local() && player != null && floor != null &&
-            cafe.Director.Phase.Current == Phase.Day && InsideFloor(floor.bounds, player.position);
+        var ownDay = cafe != null && cafe.TeamId == PlayerTeam.Local() && cafe.Director != null &&
+            cafe.Director.Phase.Current == Phase.Day;
+        var visible = ownDay && player != null && floor != null && InsideFloor(floor.bounds, player.position);
         canvas.enabled = visible;
         var ratio = Mathf.Clamp01(customer.PatienceRatio);
-        var isUrgent = ratio <= DayBalance.PatienceUrgent;
+        var isUrgent = ownDay && ratio <= DayBalance.PatienceUrgent;
         if (isUrgent && !wasUrgent && warning != null && warning.clip != null) warning.Play();
         wasUrgent = isUrgent;
         if (!visible) return;

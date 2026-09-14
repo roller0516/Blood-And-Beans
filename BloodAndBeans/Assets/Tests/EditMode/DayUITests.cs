@@ -7,6 +7,8 @@ public class DayUITests
     public void FacilityPromptsFollowDishAndIngredientState()
     {
         Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Coffee, CarryView.Nothing));
+        Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 1));
+        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 0));
         Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(false))));
         Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(true))));
         var cup = HeldItem.Of(Ingredient.Bean); cup.HasDish = true;

@@ -133,15 +133,27 @@ public class DayV5RuntimeTests
             second.BeginServer();
             second.StopRpc();
             Assert.IsTrue(first.Active);
-            Assert.IsTrue(second.Active, "새 게이지를 지정한 RPC는 거부한다");
+            Assert.IsTrue(second.Active, "점유하지 않았고 멀리 떨어진 게이지 RPC는 거부한다");
             first.StopRpc();
-            Assert.IsFalse(first.Active);
+            Assert.IsTrue(first.Active, "점유하지 않았고 멀리 떨어진 게이지는 정지할 수 없다");
             Assert.IsTrue(second.Active);
+            first.CancelServer();
+            second.CancelServer();
+            Assert.IsTrue(cafe.Dishes.ClaimServer());
+            var input = HeldItem.Of(Ingredient.Bean); input.HasDish = true;
+            carry.SetServer(input);
+            PlayerTeleport.ToServer(player, machine.transform.position);
+            machine.UseRpc();
+            wait = WaitFor(() => CompletionGauge.LocalTarget() != null); while (wait.MoveNext()) yield return wait.Current;
+            var owned = CompletionGauge.LocalTarget();
+            Assert.AreEqual(manager.LocalClientId, owned.Station.OperatorId);
             var field = typeof(CompletionGauge).GetField("startedAt", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
-            ((Unity.Netcode.NetworkVariable<double>)field.GetValue(second)).Value = manager.ServerTime.Time - 11;
+            ((Unity.Netcode.NetworkVariable<double>)field.GetValue(owned)).Value = manager.ServerTime.Time - 11;
             var result = Judgement.Good;
-            second.OnResult += value => result = value;
-            second.StopRpc();
+            owned.OnResult += value => result = value;
+            owned.StopRpc();
+            Assert.IsFalse(machine.Busy);
+            Assert.IsTrue(carry.Held.Burnt);
             Assert.AreEqual(Judgement.Burnt, result, "Update 전 도착한 만료 입력도 탄 판정이다");
         }
         finally { if (manager != null) manager.Shutdown(); }

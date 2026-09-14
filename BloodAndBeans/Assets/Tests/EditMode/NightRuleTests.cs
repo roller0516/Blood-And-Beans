@@ -172,16 +172,34 @@ public class NightRuleTests
 
     /// 기획서 6.3: 바깥은 1등급 위주, 중심은 3등급. 상자가 밤마다 자리를 옮기므로
     /// (`MatchDirector.ScatterBoxesServer`) 자리와 등급이 같은 표에서 나와야 한다.
+    /// 기획서 6.3.1 「자리 × 일차」 표.
     [Test]
-    public void ForestRingWeightsFollowDistanceFromCentre()
+    public void BoxTierWeightsFollowZoneAndDay()
     {
-        var core = ForestRings.WeightsFor(0f);
-        var mid = ForestRings.WeightsFor(0.4f);
-        var outer = ForestRings.WeightsFor(1f);
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Core, 1), Is.EqualTo((30, 70, 0)), "1일차 중심에는 3등급이 없다");
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Core, 7), Is.EqualTo((0, 25, 75)));
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Middle, 2).T3, Is.Zero);
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Middle, 3), Is.EqualTo((40, 55, 5)), "3일차부터 중간에 3등급 5%");
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Outer, 7), Is.EqualTo((70, 30, 0)), "바깥은 끝까지 3등급이 없다");
+        Assert.That(ForestRings.Weights(ForestRings.Zone.Outer, 99), Is.EqualTo(ForestRings.Weights(ForestRings.Zone.Outer, 7)));
 
-        Assert.That(core.T3, Is.GreaterThan(core.T1), "중심은 3등급이 잘 나와야 한다");
-        Assert.That(mid.T2, Is.GreaterThan(mid.T1).And.GreaterThan(mid.T3));
-        Assert.That(outer.T1, Is.GreaterThan(outer.T3), "바깥은 1등급 위주다");
-        Assert.That(outer.T3, Is.Zero, "숲 끝에서 3등급이 나오면 중심에 갈 이유가 없다");
+        for (var zone = ForestRings.Zone.Outer; zone <= ForestRings.Zone.Core; zone++)
+        for (var day = 1; day <= 7; day++)
+        {
+            var w = ForestRings.Weights(zone, day);
+            Assert.That(w.T1 + w.T2 + w.T3, Is.EqualTo(100), $"{zone} {day}일차");
+        }
+    }
+
+    /// 기획서 6.3.1: 14개면 바깥 6 · 중간 5 · 중심 3.
+    [Test]
+    public void BoxCountSplitsByZone()
+    {
+        Assert.That(ForestRings.Split(14), Is.EqualTo(new[] { 6, 5, 3 }));
+        for (var total = ForestRings.MinBoxes; total <= ForestRings.MaxBoxes; total++)
+        {
+            var split = ForestRings.Split(total);
+            Assert.That(split[0] + split[1] + split[2], Is.EqualTo(total), $"{total}개");
+        }
     }
 }

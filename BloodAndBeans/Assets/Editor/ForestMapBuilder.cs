@@ -613,7 +613,7 @@ public static class ForestMapBuilder
             flat.y = 0f;
             var ratio = radius > 0f ? flat.magnitude / radius : 1f;
 
-            var w = ForestRings.WeightsFor(ratio);
+            var w = ForestRings.Weights(ForestRings.ZoneOf(ratio), 1);   // 편집 화면용 1일차 값
             var weights = new Vector3Int(w.T1, w.T2, w.T3);
 
             var boxSo = new SerializedObject(box);

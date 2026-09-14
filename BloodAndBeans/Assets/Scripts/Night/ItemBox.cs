@@ -20,10 +20,8 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 {
     [SerializeField] int tier = 1;              // 1~3
 
-    /// 이 자리에서 뽑힐 등급의 가중치 (기획서 6.3: 바깥 1등급 위주 / 중간 2등급 / 중심 3등급).
-    /// 등급은 매 밤 리롤되지만 *어떤 등급이 잘 나오는가*는 자리가 정한다. 링 배치는
-    /// `ForestMapBuilder`가 굽고, 밤마다 자리를 다시 뽑을 때는 `PlaceServer`가 갱신한다 —
-    /// 여기서 중심까지의 거리를 다시 재면 맵 모양이 바뀔 때마다 두 곳을 같이 고쳐야 한다.
+    /// 오늘 밤 이 자리에서 뽑힐 등급의 가중치 (기획서 6.3.1 「구역 × 일차」 퍼센트).
+    /// 밤마다 `MatchDirector`가 자리와 함께 `PlaceServer`로 넘긴다 — 표는 `ForestRings`에 있다.
     [SerializeField] Vector3Int tierWeights = new(1, 0, 0);
     [SerializeField] float openSeconds = 0.6f;
 

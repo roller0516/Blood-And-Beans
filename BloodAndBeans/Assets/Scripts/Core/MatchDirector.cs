@@ -56,16 +56,12 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     [SerializeField] float spawnInset = 6f;
 
     [Header("밤 상자")]
-    /// 숲 상자 프리팹. 씬에 깔지 않고 첫 밤에 서버가 `nightBoxCount`개를 스폰한다.
+    /// 숲 상자 프리팹. 씬에 깔지 않고 매 밤 서버가 그날 개수만큼 맞춰 스폰한다.
     /// `DefaultNetworkPrefabs`에 등록돼 있어야 클라이언트가 받는다.
-    [SerializeField] ItemBox boxPrefab;
-
-    /// 숲에 세울 상자 수. 0이면 상자가 없다.
     ///
-    /// **기획서 6.3은 "박스의 위치는 맵마다 고정"이라고 못 박았다.** 밤마다 자리를 다시 뽑으므로
-    /// 그 절과 어긋난다 — 사용자 요청으로 연 문이다.
-    /// ponytail: 팀 수 비례(기획서 10장)를 적용하지 않는다. 필요하면 스폰 수에 teamCount를 곱한다.
-    [SerializeField] int nightBoxCount;
+    /// **기획서 6.3은 "박스의 자리는 맵마다 고정"이라고 했다.** 밤마다 자리를 다시 뽑는 것은
+    /// 사용자 결정이다. 개수·구역 배분·등급 확률은 6.3.1을 따른다 (`ForestRings`).
+    [SerializeField] ItemBox boxPrefab;
 
     /// 상자끼리, 그리고 팀 스폰 자리와 벌리는 최소 거리. 붙어 있으면 한 번 개척으로 둘을
     /// 다 먹고, 스폰 위에 서면 밤이 시작하자마자 주워진다.
@@ -136,9 +132,6 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     GamePhase phase;
     int teamCount;
     bool subscribed;
-
-    /// 숲 상자를 이미 스폰했는가. 한 판에 한 번이고, 이후 밤에는 자리만 옮긴다.
-    bool boxesSpawned;
 
     public GamePhase Phase => phase;
     public int TeamCount => teamCount;
@@ -306,52 +299,57 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     {
         await UniTask.NextFrame(this.GetCancellationTokenOnDestroy());
 
-        if (!boxesSpawned)
-        {
-            boxesSpawned = true;
-            SpawnBoxesServer();
-        }
-
+        // 개수는 매 밤 12~16 랜덤이고 일차·팀 수와 무관하다 (기획서 6.3.1, 팀 비례는 사용자 결정으로 뺐다).
+        ResizeBoxesServer(Random.Range(ForestRings.MinBoxes, ForestRings.MaxBoxes + 1));
         ScatterBoxesServer();
     }
 
-    /// 숲 상자를 `nightBoxCount`개 스폰한다. 자리는 곧이어 `ScatterBoxesServer`가 정한다.
-    /// 숲은 전원이 공유하므로 관측자를 막지 않는다.
-    void SpawnBoxesServer()
+    /// 숲에 서 있는 상자. 쏟아진 더미는 맵이 깔아 둔 자원이 아니라 빠진다.
+    /// 등록 순서에 기대지 않도록 id로 정렬한 사본을 준다 — 호출부가 despawn하면서 훑는다.
+    List<ItemBox> ForestBoxes()
     {
-        if (nightBoxCount <= 0) return;
+        var list = new List<ItemBox>();
+        foreach (var box in boxes)
+            if (box != null && !box.Temporary && box.NetworkObject != null && box.NetworkObject.IsSpawned)
+                list.Add(box);
+
+        list.Sort((a, b) => a.NetworkObjectId.CompareTo(b.NetworkObjectId));
+        return list;
+    }
+
+    /// 숲 상자 수를 오늘 밤 개수에 맞춘다. 모자라면 스폰하고 남으면 despawn한다.
+    /// 자리는 곧이어 `ScatterBoxesServer`가 정한다. 숲은 전원이 공유하므로 관측자를 막지 않는다.
+    void ResizeBoxesServer(int count)
+    {
+        var forest = ForestBoxes();
+
+        for (var i = forest.Count - 1; i >= count; i--)
+            forest[i].NetworkObject.Despawn();
+
+        if (forest.Count >= count) return;
         if (boxPrefab == null)
         {
-            CDebug.LogError($"{name}: {nameof(boxPrefab)}이 비어 있다. 숲에 상자가 하나도 생기지 않는다.", this);
+            CDebug.LogError($"{name}: {nameof(boxPrefab)}이 비어 있다. 숲 상자가 {count}개가 아니라 "
+                          + $"{forest.Count}개뿐이다.", this);
             return;
         }
 
         // y는 프리팹 값을 쓴다. 중력이 없어(PlayerMove) 여기서 어긋나면 영영 뜬다.
         var at = new Vector3(cafeOrigin.x, boxPrefab.transform.position.y, cafeOrigin.z);
-        for (var i = 0; i < nightBoxCount; i++)
+        for (var i = forest.Count; i < count; i++)
             Instantiate(boxPrefab, at, Quaternion.identity).NetworkObject.Spawn();
     }
 
-    /// 밤마다 상자를 숲 안 아무 자리에나 다시 뿌린다 (사용자 요청).
-    ///
-    /// 자리가 바뀌면 링도 바뀌므로 등급 가중치를 함께 넘긴다 (기획서 6.3, `ForestRings`).
+    /// 밤마다 상자를 숲에 다시 뿌린다. 자리를 매 밤 뽑는 것은 사용자 결정이고, 구역 배분과
+    /// 등급 확률은 기획서 6.3.1이다 — 바깥 45 · 중간 35 · 중심 20, 등급은 「구역 × 일차」 표.
     ///
     /// ponytail: 나무를 피하지 않는다. 나무 콜라이더 반지름(≤1.1)에 플레이어 반지름을 더해도
     /// 상자 사거리(2.5)보다 작아 닿기는 하지만, 수관 안에 박힌 상자는 눈에 안 띈다. 거슬리면
     /// 레이어 마스크를 직렬화해 `Physics.CheckSphere`로 후보를 거른다.
     void ScatterBoxesServer()
     {
-        if (nightBoxCount <= 0) return;
-
-        var targets = new List<ItemBox>();
-        foreach (var box in boxes)
-            if (box != null && !box.Temporary && box.NetworkObject != null && box.NetworkObject.IsSpawned)
-                targets.Add(box);
-
+        var targets = ForestBoxes();
         if (targets.Count == 0) return;
-
-        // 등록 순서에 기대지 않는다. 같은 씨앗이 아니어도 순서가 흔들리면 원인을 좇기 어렵다.
-        targets.Sort((a, b) => a.NetworkObjectId.CompareTo(b.NetworkObjectId));
 
         // 팀 스폰 자리를 먼저 채워 두면 상자가 그 위에 서지 않는다.
         var taken = new List<Vector3>();
@@ -359,29 +357,64 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
         var half = forestSize * 0.5f - Vector2.one * boxEdgeInset;
         var radius = Mathf.Min(forestSize.x, forestSize.y) * 0.5f;
+        var perZone = ForestRings.Split(targets.Count);
+        var day = Phase.Day;
 
-        foreach (var box in targets)
+        // 좁은 중심부터 채운다. 넓은 바깥을 먼저 채우면 중심 자리가 간격에 막히기 쉽다.
+        var next = 0;
+        for (var zone = ForestRings.Zone.Core; zone >= ForestRings.Zone.Outer; zone--)
         {
-            // 높이는 상자가 이미 안다. 중력이 없어서(PlayerMove) 여기서 어긋나면 영영 뜬다.
-            var y = box.transform.position.y;
-            var spot = box.transform.position;
+            var w = ForestRings.Weights(zone, day);
+            var weights = new Vector3Int(w.T1, w.T2, w.T3);
 
-            for (var attempt = 0; attempt < boxPlaceAttempts; attempt++)
+            for (var n = 0; n < perZone[(int)zone]; n++)
             {
-                spot = cafeOrigin + new Vector3(Random.Range(-half.x, half.x), 0f,
-                                                Random.Range(-half.y, half.y));
-                spot.y = y;
-                if (FarEnough(spot, taken)) break;
+                var box = targets[next++];
+
+                // 높이는 상자가 이미 안다. 중력이 없어서(PlayerMove) 여기서 어긋나면 영영 뜬다.
+                var spot = box.transform.position;
+                for (var attempt = 0; attempt < boxPlaceAttempts; attempt++)
+                {
+                    spot = RandomSpotIn(zone, half, radius, box.transform.position.y);
+                    if (FarEnough(spot, taken)) break;
+                }
+
+                taken.Add(spot);
+                box.PlaceServer(spot, weights);
             }
-
-            taken.Add(spot);
-
-            var flat = new Vector2(spot.x - cafeOrigin.x, spot.z - cafeOrigin.z);
-            var w = ForestRings.WeightsFor(radius > 0f ? flat.magnitude / radius : 1f);
-            box.PlaceServer(spot, new Vector3Int(w.T1, w.T2, w.T3));
         }
 
-        CDebug.Log($"{name}: 상자 {targets.Count}개를 {Phase.Day}일차 자리로 다시 뿌렸다.", this);
+        CDebug.Log($"{name}: {day}일차 상자 {targets.Count}개 — 중심 {perZone[(int)ForestRings.Zone.Core]} · "
+                 + $"중간 {perZone[(int)ForestRings.Zone.Middle]} · 바깥 {perZone[(int)ForestRings.Zone.Outer]}.", this);
+    }
+
+    /// 구역 안의 무작위 자리. 중심·중간은 고리라 극좌표로, 바깥은 사각형 숲의 대부분이라
+    /// 뽑아 보고 거른다. 걸러도 못 찾으면 마지막 후보를 쓴다 — 밤이 멈추는 것보다 낫다.
+    Vector3 RandomSpotIn(ForestRings.Zone zone, Vector2 half, float radius, float y)
+    {
+        var local = Vector3.zero;
+        if (zone == ForestRings.Zone.Outer)
+        {
+            for (var i = 0; i < boxPlaceAttempts; i++)
+            {
+                local = new Vector3(Random.Range(-half.x, half.x), 0f, Random.Range(-half.y, half.y));
+                if (radius <= 0f || ForestRings.ZoneOf(local.magnitude / radius) == ForestRings.Zone.Outer) break;
+            }
+        }
+        else
+        {
+            var inner = zone == ForestRings.Zone.Core ? 0f : ForestRings.CoreRatio;
+            var outer = zone == ForestRings.Zone.Core ? ForestRings.CoreRatio : ForestRings.MidRatio;
+
+            // 반지름 제곱에서 뽑아야 고리 안에서 넓이가 고르다. 그냥 뽑으면 안쪽에 몰린다.
+            var r = Mathf.Sqrt(Random.Range(inner * inner, outer * outer)) * radius;
+            var angle = Random.Range(0f, Mathf.PI * 2f);
+            local = new Vector3(Mathf.Cos(angle) * r, 0f, Mathf.Sin(angle) * r);
+        }
+
+        var spot = cafeOrigin + local;
+        spot.y = y;
+        return spot;
     }
 
     /// 이미 잡힌 자리들과 `boxSeparation`만큼 떨어졌는가. 높이는 보지 않는다 — 평면 탑다운이다.
