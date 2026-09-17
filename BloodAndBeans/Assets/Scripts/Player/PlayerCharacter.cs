@@ -82,7 +82,21 @@ public class PlayerCharacter : NetworkBehaviour
         shortcutUntil.OnValueChanged += OnShortcut;
 
         // 접속 승인 때 고정한 픽만 서버에서 적용한다 (기획서 9.3).
-        if (IsServer) character.Value = GameManager.Seating.CharacterOf(OwnerClientId);
+        if (IsServer) character.Value = InitialPickServer();
+    }
+
+    /// 안 고르고 들어오면 팀에서 비어 있는 가장 앞 번호(기본 0번)를 준다. 픽이 없으면 모델이 서지 않는다.
+    int InitialPickServer()
+    {
+        var seating = GameManager.Seating;
+        var pick = seating.CharacterOf(OwnerClientId);
+        if (CharacterCatalog.IsValid(pick)) return pick;
+
+        // 팀 중복 픽 금지(기획서 9.1)를 지킨다. 좌석을 직접 물어 PlayerTeam 스폰 순서에 기대지 않는다.
+        var seat = seating.SeatServer(OwnerClientId);
+        for (var i = 0; i < CharacterCatalog.All.Length; i++)
+            if (!TakenInTeam(seat, i, OwnerClientId)) return i;
+        return CharacterCatalog.NoPick;
     }
 
     public override void OnNetworkDespawn()
