@@ -70,6 +70,7 @@ public class DashVisuals : MonoBehaviour
 
     void OnDashStarted(float seconds)
     {
+        if (look != null && look.Model != null) look.Model.PlayDash();
         if (trail == null) return;
 
         // 지난 잔상이 남아 있으면 새 돌진이 이전 자리에서 시작한 것처럼 보인다.
@@ -94,7 +95,11 @@ public class DashVisuals : MonoBehaviour
     /// 흔들림은 내 화면에만 준다.
     void OnTookHit(Vector3 direction, bool spilled)
     {
-        if (look != null) look.FlashClient(spilled ? spillFlash : hitFlash, flashSeconds);
+        if (look != null)
+        {
+            look.FlashClient(spilled ? spillFlash : hitFlash, flashSeconds);
+            if (look.Model != null) look.Model.PlayHit();
+        }
         if (IsMine) Shake(spilled ? shakeOnSpill : shakeOnTaken);
     }
 

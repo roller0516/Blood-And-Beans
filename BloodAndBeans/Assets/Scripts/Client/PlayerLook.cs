@@ -15,12 +15,14 @@ public class PlayerLook : NetworkBehaviour
 
     [SerializeField] CharacterVisualConfig visuals;
     [SerializeField] Transform modelRoot;
-    [SerializeField] GameObject defaultModel;
     PlayerCharacter character;
     GameObject model;
     CharacterModel appearance;
     PlayerTeam playerTeam;
     Tween flash;
+
+    /// 지금 서 있는 모델. 캐릭터를 고르지 않았으면 null이다.
+    public CharacterModel Model => appearance;
 
     void Awake() { playerTeam = GetComponent<PlayerTeam>(); character = GetComponent<PlayerCharacter>(); }
 
@@ -62,7 +64,6 @@ public class PlayerLook : NetworkBehaviour
         model = CharacterCatalog.IsValid(index)
             ? visuals.SpawnModel(CharacterCatalog.All[index].Id, modelRoot, gameObject.layer) : null;
         appearance = model != null ? model.GetComponent<CharacterModel>() : null;
-        if (defaultModel != null) defaultModel.SetActive(model == null);
         Apply(playerTeam.Team);
     }
 
@@ -71,7 +72,5 @@ public class PlayerLook : NetworkBehaviour
     void Tint(Color color)
     {
         if (appearance != null) appearance.Tint(color, tintStrength);
-        else if (model == null && defaultModel != null)
-            TeamColors.TintWith(defaultModel, color, tintStrength);
     }
 }

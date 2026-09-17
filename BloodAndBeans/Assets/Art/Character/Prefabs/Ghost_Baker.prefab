@@ -138,6 +138,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::CharacterModel
   teamTintRoots:
   - {fileID: 8188055288954583509}
+  animator: {fileID: 685794260567175080}
+  fullBlendSpeed: 5
+  blendDampSeconds: 0.1
+  crossFadeSeconds: 0.08
 --- !u!1001 &1418702152945058925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -195,6 +199,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af301ce485dde9448a41155b69710329, type: 3}
+--- !u!95 &685794260567175080 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 1418702152945058925}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &6873692511033259474 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5536187267799396799, guid: af301ce485dde9448a41155b69710329, type: 3}

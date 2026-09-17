@@ -53,7 +53,6 @@ public static class CompletionSetup
             var look = new SerializedObject(player.GetComponent<PlayerLook>());
             look.FindProperty("visuals").objectReferenceValue = config;
             look.FindProperty("modelRoot").objectReferenceValue = root;
-            look.FindProperty("defaultModel").objectReferenceValue = player.transform.Find("PC_Ghost_001").gameObject;
             look.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(player, playerPath);
         }
