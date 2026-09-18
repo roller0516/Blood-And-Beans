@@ -423,6 +423,7 @@ GameObject:
   - component: {fileID: 8566471087735460186}
   - component: {fileID: 6488200064048708781}
   - component: {fileID: 7376183816753211683}
+  - component: {fileID: 6153979284982768220}
   m_Layer: 0
   m_Name: UIBoxLootSlot
   m_TagString: Untagged
@@ -475,8 +476,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.039, g: 0.063, b: 0.09, a: 1}
+  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
+  m_Color: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -518,10 +519,11 @@ MonoBehaviour:
   rarityNames:
   - "\uC77C\uBC18"
   - "\uD76C\uADC0"
-  blindColor: {r: 0.16, g: 0.17, b: 0.2, a: 0.95}
-  readyColor: {r: 0.27, g: 0.3, b: 0.36, a: 0.98}
-  emptyColor: {r: 0.1, g: 0.1, b: 0.11, a: 1}
+  blindColor: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 0.95}
+  readyColor: {r: 0.34901962, g: 0.28627452, b: 0.24705882, a: 0.98}
+  emptyColor: {r: 0.14117648, g: 0.12156863, b: 0.105882354, a: 1}
   plainEdgeColor: {r: 1, g: 1, b: 1, a: 1}
+  rarityTextColor: {r: 1, g: 1, b: 1, a: 1}
   rarityEdgeColors:
   - {r: 0.45, g: 0.5, b: 0.58, a: 1}
   - {r: 0.7, g: 0.45, b: 1, a: 1}
@@ -532,6 +534,19 @@ MonoBehaviour:
   glowPunch: 0.35
   flourishSeconds: 0.5
   punchScale: 0.22
+--- !u!114 &6153979284982768220
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2776316942795950311}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16
 --- !u!1 &2812846732904436516
 GameObject:
   m_ObjectHideFlags: 0
@@ -755,6 +770,7 @@ GameObject:
   - component: {fileID: 126135610791107683}
   - component: {fileID: 3029610434913119836}
   - component: {fileID: 1579714716561705200}
+  - component: {fileID: 4360053122901220984}
   m_Layer: 0
   m_Name: Blind
   m_TagString: Untagged
@@ -803,8 +819,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.039, g: 0.063, b: 0.09, a: 1}
+  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
+  m_Color: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -821,6 +837,19 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &4360053122901220984
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4021139126830250038}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16
 --- !u!1 &4431665612365639584
 GameObject:
   m_ObjectHideFlags: 0
@@ -1393,6 +1422,7 @@ GameObject:
   - component: {fileID: 5979191102307662389}
   - component: {fileID: 462450498545524704}
   - component: {fileID: 4336242524804829432}
+  - component: {fileID: 1713832712059027746}
   m_Layer: 0
   m_Name: Tooltip
   m_TagString: Untagged
@@ -1443,8 +1473,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.031, g: 0.047, b: 0.071, a: 1}
+  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
+  m_Color: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -1461,3 +1491,16 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &1713832712059027746
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9134213684704850243}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16

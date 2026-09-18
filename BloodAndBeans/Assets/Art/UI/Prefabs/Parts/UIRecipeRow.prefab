@@ -330,6 +330,7 @@ GameObject:
   - component: {fileID: 8895231132020667801}
   - component: {fileID: 7650198915343956542}
   - component: {fileID: 5576209331142200775}
+  - component: {fileID: 8335792484193103872}
   m_Layer: 0
   m_Name: UIRecipeRow
   m_TagString: Untagged
@@ -379,8 +380,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.2, g: 0.13, b: 0.085, a: 0.9}
+  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
+  m_Color: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 0.9}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -461,6 +462,19 @@ MonoBehaviour:
   m_FlexibleWidth: 1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &8335792484193103872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6861741602905312418}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16
 --- !u!1 &6923132629477876564
 GameObject:
   m_ObjectHideFlags: 0
@@ -552,6 +566,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3401728731797125627}
     m_Modifications:
+    - target: {fileID: 2733328242112775117, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.b
+      value: 0.3647059
+      objectReference: {fileID: 0}
+    - target: {fileID: 2733328242112775117, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.g
+      value: 0.44705883
+      objectReference: {fileID: 0}
+    - target: {fileID: 2733328242112775117, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.r
+      value: 0.54901963
+      objectReference: {fileID: 0}
     - target: {fileID: 4411035523773171311, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -636,6 +662,22 @@ PrefabInstance:
       propertyPath: m_Name
       value: Product
       objectReference: {fileID: 0}
+    - target: {fileID: 7986012349823787503, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.b
+      value: 0.13725491
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986012349823787503, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.g
+      value: 0.15686275
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986012349823787503, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Color.r
+      value: 0.1882353
+      objectReference: {fileID: 0}
+    - target: {fileID: 7986012349823787503, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -646,7 +688,28 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5419343544517325488, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6651777846160454254}
+    - targetCorrespondingSourceObject: {fileID: 7651584600484095009, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 322006051224404425}
   m_SourcePrefab: {fileID: 100100000, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+--- !u!1 &886900502167726577 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7651584600484095009, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
+  m_PrefabInstance: {fileID: 7377183064564600272}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &322006051224404425
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 886900502167726577}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16
 --- !u!114 &2119561396052679573 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 8866238794722924101, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
