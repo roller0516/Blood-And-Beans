@@ -76,19 +76,6 @@ public static class CompletionSetup
         }
         if (!EditorBuildSettings.scenes.Any(s => s.path == GroveScene))
             EditorBuildSettings.scenes = EditorBuildSettings.scenes.Concat(new[] { new EditorBuildSettingsScene(GroveScene, true) }).ToArray();
-        var path = "Assets/Resources/GameManager.prefab";
-        var root = PrefabUtility.LoadPrefabContents(path);
-        try
-        {
-            var lobby = new SerializedObject(root.GetComponentInChildren<SteamLobby>(true));
-            var maps = lobby.FindProperty("mapScenes");
-            maps.arraySize = 2;
-            maps.GetArrayElementAtIndex(0).stringValue = "Battle_01";
-            maps.GetArrayElementAtIndex(1).stringValue = "Battle_BerryGrove";
-            lobby.ApplyModifiedPropertiesWithoutUndo();
-            PrefabUtility.SaveAsPrefabAsset(root, path);
-        }
-        finally { PrefabUtility.UnloadPrefabContents(root); }
         AssetDatabase.SaveAssets();
     }
 }

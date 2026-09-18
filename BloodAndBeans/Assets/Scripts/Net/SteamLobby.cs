@@ -63,8 +63,7 @@ public class SteamLobby : MonoBehaviour
     /// 전투 씬 이름. 이 판의 게임 씬이 무엇인지 아는 유일한 자리다 —
     /// `NetworkAutoStart`가 "지금 그 씬에서 재생했는가"를 판단할 때 되읽는다.
     public string GameScene => gameScene;
-    [SerializeField] string[] mapScenes;
-    public bool IsGameScene(string scene) => scene == gameScene || (mapScenes != null && Array.IndexOf(mapScenes, scene) >= 0);
+    public bool IsGameScene(string scene) => scene == gameScene;
 
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
@@ -585,7 +584,6 @@ public class SteamLobby : MonoBehaviour
         }
 
         if (!CanStartMatch) { Fail("모든 참가자의 준비와 팀 정원을 확인해 주세요."); return false; }
-        if (mapScenes != null && mapScenes.Length > 0) gameScene = mapScenes[UnityEngine.Random.Range(0, mapScenes.Length)];
         backend.CloseRoom();
         Seating.ExpectPlayers(members.Count);
 

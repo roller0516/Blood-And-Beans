@@ -71,17 +71,21 @@ public class DashVisuals : MonoBehaviour
     void OnDashStarted(float seconds)
     {
         if (look != null && look.Model != null) look.Model.PlayDash();
-        if (trail == null) return;
 
-        // 지난 잔상이 남아 있으면 새 돌진이 이전 자리에서 시작한 것처럼 보인다.
-        trail.Clear();
-        trail.emitting = true;
-        DOVirtual.DelayedCall(seconds, StopTrail).SetLink(gameObject);
+        if (trail != null)
+        {
+            // 지난 잔상이 남아 있으면 새 돌진이 이전 자리에서 시작한 것처럼 보인다.
+            trail.Clear();
+            trail.emitting = true;
+        }
+        DOVirtual.DelayedCall(seconds, OnDashEnded).SetLink(gameObject);
     }
 
-    void StopTrail()
+    /// 서버의 돌진 시간이 끝났다. 잔상을 끄고 돌진 포즈를 회복 동작으로 넘긴다.
+    void OnDashEnded()
     {
         if (trail != null) trail.emitting = false;
+        if (look != null && look.Model != null) look.Model.EndDash();
     }
 
     /// 내가 맞혔다. 임팩트는 맞은 자리에 남기고, 흔들림은 내 화면에만 준다.

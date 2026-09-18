@@ -7,7 +7,9 @@ public sealed class CharacterModel : MonoBehaviour
     // AC_Ghost.controller의 파라미터·상태 이름. 컨트롤러를 고치면 여기도 같이 고친다.
     static readonly int MoveXHash = Animator.StringToHash("MoveX");
     static readonly int MoveZHash = Animator.StringToHash("MoveZ");
-    static readonly int DashHash = Animator.StringToHash("Dash");
+    static readonly int DashStartHash = Animator.StringToHash("DashStart");
+    static readonly int DashHoldHash = Animator.StringToHash("DashHold");
+    static readonly int DashEndHash = Animator.StringToHash("DashEnd");
     static readonly int HitHash = Animator.StringToHash("Hit");
 
     [Tooltip("팀 색을 입힐 의상이나 장식의 루트. 원래 재질을 유지할 부위는 넣지 않는다.")]
@@ -60,8 +62,24 @@ public sealed class CharacterModel : MonoBehaviour
             if (root != null) TeamColors.TintWith(root.gameObject, color, strength);
     }
 
-    /// 한 번 재생하고 컨트롤러의 종료 전이로 이동 상태에 돌아간다.
-    public void PlayDash() { if (enabled) animator.CrossFadeInFixedTime(DashHash, crossFadeSeconds); }
+    /// 준비 → 돌진 포즈 유지(루프)까지 간다. 돌진 길이는 서버가 정하므로 끝은 <see cref="EndDash"/>가 낸다.
+    public void PlayDash() { if (enabled) animator.CrossFadeInFixedTime(DashStartHash, crossFadeSeconds); }
+
+    /// 회복 동작을 재생하고 컨트롤러의 종료 전이로 이동 상태에 돌아간다.
+    /// 돌진 중에 맞았으면 이미 Hit으로 넘어갔으므로 덮어쓰지 않는다.
+    public void EndDash()
+    {
+        if (!enabled || !IsDashing()) return;
+        animator.CrossFadeInFixedTime(DashEndHash, crossFadeSeconds);
+    }
+
+    bool IsDashing()
+    {
+        var state = animator.IsInTransition(0)
+            ? animator.GetNextAnimatorStateInfo(0)
+            : animator.GetCurrentAnimatorStateInfo(0);
+        return state.shortNameHash == DashStartHash || state.shortNameHash == DashHoldHash;
+    }
 
     public void PlayHit() { if (enabled) animator.CrossFadeInFixedTime(HitHash, crossFadeSeconds); }
 }
