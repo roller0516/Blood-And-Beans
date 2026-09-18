@@ -46,7 +46,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SurfaceMap:
-        m_Texture: {fileID: 2800000, guid: 8a74b85e28f0a0d49bf77d489d222668, type: 3}
+        m_Texture: {fileID: 2800000, guid: 22c6719c67c59474faad39e6aaf849fd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -64,7 +64,7 @@ Material:
     m_Ints: []
     m_Floats:
     - _AOStrength: 0.35
-    - _DiffuseWrap: 0.12
+    - _DiffuseWrap: 0.036
     - _EmissionIntensity: 0
     - _EmissionStrength: 3
     - _Metallic: 0
@@ -74,15 +74,15 @@ Material:
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RimPower: 3
-    - _RimStrength: 0.15
+    - _RimStrength: 0.41
     - _RoughnessScale: 2
-    - _ShadowStrength: 0.852
+    - _ShadowStrength: 0.894
     - _SmoothnessMax: 0.34
     - _SmoothnessMin: 0.22
-    - _SpecularStrength: 1
+    - _SpecularStrength: 0.8
     m_Colors:
-    - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
+    - _BaseColor: {r: 1, g: 0.9103774, b: 0.9103774, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _RimColor: {r: 0.6981132, g: 0.43428937, b: 0.042808846, a: 1}
+    - _RimColor: {r: 0.837453, g: 0.7607843, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

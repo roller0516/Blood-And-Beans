@@ -8,7 +8,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Env_Wood
-  m_Shader: {fileID: -6465566751694194690, guid: 19fc196976b33d847987552365a9bb19, type: 3}
+  m_Shader: {fileID: 4800000, guid: 830d36be9196459ea6187c5c4190a348, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -26,6 +26,10 @@ Material:
     m_TexEnvs:
     - _BaseMap:
         m_Texture: {fileID: 2800000, guid: 07148fdbeb6a5e14c9bc55cd7552a052, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMask:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
@@ -51,18 +55,32 @@ Material:
     m_Ints: []
     m_Floats:
     - _AOStrength: 0.35
+    - _AdditionalGain: 0.55
+    - _BandBreakup: 0.05
+    - _BandSoftness: 0.07
+    - _BrushScale: 18
+    - _BrushStrength: 0.06
     - _EmissionIntensity: 0
+    - _FacetStrength: 0
+    - _Fill: 0.18
+    - _MainGain: 1
     - _Metallic: 0
     - _NormalStrength: 0
     - _PulseAmount: 0
     - _PulseSpeed: 3.87
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _ShadowHue: 0.35
     - _SmoothnessMax: 0.32
     - _SmoothnessMin: 0.25
+    - _ThresholdHigh: 0.7
+    - _ThresholdLow: 0.28
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _LightColor: {r: 1, g: 0.94, b: 0.65, a: 1}
+    - _MidColor: {r: 0.72, g: 0.76, b: 0.62, a: 1}
+    - _ShadowColor: {r: 0.23999995, g: 0.19999996, b: 0.45999992, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
 --- !u!114 &8527064009856285519
