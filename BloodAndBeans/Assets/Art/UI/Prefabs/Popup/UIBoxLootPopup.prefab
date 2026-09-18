@@ -61,7 +61,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 25
+  m_AdditionalShaderChannelsFlag: 27
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -139,23 +139,6 @@ MonoBehaviour:
   trailAlpha: 0.85
   bagPunchScale: 0.35
   bagPunchSeconds: 0.3
-  icons:
-  - Item: 7
-    Sprite: {fileID: 21300000, guid: d8e8538546125404da086785436dc1c4, type: 3}
-  - Item: 10
-    Sprite: {fileID: 21300000, guid: 08fc5dd6ab5e8f349a81d321d764e1ce, type: 3}
-  - Item: 11
-    Sprite: {fileID: 21300000, guid: 6686e684cac07f14690d81d2a025844a, type: 3}
-  - Item: 12
-    Sprite: {fileID: 21300000, guid: 3aeb25abcb75e6e4c806c292b62a0e15, type: 3}
-  - Item: 13
-    Sprite: {fileID: 21300000, guid: 388145091ece6324eb2731488b93d266, type: 3}
-  - Item: 14
-    Sprite: {fileID: 21300000, guid: 1e8e64272779f80458d2e73255548ce6, type: 3}
-  - Item: 15
-    Sprite: {fileID: 21300000, guid: b106589e7d099e248898dda232fb9e63, type: 3}
-  - Item: 16
-    Sprite: {fileID: 21300000, guid: 80a1f52dce72e6f47b4dcf093f82c75d, type: 3}
   flyLayer: {fileID: 9115283186153540435}
 --- !u!114 &8030685899647670742
 MonoBehaviour:
@@ -360,7 +343,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.55}
+  m_Color: {r: 0.12941177, g: 0.105882354, b: 0.09803922, a: 0.55}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -390,6 +373,7 @@ GameObject:
   - component: {fileID: 4823958983639212904}
   - component: {fileID: 7965907071420559661}
   - component: {fileID: 6838834559582719840}
+  - component: {fileID: 838333504566531163}
   m_Layer: 0
   m_Name: Panel
   m_TagString: Untagged
@@ -442,8 +426,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.031, g: 0.047, b: 0.071, a: 1}
+  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
+  m_Color: {r: 0.2509804, g: 0.2, b: 0.17254902, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -500,6 +484,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ContentSizeFitter
   m_HorizontalFit: 2
   m_VerticalFit: 0
+--- !u!114 &838333504566531163
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6284561734117784104}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 16
 --- !u!1 &8691040139089270215
 GameObject:
   m_ObjectHideFlags: 0
