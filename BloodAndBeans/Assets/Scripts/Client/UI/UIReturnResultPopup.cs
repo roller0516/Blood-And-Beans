@@ -1,3 +1,4 @@
+using DG.Tweening;
 using TMPro;
 using UnityEngine;
 
@@ -20,6 +21,11 @@ public sealed class UIReturnResultPopup : UIPopup
     [SerializeField] TMP_Text titleText;
     [SerializeField] TMP_Text lineText;
     [SerializeField] TMP_Text detailText;
+    [SerializeField] CanvasGroup group;
+
+    /// 토스트가 나타나고 사라지는 데 걸리는 시간. 머무는 시간은 `MatchFlow`가 정한다.
+    [Header("토스트")]
+    [SerializeField] float fadeSeconds = 0.3f;
 
     /// 결과에 따라 갈리는 색. 세 갈래가 한 자리를 돌려 쓰므로 프리팹이 아니라 여기 있다.
     [Header("색")]
@@ -27,9 +33,32 @@ public sealed class UIReturnResultPopup : UIPopup
     [SerializeField] Color warning = new(0.95f, 0.76f, 0.33f);
     [SerializeField] Color failure = new(0.93f, 0.35f, 0.28f);
 
-    /// 전환은 10초뿐이고 그동안 플레이어가 할 일이 없다. 창을 띄운 채 두면 정보가
-    /// 남아 있는 편이 낫고, 닫는 것은 `MatchFlow`가 낮이 시작될 때 한다.
+    /// 토스트다. 조작도 커서도 가져가지 않고, 닫는 것은 `MatchFlow`가 시간이 되면 한다.
     public override bool BlocksPlayerInput => false;
+    public override bool WantsCursor => false;
+
+    Tween fade;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        if (group == null) CDebug.LogError($"{name}: {nameof(group)}가 비어 있다.", this);
+    }
+
+    /// `lifetime` 동안 떠 있다가 끝에 맞춰 사라진다. `MatchFlow`가 같은 시간에 창을 내린다.
+    public void PlayToast(float lifetime)
+    {
+        fade?.Kill();
+        group.alpha = 0f;
+        var hold = Mathf.Max(0f, lifetime - fadeSeconds * 2f);
+        fade = DOTween.Sequence()
+            .Append(DOTween.To(() => group.alpha, a => group.alpha = a, 1f, fadeSeconds))
+            .AppendInterval(hold)
+            .Append(DOTween.To(() => group.alpha, a => group.alpha = a, 0f, fadeSeconds))
+            .SetUpdate(true);
+    }
+
+    public override void OnHide() => fade?.Kill();
 
     /// 결과를 그린다. `n%`는 `ReturnZone`이 들고 있는 실제 설정값에서 온다 — 문구에
     /// 50을 박아 두면 인스펙터에서 비율을 바꿨을 때 화면만 거짓말을 한다.

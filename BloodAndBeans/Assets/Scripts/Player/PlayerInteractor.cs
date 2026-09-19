@@ -96,18 +96,8 @@ public class PlayerInteractor : NetworkBehaviour
     public static bool CanUseFacility(FacilityKind kind, CarryView held, int dirtyStock = 0)
     {
         if (kind == FacilityKind.Sink && held.Empty) return dirtyStock > 0;
-        if (!held.HasDish) return false;
-        if (kind == FacilityKind.Sink) return held.Dirty || held.IsProduct || held.Ingredient != Ingredient.None;
-        if (held.Dirty) return true; // 「세척 필요」는 예외 안내다.
-        if (held.IsProduct) return false;
-        return kind switch
-        {
-            FacilityKind.Beans => !held.DishIsPlate && held.Ingredient == Ingredient.None,
-            FacilityKind.Bread => held.DishIsPlate && held.Ingredient == Ingredient.None,
-            FacilityKind.Coffee => !held.DishIsPlate && (held.Ingredient == Ingredient.Bean || held.Ingredient == Ingredient.BloodBean),
-            FacilityKind.Oven => held.DishIsPlate && held.Ingredient == Ingredient.BreadBase,
-            _ => false,
-        };
+        if (held.HasDish && held.Dirty) return true; // 「세척 필요」는 예외 안내다.
+        return SharedFacility.Accepts(kind, held);
     }
     IInteractable Nearest()
     {

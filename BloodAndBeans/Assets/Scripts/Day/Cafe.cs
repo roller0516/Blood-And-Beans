@@ -40,18 +40,6 @@ public class Cafe : NetworkBehaviour
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
 
-    /// 설치된 설비 업그레이드의 비트마스크 (기획서 8장).
-    ///
-    /// 권위는 서버 원장(`TeamLedger.Upgrades`)이고 이 값은 그 사본이다. 카페는 자기 팀
-    /// 클라이언트에만 복제되므로(`SpawnWithObservers = false`) 이 값도 팀 밖으로 새지
-    /// 않는다 — 기획서 3.1이 설비를 비공개로 둔 것과 맞는다.
-    readonly NetworkVariable<int> upgrades = new();
-
-    /// 설비들이 자기 효과를 켜고 끄는 신호. 서버·클라이언트 양쪽에서 오른다.
-    public event System.Action UpgradesChanged;
-
-    public int UpgradeMask => upgrades.Value;
-
     readonly NetworkList<int> buffDays = new();
     public int BuffRemaining(TeamBuff buff) => (int)buff >= 0 && (int)buff < buffDays.Count ? buffDays[(int)buff] : 0;
     public bool HasBuff(TeamBuff buff) => BuffRemaining(buff) > 0;
@@ -88,9 +76,6 @@ public class Cafe : NetworkBehaviour
         Dishes?.ApplyBuffServer(HasBuff(TeamBuff.Dishes));
     }
 
-    // 기획서 v5.0 8장: 구 설비 자동화는 폐지되었다.
-    public bool HasUpgrade(UpgradeId id) => false;
-
     /// 이 팀의 복귀 구역. 밤이 끝난 뒤 자기 귀환 결과를 읽는 통로다 (`MatchFlow`).
     ///
     /// 더 이상 자식이 아니다 — 귀환 지점은 숲 모서리에 서고 카페는 숲 바깥에 선다
@@ -101,10 +86,6 @@ public class Cafe : NetworkBehaviour
     /// 비공개지만 *매출은 공개*다). 카페는 상대 팀에 복제되지 않으므로, 매출판을 카페에
     /// 매달면 남의 매출을 볼 방법이 영영 없다 — 순위표가 자기 팀만 보이고 나머지는 0이 된다.
     public Scoreboard Board => director != null ? director.Board : null;
-
-    /// 이 카페의 게이지 캐시. 모든 카페의 게이지를 한꺼번에 담던 static 리스트를 대체한다.
-    /// 그 리스트 때문에 한 팀이 다른 팀의 오븐을 멈출 수 있었다 (아키텍처_v1.0.md §1.2).
-    public CompletionGauge[] Gauges { get; private set; } = new CompletionGauge[0];
 
     MatchDirector director;
 
@@ -120,7 +101,6 @@ public class Cafe : NetworkBehaviour
         Dishes = GetComponentInChildren<Dish>(true);
         Queue = GetComponentInChildren<CustomerQueue>(true);
         Stock = GetComponentInChildren<TeamStock>(true);
-        Gauges = GetComponentsInChildren<CompletionGauge>(true);
     }
 
     /// 서버가 Spawn 직전에 부른다. NetworkBehaviour가 준비되기 전 NetworkVariable을 쓰면
@@ -149,36 +129,12 @@ public class Cafe : NetworkBehaviour
             return;
         }
         director.RegisterCafe(this);
-
-        upgrades.OnValueChanged += OnUpgradesChanged;
-
-        // 서버는 원장이 이미 들고 있는 값을 사본에 심는다. 판 도중에 카페가 다시 스폰돼도
-        // 설치한 설비가 사라지지 않는다 — 효과는 그 판 동안 영구다 (기획서 8장).
-        if (IsServer)
-        {
-            var ledger = director.LedgerOf(team.Value);
-            if (ledger != null) upgrades.Value = ledger.Upgrades.ToMask();
-        }
-
-        // 복제값이 이미 도착해 있을 수 있다. 설비들이 첫 상태를 한 번은 받아야 한다.
-        UpgradesChanged?.Invoke();
     }
 
     public override void OnNetworkDespawn()
     {
-        upgrades.OnValueChanged -= OnUpgradesChanged;
         if (director != null) director.UnregisterCafe(this);
     }
-
-    void OnUpgradesChanged(int _, int __) => UpgradesChanged?.Invoke();
-
-    /// 전환 페이즈에 카드를 눌렀다 (기획서 8장: "전환 페이즈에서 클릭 한 번으로 적용").
-    ///
-    /// `SendTo.Server`는 아무 클라이언트나 부를 수 있으므로 본문에서 발신자의 팀을
-    /// 검증한다 (AGENTS.md 「Netcode에서 쓰지 말아야 할 방식」). 이 검사가 없으면 남의
-    /// 카페에 설비를 설치하고 그 팀의 업그레이드 재료를 대신 태울 수 있다.
-    [Rpc(SendTo.Server)]
-    public void InstallUpgradeRpc(int upgrade, RpcParams p = default) { }
 
     /// 모든 설비는 자기 카페 밑에 붙어 있으므로, 소유 판정은 부모를 거슬러 올라가면 끝난다.
     public static Cafe Of(Component c) => c == null ? null : c.GetComponentInParent<Cafe>();

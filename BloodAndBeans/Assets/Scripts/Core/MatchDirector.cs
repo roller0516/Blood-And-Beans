@@ -45,6 +45,12 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 맵의 원점. 숲과 카페 구역이 모두 여기를 기준으로 놓인다.
     [SerializeField] Vector3 cafeOrigin = Vector3.zero;
 
+    /// 공용 광장 루트. 조리 머신과 게이지가 여기 있다 (기획서 5.4.1).
+    [SerializeField] Transform plaza;
+
+    /// 광장 게이지 캐시. 어느 팀 것인지는 점유로 정해지므로 조회하는 쪽이 팀을 거른다.
+    public CompletionGauge[] PlazaGauges { get; private set; } = new CompletionGauge[0];
+
     /// 밤 숲의 크기. 씬의 `Ground`와 같아야 팀이 지형 위에 선다.
     [SerializeField] Vector2 forestSize = new(60f, 60f);
 
@@ -169,6 +175,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         if (Instance != this) return;
 
         phase = GetComponent<GamePhase>();
+        if (plaza != null) PlazaGauges = plaza.GetComponentsInChildren<CompletionGauge>(true);
+        else CDebug.LogError($"{name}: 광장이 연결되지 않았다. 공용 머신을 쓸 수 없다.", this);
         Board = GetComponent<Scoreboard>();
         if (Board == null)
             Debug.LogError($"{name}: {nameof(Scoreboard)}가 같은 오브젝트에 없다. "

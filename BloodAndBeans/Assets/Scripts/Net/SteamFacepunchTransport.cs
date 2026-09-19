@@ -12,13 +12,15 @@ using SocketConnection = Steamworks.Data.Connection;
 /// SteamId로 붙는다.
 ///
 /// 출처: multiplayer-community-contributions의 `com.community.netcode.transport.facepunch`
-/// (MIT). 패키지를 그대로 쓰지 않고 프로젝트 소유 복사본으로 둔 이유는 두 가지다.
+/// (MIT). 패키지를 그대로 쓰지 않고 프로젝트 소유 복사본으로 둔 이유는 세 가지다.
 /// 1. 원본은 `Initialize`에서 무조건 `SteamClient.Init`을 부른다. 로비 목록은 접속 전에
 ///    떠야 하므로 `SteamLobby`가 이미 초기화해 둔 상태이고, 그러면 원본은 예외를 던지고
 ///    Console에 오류를 남긴다.
 /// 2. 원본은 `Shutdown`에서 `SteamClient.Shutdown`까지 부른다. 매치를 끝내고 로비로
 ///    돌아오면 스팀 세션이 통째로 죽어 방 목록이 다시 뜨지 않는다.
 /// 스팀 세션의 수명은 `SteamLobby`가 가진다. 이 클래스는 소켓만 연다.
+///
+/// 3. 원본은 `GetCurrentRtt`가 0이고 Nagle을 켠 채 보낸다. 아래 두 메서드 주석 참고.
 ///
 /// 수신 복사는 원본의 `unsafe`+`UnsafeUtility.MemCpy` 대신 `Marshal.Copy`를 쓴다.
 /// 같은 일을 하면서 어셈블리에 unsafe 허용을 켜지 않아도 된다.
@@ -127,14 +129,26 @@ public class SteamFacepunchTransport : NetworkTransport, IConnectionManager, ISo
         connections.Remove(clientId);
     }
 
-    /// SDR은 왕복 시간을 이 API로 내주지 않는다. 원본도 0을 돌려준다.
-    public override ulong GetCurrentRtt(ulong clientId) => 0;
+    /// 스팀이 재는 왕복 시간(ms). NGO는 이 값으로 LocalTime을 반 RTT 앞당기고, 소유자 예측은
+    /// 그 앞섬을 전제로 같은 틱끼리 비교한다(PlayerPrediction). 원본처럼 0을 주면 이동 중
+    /// 왕복 지연 거리만큼 헛교정이 나 캐릭터가 튄다.
+    public override ulong GetCurrentRtt(ulong clientId)
+    {
+        if (clientId == ServerClientId)
+            return connectionManager != null ? (ulong)Math.Max(0, connectionManager.Connection.QuickStatus().Ping) : 0;
 
+        return connections.TryGetValue(clientId, out var connection)
+            ? (ulong)Math.Max(0, connection.QuickStatus().Ping)
+            : 0;
+    }
+
+    /// NGO가 프레임마다 직접 묶어 보내므로 스팀 Nagle 타이머는 지연만 더한다. 기본값은
+    /// 신뢰·비신뢰 모두 Nagle이 켜져 있어 NoNagle을 붙인다.
     static SendType ToSendType(NetworkDelivery delivery) => delivery switch
     {
-        NetworkDelivery.Unreliable => SendType.Unreliable,
-        NetworkDelivery.UnreliableSequenced => SendType.Unreliable,
-        _ => SendType.Reliable
+        NetworkDelivery.Unreliable => SendType.Unreliable | SendType.NoNagle,
+        NetworkDelivery.UnreliableSequenced => SendType.Unreliable | SendType.NoNagle,
+        _ => SendType.Reliable | SendType.NoNagle
     };
 
     void Deliver(ulong clientId, IntPtr data, int size)

@@ -34,8 +34,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -28}
-  m_SizeDelta: {x: 420, y: 52}
+  m_AnchoredPosition: {x: 0, y: -10}
+  m_SizeDelta: {x: 420, y: 44}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &6803546756960908031
 CanvasRenderer:
@@ -171,7 +171,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 4}
+  m_AnchoredPosition: {x: 0, y: -4}
   m_SizeDelta: {x: 420, y: 36}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &7387331224992868094
@@ -308,7 +308,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 0}
-  m_AnchoredPosition: {x: 0, y: 34}
+  m_AnchoredPosition: {x: 0, y: 16}
   m_SizeDelta: {x: 420, y: 28}
   m_Pivot: {x: 0.5, y: 0}
 --- !u!222 &5930440197816248180
@@ -447,11 +447,11 @@ RectTransform:
   - {fileID: 7114548234250046910}
   m_Father: {fileID: 5710215835230909254}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 460, y: 240}
-  m_Pivot: {x: 0.5, y: 0.5}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: -120}
+  m_SizeDelta: {x: 460, y: 150}
+  m_Pivot: {x: 0.5, y: 1}
 --- !u!222 &7280721251635937919
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -517,6 +517,7 @@ GameObject:
   - component: {fileID: 8539939194827778137}
   - component: {fileID: 3712952612479374101}
   - component: {fileID: 3725738940665393398}
+  - component: {fileID: 860700852616253945}
   m_Layer: 0
   m_Name: UIReturnResultPopup
   m_TagString: Untagged
@@ -623,6 +624,8 @@ MonoBehaviour:
   titleText: {fileID: 6624201992217215306}
   lineText: {fileID: 4349488898335956874}
   detailText: {fileID: 6165811731639721131}
+  group: {fileID: 860700852616253945}
+  fadeSeconds: 0.3
   success: {r: 0.55, g: 0.85, b: 0.52, a: 1}
   warning: {r: 0.95, g: 0.76, b: 0.33, a: 1}
   failure: {r: 0.93, g: 0.35, b: 0.28, a: 1}
@@ -638,3 +641,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9165e7f639b7ab94791e717ffb7e9061, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::UIFontScale
+--- !u!225 &860700852616253945
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8369124894398526540}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 0
+  m_BlocksRaycasts: 0
+  m_IgnoreParentGroups: 0

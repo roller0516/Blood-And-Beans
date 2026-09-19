@@ -157,8 +157,8 @@ public class DayV5RuntimeTests
             enemyRack.TakeRpc();
             Assert.IsTrue(carry.Empty, "다른 팀 식기를 가져갈 수 없다");
 
-            var first = cafe.Gauges[0];
-            var second = cafe.Gauges[1];
+            var first = director.PlazaGauges[0];
+            var second = director.PlazaGauges[1];
             first.BeginServer();
             yield return null;
             second.BeginServer();

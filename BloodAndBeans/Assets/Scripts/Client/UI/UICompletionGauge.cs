@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-/// 자기 팀이 점유한 광장 설비마다 완성 게이지를 표시한다 (기획서 5.2·5.4.1).
+/// HUD 오버레이에서 로컬 플레이어가 다루는 광장 설비의 완성 게이지를 표시한다 (기획서 5.2·5.4.1).
 public sealed class UICompletionGauge : MonoBehaviour
 {
     [SerializeField] Canvas canvas;
@@ -11,31 +11,14 @@ public sealed class UICompletionGauge : MonoBehaviour
     [SerializeField] RectTransform needle;
     [SerializeField] TMP_Text label;
     [SerializeField] UnityEngine.UI.Image progress;
-    [SerializeField] Vector3 offset = new(0f, 2.8f, 0f);
-    CompletionGauge gauge;
-    Cafe cafe;
-    Camera cameraView;
     int lastTenths = -1;
     bool lastTarget;
-    void Awake()
-    {
-        gauge = GetComponentInParent<CompletionGauge>();
-        cafe = Cafe.Of(this);
-        canvas.enabled = false;
-    }
+    void Awake() => canvas.enabled = false;
     void LateUpdate()
     {
-        var manager = Unity.Netcode.NetworkManager.Singleton;
-        var visible = manager != null && gauge != null && gauge.IsSpawned && gauge.Station != null &&
-            (gauge.Active || gauge.Station.State == StationState.Cooking) &&
-            (gauge.Station.OperatorId == manager.LocalClientId || CompletionGauge.LocalTarget() == gauge) && cafe != null &&
-            cafe.TeamId == PlayerTeam.Local() && cafe.Director != null && cafe.Director.Phase.Current == Phase.Day;
-        canvas.enabled = visible;
-        if (!visible) return;
-        if (cameraView == null) cameraView = Camera.main;
-        var player = manager != null && manager.LocalClient != null ? manager.LocalClient.PlayerObject : null;
-        transform.position = (player != null ? Vector3.Lerp(player.transform.position, gauge.Station.FacilityPosition, 0.5f) : gauge.Station.FacilityPosition) + offset;
-        if (cameraView != null) transform.forward = cameraView.transform.forward;
+        var gauge = Pick();
+        canvas.enabled = gauge != null;
+        if (gauge == null) return;
         var cooking = gauge.Station.State == StationState.Cooking;
         good.gameObject.SetActive(!cooking);
         perfect.gameObject.SetActive(!cooking);
@@ -55,6 +38,20 @@ public sealed class UICompletionGauge : MonoBehaviour
         if (tenths == lastTenths && target == lastTarget) return;
         lastTenths = tenths; lastTarget = target;
         label.text = $"{(target ? "F · " : "대기 · ")}{tenths * 0.1f:0.0}초";
+    }
+    /// 내가 조작 중인 설비(굽는 중 포함)가 먼저, 없으면 F가 멈출 게이지다. 후보는 캐시된 광장 게이지뿐이다.
+    static CompletionGauge Pick()
+    {
+        var director = MatchDirector.Instance;
+        var manager = Unity.Netcode.NetworkManager.Singleton;
+        var team = PlayerTeam.Local();
+        if (director == null || manager == null || team < 0) return null;
+        foreach (var g in director.PlazaGauges)
+            if (g != null && g.IsSpawned && g.Station != null && g.TeamId == team && g.IsDay &&
+                g.Station.OperatorId == manager.LocalClientId &&
+                (g.Active || g.Station.State == StationState.Cooking))
+                return g;
+        return CompletionGauge.LocalTarget();
     }
     static void SetWidth(RectTransform target, float width)
     {

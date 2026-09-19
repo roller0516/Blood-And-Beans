@@ -28,11 +28,10 @@ public class CompletionGauge : NetworkBehaviour
     public System.Action<Judgement> OnResult;
 
     // 기획서 5.2: 로컬 입력은 점유자 기준이며 팀원 보조는 서버가 거리로 검증한다.
-    Cafe cafe;
+    // 광장 머신이라 카페가 고정돼 있지 않다. 점유한 팀의 카페를 그때그때 푼다 (5.4.1).
+    Cafe cafe => station != null ? station.Cafe : null;
 
-    /// 조립 루트는 전역이 아니라 소속 카페에서 받는다. 설비마다 따로 찾으면 카페별로
-    /// 다른 답이 나올 여지가 생긴다 (아키텍처_v1.0.md §1.4).
-    MatchDirector Director => cafe != null ? cafe.Director : null;
+    MatchDirector Director => MatchDirector.Instance;
 
     public bool Active => active.Value;
     public Station Station => station;
@@ -61,20 +60,14 @@ public class CompletionGauge : NetworkBehaviour
         windowNow.Value = window;
     }
 
-    /// 팀 번호가 아니라 소유 카페를 들고 있는다. MatchDirector는 자기 Awake에서 팀 번호를
-    /// 배정하는데 두 Awake 사이의 순서에 기대면 안 된다. 부모를 거슬러 올라가는 방식은
-    /// 누가 먼저 실행되든 동작한다.
-    void Awake()
-    {
-        cafe = Cafe.Of(this);
-        station = GetComponent<Station>();
-    }
+    void Awake() => station = GetComponent<Station>();
 
     /// 같은 GameObject의 설비. 「얼음 장인」이 지금 굽고 있는 것이 찬 메뉴인지 물어본다.
     Station station;
 
-    int TeamId => cafe != null ? cafe.TeamId : -1;
-    bool IsDay => Director != null && Director.Phase.Current == Phase.Day;
+    /// 점유한 팀. 비어 있으면 -1이다. 화면은 이 값으로 자기 팀 게이지만 그린다.
+    public int TeamId => station != null ? station.Team : -1;
+    public bool IsDay => Director != null && Director.Phase.Current == Phase.Day;
 
     void Update()
     {
@@ -84,29 +77,26 @@ public class CompletionGauge : NetworkBehaviour
 
     /// 다음 F가 멈출 게이지. 없으면 null.
     ///
-    /// 후보는 로컬 팀 카페가 캐시해 둔 목록뿐이다 (`Cafe.Gauges`). HUD가 매 프레임 부르므로
-    /// 예전의 `FindObjectsByType` 전역 탐색은 여기 있을 수 없다 (AGENTS.md 참조와 결합도).
+    /// 후보는 광장 게이지 캐시(`MatchDirector.PlazaGauges`) 중 내 팀이 점유한 것뿐이다.
+    /// HUD가 매 프레임 부르므로 전역 탐색은 여기 있을 수 없다 (AGENTS.md 참조와 결합도).
     public static CompletionGauge LocalTarget()
     {
         var director = MatchDirector.Instance;
         var team = PlayerTeam.Local();
         if (director == null || team < 0) return null;
 
-        var cafe = director.CafeOf(team);
-        if (cafe == null) return null;
-
         var manager = NetworkManager.Singleton;
         if (manager == null) return null;
-        foreach (var g in cafe.Gauges)
-            if (g != null && g.IsDay && g.station != null && g.station.OperatorId == manager.LocalClientId)
+        foreach (var g in director.PlazaGauges)
+            if (g != null && g.TeamId == team && g.IsDay && g.station != null && g.station.OperatorId == manager.LocalClientId)
                 return g.Active ? g : null;
         var player = manager.LocalClient?.PlayerObject;
         if (player == null) return null;
         CompletionGauge nearest = null;
         var distance = float.MaxValue;
-        foreach (var g in cafe.Gauges)
+        foreach (var g in director.PlazaGauges)
         {
-            if (g == null || !g.Active || !g.IsDay || g.station == null) continue;
+            if (g == null || g.TeamId != team || !g.Active || !g.IsDay || g.station == null) continue;
             var candidate = Vector3.Distance(player.transform.position, g.station.FacilityPosition);
             if (candidate > g.assistReach || candidate >= distance) continue;
             nearest = g;

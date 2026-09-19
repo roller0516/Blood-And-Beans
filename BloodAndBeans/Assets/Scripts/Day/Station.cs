@@ -3,33 +3,39 @@ using UnityEngine;
 
 public enum StationState { Idle, Cooking, Gauge, Product }
 
-/// 팀 전용 조리 상태. 공개된 설비의 점유는 SharedFacility가 소유한다 (5.4.1).
-[RequireComponent(typeof(CompletionGauge))]
+/// 광장 머신의 조리 상태. 이용 팀은 같은 오브젝트의 SharedFacility 점유가 정한다 (5.4.1).
+/// 상태는 모두에게 복제되고, 게이지는 화면에서만 점유 팀에게 보인다.
+[RequireComponent(typeof(CompletionGauge), typeof(SharedFacility))]
 public class Station : NetworkBehaviour, IItemHolder
 {
     readonly NetworkVariable<bool> disabled = new();
     readonly NetworkVariable<StationState> state = new();
     readonly NetworkVariable<double> doneAt = new();
     readonly NetworkVariable<Ingredient> ingredient = new(Ingredient.None);
-    readonly NetworkVariable<Vector3> facilityPosition = new();
     readonly NetworkVariable<ulong> operatorId = new(ulong.MaxValue);
     readonly NetworkVariable<float> cookDuration = new();
+    SharedFacility host;
     SharedFacility facility;
     PlayerCarry operatorCarry;
     CompletionGauge gauge;
-    Cafe cafe;
     HeldItem input;
     public bool Disabled => disabled.Value;
     public StationState State => state.Value;
     public ulong OperatorId => operatorId.Value;
     public float CookProgress => cookDuration.Value > 0f ? Mathf.Clamp01(1f - CookRemaining / cookDuration.Value) : 0f;
-    public Vector3 FacilityPosition => facilityPosition.Value;
+    public Vector3 FacilityPosition => transform.position;
+
+    /// 지금 이 머신을 점유한 팀의 카페. 비어 있으면 null이다. 클라이언트에서는 자기 팀 카페만 풀린다.
+    public Cafe Cafe => Team >= 0 && MatchDirector.Instance != null ? MatchDirector.Instance.CafeOf(Team) : null;
+
+    /// 점유한 팀. 비어 있으면 -1이다. 복제되는 값이라 상대 팀 화면에서도 읽힌다.
+    public int Team => host != null ? host.OccupyingTeam : -1;
     public float CookRemaining => NetworkManager == null ? 0f : Mathf.Max(0f, (float)(doneAt.Value - NetworkManager.ServerTime.Time));
     public event System.Action ContentsChanged;
     public int SlotCount => 1;
     public int HighlightSlot => -1;
     public CarryView SlotAt(int slot) => slot == 0 ? CarryView.Of(ingredient.Value) : CarryView.Nothing;
-    void Awake() { gauge = GetComponent<CompletionGauge>(); cafe = Cafe.Of(this); }
+    void Awake() { gauge = GetComponent<CompletionGauge>(); host = GetComponent<SharedFacility>(); }
     public override void OnNetworkSpawn()
     {
         ingredient.OnValueChanged += OnIngredient;
@@ -43,17 +49,17 @@ public class Station : NetworkBehaviour, IItemHolder
     void OnIngredient(Ingredient _, Ingredient __) => ContentsChanged?.Invoke();
     public void SetDisabledServer(bool value) { if (IsServer) disabled.Value = value; }
 
+    /// 점유 팀은 호출 전에 source에 박혀 있어야 한다. 카페를 거기서 푼다.
     public bool StartPublicServer(SharedFacility source, PlayerCarry carry)
     {
+        var cafe = Cafe;
         if (!IsServer || source == null || !source.IsSpawned || source.Busy || carry == null ||
             !carry.IsSpawned || carry.Reserved || Disabled || state.Value != StationState.Idle ||
             cafe == null || cafe.Director.Phase.Current != Phase.Day || PlayerTeam.Of(carry.OwnerClientId) != cafe.TeamId ||
             !source.Near(carry.OwnerClientId) || carry.Held.IsProduct || !carry.Held.HasDish) return false;
         var item = carry.Held;
-        if (this is Oven ? source.Kind != FacilityKind.Oven || item.Ingredient != Ingredient.BreadBase || !item.DishIsPlate :
-            source.Kind != FacilityKind.Coffee || item.DishIsPlate || (item.Ingredient != Ingredient.Bean && item.Ingredient != Ingredient.BloodBean)) return false;
+        if (source.Kind != (this is Oven ? FacilityKind.Oven : FacilityKind.Coffee) || !SharedFacility.Accepts(source.Kind, CarryView.Of(item))) return false;
         facility = source;
-        facilityPosition.Value = source.transform.position;
         operatorCarry = carry;
         operatorId.Value = carry.OwnerClientId;
         input = item;
@@ -74,6 +80,7 @@ public class Station : NetworkBehaviour, IItemHolder
     void Update()
     {
         if (!IsServer || state.Value == StationState.Idle) return;
+        var cafe = Cafe;
         var day = cafe != null && cafe.Director.Phase.Current == Phase.Day;
         if (!day || operatorCarry == null || !operatorCarry.IsSpawned || facility == null || !facility.IsSpawned)
         { CancelServer(false); return; }
@@ -84,6 +91,7 @@ public class Station : NetworkBehaviour, IItemHolder
     }
     void CancelServer(bool returnInput)
     {
+        var cafe = Cafe;
         if (returnInput && operatorCarry != null && operatorCarry.IsSpawned) operatorCarry.SetServer(input);
         else if (cafe != null && cafe.IsSpawned) cafe.Dishes.SoilServer(input.DishIsPlate);
         gauge.CancelServer();

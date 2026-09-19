@@ -63,13 +63,6 @@ public sealed class MatchFlow : MonoBehaviour
     /// 전환 페이즈에 떠 있는 정산 화면. 전환이 끝나면 매치 HUD로 되돌린다.
     UIDaySettlementScreen settlement;
 
-    /// 정산 위에 겹쳐 뜨는 설비 업그레이드 화면 (기획서 8장). 전환 페이즈에만 존재한다.
-    UIFacilityUpgradeScreen upgrades;
-
-    /// 업그레이드 화면을 이번 전환에서 닫았는가. 「적용」을 눌러 닫은 뒤 같은 전환에서
-    /// 다시 뜨면 정산을 볼 수가 없다.
-    bool upgradesDismissed;
-
     /// HUD·팝업이 재료 아이콘·가방·캐릭터 초상을 꺼낸다.
     const ResourceManager.SpriteTables Sprites = ResourceManager.SpriteTables.All;
 
@@ -200,9 +193,6 @@ public sealed class MatchFlow : MonoBehaviour
         if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;
         if (recipeInteract != null) recipeInteract.started -= OnRecipeActivity;
 
-        var cafe = LocalCafe;
-        if (cafe != null) cafe.UpgradesChanged -= OnUpgradesReplicated;
-
         if (!acquired) return;
         ResourceManager.Instance.ReleaseSprites(Sprites);
 
@@ -305,43 +295,6 @@ public sealed class MatchFlow : MonoBehaviour
         settlement.SetRemaining(phase.Remaining, phase.Duration(Phase.Transition));
     }
 
-    /// 전환 페이즈에 설비 업그레이드 화면을 정산 위로 띄운다 (기획서 4장: 전환은 정산 ·
-    /// 순위 · **업그레이드 적용** · 예보를 함께 처리한다).
-    ///
-    /// 업그레이드 재료가 하나도 없고 설치한 것도 없으면 띄우지 않는다. 10초짜리 구간에서
-    /// 아무것도 할 수 없는 화면이 정산을 덮으면 그 10초가 통째로 사라진다 — 이 재료는
-    /// 3등급 상자에서만 나와서(기획서 8장) 없는 판이 대부분이다.
-    void SyncUpgradeScreen()
-    {
-        var ui = UIManager.Instance;
-        if (ui == null || phase == null || !phase.IsSpawned) return;
-
-        var open = phase.Current == Phase.Transition && !phase.Finished
-                && settlement != null && !upgradesDismissed && HasAnythingToShow;
-
-        if (!open)
-        {
-            if (upgrades != null)
-            {
-                ui.PopScreen();
-                upgrades = null;
-            }
-
-            // 전환을 벗어났다. 다음 전환에서는 다시 뜬다.
-            if (phase.Current != Phase.Transition) upgradesDismissed = false;
-            return;
-        }
-
-        if (upgrades == null)
-        {
-            upgrades = ui.PushScreen<UIFacilityUpgradeScreen>();
-            if (upgrades == null) return;        // 아직 불러오는 중이면 다음 프레임에 다시 연다
-            BindUpgrades();
-        }
-
-        upgrades.SetRemaining(phase.Remaining);
-    }
-
     /// 이 팀의 카페. 자기 팀 것만 복제되므로(`MatchDirector.SpawnCafesServer`) 여기서
     /// 얻는 것은 언제나 내 카페다.
     Cafe LocalCafe
@@ -352,58 +305,6 @@ public sealed class MatchFlow : MonoBehaviour
             return director != null ? director.CafeOf(PlayerTeam.Local()) : null;
         }
     }
-
-    /// 볼 것이 있는가 — 쓸 재료가 있거나 이미 설치한 설비가 있다.
-    bool HasAnythingToShow
-    {
-        get
-        {
-            var cafe = LocalCafe;
-            if (cafe == null) return false;
-            return cafe.UpgradeMask != 0 || AvailableParts > 0;
-        }
-    }
-
-    int AvailableParts
-    {
-        get
-        {
-            var stock = LocalCafe?.Stock;
-            return stock != null ? stock.CountOf(Ingredient.UpgradePart) : 0;
-        }
-    }
-
-    void BindUpgrades()
-    {
-        var cafe = LocalCafe;
-        var mask = cafe != null ? cafe.UpgradeMask : 0;
-
-        var installed = new bool[UpgradeCatalog.All.Length];
-        for (var i = 0; i < installed.Length; i++)
-            installed[i] = TeamUpgrades.AtInMask(mask, i);
-
-        upgrades.Bind(installed, AvailableParts, InstallUpgrade, DismissUpgrades);
-    }
-
-    /// 카드를 눌렀다. 재료 차감과 설치 판정은 전부 서버가 한다 (`Cafe.InstallUpgradeRpc`).
-    /// 여기서는 눌렸다는 사실만 넘기고, 결과가 복제되면 화면을 다시 그린다.
-    void InstallUpgrade(UpgradeId id)
-    {
-        var cafe = LocalCafe;
-        if (cafe == null) return;
-
-        cafe.UpgradesChanged -= OnUpgradesReplicated;
-        cafe.UpgradesChanged += OnUpgradesReplicated;
-        cafe.InstallUpgradeRpc((int)id);
-    }
-
-    void OnUpgradesReplicated()
-    {
-        if (upgrades != null) BindUpgrades();
-    }
-
-    /// 「적용」을 눌러 정산으로 돌아간다. 이번 전환에서는 다시 뜨지 않는다.
-    void DismissUpgrades() => upgradesDismissed = true;
 
     void BindSettlement()
     {
@@ -553,6 +454,7 @@ public sealed class MatchFlow : MonoBehaviour
         }
 
         popup.Bind(zone.Outcome, zone.KeptCount, zone.LostCount, zone.LossPercent);
+        popup.PlayToast(returnPopupSeconds);
         zone.ConsumeResult();
         returnPopupOpen = true;
         returnPopupUntil = Time.unscaledTime + returnPopupSeconds;
