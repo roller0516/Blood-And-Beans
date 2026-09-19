@@ -49,7 +49,7 @@ public sealed class UIIngredientBadge : MonoBehaviour
         if (Time.unscaledTime < refreshAt) return;
         refreshAt = Time.unscaledTime + 0.15f;
         if (ledger == null) ledger = director.GetComponent<TransitionLedger>();
-        var item = shelf != null ? shelf.SlotItem(0) : facility != null && facility.Kind == FacilityKind.Beans ? Ingredient.Bean : Ingredient.BreadBase;
+        var item = shelf != null ? shelf.SlotItem(0) : facility != null ? SharedFacility.Gives(facility.Kind) : Ingredient.BreadBase;
         var count = shelf != null ? shelf.SlotCountAt(0) : -1;
         icon.Render(ResourceManager.Instance.IngredientSprite(item), count < 0 ? "상비" : count.ToString(), count != 0,
             ledger != null && System.Array.IndexOf(ledger.PopularShown, item) >= 0, item == Ingredient.BloodBean);

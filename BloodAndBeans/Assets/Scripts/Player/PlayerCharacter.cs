@@ -280,9 +280,10 @@ public class PlayerCharacter : NetworkBehaviour
     /// 불붙이기 — 내가 조리 중인 설비를 찾는다. 설비를 쓰고 있지 않으면 발동하지 않는다.
     bool IgniteServer()
     {
-        var cafe = CafeServer();
-        if (cafe == null) return false;
-        foreach (var gauge in cafe.Gauges)
+        // 광장 게이지 전부를 본다. 남의 설비는 Station이 조리자 id로 거른다.
+        var director = MatchDirector.Instance;
+        if (director == null) return false;
+        foreach (var gauge in director.PlazaGauges)
             if (gauge != null && gauge.Station != null && gauge.Station.IgniteServer(OwnerClientId)) return true;
         return false;
     }

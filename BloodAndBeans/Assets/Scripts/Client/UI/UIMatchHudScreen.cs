@@ -38,6 +38,11 @@ public sealed class UIMatchHudScreen : UIScreen
     /// ponytail: 표식끼리 앞뒤 정렬은 하지 않는다. 겹쳐 보이는 일이 생기면 카메라 거리로 정렬한다.
     [SerializeField] RectTransform worldMarkers;
 
+    /// 표식 크기는 기준 깊이에서 1배, 멀수록 반비례로 줄고 범위 안에 묶인다.
+    /// ponytail: 기획서에 없는 연출값이다. 플레이해 보며 인스펙터에서 맞춘다.
+    [SerializeField, Min(0.01f)] float markerReferenceDepth = 5f;
+    [SerializeField] Vector2 markerScaleRange = new(0.35f, 1f);
+
     [Header("조합식 — F1로 여닫는 중앙 패널")]
     /// 화면 중앙 패널. HUD 요소에 가리지 않게 `RecipeWrap`이 HUD 맨 위 자식이다.
     [SerializeField] GameObject recipePanel;
@@ -111,6 +116,9 @@ public sealed class UIMatchHudScreen : UIScreen
 
     [Header("오른쪽 위")]
     [SerializeField] TMP_Text teamText;
+
+    /// 낮·밤 헤더와 따로 둔다. 헤더는 페이즈마다 꺼지지만 핑은 늘 보여야 한다.
+    [SerializeField] TMP_Text pingText;
 
     [Header("상호작용 안내")]
     [SerializeField] RectTransform promptBox;
@@ -231,6 +239,10 @@ public sealed class UIMatchHudScreen : UIScreen
         if (!RectTransformUtility.ScreenPointToLocalPointInRectangle(worldMarkers, screenPoint, null, out var local))
             return false;
         if (marker.anchoredPosition != local) marker.anchoredPosition = local;
+
+        // 오버레이는 원근이 없어서 멀리 있는 표식도 같은 픽셀로 그려진다. 깊이로 줄인다.
+        var scale = Mathf.Clamp(markerReferenceDepth / screenPoint.z, markerScaleRange.x, markerScaleRange.y);
+        if (!Mathf.Approximately(marker.localScale.x, scale)) marker.localScale = new Vector3(scale, scale, 1f);
         return true;
     }
 
@@ -276,6 +288,7 @@ public sealed class UIMatchHudScreen : UIScreen
         SetText(phaseText, model.PhaseName);
         SetText(timerText, model.Timer);
         SetText(teamText, model.Team);
+        SetText(pingText, model.Ping);
         SetText(revenueText, model.Revenue);
         SetText(label, model.Details);
 
@@ -448,6 +461,7 @@ public struct MatchHudModel
     public string PhaseName;    // "야간 탐색"
     public string Timer;        // "02:46.021"
     public string Team;         // "Team 0"
+    public string Ping;         // "핑 42ms" / "호스트"
     public string Revenue;      // "팀 매출  2,840G"
     public string Details;      // 예보·순위·접시·손님
     public string Prompt;       // "[F] 상자 열기"

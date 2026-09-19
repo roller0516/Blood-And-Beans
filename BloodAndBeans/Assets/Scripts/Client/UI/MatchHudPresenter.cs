@@ -87,6 +87,12 @@ public sealed class MatchHudPresenter
         model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining);
         model.Team = DisplayNames.Team(team);
 
+        // 호스트는 자기 자신이 서버라 잴 왕복이 없다.
+        var net = phase.NetworkManager;
+        model.Ping = net.IsServer
+            ? "호스트"
+            : $"핑 {net.NetworkConfig.NetworkTransport.GetCurrentRtt(NetworkManager.ServerClientId)}ms";
+
         if (director == null) director = MatchDirector.Instance;
         var cafe = director != null ? director.CafeOf(team) : null;
 

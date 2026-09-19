@@ -49,7 +49,8 @@ public static class DayV5Setup
             foreach (var station in cafe.GetComponentsInChildren<Station>(true)) Hide(station.gameObject);
             foreach (var sink in cafe.GetComponentsInChildren<Sink>(true)) Hide(sink.gameObject);
             var shelves = cafe.GetComponentsInChildren<IngredientShelf>(true);
-            var shelf = shelves.First(x => x.name == "Shelf");
+            // 「Shelf」는 폐기된 그리드 선반이다 (기획서 14장 #35). 없으면 이미 만들어진 칸을 템플릿으로 쓴다.
+            var shelf = shelves.FirstOrDefault(x => x.name == "Shelf") ?? shelves.First();
             var ingredients = new[] { Ingredient.Milk, Ingredient.Cream, Ingredient.Chocolate, Ingredient.Almond,
                 Ingredient.Berry, Ingredient.Ice, Ingredient.BloodBean };
             for (var i = 0; i < ingredients.Length; i++)

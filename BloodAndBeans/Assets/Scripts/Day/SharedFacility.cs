@@ -3,7 +3,8 @@ using UnityEngine;
 
 public enum FacilityKind { Coffee, Oven, Sink, Beans, Bread }
 
-/// 광장은 점유 여부만 공개한다. 조리·게이지는 이용 팀 카페의 비공개 Station이 소유한다.
+/// 광장 설비. 커피 머신·오븐은 같은 오브젝트의 Station이 조리·게이지를 맡는다 (5.4.1).
+/// 점유 팀이 곧 그 Station의 이용 팀이다. 게이지는 화면에서만 점유 팀에게 보인다.
 public sealed class SharedFacility : NetworkBehaviour, IInteractable
 {
     [SerializeField] FacilityKind kind;
@@ -18,6 +19,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     PlayerCarry washing;
     double completesAt;
     Collider surface;
+    Station station;                             // 커피 머신·오븐에만 있다
     MatchDirector director;
     public FacilityKind Kind => kind;
     public bool Busy => busy.Value;
@@ -29,6 +31,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     void Awake()
     {
         surface = GetComponent<Collider>();
+        station = GetComponent<Station>();
         // 카페에서 복사한 모델의 팀 전용 레이어를 공용 설비 레이어로 맞춘다 (5.4.1).
         foreach (var child in GetComponentsInChildren<Transform>(true)) child.gameObject.layer = gameObject.layer;
     }
@@ -60,41 +63,70 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         var cafe = director.CafeOf(PlayerTeam.Of(id));
         var carry = PlayerCarry.Of(id);
         if (cafe == null || carry == null || carry.Reserved) return;
-        if (kind == FacilityKind.Beans || kind == FacilityKind.Bread)
+        switch (kind)
         {
-            var plate = kind == FacilityKind.Bread;
-            if (!carry.Held.HasDish || carry.Held.IsProduct || carry.Held.Dirty || carry.Held.Ingredient != Ingredient.None || carry.Held.DishIsPlate != plate) return;
-            carry.SetServer(HeldItem.Of(kind == FacilityKind.Beans ? Ingredient.Bean : Ingredient.BreadBase));
-            carry.SetDishServer(true, kind == FacilityKind.Bread);
-            return;
+            case FacilityKind.Beans:
+            case FacilityKind.Bread: GiveIngredientServer(carry); break;
+            case FacilityKind.Sink: StartWashServer(id, cafe, carry); break;
+            default: StartCookServer(id, cafe, carry); break;
         }
-        if (kind == FacilityKind.Sink)
+    }
+
+    /// 손에 든 것으로 이 설비를 쓸 수 있는지 (기획서 5.7.4). 프롬프트와 서버가 같이 부른다.
+    public static bool Accepts(FacilityKind kind, CarryView held)
+    {
+        if (!held.HasDish) return false;
+        if (kind == FacilityKind.Sink) return held.Dirty || held.IsProduct || held.Ingredient != Ingredient.None;
+        if (held.Dirty || held.IsProduct) return false;
+        return kind switch
         {
-            if (carry.Held.HasDish && !carry.Held.Dirty && (carry.Held.IsProduct || carry.Held.Ingredient != Ingredient.None))
-                carry.SetServer(HeldItem.Dish(carry.Held.DishIsPlate, true));
-            if (carry.Empty && cafe.Dishes.TakeDirtyServer(out var dirtyPlate))
-                carry.SetServer(HeldItem.Dish(dirtyPlate, true));
-            if (!carry.Held.Dirty) return;
-            occupyingTeam.Value = cafe.TeamId;
-            busy.Value = true;
-            user = id;
-            washing = carry;
-            carry.ReserveServer(true);
-            var scale = cafe.HasBuff(TeamBuff.Wash) ? DayBalance.BuffSpeed : 1f;
-            completesAt = NetworkManager.ServerTime.Time + DayBalance.WashSeconds *
-                (1f - Mathf.Clamp01(carry.Held.WashProgress)) / scale;
-            return;
-        }
-        foreach (var gauge in cafe.Gauges)
+            FacilityKind.Beans => !held.DishIsPlate && held.Ingredient == Ingredient.None,
+            FacilityKind.Bread => held.DishIsPlate && held.Ingredient == Ingredient.None,
+            FacilityKind.Coffee => !held.DishIsPlate && (held.Ingredient == Ingredient.Bean || held.Ingredient == Ingredient.BloodBean),
+            FacilityKind.Oven => held.DishIsPlate && held.Ingredient == Ingredient.BreadBase,
+            _ => false,
+        };
+    }
+
+    /// 원두함·빵함이 내주는 재료.
+    public static Ingredient Gives(FacilityKind kind) => kind == FacilityKind.Beans ? Ingredient.Bean : Ingredient.BreadBase;
+
+    void GiveIngredientServer(PlayerCarry carry)
+    {
+        if (!IsServer || !Accepts(kind, CarryView.Of(carry.Held))) return;
+        carry.SetServer(HeldItem.Of(Gives(kind)));
+        carry.SetDishServer(true, kind == FacilityKind.Bread);
+    }
+
+    void StartWashServer(ulong id, Cafe cafe, PlayerCarry carry)
+    {
+        if (!IsServer) return;
+        var view = CarryView.Of(carry.Held);
+        if (view.Empty)
         {
-            var station = gauge.Station;
-            if (station == null || (kind == FacilityKind.Oven) != (station is Oven)) continue;
-            if (!station.StartPublicServer(this, carry)) continue;
-            occupyingTeam.Value = cafe.TeamId;
-            busy.Value = true;
-            user = id;
-            return;
+            if (!cafe.Dishes.TakeDirtyServer(out var dirtyPlate)) return;
+            carry.SetServer(HeldItem.Dish(dirtyPlate, true));
         }
+        else if (!Accepts(FacilityKind.Sink, view)) return;
+        else if (!view.Dirty) carry.SetServer(HeldItem.Dish(view.DishIsPlate, true)); // 내용물은 버리고 더러운 그릇만 남긴다.
+        occupyingTeam.Value = cafe.TeamId;
+        busy.Value = true;
+        user = id;
+        washing = carry;
+        carry.ReserveServer(true);
+        var scale = cafe.HasBuff(TeamBuff.Wash) ? DayBalance.BuffSpeed : 1f;
+        completesAt = NetworkManager.ServerTime.Time + DayBalance.WashSeconds *
+            (1f - Mathf.Clamp01(carry.Held.WashProgress)) / scale;
+    }
+
+    void StartCookServer(ulong id, Cafe cafe, PlayerCarry carry)
+    {
+        if (!IsServer || station == null) return;
+        // Station은 점유 팀으로 카페를 푼다. 시작 전에 박고, 거절되면 되돌린다.
+        occupyingTeam.Value = cafe.TeamId;
+        if (!station.StartPublicServer(this, carry)) { occupyingTeam.Value = -1; return; }
+        busy.Value = true;
+        user = id;
     }
     [Rpc(SendTo.Server)]
     void EndRpc(RpcParams p = default)
