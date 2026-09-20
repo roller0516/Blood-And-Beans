@@ -120,6 +120,7 @@ public sealed class UIBoxLootPopup : UIPopup
 
     public override void OnHide()
     {
+        base.OnHide();
         for (var i = 0; i < slots.Length; i++)
             if (slots[i] != null) slots[i].HideTooltip();
         for (var i = 0; i < grown.Count; i++)
@@ -323,7 +324,7 @@ public sealed class UIBoxLootPopup : UIPopup
 
                 // 꼬리는 머리가 도착한 뒤에도 잠깐 남아 사라진다. 같이 지우면 자취가
                 // 뚝 끊겨서 날아간 길이 안 읽힌다.
-                FadeTo(streak, 0f, trailFadeSeconds)
+                streak.DOFade(0f, trailFadeSeconds)
                     .SetUpdate(true)
                     .OnComplete(() => Destroy(streak.gameObject));
             })
@@ -365,15 +366,6 @@ public sealed class UIBoxLootPopup : UIPopup
             Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
         rect.sizeDelta = new Vector2(length, trailThickness);
     }
-
-
-    /// 알파만 트윈한다. `Image.DOFade`는 DOTween의 UI 모듈에 있는데, 그 모듈이
-    /// `Assets/Plugins/Demigiant/DOTween/Modules/`에 asmdef 없이 놓여 Assembly-CSharp로
-    /// 들어간다. asmdef인 BB.Client는 그걸 참조할 수 없다 — 코어 DLL의 `DOTween.To`로 푼다.
-    static Tween FadeTo(Graphic target, float alpha, float seconds) =>
-        DOTween.To(() => target.color.a,
-                   a => { var c = target.color; c.a = a; target.color = c; },
-                   alpha, seconds);
 
     static void Set(TMP_Text target, string value)
     {

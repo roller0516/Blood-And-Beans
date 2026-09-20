@@ -5,25 +5,11 @@
 /// 그 표를 읽는 쪽이 규칙이기 때문이다.
 public static class DisplayNames
 {
-    // 기획서 7.1 재료 표. 열거자 순서와 같아야 한다.
-    static readonly string[] IngredientNames =
-    {
-        "우유", "크림", "초콜렛", "아몬드", "베리", "얼음",
-        "블러드 빈", "업그레이드 재료", "원두", "빵 베이스",
-    };
-
-    // 기획서 5.5 손님 종족 표. `Race` 열거자 순서와 같아야 한다.
-    static readonly string[] RaceNames =
-    {
-        "좀비", "뱀파이어", "유령", "해골", "늑대인간", "마녀",
-    };
-
-    // 기획서 7.2 메뉴 표. `MenuId` 열거자 순서와 같아야 한다.
-    static readonly string[] MenuNames =
-    {
-        "핫 아메리카노", "아이스 아메리카노", "카페라떼", "아인슈페너", "카페모카", "아이스라떼",
-        "초코 브라우니", "아몬드 쿠키", "크림 케이크", "베리 타르트", "아이스모카",
-    };
+    // 표는 전부 `BalanceData`에 있다 — 재료 7.1 · 종족 5.5 · 메뉴 7.2.
+    // 각 표의 순서는 대응하는 열거자 순서와 같아야 한다.
+    static string[] IngredientNames => Balance.Current.IngredientNames;
+    static string[] RaceNames => Balance.Current.RaceNames;
+    static string[] MenuNames => Balance.Current.MenuNames;
 
     public static string Of(MenuId menu)
     {
@@ -33,8 +19,7 @@ public static class DisplayNames
 
     public static string Of(Ingredient item)
     {
-        var buff = TeamBuffs.IndexOf(item);
-        if (buff >= 0) return TeamBuffs.Names[buff] + " 보석";
+        if (Gems.TryOf(item, out var gem)) return Gems.NameOf(gem) + " 보석";
         var i = (int)item;
         return i >= 0 && i < IngredientNames.Length ? IngredientNames[i] : "—";
     }

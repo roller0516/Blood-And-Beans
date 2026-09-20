@@ -11,18 +11,18 @@ public enum BeanGrade { Normal, Blood }
 /// 상태가 없고 UnityEngine에 의존하지 않아 SalePriceSelfCheck가 어디서든 돌릴 수 있다.
 public static class SalePrice
 {
-    public const float PopularBonus = 0.30f;
+    public static float PopularBonus => Balance.Current.PopularBonus;
 
     // 기획서 1.4 · 7.2: 블러드 빈을 쓰면 커피 판매가 ×3.
-    public const float BloodBeanMultiplier = 3f;
+    public static float BloodBeanMultiplier => Balance.Current.BloodBeanMultiplier;
 
-    public static float GaugeMultiplier(Gauge g) => g switch
+    /// 배수 표의 순서는 `Gauge` 열거자와 같다 (기획서 5.2, 탄 것 ×0.2 포함).
+    public static float GaugeMultiplier(Gauge g)
     {
-        Gauge.Perfect => 1.3f,
-        Gauge.Good => 1.0f,
-        Gauge.Miss => 0.7f,
-        _ => 0.2f,   // 기획서 5.2: 탐 ×0.2
-    };
+        var table = Balance.Current.GaugeMultiplier;
+        var i = (int)g;
+        return table[i < 0 ? 0 : i >= table.Length ? table.Length - 1 : i];
+    }
 
     /// 메뉴에 인기 재료가 몇 개 들어 있는지 센다. 메뉴는 재료 집합이라 중복이
     /// 없으므로 단순 순회로 충분하다.

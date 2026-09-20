@@ -40,17 +40,6 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         Ingredient.Almond, Ingredient.Berry, Ingredient.Ice,
     };
 
-    /// 3등급 박스에만 들어가는 중심부 보상 (기획서 6.3: 업그레이드 재료·블러드 빈).
-    /// 이것이 없으면 숲 중앙까지 들어갈 이유가 없고, `BeanGrade.Blood` 가격 분기도
-    /// 영영 도달하지 않는다.
-    [SerializeField] Ingredient[] rarePool =
-    {
-        Ingredient.BloodBean, Ingredient.UpgradePart,
-    };
-
-    /// 중심부 보상이 나오기 시작하는 등급.
-    [SerializeField] int rareFromTier = 3;
-
     /// 서버 전용 내용물. 팀 간 선착순이라 모두가 같은 목록을 판다.
     readonly List<LootStack> stacks = new();
 
@@ -465,7 +454,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     public float RequiredSecondsFor(int team)
     {
         var ledger = director != null ? director.LedgerOf(team) : null;
-        return NightBalance.BoxOpenSeconds * (ledger != null ? ledger.BoxOpenScale : 1f);
+        return NightBalance.BoxOpenSeconds * (ledger != null ? ledger.BoxOpenTimeScale : 1f);
     }
 
     /// 쏟아진 그대로를 담아 더미를 만든다. 종류가 넘치면 상자를 쪼개는 것은 호출자의
@@ -491,34 +480,13 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         LootSlots.SlotRangeFor(tier, out var minTypes, out var maxTypes);
         var types = Random.Range(minTypes, maxTypes + 1);
 
-        // 3등급이면 중심부 보상을 먼저 몇 칸 채우고 나머지를 흔한 재료로 메운다.
-        // 몇 칸인가는 일차가 정한다 (기획서 10장: 후반으로 갈수록 희귀 재료·업그레이드
-        // 재료·블러드 빈의 비중이 오른다). 표는 `RegenTable`에 있다.
+        // 보석과 블러드 빈은 각각 한 칸에 1개다. 3등급은 보석 확정, 2등급은 일차 확률 (기획서 6.5.2).
         var day = director != null ? director.Phase.Day : 1;
-        var rare = tier >= rareFromTier
-            ? Mathf.Clamp(RegenTable.RareSlots(day), 0, types)
-            : 0;
-
-        var beforeRare = stacks.Count;
-        // v5.0 8.1: 보석 종류는 버프에 고정 대응하며 3등급에서만 추첨한다.
-        var gems = new Ingredient[TeamBuffs.Materials.Length + 1];
-        gems[0] = Ingredient.BloodBean;
-        System.Array.Copy(TeamBuffs.Materials, 0, gems, 1, TeamBuffs.Materials.Length);
-        DrawInto(gems, rare);
-        var rareAdded = stacks.Count - beforeRare;
-
-        // `rarePool`은 지금 2종류(블러드 빈·업그레이드 재료)뿐이라 `DrawInto`는 종류가
-        // 겹치지 않게 뽑는 특성상 요청한 칸 수(5~7일차는 3)를 다 못 채운다 — 5~7일차와
-        // 3~4일차가 파밍 결과에서 구분되지 않는다(기획서 10장: 후반일수록 비중 상승).
-        // 남는 몫은 이미 뽑은 칸의 *수량*으로 옮긴다. `rarePool`이 늘어나면 이 보정은
-        // 저절로 줄어든다 — 종류 확장 자체는 재료 데이터가 하는 일이다.
-        var shortfall = rare - rareAdded;
-        for (var i = 0; i < shortfall && rareAdded > 0; i++)
-        {
-            var lane = beforeRare + i % rareAdded;
-            var s = stacks[lane];
-            stacks[lane] = new LootStack(s.Item, s.Count + Random.Range(stackSize.x, stackSize.y + 1));
-        }
+        if (Gems.DropsGem(tier, day, Random.value))
+            // ponytail: 기획서가 6종 사이 비율을 정하지 않아 균등으로 뽑는다. DT_DayGrade가 생기면 옮긴다.
+            stacks.Add(new LootStack(Gems.ItemOf(Gems.All[Random.Range(0, Gems.All.Length)]), 1));
+        if (stacks.Count < types && Gems.DropsBloodBean(tier, day, Random.value))
+            stacks.Add(new LootStack(Ingredient.BloodBean, 1));
 
         // 흔한 재료도 그날 리젠 풀 안에서만 뽑는다. 상자에 심어 둔 풀은 "이 자리에서
         // 무엇이 나올 수 있는가"고, 리젠 표는 "오늘 숲이 무엇을 내놓는가"다 — 교집합이
@@ -561,21 +529,6 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
                     if (roll < 0) break;
                 }
             }
-            stacks.Add(new LootStack(remaining[pick], Random.Range(stackSize.x, stackSize.y + 1)));
-            remaining.RemoveAt(pick);
-        }
-    }
-
-    /// 풀에서 서로 다른 종류를 `count`칸만큼 뽑는다. 같은 종류가 두 칸이 되면 안 된다 —
-    /// 칸 제한이 개수가 아니라 종류 기준이기 때문이다 (`LootSlots.MaxTypes`).
-    void DrawInto(Ingredient[] pool, int count)
-    {
-        if (pool == null || count <= 0) return;
-
-        var remaining = new List<Ingredient>(pool);
-        for (var i = 0; i < count && remaining.Count > 0; i++)
-        {
-            var pick = Random.Range(0, remaining.Count);
             stacks.Add(new LootStack(remaining[pick], Random.Range(stackSize.x, stackSize.y + 1)));
             remaining.RemoveAt(pick);
         }

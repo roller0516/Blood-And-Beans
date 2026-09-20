@@ -124,9 +124,9 @@ public class CharacterCheatGroup : DevConsoleGroup
         {
             var index = i;
 
-            // 낮 효과를 함께 적는다. 이름만으로는 「강심장」과 「잰걸음」이 둘 다 이동속도
-            // 패시브라는 것이 보이지 않는다.
-            var label = $"{all[i].DayName} — {all[i].DayEffect}";
+            // 캐릭터 이름이 먼저다. 스킬명만으로는 어느 캐릭터를 거는지 알 수 없다.
+            // 낮 효과까지 붙이는 것은 「활공」과 「지름길」이 둘 다 이동 스킬이기 때문이다.
+            var label = $"{all[i].Name} — {all[i].DayName} / {all[i].NightName} — {all[i].DayEffect}";
 
             menu.AddItem(new GUIContent(label), pc.Index == index,
                          () => Apply(clientId, index));
@@ -159,6 +159,6 @@ public class CharacterCheatGroup : DevConsoleGroup
 
         var def = pc.Def;
         var night = NightSkills.Exists(def.Night) ? def.NightName : "밤 없음";
-        return $"#{clientId} · {teamText} · {def.DayName} / {night}  ▾";
+        return $"#{clientId} · {teamText} · {def.Name} · {def.DayName} / {night}  ▾";
     }
 }

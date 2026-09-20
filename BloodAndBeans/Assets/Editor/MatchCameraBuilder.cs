@@ -19,7 +19,7 @@ using UnityEngine.InputSystem;
 /// 다시 돌린다. 몇 번을 돌려도 카메라는 두 대뿐이다.
 public static class MatchCameraBuilder
 {
-    const string MenuPath = "Tools/Blood & Beans/매치 카메라 세우기";
+    const string MenuPath = "Blood & Beans/매치 카메라 세우기";
     const string TppCameraName = "TppCamera";
     const string TppPivotName = "CameraPivot";
 

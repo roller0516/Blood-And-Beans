@@ -7,6 +7,7 @@
     --bg: #191919;
     --surface: #232323;
     --surface-alt: #2c2c2c;
+    --panel: #1e1e1e;
     --divider: #333333;
 
     --text: #e4e4e4;
@@ -35,14 +36,14 @@
 
 .brand {
     color: #ffffff;
-    font-size: 11px;
+    font-size: 20px;
     -unity-font-style: bold;
     letter-spacing: 2px;
 }
 
 .pill {
     color: #ffffff;
-    font-size: 10px;
+    font-size: 15px;
     -unity-font-style: bold;
     letter-spacing: 1px;
     padding: 2px 8px;
@@ -58,7 +59,7 @@
     flex-direction: row;
     align-items: stretch;
     background-color: var(--surface-alt);
-    min-height: 26px;
+    min-height: 30px;
 }
 
 .tabstrip {
@@ -71,10 +72,10 @@
 }
 
 .tab {
-    height: 26px;
+    height: 35px;
     padding: 0 14px;
     margin: 0;
-    font-size: 11px;
+    font-size: 20px;
     color: var(--muted);
     background-color: transparent;
     border-width: 0;
@@ -96,11 +97,11 @@
    기본을 보임으로 두면 레이아웃이 아직 안 돈 첫 프레임에 화살표가 잠깐 떴다 사라진다. */
 .arrow {
     display: none;
-    width: 22px;
-    height: 26px;
+    width: 26px;
+    height: 30px;
     margin: 0;
     padding: 0;
-    font-size: 14px;
+    font-size: 15px;
     color: var(--text);
     background-color: var(--divider);
     border-width: 0;
@@ -118,17 +119,27 @@
 
 /* ── 묶음 ────────────────────────────── */
 .group {
-    margin-bottom: 10px;
-    padding-bottom: 6px;
-    border-bottom-width: 1px;
-    border-bottom-color: rgba(255, 255, 255, 0.07);
+    margin-bottom: 8px;
+    padding: 8px 10px 10px 10px;
+    background-color: var(--panel);
+    border-width: 1px;
+    border-color: var(--divider);
 }
 
-.group__title {
-    color: var(--muted);
-    font-size: 10px;
+/* 제목 줄 = Foldout의 토글. 기본 여백과 들여쓰기를 걷어내 카드 폭을 그대로 쓴다. */
+.group .unity-foldout__toggle {
+    margin: 0;
+}
+
+.group .unity-foldout__text {
+    color: var(--text);
+    font-size: 20px;
     -unity-font-style: bold;
-    margin-bottom: 2px;
+}
+
+.group .unity-foldout__content {
+    margin-left: 0;
+    margin-top: 2px;
 }
 
 /* ── 행 ─────────────────────────────────────────── */
@@ -140,17 +151,17 @@
     padding-bottom: 3px;
 }
 
-.row__label { color: var(--muted); font-size: 11px; }
-.row__value { color: var(--text); font-size: 11px; }
+.row__label { color: var(--muted); font-size: 15px; }
+.row__value { color: var(--text); font-size: 15px; }
 
 /* 숫자 입력 칸. 라벨과 같은 줄에 붙되 폭은 고정한다 — 창을 좁혀도 라벨을 밀지 않는다. */
 .row__field {
-    width: 64px;
+    width: 76px;
     margin-right: 0;
     margin-left: 0;
 }
 
-.row__field .unity-base-field__input { font-size: 11px; }
+.row__field .unity-base-field__input { font-size: 15px; }
 
 .buttons {
     flex-direction: row;
@@ -162,10 +173,10 @@
 .btn {
     flex-grow: 1;
     flex-basis: 0;   /* 글자 길이와 무관하게 줄 안에서 같은 폭으로 나눈다 */
-    height: 26px;
+    height: 30px;
     margin-right: 1px;
     padding: 0 8px;
-    font-size: 11px;
+    font-size: 15px;
     color: var(--text);
     background-color: var(--surface-alt);
     border-width: 0;
@@ -196,7 +207,7 @@
     -unity-font-style: bold;
 }
 
-.phase__time { color: var(--muted); font-size: 11px; }
+.phase__time { color: var(--muted); font-size: 15px; }
 
 /* 납작한 막대. 높이만 있고 라운드는 없다. */
 .track {
@@ -213,7 +224,7 @@
 /* ── 안내문 ─────────────────────────────────────── */
 .hint {
     color: var(--muted);
-    font-size: 11px;
+    font-size: 15px;
     white-space: normal;
     padding: 24px 16px;
     -unity-text-align: middle-center;
@@ -221,7 +232,7 @@
 
 .warn {
     color: #c9a227;
-    font-size: 10px;
+    font-size: 15px;
     white-space: normal;
     margin-top: 8px;
 }

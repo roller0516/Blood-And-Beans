@@ -18,7 +18,7 @@ using UnityEngine;
 /// `ItemVisualConfig`의 프리팹 칸만 갈아 끼우면 되고 이 도구는 다시 돌리지 않아도 된다.
 public static class ItemVisualBuilder
 {
-    const string MenuPath = "Tools/Blood & Beans/아이템 표시 세우기";
+    const string MenuPath = "Blood & Beans/아이템 표시 세우기";
 
     const string ItemFolder = "Assets/Prefabs/Items";
     const string MaterialFolder = "Assets/Art/Materials/Items";

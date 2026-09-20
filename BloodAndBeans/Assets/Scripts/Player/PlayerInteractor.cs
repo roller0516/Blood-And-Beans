@@ -25,6 +25,11 @@ public class PlayerInteractor : NetworkBehaviour
     /// 잡고 있는지 아는 유일한 지점이라 루팅 창을 여닫는 쪽이 여기를 읽는다.
     public IInteractable Current => current;
 
+    /// 지금 F가 닿는 대상. **프롬프트가 가리키는 것과 같은 것**이고, 테두리(`TargetOutline`)도
+    /// 여기를 읽는다 — 안내와 테두리가 서로 다른 설비를 가리키면 둘 다 못 믿게 된다.
+    /// `Prompt`와 같은 판정을 한 번 더 도는 것이라 손에 든 것으로 막힌 설비는 여기도 안 잡힌다.
+    public IInteractable Target => Nearest();
+
     /// 마지막으로 F를 누른 대상. `Current`와 달리 F를 놓아도 남는다 — 재료 칸의 그리드
     /// 창은 누르고 있는 동안이 아니라 닫을 때까지 떠 있다 (기획서 6.5.4). 창을 여는 쪽이
     /// 거리를 다시 확인하므로, 여기 남아 있다는 것만으로 창이 뜨지는 않는다.

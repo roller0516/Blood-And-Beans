@@ -18,11 +18,10 @@ public class TeamLedgerTests
         var ledger = new TeamLedger();
         Assert.AreEqual(0, ledger.Rent.Debt);
         Assert.AreEqual(RentPenalty.None, ledger.Penalty);
-        Assert.AreEqual(1f, ledger.CraftSpeedScale, 0.0001f);
-        Assert.IsFalse(ledger.MachineDown);
-        Assert.IsFalse(ledger.BreaksDish);
+        Assert.AreEqual(1f, ledger.CraftTimeScale, 0.0001f);
+        Assert.AreEqual(1f, ledger.MoveSpeedScale, 0.0001f);
         Assert.AreEqual(1f, ledger.VisionScale, 0.0001f);
-        Assert.AreEqual(1f, ledger.BoxOpenScale, 0.0001f);
+        Assert.AreEqual(1f, ledger.BoxOpenTimeScale, 0.0001f);
         Assert.IsFalse(ledger.WeightBandShifted);
     }
 
@@ -32,36 +31,56 @@ public class TeamLedgerTests
         var ledger = AtStreak(1);
         Assert.AreEqual(RentPenalty.Tier1, ledger.Penalty);
 
-        // 낮: 제작 속도 10% 감소 = 조리 시간 1.1배.
-        Assert.AreEqual(0.9f, 1f / ledger.CraftSpeedScale, 0.0001f);
-        Assert.IsFalse(ledger.MachineDown, "머신 불통은 2회부터다");
-        Assert.IsFalse(ledger.BreaksDish, "그릇 파손은 3회부터다");
+        // 낮: 제작 속도 -10% = 조리 시간 1/0.9배. 이동은 2회부터다 (기획서 3.3).
+        Assert.AreEqual(0.9f, 1f / ledger.CraftTimeScale, 0.0001f);
+        Assert.AreEqual(1f, ledger.MoveSpeedScale, 0.0001f);
 
-        // 밤: 시야만 줄고 개봉 속도와 무게는 아직 멀쩡하다.
-        Assert.Less(ledger.VisionScale, 1f);
-        Assert.AreEqual(1f, ledger.BoxOpenScale, 0.0001f);
+        // 밤: 시야 -15%만 걸리고 개봉 속도와 무게는 아직 멀쩡하다.
+        Assert.AreEqual(0.85f, ledger.VisionScale, 0.0001f);
+        Assert.AreEqual(1f, ledger.BoxOpenTimeScale, 0.0001f);
         Assert.IsFalse(ledger.WeightBandShifted);
     }
 
     [Test]
-    public void SecondMissAddsAMachineAndSlowerOpening()
+    public void SecondMissAddsMovementAndSlowerOpening()
     {
+        // 기획서 3.3 2회 연속: 제작 -15% + 이동 -10% / 시야 -25% + 개봉 -20%.
         var ledger = AtStreak(2);
         Assert.AreEqual(RentPenalty.Tier2, ledger.Penalty);
-        Assert.IsTrue(ledger.MachineDown);
-        Assert.IsFalse(ledger.BreaksDish);
-        Assert.Greater(ledger.BoxOpenScale, 1f, "개봉이 느려져야 한다");
+        Assert.AreEqual(0.85f, 1f / ledger.CraftTimeScale, 0.0001f);
+        Assert.AreEqual(0.9f, ledger.MoveSpeedScale, 0.0001f);
+        Assert.AreEqual(0.75f, ledger.VisionScale, 0.0001f);
+        Assert.AreEqual(0.8f, 1f / ledger.BoxOpenTimeScale, 0.0001f);
         Assert.IsFalse(ledger.WeightBandShifted);
     }
 
     [Test]
-    public void ThirdMissAddsADishAndAWeightBand()
+    public void ThirdMissHitsEveryAxisAndTheWeightBand()
     {
+        // 기획서 3.3 3회 연속: 제작 -20% + 이동 -20% / 시야 -35% + 개봉 -30% + 무게 한 단계.
         var ledger = AtStreak(3);
         Assert.AreEqual(RentPenalty.Tier3, ledger.Penalty);
-        Assert.IsTrue(ledger.MachineDown, "3단계는 2단계를 포함한다");
-        Assert.IsTrue(ledger.BreaksDish);
+        Assert.AreEqual(0.8f, 1f / ledger.CraftTimeScale, 0.0001f);
+        Assert.AreEqual(0.8f, ledger.MoveSpeedScale, 0.0001f);
+        Assert.AreEqual(0.65f, ledger.VisionScale, 0.0001f);
+        Assert.AreEqual(0.7f, 1f / ledger.BoxOpenTimeScale, 0.0001f);
         Assert.IsTrue(ledger.WeightBandShifted);
+    }
+
+    [Test]
+    public void NoPenaltyEverReachesZeroOrGoesNegative()
+    {
+        // 페널티는 마찰이지 정지가 아니다. 어느 축도 0 이하로 내려가지 않는다.
+        var ledger = AtStreak(9);   // 4회 이상은 3회와 같다 (기획서 3.2)
+        Assert.AreEqual(RentPenalty.Tier3, ledger.Penalty);
+        foreach (var scale in new[] { ledger.MoveSpeedScale, ledger.VisionScale,
+                                      1f / ledger.CraftTimeScale, 1f / ledger.BoxOpenTimeScale })
+        {
+            Assert.GreaterOrEqual(scale, TeamLedger.MinScale);
+            Assert.Greater(scale, 0f);
+        }
+        Assert.Greater(ledger.CraftTimeScale, 0f);
+        Assert.Greater(ledger.BoxOpenTimeScale, 0f);
     }
 
     [Test]
@@ -89,13 +108,13 @@ public class TeamLedgerTests
         ledger.Rent.Settle(3, 10000);
         ledger.ApplySettledPenalty();
         Assert.AreEqual(RentPenalty.None, ledger.Penalty, "다음 날 임대료를 내면 해제된다");
-        Assert.IsFalse(ledger.MachineDown);
+        Assert.AreEqual(1f, ledger.MoveSpeedScale, 0.0001f);
     }
 
     [Test]
     public void ThePenaltyOnlyMovesAtSettlement()
     {
-        // 낮 도중에 페널티가 바뀌면 머신이 갑자기 살아나거나 죽는다. 정산 때만 움직인다.
+        // 낮 도중에 페널티가 바뀌면 발밑에서 속도가 달라진다. 정산 때만 움직인다.
         var ledger = new TeamLedger();
         ledger.Rent.Settle(1, 0);
         Assert.AreEqual(RentPenalty.None, ledger.Penalty, "아직 적용 전");
@@ -107,12 +126,12 @@ public class TeamLedgerTests
     [Test]
     public void LedgersAreIndependent()
     {
-        // 한 팀의 빚이 다른 팀의 그릇을 깨던 결함이 이 격리로 닫힌다.
+        // 한 팀의 빚이 다른 팀을 벌하던 결함이 이 격리로 닫힌다.
         var a = AtStreak(3);
         var b = new TeamLedger();
 
-        Assert.IsTrue(a.BreaksDish);
-        Assert.IsFalse(b.BreaksDish);
+        Assert.AreEqual(0.8f, a.MoveSpeedScale, 0.0001f);
+        Assert.AreEqual(1f, b.MoveSpeedScale, 0.0001f);
         Assert.AreEqual(0, b.Rent.Debt);
     }
 }

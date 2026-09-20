@@ -1,0 +1,59 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dd971981e14b21549b854e8891e91884, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Rules::CommonDataTable
+  PenaltyMinScale: 0.1
+  NightSeconds: 120
+  DaySeconds: 120
+  TransitionSeconds: 10
+  TotalDays: 7
+  OverloadRatio: 0.8
+  ShakeRatio: 1
+  DashBlockRatio: 0.7
+  BagCapacity: 10
+  BoxOpenSeconds: 1.5
+  BagRetrieveSeconds: 1.5
+  BagBurnSeconds: 3
+  DashSpillShare: 0.3
+  CoffeeSeconds: 2
+  OvenSeconds: 4
+  WashSeconds: 3
+  Machines: 3
+  Sinks: 3
+  FirstEntrySeconds: 2
+  PerfectPatienceRecovery: 0.15
+  PatienceWarning: 0.5
+  PatienceUrgent: 0.2
+  GemTurns: 3
+  PopularCountEarly: 2
+  PopularCountLate: 3
+  PopularCountLateFromDay: 3
+  ForecastPoolShare: 0.7
+  AmericanoCapDivisor: 5
+  PopularBonus: 0.3
+  BloodBeanMultiplier: 3
+  LootMaxTypes: 5
+  CoreRatio: 0.25
+  MidRatio: 0.55
+  MinBoxes: 12
+  MaxBoxes: 16
+  GlideSeconds: 3
+  ShortcutSeconds: 2.5
+  SwallowProgress: 0.7
+  GlideSpeed: 1.4
+  IgniteCut: 0.4
+  OverheatSeconds: 3
+  EchoRadius: 20
+  AppraiseRadius: 8
+  TrackRadius: 18
+  TrackRevealSeconds: 6

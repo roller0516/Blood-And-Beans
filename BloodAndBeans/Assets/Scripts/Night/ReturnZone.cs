@@ -191,7 +191,7 @@ public class ReturnZone : NetworkBehaviour
                 stock.DepositServer(haul[i]);
             }
         }
-        Cafe?.ApplyHarvestBuffsServer();
+        Cafe?.ApplyHarvestGemsServer();
     }
 
     void ReportServer(ulong clientId, ReturnOutcome outcome, int kept, int lost) =>

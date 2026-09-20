@@ -1,0 +1,104 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b6b4fbccf00f323498ce86dec1d7a71a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Rules::EconomyDataTable
+  rent:
+  - Day: 1
+    Due: 50
+  - Day: 2
+    Due: 80
+  - Day: 3
+    Due: 120
+  - Day: 4
+    Due: 180
+  - Day: 5
+    Due: 260
+  - Day: 6
+    Due: 360
+  - Day: 7
+    Due: 480
+  penalty:
+  - Tier: 0
+    CraftLoss: 0
+    MoveLoss: 0
+    VisionLoss: 0
+    OpenLoss: 0
+  - Tier: 1
+    CraftLoss: 0.1
+    MoveLoss: 0
+    VisionLoss: 0.15
+    OpenLoss: 0
+  - Tier: 2
+    CraftLoss: 0.15
+    MoveLoss: 0.1
+    VisionLoss: 0.25
+    OpenLoss: 0.2
+  - Tier: 3
+    CraftLoss: 0.2
+    MoveLoss: 0.2
+    VisionLoss: 0.35
+    OpenLoss: 0.3
+  menus:
+  - Menu: 0
+    BasePrice: 5
+    Parts: Bean
+    Name: "\uD56B \uC544\uBA54\uB9AC\uCE74\uB178"
+  - Menu: 1
+    BasePrice: 10
+    Parts: Bean|Ice
+    Name: "\uC544\uC774\uC2A4 \uC544\uBA54\uB9AC\uCE74\uB178"
+  - Menu: 2
+    BasePrice: 11
+    Parts: Bean|Milk
+    Name: "\uCE74\uD398\uB77C\uB5BC"
+  - Menu: 3
+    BasePrice: 16
+    Parts: Bean|Cream
+    Name: "\uC544\uC778\uC288\uD398\uB108"
+  - Menu: 4
+    BasePrice: 28
+    Parts: Bean|Milk|Chocolate
+    Name: "\uCE74\uD398\uBAA8\uCE74"
+  - Menu: 5
+    BasePrice: 24
+    Parts: Bean|Milk|Ice
+    Name: "\uC544\uC774\uC2A4\uB77C\uB5BC"
+  - Menu: 10
+    BasePrice: 38
+    Parts: Bean|Milk|Chocolate|Ice
+    Name: "\uC544\uC774\uC2A4\uBAA8\uCE74"
+  - Menu: 6
+    BasePrice: 19
+    Parts: BreadBase|Chocolate
+    Name: "\uCD08\uCF54 \uBE0C\uB77C\uC6B0\uB2C8"
+  - Menu: 7
+    BasePrice: 17
+    Parts: BreadBase|Almond
+    Name: "\uC544\uBAAC\uB4DC \uCFE0\uD0A4"
+  - Menu: 8
+    BasePrice: 21
+    Parts: BreadBase|Cream
+    Name: "\uD06C\uB9BC \uCF00\uC774\uD06C"
+  - Menu: 9
+    BasePrice: 23
+    Parts: BreadBase|Berry
+    Name: "\uBCA0\uB9AC \uD0C0\uB974\uD2B8"
+  gauges:
+  - Gauge: 0
+    Multiplier: 1.3
+  - Gauge: 1
+    Multiplier: 1
+  - Gauge: 2
+    Multiplier: 0.7
+  - Gauge: 3
+    Multiplier: 0.2

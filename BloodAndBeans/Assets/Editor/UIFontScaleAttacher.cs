@@ -11,7 +11,7 @@ using UnityEngine;
 /// 여러 번 돌려도 안전하다 — 이미 붙어 있으면 건너뛴다.
 public static class UIFontScaleAttacher
 {
-    const string MenuPath = "Tools/Blood & Beans/화면 프리팹에 글자 배율 붙이기";
+    const string MenuPath = "Blood & Beans/화면 프리팹에 글자 배율 붙이기";
 
     /// 화면 프리팹이 모여 있는 곳. 여기 있는 프리팹은 전부 화면이나 팝업이다.
     const string ScreenPrefabFolder = "Assets/Prefabs/UI";

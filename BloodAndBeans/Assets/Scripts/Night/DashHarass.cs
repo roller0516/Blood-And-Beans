@@ -2,8 +2,13 @@
 using Unity.Netcode;
 using UnityEngine;
 
-/// 대시 밀치기 (기획서 6.6). 스킬이 아니라 밤에 존재하는 유일한 공격 행동이다.
-/// 소유자는 요청만 한다. 돌진 이동, 대상 선정, 결과 판정은 전부 서버가 한다.
+/// 대시 밀치기 (기획서 6.6 · 11장 조작표). **캐릭터 픽과 무관하게 전원이 갖는 공통 스킬이다.**
+/// 그래서 능력 10종과 달리 프리팹에 붙는다 — 아무도 남의 것을 달고 다니지 않는다.
+///
+/// **발동 경로는 `PlayerAbilities`의 공통 슬롯(`DashAbility`)에 있다.** 입력·페이즈 게이트·
+/// 쿨타임은 다른 액티브와 같은 자리에서 본다. 여기 남은 것은 한 번으로 끝나지 않는 일 —
+/// 매 틱 돌진과 넉백을 미는 것, 그리고 **맞는 쪽으로서 피격을 받는 것**이다.
+/// 돌진 이동, 대상 선정, 결과 판정은 전부 서버가 한다.
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerMove))]
 public class DashHarass : NetworkBehaviour
@@ -30,13 +35,6 @@ public class DashHarass : NetworkBehaviour
     [SerializeField] float standUpSeconds = 0.25f;   // 경직이 풀리는 시각에 맞춰 일어서는 데 쓰는 시간
 
     const float KnockSeconds = 0.15f;
-
-    double nextDash;                             // 서버 측 값. 절대 클라이언트에서 받지 않는다
-
-    /// 다음 대시가 가능해지는 서버 시각. 소유자만 읽고 서버만 쓴다 — 남의 쿨다운을 알
-    /// 이유가 없고, 클라이언트가 쓸 수 있으면 쿨다운이 없는 것과 같다.
-    readonly NetworkVariable<double> nextDashAt = new(0d,
-        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
     /// 돌진이 시작됐다. 인자는 돌진이 지속되는 시간이다. 위치와 방향은 싣지 않는다 —
     /// NetworkTransform이 이미 보내고 있고, 두 경로가 어긋나면 잔상이 몸과 따로 논다.
@@ -81,20 +79,8 @@ public class DashHarass : NetworkBehaviour
     public bool BlockedByLoad =>
         inventory != null && inventory.LoadRatio > LoadBands.DashBlockRatio;
 
-    /// 표시 전용. 쿨다운 전체 길이(초). HUD가 남은 시간을 비율로 그리는 데 쓴다.
+    /// 쿨다운 전체 길이(초). 공통 슬롯이 쿨타임을 걸 때 읽고, HUD가 비율을 그릴 때 쓴다.
     public float Cooldown => cooldown;
-
-    /// 표시 전용. 남은 쿨다운(초). 소유자 외에는 0이다 — 복제 권한이 소유자뿐이라
-    /// 남의 화면에서는 애초에 값이 오지 않는다.
-    public float CooldownRemaining
-    {
-        get
-        {
-            if (!IsSpawned) return 0f;
-            var left = nextDashAt.Value - NetworkManager.ServerTime.Time;
-            return left > 0d ? (float)left : 0f;
-        }
-    }
 
     /// PlayerMove보다 뒤에 실행되므로 여기서 위치를 밀면 이번 프레임의 입력이 덮인다.
     /// 돌진과 넉백이 같은 자리에서 위치를 소유한다.
@@ -165,23 +151,18 @@ public class DashHarass : NetworkBehaviour
         return knockdownAngle * (1f - Mathf.InverseLerp(riseStart, stunEnd, now));
     }
 
-    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
-    public void DashRpc(RpcParams p = default)
+    /// 돌진을 시작한다. 공통 슬롯(`DashAbility`)이 서버에서 부른다.
+    ///
+    /// **못 하면 false를 돌려준다** — 라우터가 쿨타임을 태우지 않게 하려는 것이다.
+    /// 페이즈 게이트는 라우터가 이미 봤고, 여기서는 이 몸의 사정만 본다.
+    internal bool TryDashServer()
     {
-        // 이동으로서의 대시는 밤과 낮 모두 된다 (기획서 11장 조작 표: 낮 = "짧은 거리 대시").
-        // 낮에 없어지는 것은 견제 효과뿐이고, 그 판정은 HarassAllowedServer가 따로 본다
-        // (기획서 4장 Night 0, 6.4). 전환은 조작을 받지 않는 정산 구간이라 제외한다.
-        var phase = MatchDirector.Instance?.Phase;
-        if (phase == null || phase.Current == Phase.Transition) return;
-        if (Time.time < stunEnd) return;                         // 경직 중에는 돌진하지 않는다
+        if (!IsServer) return false;
+        if (Time.time < stunEnd) return false;                   // 경직 중에는 돌진하지 않는다
 
         // 가방이 무거우면 대시가 없다. 서버가 판정한다 — 소유자에게 맡기면 무게 제한이
         // 없는 것과 같다.
-        if (BlockedByLoad) return;
-
-        if (NetworkManager.ServerTime.Time < nextDash) return;
-        nextDash = NetworkManager.ServerTime.Time + cooldown;
-        nextDashAt.Value = nextDash;
+        if (BlockedByLoad) return false;
 
         dashDirection = move.FacingServer;
         dashEnd = Time.time + dashSeconds;
@@ -192,6 +173,7 @@ public class DashHarass : NetworkBehaviour
         dashHitResolved = false;
 
         DashStartedRpc(dashSeconds);
+        return true;
     }
 
     // --- 연출 알림. 판정은 위에서 이미 끝났고, 아래는 그리기 위한 통지뿐이다 ---

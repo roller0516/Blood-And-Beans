@@ -21,7 +21,7 @@ public abstract class DevConsoleGroup
     public abstract string Title { get; }
 
     /// 창이 부른다. 제목 붙은 상자를 만들어 <see cref="Build"/>에 넘긴다.
-    public void Attach(VisualElement parent) => Build(MakeGroup(parent, Title));
+    public void Attach(VisualElement parent) => Build(MakeGroup(parent, Title, Tab));
 
     /// 상자 안을 채운다. 만든 요소는 필드에 들고 있다가 <see cref="Refresh"/>에서 갱신한다.
     protected abstract void Build(VisualElement group);
@@ -31,15 +31,12 @@ public abstract class DevConsoleGroup
 
     // ── 조립 도우미 ────────────────────────────────────────────────
 
-    /// 제목 붙은 상자 하나.
-    protected static VisualElement MakeGroup(VisualElement parent, string title)
+    /// 제목 줄을 눌러 접는 상자 하나. 돌려주는 Foldout에 Add하면 내용 칸으로 들어간다.
+    /// viewDataKey가 있어야 접은 상태가 도메인 리로드 뒤에도 남는다 — 탭까지 넣어 키를 겹치지 않게 한다.
+    protected static VisualElement MakeGroup(VisualElement parent, string title, string tab)
     {
-        var group = new VisualElement();
+        var group = new Foldout { text = title, value = true, viewDataKey = $"devconsole/{tab}/{title}" };
         group.AddToClassList("group");
-
-        var label = new Label(title);
-        label.AddToClassList("group__title");
-        group.Add(label);
 
         parent.Add(group);
         return group;

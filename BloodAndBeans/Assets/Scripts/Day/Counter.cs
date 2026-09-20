@@ -22,8 +22,7 @@ public class Counter : NetworkBehaviour, IInteractable, IItemHolder
         if (cafe == null || cafe.Director.Phase.Current != Phase.Day || !Cafe.SameTeamServer(this, id)) return;
         var carry = PlayerCarry.Of(id);
         if (carry == null || carry.Reserved || !carry.Held.IsProduct) return;
-        var distance = reach * (cafe.HasBuff(TeamBuff.Serve) ? DayBalance.BuffSpeed : 1f);
-        if (!Station.WithinReach(surface, transform, carry.transform.position, distance)) return;
+        if (!Station.WithinReach(surface, transform, carry.transform.position, reach)) return;
         if (cafe.Queue != null && cafe.Queue.TryServeServer(carry.Held))
             carry.SetServer(HeldItem.Dish(carry.Held.DishIsPlate, true));
     }

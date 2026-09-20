@@ -8,7 +8,6 @@ public enum StationState { Idle, Cooking, Gauge, Product }
 [RequireComponent(typeof(CompletionGauge), typeof(SharedFacility))]
 public class Station : NetworkBehaviour, IItemHolder
 {
-    readonly NetworkVariable<bool> disabled = new();
     readonly NetworkVariable<StationState> state = new();
     readonly NetworkVariable<double> doneAt = new();
     readonly NetworkVariable<Ingredient> ingredient = new(Ingredient.None);
@@ -19,7 +18,6 @@ public class Station : NetworkBehaviour, IItemHolder
     PlayerCarry operatorCarry;
     CompletionGauge gauge;
     HeldItem input;
-    public bool Disabled => disabled.Value;
     public StationState State => state.Value;
     public ulong OperatorId => operatorId.Value;
     public float CookProgress => cookDuration.Value > 0f ? Mathf.Clamp01(1f - CookRemaining / cookDuration.Value) : 0f;
@@ -47,14 +45,13 @@ public class Station : NetworkBehaviour, IItemHolder
         if (IsServer) { gauge.OnResult -= OnJudged; if (facility != null) CancelServer(false); }
     }
     void OnIngredient(Ingredient _, Ingredient __) => ContentsChanged?.Invoke();
-    public void SetDisabledServer(bool value) { if (IsServer) disabled.Value = value; }
 
     /// 점유 팀은 호출 전에 source에 박혀 있어야 한다. 카페를 거기서 푼다.
     public bool StartPublicServer(SharedFacility source, PlayerCarry carry)
     {
         var cafe = Cafe;
         if (!IsServer || source == null || !source.IsSpawned || source.Busy || carry == null ||
-            !carry.IsSpawned || carry.Reserved || Disabled || state.Value != StationState.Idle ||
+            !carry.IsSpawned || carry.Reserved || state.Value != StationState.Idle ||
             cafe == null || cafe.Director.Phase.Current != Phase.Day || PlayerTeam.Of(carry.OwnerClientId) != cafe.TeamId ||
             !source.Near(carry.OwnerClientId) || carry.Held.IsProduct || !carry.Held.HasDish) return false;
         var item = carry.Held;
@@ -67,8 +64,8 @@ public class Station : NetworkBehaviour, IItemHolder
         carry.ClearServer();
         carry.ReserveServer(true);
         var seconds = this is Oven ? DayBalance.OvenSeconds : DayBalance.CoffeeSeconds;
-        if (cafe.HasBuff(TeamBuff.Cook)) seconds /= DayBalance.BuffSpeed;
-        cookDuration.Value = seconds * cafe.Director.LedgerOf(cafe.TeamId).CraftSpeedScale;
+        if (cafe.HasGem(Gem.Ember)) seconds *= Gems.CookTimeScale;
+        cookDuration.Value = seconds * cafe.Director.LedgerOf(cafe.TeamId).CraftTimeScale;
         doneAt.Value = NetworkManager.ServerTime.Time + cookDuration.Value;
         state.Value = StationState.Cooking;
         return true;
@@ -129,7 +126,9 @@ public class Station : NetworkBehaviour, IItemHolder
         if (operatorCarry == null || !operatorCarry.IsSpawned || facility == null || !facility.Near(operatorCarry.OwnerClientId))
         { CancelServer(operatorCarry != null && operatorCarry.IsSpawned); return; }
         // 「정제」는 점유자의 다음 한 잔을 Perfect로 확정한다 (9.1.2). 탄 것은 한 잔으로 치지 않는다.
-        if (judgement != Judgement.Burnt && PlayerCharacter.Of(operatorCarry.OwnerClientId)?.ConsumeRefineServer() == true)
+        var abilities = PlayerAbilities.Of(operatorCarry.OwnerClientId);
+        if (judgement != Judgement.Burnt && abilities != null &&
+            abilities.Ability<RefineAbility>()?.ConsumeServer(abilities) == true)
             judgement = Judgement.Perfect;
         var recipe = new[] { input.Ingredient };
         operatorCarry.SetServer(new HeldItem { HasDish = true, DishIsPlate = input.DishIsPlate,

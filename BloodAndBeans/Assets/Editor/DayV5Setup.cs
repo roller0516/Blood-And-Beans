@@ -71,7 +71,6 @@ public static class DayV5Setup
         }
         finally { PrefabUtility.UnloadPrefabContents(cafe); }
         SetupPlayer();
-        SetupGemIcons();
         EditorSceneManager.MarkSceneDirty(director.gameObject.scene);
         EditorSceneManager.SaveScene(director.gameObject.scene);
         AssetDatabase.SaveAssets();
@@ -200,29 +199,5 @@ public static class DayV5Setup
             PrefabUtility.SaveAsPrefabAsset(player, PlayerPath);
         }
         finally { PrefabUtility.UnloadPrefabContents(player); }
-    }
-    // 연결은 하지 않는다. 화면은 ResourceManager가 Ingame 아틀라스에서 이름으로 꺼낸다.
-    static void SetupGemIcons()
-    {
-        for (var i = 0; i < TeamBuffs.Materials.Length; i++)
-        {
-            var imagePath = "Assets/Art/UI/Sprites/Ingame/BuffGem_" + (TeamBuff)i + ".png";
-            var texture = new Texture2D(32, 32, TextureFormat.RGBA32, false);
-            var color = Color.HSVToRGB(i / 8f, 0.65f, 1f);
-            for (var y = 0; y < 32; y++)
-                for (var x = 0; x < 32; x++)
-                {
-                    var radius = Mathf.Abs(x - 15.5f) + Mathf.Abs(y - 15.5f);
-                    texture.SetPixel(x, y, radius > 14 ? Color.clear : radius > 11 ? color * 0.65f : color);
-                }
-            texture.Apply();
-            System.IO.File.WriteAllBytes(imagePath, texture.EncodeToPNG());
-            Object.DestroyImmediate(texture);
-            AssetDatabase.ImportAsset(imagePath);
-            var importer = (TextureImporter)AssetImporter.GetAtPath(imagePath);
-            importer.textureType = TextureImporterType.Sprite;
-            importer.spriteImportMode = SpriteImportMode.Single;
-            importer.SaveAndReimport();
-        }
     }
 }

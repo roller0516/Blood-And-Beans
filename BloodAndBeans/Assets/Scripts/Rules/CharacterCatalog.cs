@@ -35,17 +35,25 @@ public enum NightSkill
 /// 밤 액티브의 쿨타임 (기획서 9.2 표).
 public static class NightSkills
 {
-    public static float CooldownOf(NightSkill s) => s switch
+    /// 표의 순서는 `NightSkill` 열거자와 같다 (`BalanceData.NightSkillCooldown`).
+    public static float CooldownOf(NightSkill s)
     {
-        NightSkill.WillOWisp => 18f,
-        NightSkill.Echo => 18f,
-        NightSkill.Appraise => 16f,
-        NightSkill.Track => 14f,
-        NightSkill.Illusion => 20f,
-        _ => 0f,
-    };
+        var table = Balance.Current.NightSkillCooldown;
+        var i = (int)s;
+        return i >= 0 && i < table.Length ? table[i] : 0f;
+    }
 
     public static bool Exists(NightSkill s) => s != NightSkill.None;
+
+    /// 밤 액티브의 판정 반경과 지속 (기획서 9.2). 표는 `BalanceData`에 있고 엑셀에서 온다
+    /// (`CommonDataTable`의 skills 구역).
+    ///
+    /// **`[SerializeField]`로 들지 않는다.** 기획이 정하는 게임 수치라 프리팹에 박으면
+    /// 표와 프리팹 둘이 되고, 표를 고쳐도 게임은 프리팹 값으로 돈다 — 실제로 그랬다.
+    public static float EchoRadius => Balance.Current.EchoRadius;
+    public static float AppraiseRadius => Balance.Current.AppraiseRadius;
+    public static float TrackRadius => Balance.Current.TrackRadius;
+    public static float TrackRevealSeconds => Balance.Current.TrackRevealSeconds;
 }
 
 /// 낮 액티브 (기획서 9.1.2). 낮에만 쓰고 캐릭터당 하나다.
@@ -73,60 +81,34 @@ public enum DaySkill
 public static class DaySkills
 {
     /// 9.1.1 표: 컨셉은 밤 액티브가 정하고 낮 액티브는 그 컨셉을 따라온다.
-    public static DaySkill Of(NightSkill night) => night switch
-    {
-        NightSkill.WillOWisp => DaySkill.Ignite,
-        NightSkill.Echo => DaySkill.Glide,
-        NightSkill.Appraise => DaySkill.Refine,
-        NightSkill.Track => DaySkill.Shortcut,
-        NightSkill.Illusion => DaySkill.Swallow,
-        _ => DaySkill.None,
-    };
+    /// 짝은 `BalanceData.DaySkillOfNight`에 `NightSkill` 순서로 들어 있다.
+    public static DaySkill Of(NightSkill night) =>
+        Pick(Balance.Current.DaySkillOfNight, (int)night, DaySkill.None);
 
-    /// 9.1.3 표.
-    public static float CooldownOf(DaySkill s) => s switch
-    {
-        DaySkill.Shortcut => 14f,
-        DaySkill.Ignite => 15f,
-        DaySkill.Refine => 18f,
-        DaySkill.Glide => 22f,
-        DaySkill.Swallow => 22f,
-        _ => 0f,
-    };
+    /// 9.1.3 표. 순서는 `DaySkill` 열거자와 같다.
+    public static float CooldownOf(DaySkill s) =>
+        Pick(Balance.Current.DaySkillCooldown, (int)s, 0f);
 
     /// 9.1.3 표의 지속.
-    public static readonly float GlideSeconds = 3f;
-    public static readonly float ShortcutSeconds = 2.5f;
+    public static float GlideSeconds => Balance.Current.GlideSeconds;
+    public static float ShortcutSeconds => Balance.Current.ShortcutSeconds;
 
     /// 9.1.2 삼키기: 세척 70% 진행 → 개수대 점유 3초가 0.9초.
-    public static readonly float SwallowProgress = 0.7f;
+    public static float SwallowProgress => Balance.Current.SwallowProgress;
 
-    // ponytail: 9.1.2는 "크게 오른다"뿐이고 폭은 9.1의 +25~40%다. 상한으로 박고 수치가 정해지면 교체한다.
-    public static readonly float GlideSpeed = 1.4f;
+    public static float GlideSpeed => Balance.Current.GlideSpeed;
+    public static float IgniteCut => Balance.Current.IgniteCut;
+    public static float OverheatSeconds => Balance.Current.OverheatSeconds;
 
-    // ponytail: 9.1.2 불붙이기에 수치가 없다. 9.1 폭 상한 40% · 과열 3초로 박고 수치가 정해지면 교체한다.
-    public static readonly float IgniteCut = 0.4f;
-    public static readonly float OverheatSeconds = 3f;
+    /// 표 밖의 값은 기본값으로 떨어뜨린다. 데이터가 짧아도 예외를 던지지 않는다.
+    static T Pick<T>(T[] table, int index, T fallback) =>
+        index >= 0 && index < table.Length ? table[index] : fallback;
 
-    public static string NameOf(DaySkill s) => s switch
-    {
-        DaySkill.Ignite => "불붙이기",
-        DaySkill.Glide => "활공",
-        DaySkill.Refine => "정제",
-        DaySkill.Shortcut => "지름길",
-        DaySkill.Swallow => "삼키기",
-        _ => "없음",
-    };
+    public static string NameOf(DaySkill s) =>
+        Pick(Balance.Current.DaySkillNames, (int)s, "없음");
 
-    public static string EffectOf(DaySkill s) => s switch
-    {
-        DaySkill.Ignite => "쓰고 있는 설비의 남은 조리 시간을 줄인다. 놓은 뒤 설비가 잠깐 달아오른다 (쿨 15초)",
-        DaySkill.Glide => "3초 동안 이동속도가 크게 오른다 (쿨 22초)",
-        DaySkill.Refine => "다음 한 잔의 완성 게이지가 Perfect로 확정된다 (쿨 18초)",
-        DaySkill.Shortcut => "2.5초 동안 다른 캐릭터를 통과한다 (쿨 14초)",
-        DaySkill.Swallow => "들고 있는 더러운 식기의 세척을 70% 진행시킨다 (쿨 22초)",
-        _ => string.Empty,
-    };
+    public static string EffectOf(DaySkill s) =>
+        Pick(Balance.Current.DaySkillEffects, (int)s, string.Empty);
 }
 
 /// 캐릭터 한 종의 정의 (기획서 9장).
@@ -162,14 +144,21 @@ public readonly struct CharacterDef
 /// 캐릭터 5종 (기획서 9.1.1). 배열 인덱스가 곧 픽 번호다.
 public static class CharacterCatalog
 {
-    public static readonly CharacterDef[] All =
+    /// 표는 `BalanceData.Characters`에 있다. 낮 액티브는 밤 액티브에서 유도하므로
+    /// (`CharacterDef` 생성자) 표가 바뀔 때만 다시 만든다.
+    public static CharacterDef[] All => all.Value;
+
+    static readonly Derived<CharacterDef[]> all = new(Build);
+
+    static CharacterDef[] Build(BalanceData data)
     {
-        new("도깨비",   CharacterId.Dokkaebi,  NightSkill.WillOWisp, "도깨비불", "가짜 아이템 박스를 설치한다 (쿨 18초)"),
-        new("박쥐",     CharacterId.Bat,       NightSkill.Echo,      "메아리",   "주변의 안개를 즉시 걷어낸다 (쿨 18초)"),
-        new("연금술사", CharacterId.Alchemist, NightSkill.Appraise,  "감별",     "박스의 가려진 슬롯이 즉시 공개된다 (쿨 16초)"),
-        new("하운드",   CharacterId.Hound,     NightSkill.Track,     "추적",     "주변의 숨겨진 가방을 찾아낸다 (쿨 14초)"),
-        new("미믹",     CharacterId.Mimic,     NightSkill.Illusion,  "환각",     "가짜로 숨겨진 가방을 심는다 (쿨 20초)"),
-    };
+        var rows = data.Characters;
+        var outp = new CharacterDef[rows.Length];
+        for (var i = 0; i < rows.Length; i++)
+            outp[i] = new CharacterDef(
+                rows[i].Name, rows[i].Id, rows[i].Night, rows[i].NightName, rows[i].NightEffect);
+        return outp;
+    }
 
     public static bool IsValid(int index) => index >= 0 && index < All.Length;
 

@@ -114,9 +114,9 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         user = id;
         washing = carry;
         carry.ReserveServer(true);
-        var scale = cafe.HasBuff(TeamBuff.Wash) ? DayBalance.BuffSpeed : 1f;
+        var scale = cafe.HasGem(Gem.Foam) ? Gems.WashTimeScale : 1f;
         completesAt = NetworkManager.ServerTime.Time + DayBalance.WashSeconds *
-            (1f - Mathf.Clamp01(carry.Held.WashProgress)) / scale;
+            (1f - Mathf.Clamp01(carry.Held.WashProgress)) * scale;
     }
 
     void StartCookServer(ulong id, Cafe cafe, PlayerCarry carry)

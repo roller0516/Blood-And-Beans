@@ -40,40 +40,39 @@ public class Cafe : NetworkBehaviour
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
 
-    readonly NetworkList<int> buffDays = new();
-    public int BuffRemaining(TeamBuff buff) => (int)buff >= 0 && (int)buff < buffDays.Count ? buffDays[(int)buff] : 0;
-    public bool HasBuff(TeamBuff buff) => BuffRemaining(buff) > 0;
-    public string BuffSummary
-    {
-        get
-        {
-            var lines = new System.Collections.Generic.List<string>();
-            for (var i = 0; i < buffDays.Count; i++)
-                if (buffDays[i] > 0) lines.Add($"{TeamBuffs.Names[i]} · {buffDays[i]}일");
-            return lines.Count == 0 ? "활성 팀 버프 없음" : string.Join("\n", lines);
-        }
-    }
+    /// 보석별 남은 턴 (기획서 8.1). 카페는 자기 팀에만 복제되므로 팀 밖으로 새지 않는다.
+    readonly NetworkList<int> gemTurns = new();
+    /// 이번 귀환에서 이미 켜져 있던 보석을 다시 가져와 갱신한 것 (기획서 4.1 「3턴으로 갱신」).
+    readonly NetworkVariable<int> refreshedGems = new();
+    public int GemTurns(Gem gem) => (int)gem < gemTurns.Count ? gemTurns[(int)gem] : 0;
+    public bool HasGem(Gem gem) => GemTurns(gem) > 0;
+    public bool GemRefreshed(Gem gem) => (refreshedGems.Value & (1 << (int)gem)) != 0;
+
+    /// 전환 화면은 **다음 낮**에 남는 턴을 보여 준다 (기획서 4.1). 전환 시점의 낮은 이미 끝났다.
+    public int GemTurnsNextDay(Gem gem) => Mathf.Max(0, GemTurns(gem) - 1);
 
     /// 귀환 정산이 재고 입금을 모두 마친 뒤 호출한다. 페이즈 구독 순서에 기대지 않는다.
-    public void ApplyHarvestBuffsServer()
+    /// 재고에 들어온 보석은 전부 소모되어 이번 낮부터 켜진다 (기획서 8.1).
+    public void ApplyHarvestGemsServer()
     {
         if (!IsServer || Stock == null || director == null) return;
         var ledger = director.LedgerOf(TeamId);
         var day = director.Phase.Day;
         if (ledger == null) return;
-        for (var i = 0; i < TeamBuffs.Materials.Length; i++)
+        var refreshed = 0;
+        foreach (var gem in Gems.All)
         {
-            var material = TeamBuffs.Materials[i];
-            if (Stock.CountOf(material) > 0)
+            var item = Gems.ItemOf(gem);
+            if (Stock.CountOf(item) > 0)
             {
-                ledger.Buffs.Apply((TeamBuff)i, day);
-                while (Stock.TakeServer(material)) { }
+                if (ledger.Gems.Apply(gem, day)) refreshed |= 1 << (int)gem;
+                while (Stock.TakeServer(item)) { }
             }
-            var remaining = ledger.Buffs.Remaining((TeamBuff)i, day);
-            if (buffDays.Count <= i) buffDays.Add(remaining);
-            else buffDays[i] = remaining;
+            var turns = ledger.Gems.Remaining(gem, day);
+            if (gemTurns.Count <= (int)gem) gemTurns.Add(turns);
+            else gemTurns[(int)gem] = turns;
         }
-        Dishes?.ApplyBuffServer(HasBuff(TeamBuff.Dishes));
+        refreshedGems.Value = refreshed;
     }
 
     /// 이 팀의 복귀 구역. 밤이 끝난 뒤 자기 귀환 결과를 읽는 통로다 (`MatchFlow`).

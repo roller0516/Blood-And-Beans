@@ -6,13 +6,9 @@ public enum RentPenalty { None, Tier1, Tier2, Tier3 }
 /// 팀당 인스턴스 하나, 서버 전용이다.
 public class Rent
 {
-    // 기획서 3.2의 표.
-    static readonly int[] Table = { 50, 80, 120, 180, 260, 360, 480 };
-
     /// 표를 넘는 일차는 마지막 임대료로 고정한다. 기획서에 8일차 이후 행이 없다 (3.2).
-    /// Mathf 대신 System.Math를 쓰는 이유는 BB.Rules가 UnityEngine을 참조하지 않기 때문이다.
-    public static int Due(int day) =>
-        Table[System.Math.Min(System.Math.Max(day, 1), Table.Length) - 1];
+    /// 표는 `BalanceData.RentByDay`가 갖는다 — 데이터 파일이 덮어쓸 수 있는 값이다.
+    public static int Due(int day) => Balance.ByDay(Balance.Current.RentByDay, day);
 
     public int Debt { get; private set; }
     public int MissStreak { get; private set; }

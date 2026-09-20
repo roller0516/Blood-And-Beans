@@ -298,7 +298,7 @@ BB.Client  ──▶  BB.Game  ──▶  BB.Rules
 **한글 폰트 애셋을 반드시 지정한다.** TMP 기본 폰트 애셋(LiberationSans SDF)에는 한글 글리프가 없어서, 폰트를 지정하지 않으면 UI의 한글이 통째로 사라진다. legacy `Text`는 시스템 폰트로 폴백해서 이 문제가 드러나지 않았다.
 
 - 프로젝트 폰트는 `Assets/Art/Fonts/Pretendard-Regular.otf`(SIL OFL 1.1, 상업 사용 가능)다. 라이선스 전문을 같은 폴더의 `Pretendard-OFL.txt`로 함께 둔다 — OFL은 사본 배포 시 라이선스 동봉을 요구한다.
-- TMP 폰트 애셋은 `Tools > Blood & Beans > 한글 TMP 폰트 애셋 만들기`로 만든다. 이 명령이 아틀라스를 **Dynamic**으로 굽고 TMP 기본 폰트로 등록한다. 한글은 완성형만 11,172자라 정적으로 구우면 아틀라스가 수십 MB가 되고 그러고도 빠진 글자가 남는다.
+- TMP 폰트 애셋은 `Blood & Beans > 한글 TMP 폰트 애셋 만들기`로 만든다. 이 명령이 아틀라스를 **Dynamic**으로 굽고 TMP 기본 폰트로 등록한다. 한글은 완성형만 11,172자라 정적으로 구우면 아틀라스가 수십 MB가 되고 그러고도 빠진 글자가 남는다.
 - Dynamic 아틀라스는 원본 폰트 파일이 프로젝트에 남아 있어야 동작한다. `.otf`를 지우지 않는다.
 - 런타임에 텍스트를 만드는 코드는 폰트를 지정하지 않아도 된다. TMP가 기본 폰트 애셋을 쓴다. 화면별로 다른 폰트가 필요할 때만 `[SerializeField] TMP_FontAsset`을 열어 둔다.
 

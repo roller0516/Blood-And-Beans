@@ -61,6 +61,20 @@ public sealed class UIDaySettlementScreen : UIScreen
         public PopularItem(string name, int percent) { Name = name; Percent = percent; }
     }
 
+    /// 적용 중인 보석 한 줄 (기획서 4.1 「자동 업그레이드」). 턴 수는 다음 낮 기준이다.
+    public readonly struct GemRow
+    {
+        public readonly Sprite Icon;
+        public readonly string Name;
+        public readonly string Effect;
+        public readonly int Turns;
+        public readonly bool Refreshed;
+        public GemRow(Sprite icon, string name, string effect, int turns, bool refreshed)
+        {
+            Icon = icon; Name = name; Effect = effect; Turns = turns; Refreshed = refreshed;
+        }
+    }
+
     /// 미납 페널티 한 단계. 기획서 3.3 표가 낮·밤 쌍이라 두 줄을 따로 받는다.
     public readonly struct PenaltyStage
     {
@@ -79,6 +93,7 @@ public sealed class UIDaySettlementScreen : UIScreen
     public const int GuestSlots = 6;      // 손님 종족 6종 (기획서 5.5)
     public const int PopularSlots = 3;    // 인기 재료 2~3종 (기획서 5.6.1)
     public const int PenaltySlots = 3;    // 미납 3단계 (기획서 3.3)
+    public const int GemSlots = 6;        // 보석 6종 (기획서 8.2)
 
     /// 슬롯 한 칸의 부품 묶음. Inspector에서 한 칸이 통째로 접히도록 묶어 둔다.
     [Serializable] public class TradeSlot
@@ -114,6 +129,14 @@ public sealed class UIDaySettlementScreen : UIScreen
         public TMP_Text Bonus;
     }
 
+    [Serializable] public class GemSlot
+    {
+        public GameObject Root;
+        public UIGemIcon Icon;
+        public TMP_Text Label;
+        public TMP_Text Turns;
+    }
+
     [Serializable] public class PenaltySlot
     {
         public Image Background;
@@ -146,6 +169,10 @@ public sealed class UIDaySettlementScreen : UIScreen
     [SerializeField] GuestSlot[] guestSlots = Array.Empty<GuestSlot>();
     [SerializeField] PopularSlot[] popularSlots = Array.Empty<PopularSlot>();
 
+    [Header("자동 업그레이드")]
+    [SerializeField] TMP_Text gemNote;
+    [SerializeField] GemSlot[] gemSlots = Array.Empty<GemSlot>();
+
     [Header("페널티")]
     [SerializeField] TMP_Text penaltyState;
     [SerializeField] PenaltySlot[] penaltySlots = Array.Empty<PenaltySlot>();
@@ -160,6 +187,7 @@ public sealed class UIDaySettlementScreen : UIScreen
                      IReadOnlyList<StandingRow> standings,
                      IReadOnlyList<GuestCard> guests,
                      IReadOnlyList<PopularItem> popular,
+                     IReadOnlyList<GemRow> gems,
                      int missStreak, IReadOnlyList<PenaltyStage> penalties)
     {
         Set(dayHeading, $"DAY {day:00} 정산");
@@ -173,6 +201,7 @@ public sealed class UIDaySettlementScreen : UIScreen
         FillStandings(standings);
         FillGuests(guests);
         FillPopular(popular);
+        FillGems(gems);
         FillPenalties(missStreak, penalties);
     }
 
@@ -300,6 +329,27 @@ public sealed class UIDaySettlementScreen : UIScreen
             slot.Root.SetActive(true);
             Set(slot.Name, popular[i].Name);
             Set(slot.Bonus, $"+{popular[i].Percent}%");
+        }
+    }
+
+    /// 귀환에 성공해 이번 밤에 들어온 보석까지 포함한다. 고르는 절차는 없다 (기획서 8.1).
+    void FillGems(IReadOnlyList<GemRow> gems)
+    {
+        var count = gems != null ? gems.Count : 0;
+        Set(gemNote, count > 0 ? "귀환 성공 — 다음 낮부터 적용" : "적용 중인 보석 없음");
+
+        for (var i = 0; i < gemSlots.Length; i++)
+        {
+            var slot = gemSlots[i];
+            var shown = i < count;
+            if (slot.Root != null) slot.Root.SetActive(shown);
+            if (!shown) continue;
+
+            var row = gems[i];
+            if (slot.Icon != null) slot.Icon.Render(row.Icon, row.Turns);
+            Set(slot.Label, $"{row.Name} · {row.Effect}");
+            Set(slot.Turns, row.Refreshed ? $"{row.Turns}턴 · 갱신" : $"{row.Turns}턴");
+            if (slot.Turns != null) slot.Turns.color = row.Refreshed ? UITheme.Green : UITheme.GoldLit;
         }
     }
 

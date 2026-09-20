@@ -28,7 +28,7 @@ public static class KoreanFontAssetBuilder
     const int AtlasPadding = 9;
     const int AtlasSize = 1024;
 
-    [MenuItem("Tools/Blood & Beans/한글 TMP 폰트 애셋 만들기")]
+    [MenuItem("Blood & Beans/한글 TMP 폰트 애셋 만들기", priority = 41)]
     public static void Build()
     {
         // TMP 필수 리소스가 없으면 TMP_Settings 자체가 없어서 기본 폰트를 걸 곳이 없다.

@@ -498,6 +498,10 @@ GameObject:
   - component: {fileID: 5691773687724022461}
   - component: {fileID: 7384362903298434648}
   - component: {fileID: -845965204426128254}
+  - component: {fileID: 6224595453703911500}
+  - component: {fileID: 3221928316169824223}
+  - component: {fileID: 6693623989727940868}
+  - component: {fileID: 675469531782669939}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -564,11 +568,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkTransform
   ShowTopMostFoldoutHeaderGroup: 1
-  NetworkTransformExpanded: 0
+  NetworkTransformExpanded: 1
   AutoOwnerAuthorityTickOffset: 1
-  PositionInterpolationType: 0
-  RotationInterpolationType: 0
-  ScaleInterpolationType: 0
+  PositionInterpolationType: 1
+  RotationInterpolationType: 1
+  ScaleInterpolationType: 1
   PositionLerpSmoothing: 1
   PositionMaxInterpolationTime: 0.05
   RotationLerpSmoothing: 1
@@ -857,8 +861,7 @@ MonoBehaviour:
   hitFlash: {r: 1, g: 1, b: 1, a: 1}
   spillFlash: {r: 1, g: 0.65, b: 0.15, a: 1}
   flashSeconds: 0.16
-  impactPrefab: {fileID: 4045632256721089961, guid: 96149ab01d82a2242a2b9c71b6515512, type: 3}
-  impactLifetime: 2
+  impactScale: 1
   impulse: {fileID: 4624483277839359458}
   shakeOnLand: 0.1
   shakeOnTaken: 0.28
@@ -893,9 +896,63 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Game::PlayerCharacter
   ShowTopMostFoldoutHeaderGroup: 1
-  decoyBoxPrefab: {fileID: 0}
-  decoyBagPrefab: {fileID: 0}
-  echoRadius: 20
-  appraiseRadius: 8
-  trackRadius: 18
-  trackRevealSeconds: 6
+--- !u!114 &6224595453703911500
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 49ac8b8aa719ff541ab52a2486fad8ec, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::TargetOutline
+  outlineMaterial: {fileID: 2100000, guid: 074b881f32e6ad24abeed20ecba17043, type: 2}
+  maskMaterial: {fileID: 2100000, guid: 9081feafb66e5984bac952f145d08aab, type: 2}
+  outlineScale: 1.06
+  outlineColor: {r: 1.5, g: 1.5, b: 1.5, a: 1}
+--- !u!114 &3221928316169824223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.Components.NetworkRigidbody
+  ShowTopMostFoldoutHeaderGroup: 1
+  NetworkRigidbodyBaseExpanded: 0
+  UseRigidBodyForMotion: 0
+  AutoUpdateKinematicState: 1
+  AutoSetKinematicOnDespawn: 1
+--- !u!114 &6693623989727940868
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1d9042658f4b3ad41b4070e3d289e458, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Game::PlayerAbilities
+  ShowTopMostFoldoutHeaderGroup: 1
+  decoyBoxPrefab: {fileID: 2242796622637705624, guid: 36718396aeaa0fb4cb84c7d174d860bf, type: 3}
+  decoyBagPrefab: {fileID: 7637260236126393840, guid: 98b9ec48a6968974396952141a318dad, type: 3}
+--- !u!114 &675469531782669939
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 277027a27cf38e34287f96ec51bfa72e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::PlayerEffects

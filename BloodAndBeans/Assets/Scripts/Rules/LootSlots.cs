@@ -17,7 +17,7 @@ public struct LootStack
 public static class LootSlots
 {
     /// 상자 하나가 담는 최대 *종류* 수. 개수 상한이 아니다.
-    public const int MaxTypes = 5;
+    public static int MaxTypes => Balance.Current.LootMaxTypes;
 
     /// 등급이 정하는 슬롯 수 범위 (기획서 6.5.2).
     ///
@@ -33,8 +33,15 @@ public static class LootSlots
     /// 칸은 개수가 아니라 *종류* 기준이므로 상한은 `MaxTypes`를 넘지 않는다 (기획서 6.5.5).
     public static void SlotRangeFor(int tier, out int min, out int max)
     {
-        min = tier switch { <= 1 => 2, 2 => 3, _ => 4 };
-        max = tier switch { <= 1 => 3, 2 => 4, _ => 5 };
+        var data = Balance.Current;
+
+        // 1등급이 0번 칸이다. 표 밖의 등급은 가장 가까운 끝으로 붙인다.
+        var last = System.Math.Min(data.LootSlotMin.Length, data.LootSlotMax.Length) - 1;
+        var i = tier <= 1 ? 0 : tier - 1;
+        if (i > last) i = last;
+
+        min = data.LootSlotMin[i];
+        max = data.LootSlotMax[i];
 
         if (max > MaxTypes) max = MaxTypes;
         if (min > max) min = max;

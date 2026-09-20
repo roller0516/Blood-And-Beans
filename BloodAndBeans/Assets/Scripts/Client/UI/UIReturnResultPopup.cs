@@ -58,7 +58,11 @@ public sealed class UIReturnResultPopup : UIPopup
             .SetUpdate(true);
     }
 
-    public override void OnHide() => fade?.Kill();
+    public override void OnHide()
+    {
+        base.OnHide();
+        fade?.Kill();
+    }
 
     /// 결과를 그린다. `n%`는 `ReturnZone`이 들고 있는 실제 설정값에서 온다 — 문구에
     /// 50을 박아 두면 인스펙터에서 비율을 바꿨을 때 화면만 거짓말을 한다.

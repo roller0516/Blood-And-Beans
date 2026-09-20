@@ -29,8 +29,8 @@ public class PlayerInputRouter : NetworkBehaviour
     PlayerMove movement;
     PlayerInteractor interaction;
     PlayerInventory inventory;
-    DashHarass dash;
     PlayerCharacter character;
+    PlayerAbilities abilities;
     InputAction moveAction;
     InputAction interactAction;
     InputAction dashAction;
@@ -50,7 +50,7 @@ public class PlayerInputRouter : NetworkBehaviour
         movement = GetComponent<PlayerMove>();
         interaction = GetComponent<PlayerInteractor>();
         inventory = GetComponent<PlayerInventory>();
-        dash = GetComponent<DashHarass>();
+        abilities = GetComponent<PlayerAbilities>();
         character = GetComponent<PlayerCharacter>();
         cameraRoot = GetComponentInChildren<PlayerCameraRoot>(true);
         moveAction = actions.FindAction("Player/Move", true);
@@ -101,8 +101,8 @@ public class PlayerInputRouter : NetworkBehaviour
     /// 여기서는 눌렸다는 사실만 넘긴다.
     void OnSkill(InputAction.CallbackContext _)
     {
-        if (Blocked || character == null) return;
-        character.UseSkillRpc();
+        if (Blocked || abilities == null) return;
+        abilities.UseRpc();
     }
 
     /// 조작을 막는 UI가 떠 있는가 (`UIManager.PlayerInputBlocked`). 설정 팝업이 그렇고,
@@ -204,10 +204,12 @@ public class PlayerInputRouter : NetworkBehaviour
     /// 끊지 않으면 창을 닫을 때까지 F를 누르고 있는 상태로 남는다.
     void OnInteractCanceled(InputAction.CallbackContext _) => interaction?.EndClient();
 
+    /// 대시 (기획서 6.6). 액티브 스킬과 같은 자리로 간다 — 쿨다운과 페이즈 검사는 전부
+    /// 서버가 하고, 여기서는 눌렸다는 사실만 넘긴다.
     void OnDash(InputAction.CallbackContext _)
     {
         if (Blocked) return;
-        dash?.DashRpc();
+        abilities?.UseCommonRpc();
     }
 
     void OnDump(InputAction.CallbackContext _)

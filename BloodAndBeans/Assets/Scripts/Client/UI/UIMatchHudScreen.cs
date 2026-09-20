@@ -51,6 +51,9 @@ public sealed class UIMatchHudScreen : UIScreen
     /// 펴져 있으면 ◀(접기), 접혀 있으면 ▶(펴기)다.
     [SerializeField] TMP_Text recipeTabGlyph;
     [SerializeField] UIRecipeRow recipeRowPrefab;
+
+    /// 보석 칸. 순서는 `Gems.All`과 같다. 상한 6이 기획서로 고정이라 프리팹에 미리 깔아 둔다 (5.7.1).
+    [SerializeField] UIGemIcon[] gemIcons = System.Array.Empty<UIGemIcon>();
     [SerializeField] RectTransform recipeContent;
     [SerializeField] RectTransform recipeDessertContent;
     UIRecipeRow[] recipeRows;
@@ -189,6 +192,8 @@ public sealed class UIMatchHudScreen : UIScreen
             recipeRows[i] = Instantiate(recipeRowPrefab, parent);
             recipeRows[i].Bind(menu);
         }
+        if (gemIcons.Length != Gems.All.Length)
+            CDebug.LogError($"{name}: 보석 칸이 {gemIcons.Length}개다. {Gems.All.Length}개를 이어야 한다.", this);
         UIButtons.Wire(recipeTabButton, () => ToggleRecipe());
         SetRecipeOpen(false);
     }
@@ -205,6 +210,19 @@ public sealed class UIMatchHudScreen : UIScreen
     {
         recipePanel.SetActive(open);
         if (recipeTabGlyph != null) recipeTabGlyph.text = "F1";
+    }
+
+    /// 켜진 보석만 세로로 쌓는다. `cafe`가 null이면(밤·전환) 전부 끈다 (기획서 5.7.1: 낮 화면 상시 표시).
+    public void RenderGems(Cafe cafe)
+    {
+        for (var i = 0; i < gemIcons.Length && i < Gems.All.Length; i++)
+        {
+            var gem = Gems.All[i];
+            var turns = cafe != null ? cafe.GemTurns(gem) : 0;
+            var slot = gemIcons[i];
+            if (slot.gameObject.activeSelf != turns > 0) slot.gameObject.SetActive(turns > 0);
+            if (turns > 0) slot.Render(ResourceManager.Instance.IngredientSprite(Gems.ItemOf(gem)), turns);
+        }
     }
 
     public void RenderRecipes(TeamStock stock, System.Collections.Generic.IReadOnlyList<Ingredient> popular)

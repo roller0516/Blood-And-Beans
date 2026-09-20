@@ -7,16 +7,17 @@
 /// 페널티는 매출을 직접 깎지 않는다 — 기획서 3.3이 벌은 마찰이지 수익의 몫이 아니라고
 /// 못박았다.
 ///
-/// | 연속 미납 | 낮                                | 밤                          |
-/// |----------|-----------------------------------|-----------------------------|
-/// | 1회      | 제작 속도 10% 감소                 | 시야 반경 감소               |
-/// | 2회      | 커피 머신 1대 불통                 | + 박스 개봉 속도 감소        |
-/// | 3회      | 머신 1대 불통 + 그릇 1개 파손       | + 무게 감속 한 단계 불리     |
+/// 페널티는 보석(8장)과 **같은 축에 마이너스로** 붙는다 — 제작 속도는 「불씨」, 이동은
+/// 「바람」의 반대 방향이다 (기획서 3.3).
 public class TeamLedger
 {
+    /// 감소를 다 먹여도 남는 최솟값. 속도가 0이면 그 팀은 그날 아무것도 못 하고, 음수가 되면
+    /// 시간이 거꾸로 간다. 단계별 감소율 표와 함께 `BalanceData`에 있다 (기획서 3.3).
+    public static float MinScale => Balance.Current.PenaltyMinScale;
+
     public Rent Rent { get; } = new();
 
-    public TeamBuffs Buffs { get; } = new();
+    public TeamGems Gems { get; } = new();
 
     /// 정산 시점에 적용되어 낮 하루와 이어지는 밤 동안만 유지된다 (기획서 3.3).
     /// 그 추적은 이미 `Rent.Penalty`가 한다. 별도 값으로 둔 이유는 낮 도중에 임대료를 내도
@@ -27,14 +28,22 @@ public class TeamLedger
 
     // --- 낮 (기획서 3.3) ---
 
-    /// 제작 시간에 곱하는 값이므로 속도 10% 감소는 제작 시간 1/0.9배다 (기획서 3.3).
-    public float CraftSpeedScale => Penalty == RentPenalty.None ? 1f : 1f / 0.9f;
-    public bool MachineDown => Penalty >= RentPenalty.Tier2;
-    public bool BreaksDish => Penalty >= RentPenalty.Tier3;
+    /// 제작 시간에 곱하는 값이다. 속도 10% 감소는 시간 1/0.9배다.
+    public float CraftTimeScale => 1f / SpeedScale(Balance.Current.PenaltyCraftLoss);
+
+    /// 이동 속도에 곱하는 값. 낮 페널티라 밤에는 걸지 않는다.
+    public float MoveSpeedScale => SpeedScale(Balance.Current.PenaltyMoveLoss);
 
     // --- 밤 (기획서 3.3) ---
 
-    public float VisionScale => Penalty == RentPenalty.None ? 1f : 0.7f;
-    public float BoxOpenScale => Penalty >= RentPenalty.Tier2 ? 1.5f : 1f;
+    public float VisionScale => SpeedScale(Balance.Current.PenaltyVisionLoss);
+
+    /// 개봉 시간에 곱하는 값. 개봉 속도 20% 감소는 시간 1/0.8배다.
+    public float BoxOpenTimeScale => 1f / SpeedScale(Balance.Current.PenaltyOpenLoss);
+
     public bool WeightBandShifted => Penalty >= RentPenalty.Tier3;
+
+    /// 감소율을 배수로 바꾼다. **0 이하로는 내려가지 않는다.**
+    float SpeedScale(float[] table) =>
+        System.Math.Max(MinScale, 1f - table[(int)Penalty]);
 }

@@ -1,0 +1,199 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30748298e1ed9ef4db830be7e6e42ee5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Rules::NightDataTable
+  loadBands:
+  - Band: 0
+    Max: 0.5
+    Speed: 1
+  - Band: 1
+    Max: 0.8
+    Speed: 0.92
+  - Band: 2
+    Max: 1
+    Speed: 0.8
+  - Band: 3
+    Max: 1.3
+    Speed: 0.55
+  - Band: 4
+    Max: 1.6
+    Speed: 0.3
+  - Band: 5
+    Max: 2
+    Speed: 0.1
+  - Band: 6
+    Max: 
+    Speed: 0.01
+  lootSlots:
+  - Tier: 1
+    Min: 2
+    Max: 3
+  - Tier: 2
+    Min: 3
+    Max: 4
+  - Tier: 3
+    Min: 4
+    Max: 5
+  gemChances:
+  - Day: 1
+    Tier2Gem: 0.05
+    Tier3BloodBean: 0
+  - Day: 2
+    Tier2Gem: 0.05
+    Tier3BloodBean: 0
+  - Day: 3
+    Tier2Gem: 0.08
+    Tier3BloodBean: 0
+  - Day: 4
+    Tier2Gem: 0.1
+    Tier3BloodBean: 0.3
+  - Day: 5
+    Tier2Gem: 0.1
+    Tier3BloodBean: 0.35
+  - Day: 6
+    Tier2Gem: 0.12
+    Tier3BloodBean: 0.45
+  - Day: 7
+    Tier2Gem: 0.12
+    Tier3BloodBean: 0.5
+  zoneShares:
+  - Zone: 0
+    Share: 45
+  - Zone: 1
+    Share: 35
+  - Zone: 2
+    Share: 20
+  tiers:
+  - Zone: 0
+    Day: 1
+    T1: 100
+    T2: 0
+    T3: 0
+  - Zone: 0
+    Day: 2
+    T1: 95
+    T2: 5
+    T3: 0
+  - Zone: 0
+    Day: 3
+    T1: 90
+    T2: 10
+    T3: 0
+  - Zone: 0
+    Day: 4
+    T1: 85
+    T2: 15
+    T3: 0
+  - Zone: 0
+    Day: 5
+    T1: 80
+    T2: 20
+    T3: 0
+  - Zone: 0
+    Day: 6
+    T1: 75
+    T2: 25
+    T3: 0
+  - Zone: 0
+    Day: 7
+    T1: 70
+    T2: 30
+    T3: 0
+  - Zone: 1
+    Day: 1
+    T1: 70
+    T2: 30
+    T3: 0
+  - Zone: 1
+    Day: 2
+    T1: 55
+    T2: 45
+    T3: 0
+  - Zone: 1
+    Day: 3
+    T1: 40
+    T2: 55
+    T3: 5
+  - Zone: 1
+    Day: 4
+    T1: 30
+    T2: 60
+    T3: 10
+  - Zone: 1
+    Day: 5
+    T1: 25
+    T2: 60
+    T3: 15
+  - Zone: 1
+    Day: 6
+    T1: 20
+    T2: 60
+    T3: 20
+  - Zone: 1
+    Day: 7
+    T1: 15
+    T2: 60
+    T3: 25
+  - Zone: 2
+    Day: 1
+    T1: 30
+    T2: 70
+    T3: 0
+  - Zone: 2
+    Day: 2
+    T1: 15
+    T2: 75
+    T3: 10
+  - Zone: 2
+    Day: 3
+    T1: 10
+    T2: 65
+    T3: 25
+  - Zone: 2
+    Day: 4
+    T1: 5
+    T2: 55
+    T3: 40
+  - Zone: 2
+    Day: 5
+    T1: 0
+    T2: 45
+    T3: 55
+  - Zone: 2
+    Day: 6
+    T1: 0
+    T2: 35
+    T3: 65
+  - Zone: 2
+    Day: 7
+    T1: 0
+    T2: 25
+    T3: 75
+  regen:
+  - Item: 0
+    ByDay: 35|30|25|22|20|18|18
+  - Item: 5
+    ByDay: 35|28|22|20|18|17|17
+  - Item: 1
+    ByDay: 30|22|18|16|15|15|15
+  - Item: 3
+    ByDay: 0|20|15|13|13|13|13
+  - Item: 2
+    ByDay: 0|0|20|17|17|18|18
+  - Item: 4
+    ByDay: 0|0|0|12|17|19|19
+  regenMaps:
+  - MapId: berry-grove
+    Pool: Milk|Cream|Berry|Ice
+  - MapId: default
+    Pool: Milk|Cream|Chocolate|Almond|Berry|Ice

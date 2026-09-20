@@ -10,8 +10,10 @@
 public static class DayPhases
 {
     /// 기획서 4장 표: 7일 × (밤 120 + 낮 120 + 전환 10) = 1,750초 ≈ 29분 10초.
-    public const float NightSeconds = 120f;
-    public const float DaySeconds = 120f;
-    public const float TransitionSeconds = 10f;
-    public const int TotalDays = 7;
+    /// 값은 `BalanceData`에 있다 — `const`가 아니라 프로퍼티인 이유는 데이터 파일이
+    /// 덮어쓸 수 있어야 하기 때문이다. `const`는 참조하는 어셈블리에 인라인된다.
+    public static float NightSeconds => Balance.Current.NightSeconds;
+    public static float DaySeconds => Balance.Current.DaySeconds;
+    public static float TransitionSeconds => Balance.Current.TransitionSeconds;
+    public static int TotalDays => Balance.Current.TotalDays;
 }

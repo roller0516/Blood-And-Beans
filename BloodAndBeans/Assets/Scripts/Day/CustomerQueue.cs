@@ -96,8 +96,10 @@ public class CustomerQueue : NetworkBehaviour
         var menu = Menus.All[next.menu];
         var count = next.race == Race.Werewolf ? Random.Range(2, 4) : 1;
 
+        // 「찻잎」 보석은 들어오는 손님의 인내심을 늘린다 (기획서 8.2).
+        var patience = myCafe != null && myCafe.HasGem(Gem.Tea) ? Gems.PatienceScale : 1f;
         c.SetupServer(team, next.race, Menus.TagsOf(menu.Parts), MenuTag.None,
-                      menu.Parts.Length, count);
+                      menu.Parts.Length, count, patience);
     }
 
     readonly System.Collections.Generic.Queue<(Race race, int menu)> planned = new();

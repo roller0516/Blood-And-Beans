@@ -73,9 +73,8 @@ public class Customer : NetworkBehaviour
         RaceChanged?.Invoke(race.Value);
     }
 
-    /// `patienceScale`은 「인기 카페」 배수이고 `neverImpatient`는 「붙임성」이다
-    /// (기획서 9.1). 둘 다 대기열이 팀 패시브를 보고 넘긴다 — 손님이 스스로 팀을 뒤지면
-    /// 손님 수만큼 순회가 늘어난다.
+    /// `patienceScale`은 「찻잎」 보석 배수다 (기획서 8.2). 대기열이 팀 상태를 보고 넘긴다 —
+    /// 손님이 스스로 팀을 뒤지면 손님 수만큼 순회가 늘어난다.
     public void SetupServer(int teamId, Race s, MenuTag req, MenuTag any, int minParts, int count,
                             float patienceScale = 1f, bool neverImpatient = false)
     {

@@ -94,7 +94,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
         var want = (Ingredient)ingredient;
         if (System.Array.IndexOf(offer, want) < 0) return;   // 이 선반에 없는 재료다
 
-        if (TeamBuffs.IndexOf(want) >= 0 || Ingredients.IsStaple(want)) return;
+        if (Gems.IsGem(want) || Ingredients.IsStaple(want)) return;
         if (carry.Held.IsProduct)
         {
             var recipe = carry.Held.Recipe;
@@ -104,7 +104,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
                 want != Ingredient.Milk && want != Ingredient.Cream && want != Ingredient.Chocolate && want != Ingredient.Ice) return;
             if (recipe.Length >= 4 || Stock == null || Stock.CountOf(want) <= 0) return;
             // ponytail: 마무리 시간은 14장 #42 미결. 임시 1초, 확정 시 DayBalance로 이관한다.
-            var seconds = ownerCafe != null && ownerCafe.HasBuff(TeamBuff.Finish) ? 1f / DayBalance.BuffSpeed : 1f;
+            var seconds = 1f;
             finishing[clientId] = (carry, want, NetworkManager.ServerTime.Time + seconds);
             carry.ReserveServer(true);
             return;

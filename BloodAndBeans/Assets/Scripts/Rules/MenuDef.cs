@@ -36,27 +36,17 @@ public readonly struct MenuDef
 public static class Menus
 {
     // 기획서 7.2의 기본가. 조합법 표시와 판매 정산이 같은 표를 쓴다.
-    public static readonly MenuDef[] All =
-    {
-        new(MenuId.HotAmericano, 5, Ingredient.Bean),
-        new(MenuId.IcedAmericano, 10, Ingredient.Bean, Ingredient.Ice),
-        new(MenuId.CafeLatte, 11, Ingredient.Bean, Ingredient.Milk),
-        new(MenuId.Einspanner, 16, Ingredient.Bean, Ingredient.Cream),
-        new(MenuId.CafeMocha, 28, Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate),
-        new(MenuId.IcedLatte, 24, Ingredient.Bean, Ingredient.Milk, Ingredient.Ice),
-        new(MenuId.IcedMocha, 38, Ingredient.Bean, Ingredient.Milk, Ingredient.Chocolate, Ingredient.Ice),
-        new(MenuId.ChocoBrownie, 19, Ingredient.BreadBase, Ingredient.Chocolate),
-        new(MenuId.AlmondCookie, 17, Ingredient.BreadBase, Ingredient.Almond),
-        new(MenuId.CreamCake, 21, Ingredient.BreadBase, Ingredient.Cream),
-        new(MenuId.BerryTart, 23, Ingredient.BreadBase, Ingredient.Berry),
-    };
+    public static MenuDef[] All => Balance.Current.Menus;
 
     /// 디저트의 바탕 (기획서 5.1: "빵 베이스를 꺼내 조리대에 올린다").
     public const Ingredient DessertBase = Ingredient.BreadBase;
 
     /// 디저트 하나가 갖는 최대 재료 수. 조리대가 이보다 더 얹지 못하게 막는 상한이며,
     /// 메뉴 표에서 읽으므로 디저트가 늘어도 여기를 고치지 않는다.
-    public static readonly int MaxDessertParts = LongestDessert();
+    public static int MaxDessertParts => maxDessertParts.Value;
+
+    // 메뉴 표에서 유도하는 값이라 접근할 때마다 세지 않고 표가 바뀔 때만 다시 센다.
+    static readonly Derived<int> maxDessertParts = new(d => LongestDessert(d.Menus));
 
     /// 빵 베이스 위에 얹을 수 있는 재료인가 (기획서 5.1). 목록을 따로 적으면 메뉴가 늘 때
     /// 표와 조리대가 갈라진다 — 바탕과 같은 메뉴에 쓰이는 재료가 곧 얹을 수 있는 것이다.
@@ -65,10 +55,10 @@ public static class Menus
 
     static bool Uses(MenuDef m, Ingredient i) => System.Array.IndexOf(m.Parts, i) >= 0;
 
-    static int LongestDessert()
+    static int LongestDessert(MenuDef[] all)
     {
         var best = 0;
-        foreach (var m in All)
+        foreach (var m in all)
             if (Uses(m, DessertBase) && m.Parts.Length > best) best = m.Parts.Length;
         return best;
     }

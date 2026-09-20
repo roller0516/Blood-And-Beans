@@ -24,7 +24,7 @@ public static class CharacterSelectSetup
     static readonly Color Gold = new(.84f, .65f, .35f);
     static readonly Color Muted = new(.62f, .72f, .68f);
 
-    [MenuItem("Tools/Blood & Beans/캐릭터/임시 외형 연결")]
+    [MenuItem("Blood & Beans/캐릭터/임시 외형 연결", priority = 42)]
     public static void PrepareModels()
     {
         var config = Resources.Load<CharacterVisualConfig>(CharacterVisualConfig.AssetName);
@@ -53,7 +53,7 @@ public static class CharacterSelectSetup
         AssetDatabase.SaveAssets();
     }
 
-    [MenuItem("Tools/Blood & Beans/캐릭터/선택창 꾸미기")]
+    [MenuItem("Blood & Beans/캐릭터/선택창 꾸미기", priority = 43)]
     public static void Decorate()
     {
         Edit(CardPath, root =>
@@ -249,7 +249,7 @@ public static class CharacterSelectSetup
         });
     }
 
-    [MenuItem("Tools/Blood & Beans/캐릭터/모델에서 초상 다시 만들기")]
+    [MenuItem("Blood & Beans/캐릭터/모델에서 초상 다시 만들기", priority = 44)]
     public static void Portraits()
     {
         var config=Resources.Load<CharacterVisualConfig>(CharacterVisualConfig.AssetName);

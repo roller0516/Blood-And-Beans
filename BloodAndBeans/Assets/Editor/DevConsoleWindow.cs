@@ -31,6 +31,7 @@ public class DevConsoleWindow : EditorWindow
         new PhaseCheatGroup(),
         new TeamCheatGroup(),
         new CharacterCheatGroup(),
+        new ItemCheatGroup(),
         new CameraGroup(),
         new LookSensitivityGroup(),
         new UIThemeGroup(),
@@ -51,7 +52,7 @@ public class DevConsoleWindow : EditorWindow
 
     double nextRefresh;
 
-    [MenuItem("Blood & Beans/개발 콘솔")]
+    [MenuItem("Blood & Beans/개발 콘솔", priority = 60)]
     static void Open()
     {
         var window = GetWindow<DevConsoleWindow>("개발 콘솔");

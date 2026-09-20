@@ -24,11 +24,9 @@ public class DashVisuals : MonoBehaviour
     [SerializeField] float flashSeconds = 0.16f;
 
     [Header("임팩트")]
-    /// 맞은 자리에 한 번 터지는 파티클. 비워 두면 생략한다.
-    [SerializeField] ParticleSystem impactPrefab;
-
-    /// 다 터진 파티클을 치우기까지의 시간. 파티클의 수명보다 길어야 중간에 잘리지 않는다.
-    [SerializeField] float impactLifetime = 2f;
+    /// 맞은 자리에 터지는 연출의 크기. 프리팹 자체는 `EffectManager`의 표가 들고 있다 —
+    /// 플레이어 프리팹마다 파티클을 꽂으면 캐릭터가 늘 때마다 배선이 늘어난다.
+    [SerializeField] float impactScale = 1f;
 
     [Header("화면 흔들림")]
     /// 흔들림을 쏘는 곳. 가상 카메라의 `CinemachineImpulseListener`가 받는다 — 카메라를
@@ -107,16 +105,10 @@ public class DashVisuals : MonoBehaviour
         if (IsMine) Shake(spilled ? shakeOnSpill : shakeOnTaken);
     }
 
-    void SpawnImpact(Vector3 at, bool spilled)
-    {
-        if (impactPrefab == null) return;
-
-        var fx = Instantiate(impactPrefab, at, Quaternion.identity);
-        var main = fx.main;
-        main.startColor = spilled ? spillFlash : hitFlash;
-        fx.Play();
-        Destroy(fx.gameObject, impactLifetime);
-    }
+    /// 재료가 쏟아진 대시는 다른 연출로 터진다. 색을 코드에서 덮어쓰지 않는 이유는
+    /// 그러면 같은 프리팹이 두 의미를 갖고, 풀에서 나온 인스턴스에 색이 남기 때문이다.
+    void SpawnImpact(Vector3 at, bool spilled) =>
+        EffectManager.Play(spilled ? EffectId.DashSpill : EffectId.DashHit, at, impactScale);
 
     void Shake(float amount)
     {

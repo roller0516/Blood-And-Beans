@@ -3,20 +3,50 @@ using NUnit.Framework;
 public class DayV5Tests
 {
     [Test]
-    public void BuffRenewalExpiresWithoutStackingOrAffectingOtherTeams()
+    public void GemLastsThreeDaysAndRefreshesWithoutStackingOrLeaking()
     {
-        var team = new TeamBuffs();
-        var other = new TeamBuffs();
-        Assert.IsTrue(team.Apply(TeamBuff.Move, 1));
-        Assert.AreEqual(3, team.Remaining(TeamBuff.Move, 1));
-        Assert.AreEqual(1, team.Remaining(TeamBuff.Move, 3));
-        Assert.AreEqual(0, team.Remaining(TeamBuff.Move, 4));
-        team.Apply(TeamBuff.Move, 2);
-        team.Apply(TeamBuff.Move, 2);
-        Assert.AreEqual(3, team.Remaining(TeamBuff.Move, 2));
-        Assert.AreEqual(0, other.Remaining(TeamBuff.Move, 2));
-        Assert.IsFalse(team.Apply((TeamBuff)99, 1));
-        Assert.IsFalse(team.Apply(TeamBuff.Move, 0));
+        var team = new TeamGems();
+        var other = new TeamGems();
+        Assert.IsFalse(team.Apply(Gem.Wind, 1));                 // 새로 켜짐
+        Assert.AreEqual(3, team.Remaining(Gem.Wind, 1));
+        Assert.AreEqual(1, team.Remaining(Gem.Wind, 3));
+        Assert.AreEqual(0, team.Remaining(Gem.Wind, 4));
+        Assert.IsTrue(team.Apply(Gem.Wind, 2));                  // 켜져 있던 것을 갱신
+        Assert.IsTrue(team.Apply(Gem.Wind, 2));
+        Assert.AreEqual(3, team.Remaining(Gem.Wind, 2));         // 기간이 더해지지 않는다
+        Assert.AreEqual(0, team.Remaining(Gem.Ember, 2));        // 다른 보석은 그대로
+        Assert.AreEqual(0, other.Remaining(Gem.Wind, 2));        // 다른 팀도 그대로
+        Assert.IsFalse(team.Apply(Gem.Tea, 0));
+        Assert.AreEqual(0, team.Remaining(Gem.Tea, 1));
+    }
+
+    [Test]
+    public void EveryGemMapsToItsOwnItem()
+    {
+        foreach (var gem in Gems.All)
+        {
+            var item = Gems.ItemOf(gem);
+            Assert.IsTrue(Gems.TryOf(item, out var back));
+            Assert.AreEqual(gem, back);
+            Assert.AreEqual(3f, Ingredients.WeightOf(item));     // 기획서 6.7
+            Assert.AreEqual(IngredientRarity.Rare, Ingredients.RarityOf(item));
+        }
+        Assert.IsFalse(Gems.IsGem(Ingredient.BloodBean));
+        Assert.IsFalse(Gems.IsGem(Ingredient.UpgradePart));
+    }
+
+    [Test]
+    public void GemAndBloodBeanDropsFollowTierAndDayTable()
+    {
+        // 기획서 6.5.2
+        Assert.IsTrue(Gems.DropsGem(3, 1, 0.999));
+        Assert.IsFalse(Gems.DropsGem(1, 7, 0.0));
+        Assert.IsTrue(Gems.DropsGem(2, 1, 0.049));
+        Assert.IsFalse(Gems.DropsGem(2, 1, 0.05));
+        Assert.IsTrue(Gems.DropsGem(2, 9, 0.119));               // 7일차 넘으면 7일차 값
+        Assert.IsFalse(Gems.DropsBloodBean(3, 3, 0.0));          // 4일차부터
+        Assert.IsTrue(Gems.DropsBloodBean(3, 4, 0.29));
+        Assert.IsFalse(Gems.DropsBloodBean(2, 7, 0.0));
     }
 
     [Test]

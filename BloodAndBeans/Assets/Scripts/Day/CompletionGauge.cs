@@ -39,7 +39,7 @@ public class CompletionGauge : NetworkBehaviour
 
     /// 판정 구간의 반폭. HUD가 침 뒤에 Perfect/Good 구간을 그리는 데 쓴다 (기획서 5.2).
     /// 판정과 표시가 같은 값을 읽어야 한다 — 화면에만 따로 적으면 둘이 어긋난다.
-    public float PerfectHalfWidth => perfectHalfWidth * (cafe != null && cafe.HasBuff(TeamBuff.Perfect) ? DayBalance.BuffPerfect : 1f);
+    public float PerfectHalfWidth => perfectHalfWidth * (cafe != null && cafe.HasGem(Gem.Scales) ? Gems.PerfectWidthScale : 1f);
     public float GoodHalfWidth => goodHalfWidth;
 
     /// 이 게이지가 붙은 설비의 이름. HUD가 어느 기계를 판정하는지 적는 데 쓴다.

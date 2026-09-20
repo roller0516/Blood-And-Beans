@@ -23,17 +23,21 @@ public class Forecast
     public int[] RaceCounts = new int[6];
 
     /// 인기 재료 개수 (기획서 5.6.1): 1·2일차 2종, 3일차부터 3종.
-    public static int PopularCountOn(int day) => day <= 2 ? 2 : 3;
+    public static int PopularCountOn(int day) =>
+        day < Balance.Current.PopularCountLateFromDay
+            ? Balance.Current.PopularCountEarly
+            : Balance.Current.PopularCountLate;
 
     // 등장 분포 (기획서 5.5): 좀비 30% · 늑대인간 10% · 나머지 15%씩. 5% 한 칸.
-    static readonly Race[] RaceBag = Bag(
-        (Race.Zombie, 6), (Race.Ghost, 3), (Race.Skeleton, 3),
-        (Race.Werewolf, 2), (Race.Vampire, 3), (Race.Witch, 3));
+    // **가방의 순서가 결과를 바꾼다** — `BalanceData.RaceBagOrder` 주석 참조.
+    static Race[] RaceBag => raceBag.Value;
 
-    static Race[] Bag(params (Race race, int share)[] shares)
+    static readonly Derived<Race[]> raceBag = new(Bag);
+
+    static Race[] Bag(BalanceData data)
     {
         var bag = new List<Race>();
-        foreach (var (race, share) in shares)
+        foreach (var (race, share) in data.RaceBagOrder)
             for (var i = 0; i < share; i++) bag.Add(race);
         return bag.ToArray();
     }
@@ -64,14 +68,14 @@ public class Forecast
         if (fromHeld.Count == 0) fromHeld = fromPool;
         if (fromPool.Count == 0) { f.Orders = Array.Empty<int>(); f.Races = Array.Empty<Race>(); return f; }
 
-        var americanoCap = orderCount / 5; // 20% 상한 (5.5 규칙 4)
+        var americanoCap = orderCount / Balance.Current.AmericanoCapDivisor; // 5.5 규칙 4
         var americanos = 0;
         f.Orders = new int[orderCount];
         f.Races = new Race[orderCount];
 
         for (var i = 0; i < orderCount; i++)
         {
-            var bag = rng.NextDouble() < 0.7 ? fromPool : fromHeld;
+            var bag = rng.NextDouble() < Balance.Current.ForecastPoolShare ? fromPool : fromHeld;
             if (americanos >= americanoCap)
             {
                 var alternatives = bag.FindAll(index => !IsBasic(menus[index]));
@@ -162,10 +166,11 @@ public class Forecast
     static Race PickRace(System.Random rng, List<int> bag,
         IReadOnlyList<IReadOnlyList<Ingredient>> menus)
     {
-        var start = rng.Next(RaceBag.Length);
-        for (var n = 0; n < RaceBag.Length; n++)
+        var races = RaceBag;
+        var start = rng.Next(races.Length);
+        for (var n = 0; n < races.Length; n++)
         {
-            var race = RaceBag[(start + n) % RaceBag.Length];
+            var race = races[(start + n) % races.Length];
             for (var i = 0; i < bag.Count; i++)
                 if (MatchesRace(menus[bag[i]], race)) return race;
         }

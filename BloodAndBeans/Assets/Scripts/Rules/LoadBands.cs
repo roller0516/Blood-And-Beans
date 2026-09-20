@@ -6,17 +6,15 @@
 /// 방식은 어떤 구간에서는 두 밴드를 건너뛰고 가벼울 때는 한 칸도 안 내려갔다.
 public static class LoadBands
 {
-    static readonly float[] Speed = { 1.00f, 0.92f, 0.80f, 0.55f, 0.30f, 0.10f, 0.01f };
-
     /// 겉보기와 견제가 갈리는 선 (기획서 6.6: "적재 80% 이상인 상대에게 대시" / "적재
     /// 80%를 넘긴 캐릭터는 겉보기에도 표시된다").
     ///
     /// 두 규칙이 같은 수치를 쓰는 것이 요점이다. 갈라지면 부풀어 보이는데 아무것도 흘리지
     /// 않거나, 멀쩡해 보이는 상대가 재료를 쏟는다 — 어느 쪽이든 견제 판단의 근거가 거짓이 된다.
-    public const float OverloadRatio = 0.8f;
+    public static float OverloadRatio => Balance.Current.OverloadRatio;
 
     /// 무게가 화면을 흔들기 시작하는 선 (기획서 6.7: "100%를 넘으면 화면 흔들림이 붙는다").
-    public const float ShakeRatio = 1.0f;
+    public static float ShakeRatio => Balance.Current.ShakeRatio;
 
     /// 대시를 더 쓸 수 없게 되는 선 (기획서 6.6: "대시는 가방의 무게가 70%가 초과할 경우,
     /// 사용이 제한된다").
@@ -24,20 +22,24 @@ public static class LoadBands
     /// 겉보기·낙하가 걸리는 80%(`OverloadRatio`)보다 낮다. 그래서 "대시를 못 쓰는데 아직
     /// 안 부푼" 구간이 10%p 생기는데, 그것이 기획서가 의도한 순서다 — 견제 수단을 먼저
     /// 잃고 그다음에 표적이 된다.
-    public const float DashBlockRatio = 0.7f;
+    public static float DashBlockRatio => Balance.Current.DashBlockRatio;
 
-    public static int Count => Speed.Length;
+    public static int Count => Balance.Current.LoadBandSpeed.Length;
 
-    public static int BandOf(float loadRatio) =>
-        loadRatio < 0.5f ? 0 :
-        loadRatio < 0.8f ? 1 :
-        loadRatio < 1.0f ? 2 :
-        loadRatio < 1.3f ? 3 :
-        loadRatio < 1.6f ? 4 :
-        loadRatio < 2.0f ? 5 : 6;
+    /// 상한 표를 앞에서부터 훑어 처음 걸리는 칸이 그 밴드다. 전부 넘으면 마지막 밴드다.
+    public static int BandOf(float loadRatio)
+    {
+        var max = Balance.Current.LoadBandMax;
+        for (var i = 0; i < max.Length; i++)
+            if (loadRatio < max[i]) return i;
+        return max.Length;
+    }
 
-    public static float SpeedOfBand(int band) =>
-        Speed[band < 0 ? 0 : band >= Speed.Length ? Speed.Length - 1 : band];
+    public static float SpeedOfBand(int band)
+    {
+        var speed = Balance.Current.LoadBandSpeed;
+        return speed[band < 0 ? 0 : band >= speed.Length ? speed.Length - 1 : band];
+    }
 
     public static float SpeedMultiplier(float loadRatio) => SpeedOfBand(BandOf(loadRatio));
 

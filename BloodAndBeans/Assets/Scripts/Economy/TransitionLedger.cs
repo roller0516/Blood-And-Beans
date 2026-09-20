@@ -126,26 +126,6 @@ public class TransitionLedger : NetworkBehaviour
                 dayClosing, earnedToday, owed, paid, ledger.Rent.Debt, ledger.Rent.MissStreak));
         }
         dayClosing++;
-
-        ApplyDayPenalties();
-    }
-
-    /// 각 팀은 자기 미납에 대해서만 벌을 받는다. 팀 0의 단계를 모든 카페에 적용하던 탓에
-    /// 한 팀의 빚이 다른 팀의 그릇을 깨뜨렸다.
-    void ApplyDayPenalties()
-    {
-        for (var team = 0; team < TeamCount; team++)
-        {
-            var cafe = director.CafeOf(team);
-            var ledger = director.LedgerOf(team);
-            if (cafe == null || ledger == null) continue;
-
-            var machines = cafe.GetComponentsInChildren<CoffeeMachine>(true);
-            for (var i = 0; i < machines.Length; i++)
-                machines[i].SetDisabledServer(ledger.MachineDown && i == machines.Length - 1);
-
-            if (cafe.Dishes != null) cafe.Dishes.SetBreakageServer(ledger.BreaksDish);
-        }
     }
 
     void DrawForecast()

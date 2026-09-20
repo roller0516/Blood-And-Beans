@@ -24,7 +24,7 @@ public static class CafeShellSetup
 
     /// 다시 돌려도 된다. `CafeLayoutSetup`이 장식을 본체 안에 새로 지으므로, 그것을 돌린
     /// 뒤에는 이것도 다시 돌려 껍데기를 갱신한다.
-    [MenuItem("Tools/Blood & Beans/카페 외관 껍데기 분리")]
+    [MenuItem("Blood & Beans/카페 외관 껍데기 분리", priority = 40)]
     public static string Apply()
     {
         if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이를 종료한 뒤 적용한다.");

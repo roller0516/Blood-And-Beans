@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -26,6 +26,7 @@ public sealed class MatchHudPresenter
     DashHarass dash;
     PlayerCarry carry;
     PlayerCharacter character;
+    PlayerAbilities abilities;
 
     /// 같은 팀 다른 사람의 손. 낮의 조작은 "재료를 옮기는 것"이 전부라(기획서 5.1)
     /// 팀원이 무엇을 들었는지가 곧 다음에 무엇을 할지다.
@@ -67,11 +68,10 @@ public sealed class MatchHudPresenter
 
         var model = BuildModel();
         view.Render(model);
+        var cafe = director != null ? director.CafeOf(PlayerTeam.Local()) : null;
+        view.RenderGems(model.IsDay ? cafe : null);
         if (model.IsDay && view.RecipeOpen)
-        {
-            var cafe = director != null ? director.CafeOf(PlayerTeam.Local()) : null;
             view.RenderRecipes(cafe != null ? cafe.Stock : null, ledger != null ? ledger.PopularShown : null);
-        }
     }
 
     MatchHudModel BuildModel()
@@ -154,12 +154,13 @@ public sealed class MatchHudPresenter
     string BuildDetails(int team, Cafe cafe, Scoreboard board)
     {
         text.Clear();
-        if (phase.Current != Phase.Night && cafe != null) text.AppendLine(cafe.BuffSummary);
         if (character == null && cachedPlayer != null) character = cachedPlayer.GetComponent<PlayerCharacter>();
+        if (abilities == null && cachedPlayer != null) abilities = cachedPlayer.GetComponent<PlayerAbilities>();
         if (character != null && character.HasPick && phase.Current != Phase.Transition)
         {
             var skillName = phase.Current == Phase.Day ? character.Def.DayName : character.Def.NightName;
-            text.AppendLine($"[1] {skillName} · {character.SkillCooldownRemaining:0.0}s");
+            var left = abilities != null ? abilities.CooldownRemaining : 0f;
+            text.AppendLine($"[1] {skillName} · {left:0.0}s");
         }
 
         if (phase.Current == Phase.Transition && ledger != null)
@@ -204,7 +205,7 @@ public sealed class MatchHudPresenter
     /// 고장 난 것처럼 보인다.
     void FillDash(ref MatchHudModel model)
     {
-        if (dash == null) return;
+        if (dash == null || abilities == null) return;
 
         model.ShowDash = true;
         if (dash.BlockedByLoad)
@@ -214,10 +215,12 @@ public sealed class MatchHudPresenter
             return;
         }
 
-        var left = dash.CooldownRemaining;
+        // 쿨다운은 공통 슬롯이 든다. 무게 차단만 몸(`DashHarass`)이 답한다.
+        var left = abilities.CommonCooldownRemaining;
+        var full = abilities.CommonCooldownDuration;
         model.DashReady = left <= 0f;
         model.DashTime = model.DashReady ? "준비" : $"{left:0.0}s";
-        model.DashRatio = model.DashReady || dash.Cooldown <= 0f ? 1f : 1f - left / dash.Cooldown;
+        model.DashRatio = model.DashReady || full <= 0f ? 1f : 1f - left / full;
     }
 
     /// 귀환 지시기 한 프레임분. 화면 어디에 놓을지와 무엇을 쓸지만 담는다 —
@@ -393,6 +396,7 @@ public sealed class MatchHudPresenter
         interactor = player != null ? player.GetComponent<PlayerInteractor>() : null;
         boxHold = player != null ? player.GetComponent<PlayerInteract>() : null;
         dash = player != null ? player.GetComponent<DashHarass>() : null;
+        abilities = player != null ? player.GetComponent<PlayerAbilities>() : null;
         carry = player != null ? player.GetComponent<PlayerCarry>() : null;
 
         // 로컬 플레이어가 바뀌면 팀도 바뀔 수 있다. 옛 팀의 팀원을 계속 들고 있으면

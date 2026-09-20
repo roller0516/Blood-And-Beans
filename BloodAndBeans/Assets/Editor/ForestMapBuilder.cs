@@ -15,9 +15,9 @@ using UnityEngine;
 /// 아래의 상자 배치·통로 검사는 0개로 돈다. 런타임 자리에 통로를 보장하려면 그쪽으로 옮긴다.
 public static class ForestMapBuilder
 {
-    const string MenuPath = "Tools/Blood & Beans/숲 맵 생성";
-    const string RerollMenuPath = "Tools/Blood & Beans/숲 맵 생성 — 씨앗 무작위";
-    const string VerifyMenuPath = "Tools/Blood & Beans/숲 씨앗 훑기";
+    const string MenuPath = "Blood & Beans/숲 맵 생성";
+    const string RerollMenuPath = "Blood & Beans/숲 맵 생성 — 씨앗 무작위";
+    const string VerifyMenuPath = "Blood & Beans/숲 씨앗 훑기";
 
     /// 씨앗 훑기가 볼 씨앗 수. 씬의 씨앗부터 이만큼 이어서 센다.
     const int VerifySeedCount = 200;
@@ -52,7 +52,11 @@ public static class ForestMapBuilder
     const string CollidersChildName = "Colliders";
 
     /// 지나갈 수 있어야 하는 것들. 기획서 6.2가 수풀을 은폐물로 쓰므로 몸으로 막지 않는다.
-    static readonly string[] NoColliderModels = { "grass_large", "plant_bush", "plant_bushLarge" };
+    static readonly string[] NoColliderModels =
+    {
+        "forestpack_foliage_grassPatch_small_1", "forestpack_foliage_grassPatch_small_2",
+        "forestpack_foliage_mushroom_blue_big", "forestpack_foliage_mushroom_red_small",
+    };
 
     /// 연결성 검사 격자. 플레이어가 지나갈 틈보다 촘촘해야 통로를 놓치지 않는다.
     const float ReachCell = 0.5f;
@@ -71,9 +75,10 @@ public static class ForestMapBuilder
     /// 나무를 뿌릴 격자 간격. 이 칸마다 위 확률로 한 그루를 시도하고, 칸 안에서 흔든다.
     const float ScatterStep = 2.2f;
 
-    /// Kenney nature-kit 나무는 원본이 1.7유닛이라 플레이어 캡슐(높이 2)보다 작다. 그대로
-    /// 심으면 숲이 아니라 잔디밭이 된다. 이 배수로 6유닛 안팎이 되게 키운다.
-    const float TreeScale = 3.5f;
+    /// Supercyan 전나무는 원본이 3.43유닛이다. 이 배수로 6유닛 안팎이 되게 키운다 —
+    /// 플레이어 캡슐(높이 2)보다 충분히 커야 숲이 잔디밭으로 보이지 않는다.
+    /// 잎나무(2.18)는 같은 배수에서 3.8유닛이 되어 실루엣이 갈린다.
+    const float TreeScale = 1.75f;
     const float TreeScaleJitter = 0.35f;
 
     /// 바닥 풀은 Kenney 덩어리를 흩뿌리지 않는다. `ForestGrass`가 컴퓨트 셰이더로 위치를
@@ -100,62 +105,38 @@ public static class ForestMapBuilder
     const float GrassDrawDistance = 300f;
     const int GrassMaxBlades = 700000;
 
-    const string NatureModels = "Assets/AssetStore/Kenney/nature-kit/Models/FBX format/";
+    /// 숲의 나무·수풀. Supercyan Free Forest Sample의 High Quality 프리팹을 쓴다.
+    /// Mobile 쪽은 같은 메시에 저해상도 텍스처라 탑다운에서 흐리게 뭉친다.
+    const string ForestModels = "Assets/AssetStore/Supercyan Free Forest Sample/Prefabs/High Quality/";
     const string SurvivalModels = "Assets/AssetStore/Kenney/survival-kit/Models/FBX format/";
     const string MaterialFolder = "Assets/Art/Environment/Materials/";
     const string ForestMaterialFolder = MaterialFolder + "Forest/";
 
-    /// 숲 팔레트. Kenney FBX에 박힌 머티리얼을 그대로 쓰면 잎이 청록으로 나온다 —
-    /// Unity의 `ImportViaMaterialDescription`이 이 FBX의 디퓨즈를 제대로 읽지 못해서
-    /// leafsDark가 (0.45, 0.83, 0.84)로 들어온다. 서드파티 원본은 고치지 않는 것이 규칙이라
-    /// (AGENTS.md) 프로젝트 소유 머티리얼을 만들어 임포터 리맵으로 갈아 끼운다.
-    ///
-    /// 색은 기획서 12장 "밤: 채도를 죽인다"에 맞춰 낮은 채도로 잡았다.
-    /// `Sways`가 true면 `FoliageWind` 셰이더를 물린다. 잎과 풀만 흔들린다 — 줄기·바위·흙이
-    /// 같이 흔들리면 나무가 통째로 미끄러지는 것처럼 보인다.
-    static readonly (string Name, Color Colour, bool Sways)[] ForestPalette =
-    {
-        ("leafsDark",    new Color(0.13f, 0.28f, 0.17f), true),
-        ("leafsGreen",   new Color(0.24f, 0.42f, 0.23f), true),
-        ("leafsFall",    new Color(0.45f, 0.30f, 0.14f), true),
-        ("grass",        new Color(0.24f, 0.38f, 0.21f), true),
-        ("corn",         new Color(0.52f, 0.46f, 0.20f), true),
-        ("woodBarkDark", new Color(0.24f, 0.18f, 0.13f), false),
-        ("woodBark",     new Color(0.33f, 0.24f, 0.16f), false),
-        ("woodBirch",    new Color(0.62f, 0.60f, 0.55f), false),
-        ("woodInner",    new Color(0.42f, 0.32f, 0.21f), false),
-        ("wood",         new Color(0.38f, 0.28f, 0.18f), false),
-        ("woodDark",     new Color(0.26f, 0.19f, 0.13f), false),
-        ("dirt",         new Color(0.31f, 0.25f, 0.19f), false),
-        ("dirtDark",     new Color(0.24f, 0.19f, 0.15f), false),
-        ("stone",        new Color(0.40f, 0.41f, 0.43f), false),
-        ("stoneDark",    new Color(0.30f, 0.31f, 0.33f), false),
-        ("rock",         new Color(0.35f, 0.35f, 0.38f), false),
-        ("water",        new Color(0.16f, 0.28f, 0.34f), false),
-        ("colorWhite",   new Color(0.72f, 0.72f, 0.70f), false),
-        ("colorTan",     new Color(0.52f, 0.43f, 0.31f), false),
-        ("colorRed",     new Color(0.42f, 0.16f, 0.16f), false),
-        ("colorRedDark", new Color(0.32f, 0.12f, 0.13f), false),
-        ("colorYellow",  new Color(0.55f, 0.45f, 0.20f), false),
-        ("colorPurple",  new Color(0.32f, 0.26f, 0.42f), false),
-        ("_defaultMat",  new Color(0.35f, 0.35f, 0.35f), false),
-    };
+    /// 숲 머티리얼은 팩의 High Quality `.mat`을 그대로 쓴다. Supercyan은 텍스처가 있는
+    /// 팩이라 단색으로 덮으면 나무가 덩어리가 된다 — 색도 텍스처도 건드리지 않는다.
+    /// 인스턴싱 플래그만 켜야 해서 프로젝트 소유 사본을 둔다 (`EnsureInstancedCopy`).
 
-    /// 숲 바닥. 지면은 평면 하나뿐이라 킷의 `ground_grass` 타일을 깔 이유가 없다 —
-    /// 이 킷은 텍스처 없이 단색 머티리얼이라 타일을 깔아도 결과가 같고 드로우콜만 늘어난다.
+    /// 숲 바닥. 지면은 평면 하나뿐이고 그 위를 `ForestGrass`가 덮으므로 타일을 깔지 않는다.
     static readonly Color GroundColour = new(0.24f, 0.36f, 0.19f);
 
-    /// 밤 숲이라 어두운 변종을 우선 쓴다. 침엽수를 섞어 실루엣을 갈라 놓는다.
+    /// 침엽수와 활엽수를 섞어 실루엣을 갈라 놓는다. 팩이 주는 나무는 이 둘뿐이라
+    /// 크기 지터(`TreeScaleJitter`)와 회전이 다양성을 대신 만든다.
+    /// 경로는 `ForestModels` 기준 상대 경로다 — 팩이 종류별 하위 폴더를 쓴다.
     static readonly string[] TreeModels =
     {
-        "tree_default_dark", "tree_simple_dark", "tree_detailed_dark", "tree_oak_dark",
-        "tree_pineTallA", "tree_pineTallC", "tree_pineRoundB", "tree_pineDefaultA",
+        "Tree/Fir/forestpack_tree_fir_tall",
+        //"Tree/Leaf/Normal/forestpack_tree_1_leaf_1",
     };
 
     static readonly string[] UndergrowthModels =
     {
-        "rock_smallA", "rock_smallD", "rock_tallB", "stump_old", "stump_round",
-        "plant_bush", "plant_bushLarge", "log", "grass_large",
+        "Tree/Treestump/forestpack_tree_stump_1",
+        "Stone/forestpack_stone_large_1",
+        "Stone/forestpack_stone_medium_1",
+        "Foliage/Grass/forestpack_foliage_grassPatch_small_1",
+        "Foliage/Grass/forestpack_foliage_grassPatch_small_2",
+        "Foliage/Mushroom/forestpack_foliage_mushroom_blue_big",
+        "Foliage/Mushroom/forestpack_foliage_mushroom_red_small",
     };
 
     /// 등급별 겉모습 (기획서 6.5.2). 형태·재질·색·발광이 모두 달라야 원거리에서 구분된다.
@@ -211,11 +192,11 @@ public static class ForestMapBuilder
         var boxCount = Object.FindObjectsByType<ItemBox>(
             FindObjectsInactive.Include, FindObjectsSortMode.None).Length;
 
-        var trees = LoadModels(NatureModels, TreeModels);
-        var undergrowth = LoadModels(NatureModels, UndergrowthModels);
+        var trees = LoadModels(ForestModels, TreeModels);
+        var undergrowth = LoadModels(ForestModels, UndergrowthModels);
         if (trees.Count == 0)
         {
-            Debug.LogError($"{NatureModels}에서 나무 모델을 하나도 찾지 못했다.");
+            Debug.LogError($"{ForestModels}에서 나무 모델을 하나도 찾지 못했다.");
             return;
         }
 
@@ -423,29 +404,15 @@ public static class ForestMapBuilder
         return v;
     }
 
-    /// 숲 팔레트를 만들어 이름으로 찾을 수 있게 돌려준다.
-    ///
-    /// 임포터 리맵(`AddRemap` + `materialLocation = External`)은 쓰지 않는다. External로
-    /// 바꾸는 순간 Unity가 잘못된 색 그대로 머티리얼을 서드파티 폴더에 추출해 버리고,
-    /// 추출된 파일이 리맵보다 우선한다. 원본 팩은 손대지 않는다는 규칙(AGENTS.md)에도 어긋난다.
-    /// 그래서 심는 시점에 씬 인스턴스의 머티리얼만 갈아 끼운다 — 그쪽은 우리 것이다.
-    static Dictionary<string, Material> BuildPalette()
-    {
-        var palette = new Dictionary<string, Material>();
-        foreach (var entry in ForestPalette)
-            palette[entry.Name] = EnsurePaletteMaterial(entry.Name, entry.Colour, entry.Sways);
-        return palette;
-    }
-
-    /// 인스턴싱에 필요한 조각 하나. 모델 하나가 서브메시마다 다른 머티리얼을 쓰므로
-    /// (나무 = 줄기 + 잎) 모델이 아니라 이 단위로 배치를 나눈다.
+    /// 인스턴싱에 필요한 조각 하나. 팩 모델은 서브메시 하나짜리지만, 서브메시마다 다른
+    /// 머티리얼을 쓰는 모델이 들어와도 그대로 돌도록 이 단위로 배치를 나눈다.
     readonly struct ModelPart
     {
         public readonly Mesh Mesh;
         public readonly int Submesh;
         public readonly Material Material;
 
-        /// 모델 안에서 메시가 놓인 로컬 오프셋. Kenney 모델은 (0, -0.05, 0)만큼 내려가 있다.
+        /// 모델 안에서 메시가 놓인 로컬 오프셋.
         public readonly Vector3 LocalOffset;
 
         public ModelPart(Mesh mesh, int submesh, Material material, Vector3 localOffset)
@@ -457,8 +424,8 @@ public static class ForestMapBuilder
         }
     }
 
-    /// 모델을 인스턴싱용 조각으로 편다. 킷 머티리얼은 이 시점에 팔레트로 바꾼다.
-    static List<ModelPart> PartsOf(GameObject model, Dictionary<string, Material> palette)
+    /// 모델을 인스턴싱용 조각으로 편다. 머티리얼은 팩 것을 그대로 쓰되 인스턴싱 사본으로 바꾼다.
+    static List<ModelPart> PartsOf(GameObject model, Dictionary<Material, Material> copies)
     {
         var parts = new List<ModelPart>();
 
@@ -472,62 +439,61 @@ public static class ForestMapBuilder
 
             for (var submesh = 0; submesh < filter.sharedMesh.subMeshCount; submesh++)
             {
-                var kit = submesh < shared.Length ? shared[submesh] : null;
-                if (kit == null) continue;
+                var source = submesh < shared.Length ? shared[submesh] : null;
+                if (source == null) continue;
 
-                if (!palette.TryGetValue(kit.name, out var replacement))
+                if (!copies.TryGetValue(source, out var material))
                 {
-                    // 조용히 넘기면 킷의 잘못된 색(잎이 청록)이 그대로 남는다.
-                    Debug.LogWarning($"숲 팔레트에 없는 머티리얼: {kit.name} ({model.name}). "
-                                   + "ForestPalette에 색을 추가한다.");
-                    continue;
+                    material = EnsureInstancedCopy(source);
+                    copies[source] = material;
                 }
 
-                parts.Add(new ModelPart(filter.sharedMesh, submesh, replacement, offset));
+                if (material == null) continue;
+                parts.Add(new ModelPart(filter.sharedMesh, submesh, material, offset));
             }
         }
 
         return parts;
     }
 
-    static Material EnsurePaletteMaterial(string name, Color colour, bool sways)
+    /// 팩 머티리얼의 프로젝트 소유 사본을 만든다. 색·텍스처는 그대로 두고 GPU 인스턴싱만 켠다.
+    ///
+    /// 원본을 직접 고치지 않는 이유는 두 가지다. 서드파티 원본은 건드리지 않는 것이 규칙이고
+    /// (AGENTS.md), 팩을 다시 임포트하면 플래그가 조용히 되돌아간다. 인스턴싱이 꺼진
+    /// 머티리얼을 `RenderMeshInstanced`에 넘기면 예외가 URP 프레임을 죽여 화면이 하얘진다.
+    ///
+    /// 사본은 매번 원본 속성을 다시 받는다 — 팩 쪽 색이 바뀌면 다음 굽기에 따라온다.
+    static Material EnsureInstancedCopy(Material source)
     {
+        var sourcePath = AssetDatabase.GetAssetPath(source);
+        if (string.IsNullOrEmpty(sourcePath))
+        {
+            Debug.LogWarning($"머티리얼의 에셋 경로를 찾지 못했다: {source.name}");
+            return null;
+        }
+
         if (!AssetDatabase.IsValidFolder(ForestMaterialFolder.TrimEnd('/')))
             AssetDatabase.CreateFolder(MaterialFolder.TrimEnd('/'), "Forest");
 
-        var shader = sways
-            ? AssetDatabase.LoadAssetAtPath<Shader>("Assets/Art/Shaders/FoliageWind.shadergraph")
-            : Shader.Find("Universal Render Pipeline/Lit");
+        var path = ForestMaterialFolder + source.name + ".mat";
+        var copy = AssetDatabase.LoadAssetAtPath<Material>(path);
 
-        if (shader == null)
+        if (copy == null)
         {
-            Debug.LogError("FoliageWind.shadergraph를 찾지 못했다. 잎이 흔들리지 않는다.");
-            shader = Shader.Find("Universal Render Pipeline/Lit");
-        }
+            if (!AssetDatabase.CopyAsset(sourcePath, path))
+            {
+                Debug.LogError($"머티리얼 사본을 만들지 못했다: {sourcePath} -> {path}");
+                return null;
+            }
 
-        var path = ForestMaterialFolder + name + ".mat";
-        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (material == null)
-        {
-            material = new Material(shader);
-            AssetDatabase.CreateAsset(material, path);
+            copy = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (copy == null) return null;
         }
-        else if (material.shader != shader)
-        {
-            material.shader = shader;
-        }
+        else copy.CopyPropertiesFromMaterial(source);
 
-        // GPU 인스턴싱을 켜지 않으면 `Graphics.RenderMeshInstanced`가
-        // InvalidOperationException을 던지고, 그 예외가 URP 프레임을 통째로 죽여 화면이
-        // 하얗게 나온다. 씬 오브젝트로 그릴 때는 SRP Batcher가 대신 처리해서 이 플래그가
-        // 필요 없었다.
-        material.enableInstancing = true;
-
-        // 색은 매번 다시 넣는다. 팔레트를 고쳤을 때 도구를 다시 돌리면 반영되어야 한다.
-        material.SetColor("_BaseColor", colour);
-        if (material.HasProperty("_Smoothness")) material.SetFloat("_Smoothness", 0f);
-        EditorUtility.SetDirty(material);
-        return material;
+        copy.enableInstancing = true;
+        EditorUtility.SetDirty(copy);
+        return copy;
     }
 
     /// 숲 바닥을 잔디색으로 맞춘다. 기본 URP `Lit`(패키지 공유 에셋)을 물고 있으면
@@ -839,20 +805,20 @@ public static class ForestMapBuilder
         root.transform.position = origin;
         SetupGrass(root.GetComponent<ForestGrass>(), origin, forestSize);
 
-        var palette = BuildPalette();
-        var trees = LoadModels(NatureModels, TreeModels);
-        var undergrowth = LoadModels(NatureModels, UndergrowthModels);
+        var copies = new Dictionary<Material, Material>();
+        var trees = LoadModels(ForestModels, TreeModels);
+        var undergrowth = LoadModels(ForestModels, UndergrowthModels);
         if (trees.Count == 0)
         {
-            Debug.LogError($"{NatureModels}에서 나무 모델을 하나도 찾지 못했다. "
-                         + "AssetStore/Kenney/nature-kit이 임포트되었는지 확인한다.");
+            Debug.LogError($"{ForestModels}에서 나무 모델을 하나도 찾지 못했다. "
+                         + "AssetStore의 Supercyan Free Forest Sample이 임포트되었는지 확인한다.");
             return 0;
         }
 
         var parts = new Dictionary<GameObject, List<ModelPart>>();
         var baseRadii = new Dictionary<GameObject, float>();
-        foreach (var model in trees) parts[model] = PartsOf(model, palette);
-        foreach (var model in undergrowth) if (!parts.ContainsKey(model)) parts[model] = PartsOf(model, palette);
+        foreach (var model in trees) parts[model] = PartsOf(model, copies);
+        foreach (var model in undergrowth) if (!parts.ContainsKey(model)) parts[model] = PartsOf(model, copies);
         foreach (var model in parts.Keys) baseRadii[model] = BaseRadius(model);
 
         var props = Scatter(origin, forestSize, keepOut, trees, undergrowth, baseRadii, densityScale);
@@ -1174,14 +1140,16 @@ public static class ForestMapBuilder
         EditorUtility.SetDirty(grass);
     }
 
+    /// 팩 프리팹을 읽는다. FBX가 아니라 프리팹인 이유는 머티리얼이다 — 팩의 High Quality
+    /// 머티리얼은 프리팹 쪽에 물려 있고, FBX를 직접 읽으면 임포터가 만든 것이 딸려 온다.
     static List<GameObject> LoadModels(string folder, string[] names)
     {
         var loaded = new List<GameObject>();
         foreach (var name in names)
         {
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(folder + name + ".fbx");
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(folder + name + ".prefab");
             if (model != null) loaded.Add(model);
-            else Debug.LogWarning($"모델을 찾지 못했다: {folder}{name}.fbx");
+            else Debug.LogWarning($"모델을 찾지 못했다: {folder}{name}.prefab");
         }
         return loaded;
     }

@@ -14,6 +14,7 @@ public sealed class UIDaySkillSlot : MonoBehaviour
     [SerializeField] TMP_Text key;
     [SerializeField] AudioSource readySound;
     PlayerCharacter character;
+    PlayerAbilities abilities;
     PlayerInputRouter input;
     CanvasGroup group;
     bool wasCooling;
@@ -26,13 +27,15 @@ public sealed class UIDaySkillSlot : MonoBehaviour
         if (character == null)
         {
             var player = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-            if (player != null) { character = player.GetComponent<PlayerCharacter>(); input = player.GetComponent<PlayerInputRouter>(); }
+            if (player != null) { character = player.GetComponent<PlayerCharacter>(); abilities = player.GetComponent<PlayerAbilities>(); input = player.GetComponent<PlayerInputRouter>(); }
         }
-        var visible = director != null && director.Phase.Current != Phase.Transition && character != null;
+        var visible = director != null && director.Phase.Current != Phase.Transition && character != null && abilities != null;
         group.alpha = visible ? 1f : 0f;
         if (!visible) { wasCooling = false; return; }
-        var remaining = character.SkillCooldownRemaining;
+        var remaining = abilities.CooldownRemaining;
         var duration = director.Phase.Current == Phase.Day ? DaySkills.CooldownOf(character.DaySkill) : NightSkills.CooldownOf(character.Skill);
+        // 「각인」 보석으로 줄어든 실제 길이는 서버가 쿨타임을 걸 때 함께 준다 (기획서 8.2).
+        if (remaining > 0f && abilities.CooldownDuration > 0f) duration = abilities.CooldownDuration;
         cooldown.fillAmount = character.HasPick && duration > 0f ? 1f - Mathf.Clamp01(remaining / duration) : 0f;
         if (wasCooling && remaining <= 0f) { flashedAt = Time.unscaledTime; if (readySound != null && readySound.clip != null) readySound.Play(); }
         wasCooling = remaining > 0f;

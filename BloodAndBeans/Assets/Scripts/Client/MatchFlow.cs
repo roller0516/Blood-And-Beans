@@ -20,6 +20,21 @@ public sealed class MatchFlow : MonoBehaviour
     /// 낮은 2분짜리 조작 구간이라 창이 계속 덮고 있으면 안 된다.
     [SerializeField] float returnPopupSeconds = 4f;
 
+    [Header("페이즈 연출")]
+    /// 밤이 시작되고 카운트다운이 도는 시간. **이 동안 조작이 막힌다**
+    /// (`UIPhaseCuePopup.BlocksPlayerInput`). 숫자는 이 값에서 내려온다 — 3이면 3 · 2 · 1이다.
+    // ponytail: 임시값. 기획서 6.4의 밤 흐름표에 시작 카운트다운이 없다. 생기면 그 절로 옮긴다
+    [SerializeField] float nightCountdownSeconds = 3f;
+
+    /// 낮 시작 「READY / GO!」가 도는 시간. 절반은 READY, 절반은 GO!다.
+    /// 귀환 결과 창이 접힌 뒤에 시작한다 — 낮 시작 순간에 두 연출이 겹치지 않게 한다.
+    // ponytail: 임시값. 기획서에 낮 시작 연출 규정이 없다
+    [SerializeField] float dayCueSeconds = 1.2f;
+
+    /// 낮이 끝나고 「마감!」이 도는 시간. 이것이 끝나야 정산 화면이 열린다 (기획서 4.1).
+    // ponytail: 임시값. 기획서 4.1은 전환 10초만 정하고 그 안의 순서는 정하지 않았다
+    [SerializeField] float closingCueSeconds = 1.5f;
+
     [Header("입력")]
     /// ESC를 읽을 액션 애셋. 플레이어 조작과 같은 애셋이며 새 바인딩을 만들지 않는다 —
     /// `UI/Cancel`에 이미 키보드 Escape와 게임패드 B가 물려 있다.
@@ -57,6 +72,9 @@ public sealed class MatchFlow : MonoBehaviour
     /// 첫 밤 시작 전 로딩 창. 떠 있을 때만 값이 있다.
     UILoadingPopup loading;
 
+    /// 페이즈 경계 연출 창. 떠 있을 때만 값이 있다.
+    UIPhaseCuePopup cue;
+
     /// 최종 결산을 이미 띄웠는가. 판이 끝나는 것은 한 번뿐이라 다시 열지 않는다.
     bool resultPopupOpen;
 
@@ -84,10 +102,14 @@ public sealed class MatchFlow : MonoBehaviour
         enabled = false;
         acquired = true;
         var token = this.GetCancellationTokenOnDestroy();
+
+        // 스프라이트가 먼저다. 뷰 프리팹은 만들어지는 순간 Awake에서 표를 꺼내므로
+        // (`UIMatchHudScreen`의 가방 아이콘·메뉴표), 같이 기다리면 표가 비어 있는 채로 읽는다.
+        await ResourceManager.Instance.PreloadSpritesAsync(Sprites, token);
         await UniTask.WhenAll(
             ui.LoadAsync<UIMatchHudScreen>(token),
             ui.LoadAsync<UILoadingPopup>(token),
-            ResourceManager.Instance.PreloadSpritesAsync(Sprites, token));
+            ui.LoadAsync<UIPhaseCuePopup>(token));
         enabled = true;
 
         if (phase == null)
@@ -230,6 +252,7 @@ public sealed class MatchFlow : MonoBehaviour
         SyncLootPopup();
         SyncShelfPopup();
         SyncReturnPopup();
+        SyncPhaseCue();
         SyncSettlementScreen();
         SyncResultPopup();
     }
@@ -257,6 +280,76 @@ public sealed class MatchFlow : MonoBehaviour
         loading.SetProgress(spawned ? phase.JoinedPlayers : 0, spawned ? phase.ExpectedPlayers : 0);
     }
 
+    /// 페이즈가 바뀌는 순간을 화면 한복판에서 알린다 — 밤 시작 카운트다운 · 낮 시작
+    /// 「READY / GO!」 · 낮 마감 「마감!」 셋이다.
+    ///
+    /// **전이 이벤트를 받아 타이머를 돌리지 않고 복제된 경과 시간에서 매 프레임 계산한다.**
+    /// 이벤트로 재면 클라이언트마다 자기 시계로 세게 되어 카운트다운 숫자가 갈리고, 늦게
+    /// 붙은 손님은 그 순간을 아예 놓친다. 시계는 서버 것 하나뿐이다 (`GamePhase.Elapsed`).
+    /// 늦게 들어온 클라이언트에게 연출이 짧게 보이는 것은 이 설계의 결과이지 결함이 아니다.
+    void SyncPhaseCue()
+    {
+        var ui = UIManager.Instance;
+        if (ui == null) return;
+
+        if (phase == null || !phase.IsSpawned || !phase.Started || phase.Finished)
+        {
+            CloseCue(ui);
+            return;
+        }
+
+        var elapsed = phase.Elapsed;
+
+        // 밤 시작. 이 구간만 조작을 막는다 (`UIPhaseCuePopup.BlocksPlayerInput`).
+        if (phase.Current == Phase.Night && elapsed < nightCountdownSeconds)
+        {
+            OpenCue(ui)?.ShowCount(Mathf.Max(1, Mathf.CeilToInt(nightCountdownSeconds - elapsed)));
+            return;
+        }
+
+        // 낮 시작. 귀환 결과 창(6.8)이 접힌 뒤에 온다 — 낮이 열리는 순간에 두 연출이
+        // 겹치면 어느 쪽도 읽히지 않는다.
+        if (phase.Current == Phase.Day && !returnPopupOpen
+            && elapsed >= returnPopupSeconds
+            && elapsed < returnPopupSeconds + dayCueSeconds)
+        {
+            var popup = OpenCue(ui);
+            if (popup == null) return;
+            if (elapsed < returnPopupSeconds + dayCueSeconds * 0.5f) popup.ShowReady();
+            else popup.ShowGo();
+            return;
+        }
+
+        // 낮 마감. 정산 화면은 이것이 끝난 뒤에 열린다 (`SyncSettlementScreen`).
+        if (phase.Current == Phase.Transition && elapsed < closingCueSeconds)
+        {
+            OpenCue(ui)?.ShowClosing();
+            return;
+        }
+
+        CloseCue(ui);
+    }
+
+    /// 아직 불러오는 중이면 null이고 다음 프레임에 다시 연다. 입력 게이트는 `PushPopup`이
+    /// 맞추고, 떠 있는 채로 막기가 바뀌는 것은 창이 스스로 알린다 (`UIPhaseCuePopup`).
+    UIPhaseCuePopup OpenCue(UIManager ui)
+    {
+        // `??=`를 쓰지 않는다. 파괴된 UnityEngine.Object는 `null` 병합 연산자에게 null이
+        // 아니어서, 창이 언로드된 뒤로 영영 다시 열리지 않는다.
+        if (cue == null) cue = ui.PushPopup<UIPhaseCuePopup>();
+        return cue;
+    }
+
+    /// 위에 다른 창이 얹혀 있으면 접지 않는다. `PopPopup`은 맨 위를 닫으므로 남의 창을
+    /// 대신 닫게 된다 — 그 창이 먼저 닫히면 다음 프레임에 여기로 다시 온다.
+    void CloseCue(UIManager ui)
+    {
+        if (cue == null || ui.CurrentPopup != cue) return;
+
+        ui.PopPopup();       // 입력 게이트를 여기서 다시 맞춘다
+        cue = null;
+    }
+
     /// 전환 페이즈(10초) 동안 정산 화면을 띄운다 (기획서 4장: 매출/임대료 결과 · 순위 ·
     /// 내일의 손님 예보).
     ///
@@ -275,7 +368,11 @@ public sealed class MatchFlow : MonoBehaviour
         // 청구되지도 않은 1일차 임대료를 미납으로, 매출을 0으로 그린다 — 임대료는 낮이
         // 끝날 때 청구된다 (기획서 3.2). 마감 결과가 온 뒤에만 연다.
         var settled = ledger != null && ledger.Today.Valid;
-        var inTransition = phase.Current == Phase.Transition && !phase.Finished && settled;
+
+        // 「마감!」 연출이 끝난 뒤에 연다 (`SyncPhaseCue`). 동시에 열면 정산 화면이 연출을
+        // 덮어 마감을 알리는 순간이 사라진다.
+        var cueDone = phase.Elapsed >= closingCueSeconds;
+        var inTransition = phase.Current == Phase.Transition && !phase.Finished && settled && cueDone;
 
         if (!inTransition)
         {
@@ -352,8 +449,29 @@ public sealed class MatchFlow : MonoBehaviour
             today.Valid ? today.Debt : 0,
             Rent.Due(day + 1),
             standings, guests, popular,
+            GemRows(),
             today.Valid ? today.MissStreak : 0,
             PenaltyStages);
+    }
+
+    /// 적용 중인 보석 (기획서 4.1 「자동 업그레이드」). 남은 턴은 다음 낮 기준이다 —
+    /// 전환 시점의 낮은 이미 끝났고, 플레이어가 알고 싶은 것은 앞으로 남은 몫이다.
+    List<UIDaySettlementScreen.GemRow> GemRows()
+    {
+        var rows = new List<UIDaySettlementScreen.GemRow>();
+        var cafe = LocalCafe;
+        if (cafe == null) return rows;
+
+        var sprites = ResourceManager.Instance;
+        foreach (var gem in Gems.All)
+        {
+            var turns = cafe.GemTurnsNextDay(gem);
+            if (turns <= 0) continue;
+            rows.Add(new UIDaySettlementScreen.GemRow(
+                sprites.IngredientSprite(Gems.ItemOf(gem)),
+                Gems.NameOf(gem), Gems.EffectOf(gem), turns, cafe.GemRefreshed(gem)));
+        }
+        return rows;
     }
 
     /// 오늘의 거래 내역. 지금 복제되는 것은 합계뿐이라 한 줄이다 — 판매 잔 수와 판정
@@ -370,11 +488,11 @@ public sealed class MatchFlow : MonoBehaviour
     /// 기획서 3.3 표. 화면이 아니라 여기서 넘긴다 — 표의 내용은 규칙이지 표시가 아니다.
     static readonly UIDaySettlementScreen.PenaltyStage[] PenaltyStages =
     {
-        new("1회", "제작 속도 10% 감소", "시야 반경 감소"),
-        new("2회 연속", "커피 머신 1대 불통 (2대 → 1대)",
-                        "시야 반경 감소 + 박스 개봉 속도 감소"),
-        new("3회 연속", "머신 1대 불통 + 그릇 1개 파손",
-                        "위 + 무게 감속 구간이 한 단계 불리하게"),
+        new("1회", "제작 속도 -10%", "시야 반경 -15%"),
+        new("2회 연속", "제작 -15% + 이동 속도 -10%",
+                        "시야 -25% + 박스 개봉 속도 -20%"),
+        new("3회 연속", "제작 -20% + 이동 속도 -20%",
+                        "시야 -35% + 개봉 -30% + 무게 감속 구간 한 단계 불리하게"),
     };
 
     /// 판이 끝나면 최종 결산을 띄운다 (기획서 3.1: 마지막 낮이 끝나면 최종 결산, 1위 팀 승리).
