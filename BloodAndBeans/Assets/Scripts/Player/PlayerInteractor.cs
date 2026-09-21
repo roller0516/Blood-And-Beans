@@ -5,6 +5,31 @@ using UnityEngine;
 /// 주변의 상호작용 후보를 들고 있는다. 입력은 BB.Client가 넣어 준다.
 public class PlayerInteractor : NetworkBehaviour
 {
+    public event System.Action<Vector3> InteractionSucceeded;
+
+    /// 성공 결과를 반영한 서버만 호출한다. 피드백은 행동한 플레이어에게만 전달한다.
+    public static void ReportSuccessServer(ulong clientId, Component target)
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager == null || !manager.IsServer || target == null ||
+            !manager.ConnectedClients.TryGetValue(clientId, out var client) || client.PlayerObject == null) return;
+        var interaction = client.PlayerObject.GetComponent<PlayerInteractor>();
+        if (interaction == null || !interaction.IsSpawned) return;
+        Collider surface = target.GetComponent<CharacterController>();
+        if (surface == null) surface = target.GetComponentInChildren<Collider>();
+        var position = target.transform.position;
+        if (surface != null)
+        {
+            // 긴 서빙대도 조작한 쪽 가장자리 위에 뜬다.
+            position = surface.bounds.ClosestPoint(client.PlayerObject.transform.position);
+            position.y = surface.bounds.max.y;
+        }
+        interaction.SuccessRpc(position);
+    }
+
+    [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
+    void SuccessRpc(Vector3 position) => InteractionSucceeded?.Invoke(position);
+
     readonly List<IInteractable> candidates = new();
     IInteractable current;
     PlayerCarry localCarry;

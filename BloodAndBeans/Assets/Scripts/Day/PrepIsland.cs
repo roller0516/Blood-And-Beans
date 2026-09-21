@@ -45,10 +45,12 @@ public class PrepIsland : NetworkBehaviour, IInteractable, IItemHolder
         if (!carry.Empty)
         {
             items.Add(carry.Held); views.Add(CarryView.Of(carry.Held)); carry.ClearServer();
+            PlayerInteractor.ReportSuccessServer(id, this);
         }
         else if (items.Count > 0)
         {
             carry.SetServer(items[0]); items.RemoveAt(0); views.RemoveAt(0);
+            PlayerInteractor.ReportSuccessServer(id, this);
         }
     }
 }

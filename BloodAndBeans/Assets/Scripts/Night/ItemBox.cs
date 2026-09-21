@@ -340,6 +340,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         }
 
         stacks[index] = new LootStack(stack.Item, 0);
+        PlayerInteractor.ReportSuccessServer(clientId, this);
 
         // 다 털린 임시 더미는 그 자리에서 치운다. 남겨 두면 빈 상자가 밤이 끝날 때까지
         // 서서 아직 뭔가 있는 것처럼 보인다. 숲 박스는 밤마다 다시 채워지므로 남긴다.

@@ -75,16 +75,16 @@ public sealed class CharacterDataTable : DataTableAsset
     /// 9.1.1: 낮 액티브는 밤 액티브의 짝이다. 순서는 `NightSkill` 열거자와 같다.
     [System.NonSerialized] public DaySkill[] DaySkillOfNight = System.Array.Empty<DaySkill>();
 
-    public override string Category => "캐릭터";
-    public override string[] SheetNames => new[] { SheetCharacter, SheetDaySkill, SheetNightSkill };
+    protected override string DefaultCategory => "캐릭터";
+    protected override string[] DefaultSheetNames => new[] { SheetCharacter, SheetDaySkill, SheetNightSkill };
 
-    public override void ReadSheet(SheetTable sheet)
+    public override void ReadSheet(int index, SheetTable sheet)
     {
-        switch (sheet.Name)
+        switch (index)
         {
-            case SheetCharacter: sheet.Fill(characters, "index"); break;
-            case SheetDaySkill: sheet.Fill(daySkills, "daySkill"); break;
-            case SheetNightSkill: sheet.Fill(nightSkills, "nightSkill"); break;
+            case 0: sheet.Fill(characters, "index"); break;
+            case 1: sheet.Fill(daySkills, "daySkill"); break;
+            case 2: sheet.Fill(nightSkills, "nightSkill"); break;
         }
     }
 

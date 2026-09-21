@@ -30,6 +30,10 @@ public sealed class DishRack : NetworkBehaviour, IInteractable, IItemHolder
         var carry = PlayerCarry.Of(id);
         if (carry == null || carry.Reserved || !carry.Empty ||
             !Station.WithinReach(surface, transform, carry.transform.position, reach)) return;
-        if (cafe.Dishes != null && cafe.Dishes.ClaimServer(plate)) carry.SetServer(HeldItem.Dish(plate));
+        if (cafe.Dishes != null && cafe.Dishes.ClaimServer(plate))
+        {
+            carry.SetServer(HeldItem.Dish(plate));
+            PlayerInteractor.ReportSuccessServer(id, this);
+        }
     }
 }

@@ -127,25 +127,27 @@ public sealed class NightDataTable : DataTableAsset
     [System.NonSerialized]
     public (string MapId, Ingredient[] Pool)[] RegenMapPools = System.Array.Empty<(string, Ingredient[])>();
 
-    public override string Category => "밤";
-    public override string[] SheetNames => new[]
+    protected override string DefaultCategory => "밤";
+    protected override string[] DefaultSheetNames => new[]
     {
         SheetLoadBand, SheetLootSlot, SheetGemChance,
         SheetForestZone, SheetForestTier, SheetRegen, SheetRegenMap,
     };
 
-    public override void ReadSheet(SheetTable sheet)
+    public override void ReadSheet(int index, SheetTable sheet)
     {
-        switch (sheet.Name)
+        // 번호는 `DefaultSheetNames`의 자리다: 0 적재 · 1 상자칸 · 2 보석확률 ·
+        // 3 구역배분 · 4 등급표 · 5 리젠 · 6 맵별 풀.
+        switch (index)
         {
-            case SheetLoadBand: sheet.Fill(loadBands, "band"); break;
-            case SheetLootSlot: sheet.Fill(lootSlots, "tier"); break;
-            case SheetGemChance: sheet.Fill(gemChances, "day"); break;
-            case SheetForestZone: sheet.Fill(zoneShares, "zone"); break;
-            case SheetForestTier: sheet.Fill(tiers, "zone"); break;
-            case SheetRegen: ReadRegen(sheet); break;
+            case 0: sheet.Fill(loadBands, "band"); break;
+            case 1: sheet.Fill(lootSlots, "tier"); break;
+            case 2: sheet.Fill(gemChances, "day"); break;
+            case 3: sheet.Fill(zoneShares, "zone"); break;
+            case 4: sheet.Fill(tiers, "zone"); break;
+            case 5: ReadRegen(sheet); break;
 
-            case SheetRegenMap:
+            case 6:
                 sheet.Fill(regenMaps, "mapId");
                 foreach (var row in sheet.Rows) row.CheckList<Ingredient>("pool");
                 break;

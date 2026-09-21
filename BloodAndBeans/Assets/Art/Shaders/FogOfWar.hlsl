@@ -50,8 +50,8 @@ void BB_FogOfWar_float(float2 ScreenUV, out float3 Color, out float Alpha)
 
     float rawDepth = SampleSceneDepth(ScreenUV);
 
-    // 아무것도 그려지지 않은 픽셀(하늘)은 월드 위치가 무한대로 나온다. 복원값을 그대로 쓰면
-    // 마스크 가장자리 텍셀을 집어서 하늘이 걷힌 것처럼 보인다.
+    // 아무것도 그려지지 않은 픽셀(하늘)은 월드 위치가 무한대로 나온다. 마스크에 물어볼 수
+    // 없으므로 따로 가려낸다. 어떻게 다룰지는 아래 revealed 보정에 있다.
 #if UNITY_REVERSED_Z
     bool isSky = rawDepth <= 0.0;
 #else
@@ -83,7 +83,13 @@ void BB_FogOfWar_float(float2 ScreenUV, out float3 Color, out float Alpha)
 
     // 하드 클램프가 아니라 smoothstep이다. 딱 잘라내면 셀 격자의 다각형 윤곽이 드러난다.
     float revealed = smoothstep(0.5 - _BB_FogSoftness, 0.5 + _BB_FogSoftness, m);
-    if (isSky || outside) revealed = 0.0;
+    if (outside) revealed = 0.0;
+
+    // 하늘은 걷힌 것으로 둔다. 격자 밖(outside)은 걷힌 적 없는 '땅'이라 가려야 하지만,
+    // 하늘은 월드 위치가 없어 걷힘을 물을 수 없을 뿐 숨길 정보가 없다. 가리면 카메라를
+    // 드는 순간 화면이 통째로 안개색 벽이 되고, 그 앞에 캐릭터가 실루엣으로 남는다.
+    // outside로도 잡히므로 반드시 뒤에 둔다.
+    if (isSky) revealed = 1.0;
 
     Color = lerp(scene, _BB_FogColor.rgb, _BB_FogColor.a * (1.0 - revealed));
 }

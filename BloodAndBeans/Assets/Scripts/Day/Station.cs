@@ -134,6 +134,7 @@ public class Station : NetworkBehaviour, IItemHolder
         operatorCarry.SetServer(new HeldItem { HasDish = true, DishIsPlate = input.DishIsPlate,
             IsProduct = true, Ingredient = Ingredient.None, Recipe = recipe, Menu = Menus.Match(recipe),
             GaugeMultiplier = CompletionGauge.MultiplierOf(judgement), Burnt = judgement == Judgement.Burnt });
+        if (judgement != Judgement.Burnt) PlayerInteractor.ReportSuccessServer(operatorCarry.OwnerClientId, this);
         ReleaseServer();
     }
 

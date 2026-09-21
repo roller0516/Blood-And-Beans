@@ -96,6 +96,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         if (!IsServer || !Accepts(kind, CarryView.Of(carry.Held))) return;
         carry.SetServer(HeldItem.Of(Gives(kind)));
         carry.SetDishServer(true, kind == FacilityKind.Bread);
+        PlayerInteractor.ReportSuccessServer(carry.OwnerClientId, this);
     }
 
     void StartWashServer(ulong id, Cafe cafe, PlayerCarry carry)
@@ -140,6 +141,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         { ReleaseServer(); return; }
         if (NetworkManager.ServerTime.Time < completesAt) return;
         washing.SetServer(HeldItem.Dish(washing.Held.DishIsPlate));
+        PlayerInteractor.ReportSuccessServer(user, this);
         ReleaseServer();
     }
     public void OverheatServer(float seconds)

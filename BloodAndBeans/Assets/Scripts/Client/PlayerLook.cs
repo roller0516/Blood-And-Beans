@@ -15,6 +15,9 @@ public class PlayerLook : NetworkBehaviour
 
     [SerializeField] CharacterVisualConfig visuals;
     [SerializeField] Transform modelRoot;
+    [SerializeField] ParticleSystem interactionSuccessPrefab;
+    [SerializeField] Vector3 interactionSuccessOffset = new(0f, 0.25f, 0f);
+    PlayerInteractor interaction;
     PlayerCharacter character;
     GameObject model;
     CharacterModel appearance;
@@ -28,6 +31,8 @@ public class PlayerLook : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        interaction = GetComponent<PlayerInteractor>();
+        if (IsOwner && interaction != null) interaction.InteractionSucceeded += OnInteractionSucceeded;
         playerTeam.TeamChanged += Apply;
         character.CharacterChanged += SetCharacter;
         SetCharacter(character.Index);
@@ -36,10 +41,18 @@ public class PlayerLook : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
         flash?.Kill();
         flash = null;
         if (playerTeam != null) playerTeam.TeamChanged -= Apply;
         if (character != null) character.CharacterChanged -= SetCharacter;
+    }
+
+    void OnInteractionSucceeded(Vector3 position)
+    {
+        if (interactionSuccessPrefab == null) return;
+        var effect = Instantiate(interactionSuccessPrefab, position + interactionSuccessOffset, Quaternion.identity);
+        effect.Play(true);
     }
 
     /// 잠깐 다른 색으로 물들였다가 팀 색으로 되돌린다. 대시에 맞은 순간을 알리는 데 쓴다.

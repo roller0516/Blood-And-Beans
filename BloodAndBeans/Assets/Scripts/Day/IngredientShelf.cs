@@ -71,6 +71,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
                 product.Recipe = parts;
                 product.Menu = Menus.Match(parts);
                 pending.carry.SetServer(product);
+                PlayerInteractor.ReportSuccessServer(id, this);
             }
             CancelFinishServer(id);
         }
@@ -116,6 +117,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
             var replacement = HeldItem.Of(want);
             replacement.HasDish = true;
             carry.SetServer(replacement);
+            PlayerInteractor.ReportSuccessServer(clientId, this);
             return;
         }
 

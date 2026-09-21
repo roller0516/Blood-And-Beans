@@ -58,15 +58,15 @@ public sealed class NameDataTable : DataTableAsset
     /// 5.5 손님 종족 표. `Race` 열거자 순서와 같아야 한다.
     [System.NonSerialized] public string[] RaceNames = System.Array.Empty<string>();
 
-    public override string Category => "재료·종족";
-    public override string[] SheetNames => new[] { SheetIngredient, SheetRace };
+    protected override string DefaultCategory => "재료·종족";
+    protected override string[] DefaultSheetNames => new[] { SheetIngredient, SheetRace };
 
-    public override void ReadSheet(SheetTable sheet)
+    public override void ReadSheet(int index, SheetTable sheet)
     {
-        switch (sheet.Name)
+        switch (index)
         {
-            case SheetIngredient: sheet.Fill(ingredients, "ingredient"); break;
-            case SheetRace: sheet.Fill(races, "race"); break;
+            case 0: sheet.Fill(ingredients, "ingredient"); break;
+            case 1: sheet.Fill(races, "race"); break;
         }
     }
 

@@ -79,18 +79,19 @@ public sealed class EconomyDataTable : DataTableAsset
     /// 순서는 `Gauge` 열거자와 같다: Perfect·Good·Miss·Burnt (기획서 5.2).
     [System.NonSerialized] public float[] GaugeMultiplier = System.Array.Empty<float>();
 
-    public override string Category => "경제";
-    public override string[] SheetNames => new[] { SheetRent, SheetPenalty, SheetMenu, SheetGauge };
+    protected override string DefaultCategory => "경제";
+    protected override string[] DefaultSheetNames => new[] { SheetRent, SheetPenalty, SheetMenu, SheetGauge };
 
-    public override void ReadSheet(SheetTable sheet)
+    public override void ReadSheet(int index, SheetTable sheet)
     {
-        switch (sheet.Name)
+        // 번호는 `DefaultSheetNames`의 자리다: 0 임대료 · 1 페널티 · 2 메뉴 · 3 게이지.
+        switch (index)
         {
-            case SheetRent: sheet.Fill(rent, "day"); break;
-            case SheetPenalty: sheet.Fill(penalty, "tier"); break;
-            case SheetGauge: sheet.Fill(gauges, "gauge"); break;
+            case 0: sheet.Fill(rent, "day"); break;
+            case 1: sheet.Fill(penalty, "tier"); break;
+            case 3: sheet.Fill(gauges, "gauge"); break;
 
-            case SheetMenu:
+            case 2:
                 sheet.Fill(menus, "menu");
 
                 // 조합이 실제 재료 이름인지 읽는 시점에 본다. 부팅 때 터지면 누가 오타를 냈는지 남지 않는다.

@@ -96,6 +96,12 @@ public sealed class DataTableWindow : EditorWindow
 
         GUILayout.FlexibleSpace();
 
+        if (GUILayout.Button("새 탭", EditorStyles.toolbarButton, GUILayout.Width(48f)))
+        {
+            NewDataTableWindow.Open();
+            GUIUtility.ExitGUI();
+        }
+
         // `DataTableAsset`을 상속한 클래스를 새로 쓰면 이걸 눌러 탭으로 끌어온다.
         // 기존 탭의 순서와 내용은 건드리지 않는다.
         if (GUILayout.Button("탭 새로 고침", EditorStyles.toolbarButton, GUILayout.Width(84f)))

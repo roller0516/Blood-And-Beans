@@ -38,10 +38,10 @@ public sealed class GemDataTable : DataTableAsset
     [System.NonSerialized] public Ingredient[] Items = System.Array.Empty<Ingredient>();
 
     public IReadOnlyList<Row> Rows => rows;
-    public override string Category => "보석";
-    public override string[] SheetNames => new[] { SheetGem };
+    protected override string DefaultCategory => "보석";
+    protected override string[] DefaultSheetNames => new[] { SheetGem };
 
-    public override void ReadSheet(SheetTable sheet) => sheet.Fill(rows, "gem");
+    public override void ReadSheet(int index, SheetTable sheet) => sheet.Fill(rows, "gem");
 
     /// 행을 열거자 순서 배열로 편다. 행이 없으면 빈 배열로 남는다.
     public override void Rebuild()

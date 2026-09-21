@@ -30,15 +30,16 @@ public class FogOfWar : NetworkBehaviour
 
     /// 격자 규격. 걷힌 칸 집합이 이미 프로세스 하나를 쓰므로 규격도 하나여야 같은 월드
     /// 좌표가 같은 칸으로 떨어진다. 모든 플레이어가 같은 프리팹이라 값도 같다.
-    /// 인스턴스가 깨어날 때 자기 직렬화 값을 심고, 로컬 플레이어 없이 묻는 쪽이 이걸 쓴다.
+    /// 규격을 정하는 것은 `ApplyGrid` 하나뿐이고, 로컬 플레이어 없이 묻는 쪽이 이걸 쓴다.
     static float sharedCellSize = 1f;
-    static int sharedHalfCells = 120;
+    static int sharedHalfCells = FallbackHalfCells;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
     static void ResetShared()
     {
         Revealed.Clear();
         Changed = null;
+        sharedHalfCells = FallbackHalfCells;
     }
 
     /// 이번 샘플에서 새로 열린 칸. 매번 배열을 새로 만들지 않고 재사용한다.
@@ -49,7 +50,7 @@ public class FogOfWar : NetworkBehaviour
     MatchDirector director;
 
     /// 시야 공개 규칙이 바뀔 때마다 올린다. 낡은 스냅샷을 덮어쓰지 않기 위한 값이다.
-    public const int GuardVersion = 3;
+    public const int GuardVersion = 4;
 
     public int TeamId => playerTeam != null ? playerTeam.Team : -1;
     public int Side => halfCells * 2;
@@ -78,7 +79,10 @@ public class FogOfWar : NetworkBehaviour
     {
         playerTeam = GetComponent<PlayerTeam>();
         sharedCellSize = cellSize;
-        sharedHalfCells = halfCells;
+
+        // 이미 정해진 격자를 물려받는다. 자기 초깃값을 공용 규격에 심으면 나중에 스폰한
+        // 인스턴스가 규격을 되돌려 놓는다.
+        halfCells = sharedHalfCells;
     }
 
     /// 격자를 숲에 맞춘다. **숲만 덮는다** — 안개는 밤 전용이고(기획서 6.1) 카페는
@@ -90,9 +94,12 @@ public class FogOfWar : NetworkBehaviour
     {
         var reach = Mathf.Max(forestSize.x, forestSize.y) * 0.5f + revealRadius;
         var half = Mathf.Max(1, Mathf.CeilToInt(reach / Mathf.Max(0.01f, cellSize)));
-        if (half == halfCells) return;
-
         halfCells = half;
+
+        // 규격이 실제로 바뀐 경우에만 비운다. 인스턴스 필드로 판단하면 갓 스폰한 인스턴스는
+        // 항상 처음 보는 값이라, 플레이어가 합류할 때마다 이미 걷힌 칸이 전부 날아간다.
+        if (half == sharedHalfCells) return;
+
         sharedHalfCells = half;
         sharedCellSize = cellSize;
 

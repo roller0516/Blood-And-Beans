@@ -78,8 +78,12 @@ public static class DataTableImporter
         var errors = new List<string>();
         var read = 0;
 
-        foreach (var sheetName in target.SheetNames)
+        // 시트 이름은 애셋이 들고 있다. 자리 번호를 그대로 넘겨야 이름을 바꿔도
+        // `ReadSheet`가 같은 표를 읽는다.
+        var names = target.SheetNames;
+        for (var index = 0; index < names.Length; index++)
         {
+            var sheetName = names[index];
             if (!book.TryGetValue(sheetName, out var raw))
             {
                 errors.Add($"[{target.Category}] 시트 '{sheetName}'이(가) 엑셀에 없다.");
@@ -93,7 +97,7 @@ public static class DataTableImporter
                 continue;
             }
 
-            scratch.ReadSheet(sheet);
+            scratch.ReadSheet(index, sheet);
             read++;
         }
 
@@ -104,12 +108,32 @@ public static class DataTableImporter
             return false;
         }
 
+        // 임시 인스턴스에는 사람이 고친 탭·시트 이름이 없다. 그대로 덮으면 임포트할
+        // 때마다 이름이 기본값으로 되돌아간다.
+        CarryNames(target, scratch);
+
         EditorUtility.CopySerialized(scratch, target);
         EditorUtility.SetDirty(target);
         Object.DestroyImmediate(scratch);
 
         report.Notes.Add($"[{target.Category}] 시트 {read}장을 읽었다.");
         return true;
+    }
+
+    /// 사람이 고친 탭 이름과 시트 이름을 임시 인스턴스로 옮긴다. 직렬화 필드라
+    /// `SerializedObject`로 베낀다 — 기반 클래스의 private 필드다.
+    static void CarryNames(DataTableAsset from, DataTableAsset to)
+    {
+        var source = new SerializedObject(from);
+        var destination = new SerializedObject(to);
+
+        foreach (var name in new[] { "category", "sheetNames" })
+        {
+            var a = source.FindProperty(name);
+            var b = destination.FindProperty(name);
+            if (a != null && b != null) destination.CopyFromSerializedProperty(a);
+        }
+        destination.ApplyModifiedPropertiesWithoutUndo();
     }
 
     /// 첫 번째 비어 있지 않은 행을 머리글로 본다. 열 이름은 대소문자를 가리지 않는다.

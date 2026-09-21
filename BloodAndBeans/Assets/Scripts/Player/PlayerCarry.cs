@@ -100,6 +100,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         var item = held;
         SetServer(other.Held);
         other.SetServer(item);
+        if (!item.Empty || !held.Empty) PlayerInteractor.ReportSuccessServer(sender, this);
     }
 
     void PublishTeamServer()

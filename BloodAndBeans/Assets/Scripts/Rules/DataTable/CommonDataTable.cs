@@ -134,11 +134,11 @@ public sealed class CommonDataTable : DataTableAsset
 
     // --- 임포트 ---
 
-    public override string Category => "공통 수치";
-    public override string[] SheetNames => new[] { SheetScalars };
+    protected override string DefaultCategory => "공통 수치";
+    protected override string[] DefaultSheetNames => new[] { SheetScalars };
 
     /// 시트에 있는 키를 읽어 같은 이름의 필드에 넣는다. 빠진 키는 0으로 남는다.
-    public override void ReadSheet(SheetTable sheet)
+    public override void ReadSheet(int index, SheetTable sheet)
     {
         for (var i = 0; i < sheet.Count; i++)
         {
