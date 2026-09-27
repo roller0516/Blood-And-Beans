@@ -1,0 +1,15 @@
+# Return Portal — 이미지 생성 프롬프트
+
+방식: 내장 image_gen, 신규 텍스처 생성. 자동 투명 배경 처리의 잡티가 있는 초기 결과는 제외하고 아래 검정 바탕 발광 마스크 3종만 납품했다.
+
+## ReturnSigil.png
+
+Game production emission mask texture. SQUARE image. Pure SOLID BLACK background RGB 0,0,0 everywhere outside the drawn WHITE lines. Perfect orthographic TOP DOWN circular magic sigil. Flat 2D technical decal artwork, no perspective, no props, no rendered environment, no text. Two thin hand-drawn concentric WHITE circles, centered, outer radius 40% of image width, inner radius 36%, line weight 0.6% of image width with mild hand drawn chalk edges but no speckles away from lines. In center one HOLLOW four-point softly rounded diamond star drawn white with black interior and four small dots around it. Six simple cute white outlined icons evenly around a circle of radius 24%: moon at 12 o'clock; spiral at 2; two-leaf sprout at 4; teardrop at 6; sun at 8; little four-point star at 10. White strokes only, black interiors and black empty space. Clean consistent stroke weight, NO gray fog, NO gradients outside lines, NO shadow, NO glow, NO highlights, NO additional details. Preserve black padding at least 8% all edges, no cropping. Crisp antialiased artwork ready for a Unity additive emissive material where black disappears and white emits tinted light. Cute witch motif. Only this single texture, not a sheet or diagram.
+
+## ReturnStar.png
+
+Production game VFX PARTICLE texture for a cute 3D ghost game. ONE single centered small four-point rounded sparkle/star silhouette, ivory white monochrome on perfectly uniform pure BLACK background. Square image. Star occupies middle 50% of canvas, equal horizontal and vertical points, softly curved concave sides, slightly rounded tips, solid luminous white center, very subtle soft falloff immediately around shape, outer 20% margins are absolutely pure black. No additional stars, no scenery, no text, no lens flare, no streaks, no circular ring, no noise. Simple clean readable low frequency shape suitable to tint lavender or mint in an additive Unity particle shader. Not transparent output; black is an intentional additive mask background.
+
+## ReturnMist.png
+
+A single square production game VFX fog puff sprite texture, grayscale on perfectly pure black background. Only ONE isolated small stylized magical smoke wisp, centered within middle 65% of canvas. Soft plump curling S-shaped cloud of translucent gray and white vapor, friendly rounded scalloped lobes, diffuse soft gradient opacity into black, gentle airy internal structure, no sharply outlined contours, no photoreal detailed smoke turbulence. Low contrast midgray main body with sparse white highlights, suitable for tinting pastel purple in a Unity additive particle effect. All outer 15% margins strictly solid pure black, no cut off smoke, no background haze. No stars, no circles, no ground, no flames, no scenery, no text, no diagram. Flat image texture for a camera facing billboard, not 3D environment concept. One single cohesive mist puff with beautifully soft edges that fade completely to black.
