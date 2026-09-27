@@ -1,3 +1,5 @@
+using System.Threading;
+using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -65,6 +67,12 @@ public class PlayerAbilities : NetworkBehaviour
     IDayAbility day;
     INightAbility night;
 
+    /// 지속 슬롯 한 번의 "생애"를 묶는 토큰. 슬롯이 바뀔 때마다(재발동·연장·페이즈 리셋·
+    /// 캐릭터 교체) 갈아 끼운다 — 이전 생애에 걸린 비동기 대기(`ShortcutAbility.PassThroughAsync`
+    /// 등)가 새 생애의 상태를 건드리지 않게 끊는 자리다. 능력별로 따로 두지 않는 이유는
+    /// 슬롯 자체가 라우터 하나에 하나뿐이라서다 (`durationUntil`).
+    CancellationTokenSource durationCts;
+
     /// 픽과 무관하므로 `Rebuild`가 건드리지 않는다. 한 번 만들고 끝이다.
     readonly ICommonAbility common = new DashAbility();
 
@@ -116,6 +124,15 @@ public class PlayerAbilities : NetworkBehaviour
     public float DurationRemaining => IsSpawned
         ? Mathf.Max(0f, (float)(durationUntil.Value - ServerTime)) : 0f;
 
+    /// 지금 지속 슬롯 생애에 묶인 취소 토큰. 지속 능력의 비동기 대기(`UniTask.Delay` 등)는
+    /// 이것을 받아야 다음 슬롯 변화가 자기를 대신 끊어 줄 수 있다.
+    public CancellationToken DurationToken => durationCts?.Token ?? default;
+
+    /// 지금 켜져 있는 지속 능력이 미는 이동 배수. 없거나 꺼져 있으면 1이다.
+    /// `PlayerCharacter`는 이 값만 읽는다 — 어떤 능력이 활공인지는 몰라도 된다.
+    public float DurationMoveSpeedScale =>
+        day is IDurationAbility duration && DurationRemaining > 0f ? duration.MoveSpeedScale : 1f;
+
     public void SetDurationServer(float seconds)
     {
         if (IsServer) durationUntil.Value = ServerTime + seconds;
@@ -157,6 +174,14 @@ public class PlayerAbilities : NetworkBehaviour
 
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
+
+        // 디스폰(재사용 포함)도 지속 생애의 끝이다 — 물리 되돌리기 같은 동기 정리가
+        // 파괴 없이도 반드시 돌아야 한다 (`ShortcutAbility.OnDurationChanged`).
+        if (day is IDurationAbility duration) duration.OnDurationChanged(this, 0d);
+        durationCts?.Cancel();
+        durationCts?.Dispose();
+        durationCts = null;
+
         AttachedChanged?.Invoke(EffectId.None, 0f);
     }
 
@@ -164,8 +189,14 @@ public class PlayerAbilities : NetworkBehaviour
 
     /// 픽에 맞는 능력을 다시 만든다. **모든 피어에서 돈다** — 지름길처럼 클라이언트에서도
     /// 반응해야 하는 능력이 있어서, 남의 화면에도 그 사람의 능력 객체가 있어야 한다.
+    ///
+    /// 이전 능력을 그냥 버리지 않는다. 아직 지속 중이었다면(개발 치트로 캐릭터를 바꾸는
+    /// 경우 등) `durationUntil` 슬롯 값은 그대로 남아 새 능력에 그대로 전달되므로, 이전
+    /// 능력에게 먼저 "지금 끝났다"를 동기로 알려 자기 몫(물리 되돌리기 등)을 정리하게 한다.
     void Rebuild()
     {
+        if (day is IDurationAbility oldDuration) oldDuration.OnDurationChanged(this, 0d);
+
         day = character.HasPick ? AbilityFactory.Day(character.DaySkill) : null;
         night = character.HasPick ? AbilityFactory.Night(character.Skill) : null;
         OnDuration(0d, durationUntil.Value);
@@ -194,8 +225,16 @@ public class PlayerAbilities : NetworkBehaviour
     }
 
     /// 지속 슬롯이 바뀌었다. 능력에 넘기고, 붙는 연출은 화면에 알린다.
+    ///
+    /// 매번 토큰을 새로 간다. 재발동·연장으로 슬롯이 다시 바뀌면 이전 생애에 걸린
+    /// 비동기 대기(`ShortcutAbility.PassThroughAsync`)가 취소되어 자기 몫의 되돌리기를
+    /// 하지 않는다 — 지금 불리는 `OnDurationChanged`가 새 생애의 상태를 확정한다.
     void OnDuration(double _, double until)
     {
+        durationCts?.Cancel();
+        durationCts?.Dispose();
+        durationCts = CancellationTokenSource.CreateLinkedTokenSource(this.GetCancellationTokenOnDestroy());
+
         if (day is IDurationAbility duration)
         {
             duration.OnDurationChanged(this, until);

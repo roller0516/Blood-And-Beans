@@ -11,7 +11,7 @@ using UnityEngine;
 /// 아이템을 총합 숫자가 아니라 개별로 추적한다. 기획서 6.6이 적재분의 일부를 주울 수 있는
 /// 더미로 바닥에 흘리게 하는데, 기록하지 않은 것은 흘릴 수 없기 때문이다.
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerMove))]
+[RequireComponent(typeof(PlayerController))]
 public class PlayerInventory : NetworkBehaviour
 {
     [SerializeField] ItemBox pilePrefab;
@@ -52,13 +52,13 @@ public class PlayerInventory : NetworkBehaviour
 
     // 무게가 바뀔 때마다 속도 배수를 여기로 민다. 이동이 매 프레임 원장을 뒤지지 않게
     // 하기 위해서다 - 무게는 재료를 담고 버릴 때만 바뀌지 프레임마다 바뀌지 않는다.
-    PlayerMove move;
+    PlayerController move;
 
     void Awake()
     {
         controller = GetComponent<CharacterController>();
         team = GetComponent<PlayerTeam>();
-        move = GetComponent<PlayerMove>();
+        move = GetComponent<PlayerController>();
     }
 
     // 스폰 시점에는 매치 씬이 아직 없다. 직접 캐시하면 null로 굳어 임대료 페널티의
@@ -191,7 +191,7 @@ public class PlayerInventory : NetworkBehaviour
     ///
     /// **서버에서만 옳은 값이다.** 원장(`TeamLedger`)은 복제되지 않아 클라이언트에서는
     /// 밴드가 안 옮겨진 값이 나온다. 그래서 밖으로 열지 않는다 — 화면에 쓸 값은 복제되는
-    /// `PlayerMove.SpeedScale`이다.
+    /// `PlayerController.SpeedScale`이다.
     float CurrentSpeedMultiplier
     {
         get
@@ -258,7 +258,7 @@ public class PlayerInventory : NetworkBehaviour
     /// 쏟아진 것을 임시 상자로 만든다. 상자 하나는 *종류* 5개까지라서 종류가 넘치면
     /// 여러 개로 쪼개진다 (12종류 → 5/5/2).
     ///
-    /// 평면 탑다운이라 중력이 없어(PlayerMove) 스폰 높이가 곧 최종 높이다. 플레이어 위치는
+    /// 평면 탑다운이라 중력이 없어(PlayerController) 스폰 높이가 곧 최종 높이다. 플레이어 위치는
     /// 캡슐 *중심*이므로 그대로 쓰면 더미가 가슴 높이에 뜬 채 영영 내려오지 않는다.
     /// 발밑 높이와 더미 반높이를 둘 다 실제 콜라이더에서 읽는다 — 손으로 맞춘 상수는
     /// 캡슐이나 프리팹 크기를 바꾸는 순간 조용히 어긋난다.
@@ -291,7 +291,7 @@ public class PlayerInventory : NetworkBehaviour
     }
 
     /// 발이 실제로 닿는 높이. 캡슐 바닥에서 `skinWidth`를 더 뺀다 — CharacterController는
-    /// 늘 그만큼 떠서 서고(`PlayerMove.OnNetworkSpawn`이 접지 높이에 더해 주는 값과 같은
+    /// 늘 그만큼 떠서 서고(`PlayerController.OnNetworkSpawn`이 접지 높이에 더해 주는 값과 같은
     /// 것이다), 그 여유분을 빼지 않으면 바닥에 놓는 물건이 전부 8cm 떠 보인다.
     float FeetY(Vector3 at) =>
         at.y - (controller.height * 0.5f - controller.center.y) - controller.skinWidth;
@@ -339,7 +339,7 @@ public class PlayerInventory : NetworkBehaviour
 
         var body = bag.GetComponent<Collider>();
         if (body == null)
-            // 콜라이더가 없으면 `PlayerInteractor`의 트리거 후보에 잡히지 않아 아무도 회수도
+            // 콜라이더가 없으면 `PlayerController`의 트리거 후보에 잡히지 않아 아무도 회수도
             // 소각도 할 수 없고, 접지 보정도 걸리지 않아 가슴 높이에 뜬 채로 남는다.
             Debug.LogError($"{buriedBagPrefab.name}에 Collider가 없다. 가방을 찾을 수도 "
                          + "바닥에 맞출 수도 없다.", buriedBagPrefab);

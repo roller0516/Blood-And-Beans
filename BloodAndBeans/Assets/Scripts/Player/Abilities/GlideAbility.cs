@@ -9,6 +9,9 @@ public sealed class GlideAbility : IDayAbility, IDurationAbility
     /// 켜져 있는 동안 캐릭터에 붙는다. 화면은 이 값만 보고 그린다.
     public EffectId AttachedEffect => EffectId.Glide;
 
+    /// `PlayerCharacter.PushPassiveScaleServer`가 이 값을 보석·페널티와 같은 축에 곱한다.
+    public float MoveSpeedScale => DaySkills.GlideSpeed;
+
     public bool TryCastServer(PlayerAbilities host)
     {
         host.SetDurationServer(DaySkills.GlideSeconds);

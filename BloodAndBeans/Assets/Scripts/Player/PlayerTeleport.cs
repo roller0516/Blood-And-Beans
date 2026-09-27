@@ -28,7 +28,7 @@ public static class PlayerTeleport
         // 접지 높이도 목적지에 맞춘다. 목적지 y는 캡슐 바닥이 지면에 닿는 높이라
         // (`MatchDirector.spawnHeight`) 그대로 넘긴다. 빠뜨리면 `PinToGround`가 옛
         // 높이로 도로 끌어내려 캡슐이 지면에 박히고 걷지 못한다.
-        var move = player.GetComponent<PlayerMove>();
+        var move = player.GetComponent<PlayerController>();
         if (move != null) move.RebaseGroundServer(destination.y);
     }
 }

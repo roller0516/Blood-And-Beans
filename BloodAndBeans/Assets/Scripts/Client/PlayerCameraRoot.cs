@@ -5,14 +5,14 @@ using UnityEngine;
 ///
 /// **플레이어의 자식이라 위치는 부모가 준다. 여기서 정하는 것은 회전뿐이다.**
 /// `CinemachineThirdPersonFollow`가 Follow 대상의 회전을 그대로 쓰는데, 캐릭터 몸은
-/// 이동 방향으로 돌아가므로(`PlayerMove.StepMove`) 몸과 분리된 축이 있어야 마우스가
+/// 이동 방향으로 돌아가므로(`PlayerController.StepMove`) 몸과 분리된 축이 있어야 마우스가
 /// 개입할 자리가 생긴다. 이 축 없이 몸을 직접 따르게 하면 원을 그리며 걷는 것만으로
 /// 시야가 통째로 360° 돈다 (실측: 몸 359° → 카메라 359°).
 ///
 /// **`ThirdPersonController`를 통째로 쓰지 않는 이유는 그 클래스가 이동까지 소유하기
 /// 때문이다.** 중력·점프·접지를 클라이언트에서 굴리며 매 프레임 `CharacterController.Move`를
 /// 부른다. 이 프로젝트의 이동은 서버 권위 + 소유자 예측이고 중력이 없다
-/// (`PlayerMove`, `PlayerPrediction`). 둘을 같이 붙이면 권위가 깨진다.
+/// (`PlayerController`, `PlayerPrediction`). 둘을 같이 붙이면 권위가 깨진다.
 public class PlayerCameraRoot : MonoBehaviour
 {
     [Header("Cinemachine")]
@@ -56,9 +56,12 @@ public class PlayerCameraRoot : MonoBehaviour
     /// 감도 배수. `LookSensitivity`가 설정 팝업의 값을 넣는다.
     public float Sensitivity { private get; set; } = 1f;
 
-    /// `CinemachineBrain`이 평범한 `LateUpdate`로 돌기 때문에 순서가 미정이다. Starter
-    /// Assets도 `LateUpdate`에서 축을 돌리고, 카메라가 한 프레임 늦지 않게 앞세운다.
-    void LateUpdate()
+    /// 입력을 읽고 바로 이어서 부른다 (`PlayerInputRouter.LateUpdate`). 예전에는 이쪽도
+    /// 독립된 `LateUpdate`였는데, 두 스크립트 모두 기본 실행 순서(0)라 어느 쪽이 먼저
+    /// 도는지가 Script Execution Order 설정 없이는 정해져 있지 않았다 — 입력을 읽기 전에
+    /// 이 메서드가 먼저 돌면 이번 프레임의 마우스 델타가 한 프레임 늦게 반영된다.
+    /// 호출 순서를 코드로 못박아 그 미정 상태를 없앤다.
+    public void ApplyLook()
     {
         if (Look.sqrMagnitude >= Threshold && !lockCameraPosition)
         {

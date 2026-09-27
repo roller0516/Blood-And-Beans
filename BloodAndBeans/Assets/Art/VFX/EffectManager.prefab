@@ -46,22 +46,67 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::EffectManager
   effects:
   - id: 1
-    prefab: {fileID: 5157689758929775089, guid: 30461abdd58bce745aa35ba37649617c, type: 3}
+    prefab:
+      m_AssetGUID: 30461abdd58bce745aa35ba37649617c
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 0.35, z: 0}
+    common: 0
   - id: 2
-    prefab: {fileID: 1503707924463088756, guid: 26a7ae34adee1e54faf621da7e105274, type: 3}
+    prefab:
+      m_AssetGUID: 26a7ae34adee1e54faf621da7e105274
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 1.25, z: 0}
+    common: 0
   - id: 3
-    prefab: {fileID: 8297056228663246114, guid: 7d6a1fd64d3ed1d44bc5b14c6400ed96, type: 3}
+    prefab:
+      m_AssetGUID: 7d6a1fd64d3ed1d44bc5b14c6400ed96
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 0.3, z: 0}
+    common: 0
   - id: 4
-    prefab: {fileID: 6474094091597940334, guid: 415a5e305cad6e149a07516ef2048309, type: 3}
+    prefab:
+      m_AssetGUID: 415a5e305cad6e149a07516ef2048309
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 1, z: 0}
+    common: 0
   - id: 5
-    prefab: {fileID: 4045632256721089961, guid: 96149ab01d82a2242a2b9c71b6515512, type: 3}
+    prefab:
+      m_AssetGUID: 96149ab01d82a2242a2b9c71b6515512
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 0, z: 0}
+    common: 1
   - id: 6
-    prefab: {fileID: 4045632256721089961, guid: 96149ab01d82a2242a2b9c71b6515512, type: 3}
+    prefab:
+      m_AssetGUID: 96149ab01d82a2242a2b9c71b6515512
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
     offset: {x: 0, y: 0, z: 0}
+    common: 1
+  - id: 7
+    prefab:
+      m_AssetGUID: 41f0fbcd66cb95d4fbe5f5ee115957a6
+      m_SubObjectName: 
+      m_SubObjectType: 
+      m_SubObjectGUID: 
+      m_EditorAssetChanged: 0
+    offset: {x: 0, y: 0.25, z: 0}
+    common: 1
   pooledRoot: {fileID: 0}
   maxPerEffect: 32

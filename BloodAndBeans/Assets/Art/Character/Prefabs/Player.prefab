@@ -216,7 +216,6 @@ GameObject:
   - component: {fileID: 4225553875665941865}
   - component: {fileID: 1092595136061739291}
   - component: {fileID: 6020912487185502116}
-  - component: {fileID: 317460177401695879}
   m_Layer: 0
   m_Name: PublicCarry
   m_TagString: Untagged
@@ -296,24 +295,6 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &317460177401695879
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5417230884057719830}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 932c62fb17afe034ea5b42e3fc9ac1d3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::PublicCarryDisplay
-  carry: {fileID: 5060293335489257787}
-  team: {fileID: 4876331868302406554}
-  marker: {fileID: 6020912487185502116}
-  heldColor: {r: 1, g: 1, b: 1, a: 1}
-  dirtyColor: {r: 0.35, g: 0.2, b: 0.1, a: 1}
-  bloodColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &5802453645333725654
 GameObject:
   m_ObjectHideFlags: 0
@@ -483,25 +464,20 @@ GameObject:
   - component: {fileID: 8374750145169602147}
   - component: {fileID: 6835204725999633693}
   - component: {fileID: 6026915820970784790}
-  - component: {fileID: 2236160023173509838}
   - component: {fileID: 6295418847097128530}
   - component: {fileID: 4876331868302406554}
   - component: {fileID: 4876331868302406599}
   - component: {fileID: 5060293335489257787}
-  - component: {fileID: 4087693819235463549}
   - component: {fileID: 4155380886152589696}
   - component: {fileID: 3674279770719861696}
   - component: {fileID: 1579173108738745375}
   - component: {fileID: 2123157177272441995}
-  - component: {fileID: 6501194065979185811}
   - component: {fileID: 2165227626761312326}
-  - component: {fileID: 5691773687724022461}
-  - component: {fileID: 7384362903298434648}
   - component: {fileID: -845965204426128254}
   - component: {fileID: 6224595453703911500}
   - component: {fileID: 3221928316169824223}
   - component: {fileID: 6693623989727940868}
-  - component: {fileID: 675469531782669939}
+  - component: {fileID: 965033098571953602}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -632,19 +608,6 @@ MonoBehaviour:
   pilePrefab: {fileID: 4209126486982702748, guid: 6114f4e0a76d11344ade99e290dbdc8d, type: 3}
   buriedBagPrefab: {fileID: 7637260236126393840, guid: 98b9ec48a6968974396952141a318dad, type: 3}
   pileSpacing: 1.2
---- !u!114 &2236160023173509838
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8fabed04d8512ad42914bffa313f7f99, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::PlayerInteract
-  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!114 &6295418847097128530
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -709,19 +672,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef273efb98e6a2947a8a555b9094a845, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Game::PlayerCarry
-  ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &4087693819235463549
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 513c6f3bb66f4f9d9aec917e44633377, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Game::PlayerInteractor
   ShowTopMostFoldoutHeaderGroup: 1
 --- !u!114 &4155380886152589696
 MonoBehaviour:
@@ -811,24 +761,6 @@ CharacterController:
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &6501194065979185811
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 399ba941154768a4ca7ac837ef083477, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::PlayerLook
-  ShowTopMostFoldoutHeaderGroup: 1
-  tintStrength: 1
-  visuals: {fileID: 11400000, guid: 5dd83ea862961f441831ecd30da301ec, type: 2}
-  modelRoot: {fileID: 7051559851510125875}
-  interactionSuccessPrefab: {fileID: 7684562338020893098, guid: 41f0fbcd66cb95d4fbe5f5ee115957a6, type: 3}
-  interactionSuccessOffset: {x: 0, y: 0.25, z: 0}
 --- !u!114 &2165227626761312326
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -846,45 +778,6 @@ MonoBehaviour:
   snapDistance: 2
   correctionRate: 12
   historySeconds: 1
---- !u!114 &5691773687724022461
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7db9e91aee1d4c242b6b960f6724b727, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::DashVisuals
-  trail: {fileID: 2996048368405250492}
-  look: {fileID: 6501194065979185811}
-  hitFlash: {r: 1, g: 1, b: 1, a: 1}
-  spillFlash: {r: 1, g: 0.65, b: 0.15, a: 1}
-  flashSeconds: 0.16
-  impactScale: 1
-  impulse: {fileID: 4624483277839359458}
-  shakeOnLand: 0.1
-  shakeOnTaken: 0.28
-  shakeOnSpill: 0.45
---- !u!114 &7384362903298434648
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 722e96e6d0eaa754ea965f2bddb1d4fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::ItemDisplay
-  config: {fileID: 11400000, guid: 14d50ef31c03c2449a41ded492084163, type: 2}
-  anchors:
-  - {fileID: 2298349785634591165}
-  highlightScale: 1.4
-  highlightOffset: {x: 0, y: 0.1, z: 0}
 --- !u!114 &-845965204426128254
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -946,7 +839,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   decoyBoxPrefab: {fileID: 2242796622637705624, guid: 36718396aeaa0fb4cb84c7d174d860bf, type: 3}
   decoyBagPrefab: {fileID: 7637260236126393840, guid: 98b9ec48a6968974396952141a318dad, type: 3}
---- !u!114 &675469531782669939
+--- !u!114 &965033098571953602
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -955,6 +848,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 8382456007198119544}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 277027a27cf38e34287f96ec51bfa72e, type: 3}
+  m_Script: {fileID: 11500000, guid: 0062d05553dd0c9488c5351bbe0af7fc, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BB.Client::PlayerEffects
+  m_EditorClassIdentifier: BB.Client::PlayerVisuals
+  ShowTopMostFoldoutHeaderGroup: 1
+  tintStrength: 1
+  characterVisuals: {fileID: 11400000, guid: 5dd83ea862961f441831ecd30da301ec, type: 2}
+  modelRoot: {fileID: 7051559851510125875}
+  feedback: {fileID: 11400000, guid: a93af15ed95962f44b31fe1ef8695725, type: 2}
+  trail: {fileID: 2996048368405250492}
+  impulse: {fileID: 4624483277839359458}
+  itemVisuals: {fileID: 11400000, guid: 14d50ef31c03c2449a41ded492084163, type: 2}
+  itemAnchors:
+  - {fileID: 2298349785634591165}
+  itemHighlightScale: 1.4
+  itemHighlightOffset: {x: 0, y: 0.1, z: 0}
+  publicMarker: {fileID: 6020912487185502116}
+  publicHeldColor: {r: 1, g: 1, b: 1, a: 1}
+  publicDirtyColor: {r: 0.35, g: 0.2, b: 0.1, a: 1}
+  publicBloodColor: {r: 1, g: 0, b: 0, a: 1}

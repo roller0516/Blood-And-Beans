@@ -77,7 +77,7 @@ public sealed class UIBoxLootPopup : UIPopup
     /// 지금 그리는 그리드. 상자일 수도 재료 칸일 수도 있다 (기획서 6.5.4).
     ILootGrid source;
 
-    /// 칸을 눌렀을 때 부를 곳. 상자는 소유자 검증을 받는 `PlayerInteract`를 거치고
+    /// 칸을 눌렀을 때 부를 곳. 상자는 소유자 검증을 받는 `PlayerController`를 거치고
     /// 재료 칸은 자기 RPC로 보내므로, 어디로 갈지는 창을 여는 쪽이 정한다.
     Action<int> take;
 

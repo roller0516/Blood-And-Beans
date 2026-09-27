@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 51570edaa53b1ab41a6d948f6f48b405, type: 3}
+  m_Name: PlayerFeedbackConfig
+  m_EditorClassIdentifier: BB.Client::PlayerFeedbackConfig
+  hitFlash: {r: 1, g: 1, b: 1, a: 1}
+  spillFlash: {r: 1, g: 0.65, b: 0.15, a: 1}
+  flashSeconds: 0.16
+  impactScale: 1
+  shakeOnLand: 0.1
+  shakeOnTaken: 0.28
+  shakeOnSpill: 0.45

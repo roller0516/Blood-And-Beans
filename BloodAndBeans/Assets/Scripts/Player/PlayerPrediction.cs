@@ -16,7 +16,7 @@ using UnityEngine;
 /// 지연이 크거나 벽·설비에 계속 부딪히는 상황에서는 교정이 눈에 보인다. 필요해지면
 /// 입력에 틱을 붙여 서버가 틱 단위로 적용하고 소유자가 되감아 재생하는 방식으로 올린다.
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerMove))]
+[RequireComponent(typeof(PlayerController))]
 public class PlayerPrediction : NetworkBehaviour
 {
     /// 이 값보다 작은 차이는 무시한다. 서버와 소유자의 프레임 간격이 달라 생기는 자잘한
@@ -35,7 +35,7 @@ public class PlayerPrediction : NetworkBehaviour
     [SerializeField] float historySeconds = 1f;
 
     CharacterController controller;
-    PlayerMove move;
+    PlayerController move;
     PredictionHistory history;
     Vector3 error;
 
@@ -46,7 +46,7 @@ public class PlayerPrediction : NetworkBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        move = GetComponent<PlayerMove>();
+        move = GetComponent<PlayerController>();
     }
 
     public override void OnNetworkSpawn()
@@ -100,7 +100,7 @@ public class PlayerPrediction : NetworkBehaviour
         }
 
         var diff = serverPosition - predicted;
-        diff.y = 0f;                    // 평면 탑다운이라 y는 아무도 움직이지 않는다 (PlayerMove)
+        diff.y = 0f;                    // 평면 탑다운이라 y는 아무도 움직이지 않는다 (PlayerController)
 
         // 순간이동은 절대 위치로 맞춘다. 여기서 델타(transform.position + diff)를 더하면
         // 현재 위치가 예측과 어긋나 있던 만큼이 그대로 남아, 페이즈 전환마다 오차가
@@ -126,7 +126,7 @@ public class PlayerPrediction : NetworkBehaviour
         controller.Move(step);
 
         // Move는 겹침을 풀며 y를 올린다. 여기서 되돌리지 않으면 다음 Update의 StepMove가
-        // 내릴 때까지 남고, 그 사이에 도는 카메라가 그 y를 읽는다 (PlayerMove.PinToGround).
+        // 내릴 때까지 남고, 그 사이에 도는 카메라가 그 y를 읽는다 (PlayerController.PinToGround).
         move.PinToGround();
 
         error -= step;

@@ -81,7 +81,7 @@ public class ItemBoxView : MonoBehaviour
     ///
     /// 위치 보정이 필요한 이유는 원점 규약이 달라서다. Unity 기본 Cube는 원점이 중심이지만
     /// Kenney 모델은 밑동이다(`box`는 y가 0~0.25). 상자 루트의 원점은 상자 *중심*이므로,
-    /// 메시를 그대로 붙이면 반 높이만큼 공중에 뜬다. 중력이 없어서(PlayerMove) 한번 뜨면
+    /// 메시를 그대로 붙이면 반 높이만큼 공중에 뜬다. 중력이 없어서(PlayerController) 한번 뜨면
     /// 스스로 내려오지 않는다.
     void Normalise(Mesh mesh)
     {
@@ -172,7 +172,7 @@ public class ItemBoxView : MonoBehaviour
     /// 지나갈 때도 켜져서, 테두리가 적의 위치를 알려 주는 신호가 된다.
     static bool IsLocalPlayer(Collider other)
     {
-        var interactor = other.GetComponentInParent<PlayerInteractor>();
+        var interactor = other.GetComponentInParent<PlayerController>();
         return interactor != null && interactor.IsOwner;
     }
 }

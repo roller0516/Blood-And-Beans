@@ -105,11 +105,16 @@ public sealed class MatchFlow : MonoBehaviour
 
         // 스프라이트가 먼저다. 뷰 프리팹은 만들어지는 순간 Awake에서 표를 꺼내므로
         // (`UIMatchHudScreen`의 가방 아이콘·메뉴표), 같이 기다리면 표가 비어 있는 채로 읽는다.
+        //
+        // 공통 연출(대시 히트·쏟김·상호작용 성공)도 여기서 같이 불러 둔다. 첫 대시가 터지는
+        // 순간에야 불러오면 그 한 번만 늦게 보인다 — 캐릭터 전용 연출은 참가자가 그 캐릭터를
+        // 고른 시점에 각자 준비한다(`PlayerVisuals.SpawnCharacterAsync`).
         await ResourceManager.Instance.PreloadSpritesAsync(Sprites, token);
         await UniTask.WhenAll(
             ui.LoadAsync<UIMatchHudScreen>(token),
             ui.LoadAsync<UILoadingPopup>(token),
-            ui.LoadAsync<UIPhaseCuePopup>(token));
+            ui.LoadAsync<UIPhaseCuePopup>(token),
+            EffectManager.PrepareCommonAsync(token));
         enabled = true;
 
         if (phase == null)
@@ -217,6 +222,7 @@ public sealed class MatchFlow : MonoBehaviour
 
         if (!acquired) return;
         ResourceManager.Instance.ReleaseSprites(Sprites);
+        EffectManager.EndMatch();
 
         var ui = UIManager.Instance;
         if (ui == null) return;
@@ -581,7 +587,7 @@ public sealed class MatchFlow : MonoBehaviour
     /// 개봉 게이지가 다 차면 창을 열고, 서버가 세션을 닫으면(이동·피격·밤 종료) 닫는다.
     /// F를 놓는 것으로는 닫히지 않는다 — 창은 캐스팅이 아니라 세션에 붙어 있다.
     ///
-    /// 어떤 박스를 열었는지는 `PlayerInteract`가 이미 알고 있으므로 여기서 씬을 다시
+    /// 어떤 박스를 열었는지는 `PlayerController`가 이미 알고 있으므로 여기서 씬을 다시
     /// 뒤지지 않는다.
     void SyncLootPopup()
     {
@@ -589,7 +595,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (ui == null) return;
 
         var night = phase != null && phase.IsSpawned && phase.Current == Phase.Night;
-        var candidate = night ? presenter?.BoxHold?.LootBox : null;
+        var candidate = night ? presenter?.Interactor?.LootBox : null;
 
         // 파괴된 박스와 아직 열리지 않은 박스는 창을 띄우지 않는다.
         var box = candidate != null && candidate.Opened ? candidate : null;
@@ -611,7 +617,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (popup == null) return;
         lootBox = box;
 
-        var hold = presenter.BoxHold;
+        var hold = presenter.Interactor;
         popup.Bind(box, hold.TakeSlotClient, presenter.Bag,
                    hud != null ? hud.BagAnchor : null);
         lootOpen = true;

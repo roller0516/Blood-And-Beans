@@ -6,7 +6,7 @@ using UnityEngine;
 /// **설비마다 붙이지 않고 로컬 플레이어에 하나만 붙인다.** 설비 쪽에서 트리거로 켜면
 /// 사거리 안의 설비가 전부 켜지는데, 카페의 재료 칸은 3.1m 간격으로 늘어서 있어서
 /// (`CafeLayoutSetup`) 한가운데 서면 둘이 같이 켜지고 프롬프트는 하나만 뜬다. 여기서
-/// `PlayerInteractor.Target`을 읽으면 **프롬프트가 가리키는 그 하나**만 켜진다.
+/// `PlayerController.Target`을 읽으면 **프롬프트가 가리키는 그 하나**만 켜진다.
 /// `ItemBoxView`에 같은 취지의 ponytail 주석이 남아 있다 — 밤 상자는 안개 게이트가
 /// 얽혀 있어 자기 테두리를 그대로 둔다.
 ///
@@ -14,7 +14,7 @@ using UnityEngine;
 /// 마스크 벌이 원래 크기로 스텐실을 찍고, 테두리 벌이 살짝 키운 같은 메시를 그 자리만
 /// 빼고 그린다. 렌더 파이프라인은 건드리지 않는다 — URP 렌더러 에셋에 패스를 추가하지
 /// 않고 머티리얼의 렌더 상태만으로 성립한다.
-[RequireComponent(typeof(PlayerInteractor))]
+[RequireComponent(typeof(PlayerController))]
 public class TargetOutline : MonoBehaviour
 {
     /// 테두리 벌. `StationOutline.mat`.
@@ -40,7 +40,7 @@ public class TargetOutline : MonoBehaviour
         public Shell(Renderer mask, Renderer edge) { Mask = mask; Edge = edge; }
     }
 
-    PlayerInteractor interactor;
+    PlayerController interactor;
 
     /// 대상별로 한 번 만들어 둔 벌. 설비는 판이 끝날 때까지 살아 있어서 다시 만들 일이 없다.
     /// ponytail: 파괴된 설비의 칸은 남는다. 설비 수가 두 자릿수라 비우는 코드가 더 비싸다.
@@ -49,7 +49,7 @@ public class TargetOutline : MonoBehaviour
     /// 지금 테두리가 붙어 있는 대상.
     MonoBehaviour lit;
 
-    void Awake() => interactor = GetComponent<PlayerInteractor>();
+    void Awake() => interactor = GetComponent<PlayerController>();
 
     void OnDisable()
     {

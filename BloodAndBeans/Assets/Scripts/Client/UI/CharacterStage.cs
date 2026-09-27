@@ -1,3 +1,4 @@
+using Cysharp.Threading.Tasks;
 using Unity.Cinemachine;
 using UnityEngine;
 
@@ -61,9 +62,11 @@ public sealed class CharacterStage : MonoBehaviour
     /// 세트 안에서 어디에 서는지는 씬을 만든 사람이 정한 것이다.
     Vector3[] seatHome;
 
-    /// 자리마다 지금 서 있는 모델과 그것이 무엇이었는지. 같은 캐릭터면 다시 세우지 않는다 —
-    /// 로비 콜백 하나당 한 번씩 다시 그리므로 매번 부수면 한 프레임에 두 번 스폰이 돈다.
-    readonly GameObject[] spawned = new GameObject[MaxSeats];
+    /// 자리마다 지금 서 있는 모델을 세우고 치우는 객체와, 그것이 무엇이었는지. 같은
+    /// 캐릭터면 다시 세우지 않는다 — 로비 콜백 하나당 한 번씩 다시 그리므로 매번 부수면
+    /// 한 프레임에 두 번 스폰이 돈다. 모델은 어드레서블이라 스폰 자체가 비동기다
+    /// (`CharacterModelSpawner`).
+    readonly CharacterModelSpawner[] spawners = new CharacterModelSpawner[MaxSeats];
     readonly int[] spawnedCharacter = new int[MaxSeats];
 
     public Camera StageCamera => stageCamera;
@@ -74,7 +77,10 @@ public sealed class CharacterStage : MonoBehaviour
     void Awake()
     {
         for (var i = 0; i < spawnedCharacter.Length; i++)
+        {
             spawnedCharacter[i] = CharacterCatalog.NoPick;
+            spawners[i] = new CharacterModelSpawner(visuals);
+        }
 
         seatHome = new Vector3[SeatCount];
         for (var i = 0; i < SeatCount; i++) seatHome[i] = seats[i].localPosition;
@@ -166,7 +172,7 @@ public sealed class CharacterStage : MonoBehaviour
         var max = float.MinValue;
         for (var i = 0; i < SeatCount; i++)
         {
-            if (spawned[i] == null) continue;
+            if (spawners[i].Instance == null) continue;
             var x = seats[i].localPosition.x;
             if (x < min) min = x;
             if (x > max) max = x;
@@ -233,20 +239,20 @@ public sealed class CharacterStage : MonoBehaviour
         if (seat < 0 || seat >= SeatCount) return;
         if (spawnedCharacter[seat] == character) return;
 
-        if (spawned[seat] != null) Destroy(spawned[seat]);
-        spawned[seat] = null;
         spawnedCharacter[seat] = character;
+        spawners[seat].Clear();
 
         if (!CharacterCatalog.IsValid(character) || visuals == null) return;
 
-        spawned[seat] = visuals.SpawnModel(CharacterCatalog.All[character].Id, seats[seat], gameObject.layer);
+        spawners[seat].SpawnAsync(CharacterCatalog.All[character].Id, seats[seat], gameObject.layer,
+            this.GetCancellationTokenOnDestroy()).Forget();
     }
 
     public void SetTeam(int seat, int team)
     {
-        if (seat < 0 || seat >= SeatCount || spawned[seat] == null) return;
-        var appearance = spawned[seat].GetComponent<CharacterModel>();
-        if (appearance != null) appearance.Tint(TeamColors.Of(team), 1f);
+        if (seat < 0 || seat >= SeatCount) return;
+        var model = spawners[seat].Model;
+        if (model != null) model.Tint(TeamColors.Of(team), 1f);
     }
 
     /// 자리 수를 넘는 칸을 비운다. 사람이 나가면 그 자리 모델도 사라져야 한다.

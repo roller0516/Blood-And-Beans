@@ -4,7 +4,7 @@ using UnityEngine;
 /// 소유자 클라이언트의 위치를 NetworkTransform이 덮어쓰지 않게 막는다.
 ///
 /// 서버 권위는 그대로다(AuthorityMode = Server). 다만 소유자는 자기 위치를 예측으로 먼저
-/// 굴리므로(PlayerMove), 권위 상태를 매 프레임 그대로 적용해 버리면 예측이 즉시 지워져
+/// 굴리므로(PlayerController), 권위 상태를 매 프레임 그대로 적용해 버리면 예측이 즉시 지워져
 /// 예측이 없는 것과 같아진다. 권위 위치는 PlayerPrediction으로 넘겨 화해에만 쓴다.
 ///
 /// 회전은 계속 서버 값을 그대로 따른다. 넘어짐 연출(DashHarass)은 서버에서만 계산되고

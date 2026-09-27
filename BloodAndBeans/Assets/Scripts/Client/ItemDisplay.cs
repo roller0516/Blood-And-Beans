@@ -7,8 +7,10 @@ using UnityEngine;
 /// 프롬프트. 조리대에 무엇이 올라와 있는지는 그 앞까지 걸어가 F 안내를 읽어야 알았고,
 /// 그래서 「조리대 너머로 건네주기」(기획서 5.4-2)가 화면에서 성립하지 않았다.
 ///
-/// **표현만 한다.** 무엇이 어디 있는지는 전부 복제된 값이고(`CarryView`), 이 컴포넌트는
-/// 그것이 바뀌었을 때만 다시 그린다. 규칙을 묻지도 바꾸지도 않는다.
+/// **표현만 한다.** 무엇이 어디 있는지는 전부 복제된 값이고(`CarryView`), 실제 세우고
+/// 치우는 로직은 `ItemSlotPresenter`(일반 C# 객체)가 진다 — 손(`PlayerVisuals`)과 시설이
+/// 같은 규칙을 쓴다. 이 컴포넌트에 남은 것은 이 오브젝트의 생애(구독 시작·해제)와
+/// 팀 레이어 적용뿐이다.
 [DisallowMultipleComponent]
 public class ItemDisplay : MonoBehaviour
 {
@@ -31,11 +33,7 @@ public class ItemDisplay : MonoBehaviour
     /// 트인 공간에서 상대가 내 손의 컵을 볼 수 있다. 손 앵커만 팀 레이어로 옮겨 막는다.
     PlayerTeam team;
 
-    /// 자리마다 지금 서 있는 것. 프리팹이 그대로면 다시 세우지 않는다 — 재료를 넣을
-    /// 때마다 옆 칸까지 새로 만들면 눈에 보이는 튐이 생긴다.
-    GameObject[] standing;
-    GameObject[] sources;
-    bool[] burnt;
+    ItemSlotPresenter presenter;
 
     void Awake()
     {
@@ -48,10 +46,7 @@ public class ItemDisplay : MonoBehaviour
         if (config == null)
             CDebug.LogError($"{name}: ItemVisualConfig가 비었다. 아이템이 보이지 않는다.", this);
 
-        var count = anchors != null ? anchors.Length : 0;
-        standing = new GameObject[count];
-        sources = new GameObject[count];
-        burnt = new bool[count];
+        presenter = new ItemSlotPresenter(config, anchors, highlightScale, highlightOffset);
     }
 
     void OnEnable()
@@ -69,63 +64,13 @@ public class ItemDisplay : MonoBehaviour
     {
         if (holder != null) holder.ContentsChanged -= Refresh;
         if (team != null) team.TeamChanged -= ApplyTeamLayer;
-        Clear();
+        presenter.Clear();
     }
 
-    /// 자리 하나하나를 복제된 값과 맞춘다. 값이 바뀔 때만 불린다.
     void Refresh()
     {
-        if (holder == null || config == null || anchors == null) return;
-
-        var highlight = holder.HighlightSlot;
-
-        for (var slot = 0; slot < anchors.Length; slot++)
-        {
-            var anchor = anchors[slot];
-            if (anchor == null) continue;
-
-            var view = slot < holder.SlotCount ? holder.SlotAt(slot) : CarryView.Nothing;
-            view.Burnt |= view.Dirty;
-            var prefab = config.PrefabFor(view);
-
-            if (prefab != sources[slot] || view.Burnt != burnt[slot])
-            {
-                if (standing[slot] != null) Destroy(standing[slot]);
-                standing[slot] = prefab != null ? Build(prefab, anchor, view.Burnt) : null;
-                sources[slot] = prefab;
-                burnt[slot] = view.Burnt;
-            }
-
-            if (standing[slot] == null) continue;
-
-            var lit = slot == highlight;
-            standing[slot].transform.localPosition = lit ? highlightOffset : Vector3.zero;
-            standing[slot].transform.localScale = Vector3.one * (lit ? highlightScale : 1f);
-        }
-    }
-
-    GameObject Build(GameObject prefab, Transform anchor, bool isBurnt)
-    {
-        var made = Instantiate(prefab, anchor);
-        made.transform.localPosition = Vector3.zero;
-        made.transform.localRotation = Quaternion.identity;
-
-        // 카페는 팀 레이어에 있고 카메라가 그것으로 컬링한다 (`TeamVision`). 런타임에
-        // 만든 것은 프리팹의 레이어를 그대로 들고 오므로 여기서 자리에 맞춰 준다 —
-        // 안 맞추면 상대 팀 화면에 우리 카페의 아이템만 떠 있는다.
-        SetLayer(made, anchor.gameObject.layer);
-
-        if (isBurnt && config.Burnt != null)
-            foreach (var r in made.GetComponentsInChildren<Renderer>(true))
-                r.sharedMaterial = config.Burnt;
-
-        return made;
-    }
-
-    static void SetLayer(GameObject root, int layer)
-    {
-        foreach (var t in root.GetComponentsInChildren<Transform>(true))
-            t.gameObject.layer = layer;
+        if (holder == null) return;
+        presenter.Bind(holder);
     }
 
     /// 팀이 정해지면 손 앵커를 그 팀의 레이어로 옮긴다. 이미 서 있는 아이템도 앵커의
@@ -136,18 +81,5 @@ public class ItemDisplay : MonoBehaviour
 
         foreach (var anchor in anchors)
             if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
-    }
-
-    void Clear()
-    {
-        if (standing == null) return;
-
-        for (var slot = 0; slot < standing.Length; slot++)
-        {
-            if (standing[slot] != null) Destroy(standing[slot]);
-            standing[slot] = null;
-            sources[slot] = null;
-            burnt[slot] = false;
-        }
     }
 }

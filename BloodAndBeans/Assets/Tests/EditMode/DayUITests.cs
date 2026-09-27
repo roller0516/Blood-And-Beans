@@ -6,16 +6,16 @@ public class DayUITests
     [Test]
     public void FacilityPromptsFollowDishAndIngredientState()
     {
-        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Coffee, CarryView.Nothing));
-        Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 1));
-        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 0));
-        Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(false))));
-        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(true))));
+        Assert.IsFalse(PlayerController.CanUseFacility(FacilityKind.Coffee, CarryView.Nothing));
+        Assert.IsTrue(PlayerController.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 1));
+        Assert.IsFalse(PlayerController.CanUseFacility(FacilityKind.Sink, CarryView.Nothing, 0));
+        Assert.IsTrue(PlayerController.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(false))));
+        Assert.IsFalse(PlayerController.CanUseFacility(FacilityKind.Beans, CarryView.Of(HeldItem.Dish(true))));
         var cup = HeldItem.Of(Ingredient.Bean); cup.HasDish = true;
-        Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Coffee, CarryView.Of(cup)));
-        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Oven, CarryView.Of(cup)));
-        Assert.IsFalse(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Of(HeldItem.Dish(false))));
-        Assert.IsTrue(PlayerInteractor.CanUseFacility(FacilityKind.Sink, CarryView.Of(HeldItem.Dish(false, true))));
+        Assert.IsTrue(PlayerController.CanUseFacility(FacilityKind.Coffee, CarryView.Of(cup)));
+        Assert.IsFalse(PlayerController.CanUseFacility(FacilityKind.Oven, CarryView.Of(cup)));
+        Assert.IsFalse(PlayerController.CanUseFacility(FacilityKind.Sink, CarryView.Of(HeldItem.Dish(false))));
+        Assert.IsTrue(PlayerController.CanUseFacility(FacilityKind.Sink, CarryView.Of(HeldItem.Dish(false, true))));
     }
     [Test]
     public void ExpectedPriceUsesPopularAndRaceWithoutGaugeBonus()

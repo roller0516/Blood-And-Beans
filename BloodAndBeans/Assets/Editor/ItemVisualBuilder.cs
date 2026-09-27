@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 /// 아이템을 화면에 세우는 데 필요한 애셋과 배선을 한 번에 만든다 — 아이템 프리팹,
 /// 표시 설정 애셋(`ItemVisualConfig`), 그리고 프리팹 안의 앵커와 `ItemDisplay` 배선.
@@ -130,7 +133,7 @@ public static class ItemVisualBuilder
         foreach (Ingredient id in System.Enum.GetValues(typeof(Ingredient)))
         {
             if (id == Ingredient.None) continue;
-            if (config.PrefabFor(CarryView.Of(id)) != null) continue;
+            if (config.ReferenceFor(CarryView.Of(id)) != null) continue;
 
             CDebug.LogError($"[ItemVisualBuilder] 재료 {id}에 프리팹이 없다.");
             failures++;
@@ -140,7 +143,7 @@ public static class ItemVisualBuilder
         {
             if (id == MenuId.None) continue;
             var product = CarryView.Of(new HeldItem { IsProduct = true, Menu = id });
-            if (config.PrefabFor(product) != null) continue;
+            if (config.ReferenceFor(product) != null) continue;
 
             CDebug.LogError($"[ItemVisualBuilder] 메뉴 {id}에 프리팹이 없다.");
             failures++;
@@ -149,7 +152,7 @@ public static class ItemVisualBuilder
         // 메뉴 표에 없는 조합도 완성품이 된다 (`Menus.Match`). 그것이 화면에서 사라지면
         // 기계 위에 아무것도 없는 것처럼 보인다.
         var unknown = CarryView.Of(new HeldItem { IsProduct = true, Menu = MenuId.None });
-        if (config.PrefabFor(unknown) == null)
+        if (config.ReferenceFor(unknown) == null)
         {
             CDebug.LogError("[ItemVisualBuilder] 정체불명 완성품에 프리팹이 없다.");
             failures++;
@@ -178,6 +181,23 @@ public static class ItemVisualBuilder
             {
                 if (behaviour is not IItemHolder holder) continue;
 
+                // 플레이어의 손은 ItemDisplay가 아니라 PlayerVisuals(itemVisuals/itemAnchors)가 진다
+                // (표현 통합 — PlayerAppearance·PlayerEffects·PublicCarryDisplay와 같은 컴포넌트).
+                if (behaviour is PlayerCarry)
+                {
+                    var visuals = behaviour.GetComponent<PlayerVisuals>();
+                    if (visuals == null)
+                    {
+                        CDebug.LogError($"[ItemVisualBuilder] {prefabPath}의 {behaviour.name}에 "
+                                      + "PlayerVisuals가 없다.");
+                        failures++;
+                        continue;
+                    }
+                    failures += VerifySlots(new SerializedObject(visuals), "itemVisuals", "itemAnchors",
+                        behaviour.name, holder.SlotCount, config);
+                    continue;
+                }
+
                 var display = behaviour.GetComponent<ItemDisplay>();
                 if (display == null)
                 {
@@ -187,33 +207,43 @@ public static class ItemVisualBuilder
                     continue;
                 }
 
-                var so = new SerializedObject(display);
-                if (so.FindProperty("config").objectReferenceValue != config)
-                {
-                    CDebug.LogError($"[ItemVisualBuilder] {behaviour.name}의 표시 설정이 다르다.");
-                    failures++;
-                }
-
-                var list = so.FindProperty("anchors");
-                if (list.arraySize != holder.SlotCount)
-                {
-                    CDebug.LogError($"[ItemVisualBuilder] {behaviour.name}의 앵커가 "
-                                  + $"{list.arraySize}개인데 칸은 {holder.SlotCount}개다.");
-                    failures++;
-                }
-
-                for (var i = 0; i < list.arraySize; i++)
-                {
-                    if (list.GetArrayElementAtIndex(i).objectReferenceValue != null) continue;
-
-                    CDebug.LogError($"[ItemVisualBuilder] {behaviour.name}의 앵커 {i}가 비었다.");
-                    failures++;
-                }
+                failures += VerifySlots(new SerializedObject(display), "config", "anchors",
+                    behaviour.name, holder.SlotCount, config);
             }
         }
         finally
         {
             PrefabUtility.UnloadPrefabContents(root);
+        }
+        return failures;
+    }
+
+    /// `config`/`anchors` 필드 쌍 하나를 검사한다. `ItemDisplay`와 `PlayerVisuals`(손)가
+    /// 필드 이름만 다를 뿐 같은 모양이라 검사도 하나로 뗀다.
+    static int VerifySlots(SerializedObject so, string configField, string anchorsField,
+        string ownerName, int slotCount, ItemVisualConfig expectedConfig)
+    {
+        var failures = 0;
+        if (so.FindProperty(configField).objectReferenceValue != expectedConfig)
+        {
+            CDebug.LogError($"[ItemVisualBuilder] {ownerName}의 표시 설정이 다르다.");
+            failures++;
+        }
+
+        var list = so.FindProperty(anchorsField);
+        if (list.arraySize != slotCount)
+        {
+            CDebug.LogError($"[ItemVisualBuilder] {ownerName}의 앵커가 "
+                          + $"{list.arraySize}개인데 칸은 {slotCount}개다.");
+            failures++;
+        }
+
+        for (var i = 0; i < list.arraySize; i++)
+        {
+            if (list.GetArrayElementAtIndex(i).objectReferenceValue != null) continue;
+
+            CDebug.LogError($"[ItemVisualBuilder] {ownerName}의 앵커 {i}가 비었다.");
+            failures++;
         }
         return failures;
     }
@@ -241,7 +271,9 @@ public static class ItemVisualBuilder
 
             var entry = ingredients.GetArrayElementAtIndex(i);
             entry.FindPropertyRelative("id").intValue = (int)item.id;
-            entry.FindPropertyRelative("prefab").objectReferenceValue = prefab;
+            entry.FindPropertyRelative("prefab").FindPropertyRelative("m_AssetGUID").stringValue =
+                AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
+            EnsureAddressable(prefab, "Item" + item.id);
         }
 
         var menus = so.FindProperty("menus");
@@ -255,11 +287,15 @@ public static class ItemVisualBuilder
 
             var entry = menus.GetArrayElementAtIndex(i);
             entry.FindPropertyRelative("id").intValue = (int)item.id;
-            entry.FindPropertyRelative("prefab").objectReferenceValue = prefab;
+            entry.FindPropertyRelative("prefab").FindPropertyRelative("m_AssetGUID").stringValue =
+                AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
+            EnsureAddressable(prefab, "Menu" + item.id);
         }
 
-        so.FindProperty("unknownProduct").objectReferenceValue = EnsureItem(
-            "ItemUnknown", null, PrimitiveType.Cube, Hex(UnknownColour), new(1f, 0.8f, 1f));
+        var unknown = EnsureItem("ItemUnknown", null, PrimitiveType.Cube, Hex(UnknownColour), new(1f, 0.8f, 1f));
+        so.FindProperty("unknownProduct").FindPropertyRelative("m_AssetGUID").stringValue =
+            AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(unknown));
+        EnsureAddressable(unknown, "ItemUnknown");
         so.FindProperty("burnt").objectReferenceValue =
             EnsureMaterial("ItemBurnt", Hex(BurntColour));
 
@@ -366,19 +402,32 @@ public static class ItemVisualBuilder
                 if (behaviour is not IItemHolder holder) continue;
 
                 found++;
-                var anchors = BuildAnchors(behaviour.transform, holder.SlotCount,
-                                           behaviour is PlayerCarry);
+                var isHand = behaviour is PlayerCarry;
+                var anchors = BuildAnchors(behaviour.transform, holder.SlotCount, isHand);
 
-                var display = behaviour.GetComponent<ItemDisplay>();
-                if (display == null) display = behaviour.gameObject.AddComponent<ItemDisplay>();
-
-                var so = new SerializedObject(display);
-                so.FindProperty("config").objectReferenceValue = config;
-
-                var list = so.FindProperty("anchors");
-                list.arraySize = anchors.Count;
-                for (var i = 0; i < anchors.Count; i++)
-                    list.GetArrayElementAtIndex(i).objectReferenceValue = anchors[i];
+                // 플레이어의 손은 ItemDisplay가 아니라 PlayerVisuals(itemVisuals/itemAnchors)로
+                // 잇는다 — 표현이 한 컴포넌트로 통합됐다.
+                SerializedObject so;
+                if (isHand)
+                {
+                    var visuals = behaviour.GetComponent<PlayerVisuals>();
+                    if (visuals == null)
+                    {
+                        CDebug.LogError($"[ItemVisualBuilder] {behaviour.name}에 PlayerVisuals가 없다.");
+                        continue;
+                    }
+                    so = new SerializedObject(visuals);
+                    so.FindProperty("itemVisuals").objectReferenceValue = config;
+                    WireAnchors(so.FindProperty("itemAnchors"), anchors);
+                }
+                else
+                {
+                    var display = behaviour.GetComponent<ItemDisplay>();
+                    if (display == null) display = behaviour.gameObject.AddComponent<ItemDisplay>();
+                    so = new SerializedObject(display);
+                    so.FindProperty("config").objectReferenceValue = config;
+                    WireAnchors(so.FindProperty("anchors"), anchors);
+                }
 
                 so.ApplyModifiedPropertiesWithoutUndo();
                 log.Add($"{System.IO.Path.GetFileNameWithoutExtension(prefabPath)} · "
@@ -394,6 +443,13 @@ public static class ItemVisualBuilder
         {
             PrefabUtility.UnloadPrefabContents(root);
         }
+    }
+
+    static void WireAnchors(SerializedProperty list, List<Transform> anchors)
+    {
+        list.arraySize = anchors.Count;
+        for (var i = 0; i < anchors.Count; i++)
+            list.GetArrayElementAtIndex(i).objectReferenceValue = anchors[i];
     }
 
     /// 자리 하나에 앵커를 칸 수만큼 놓는다. 설비는 자기 윗면에, 플레이어는 손 위치에.
@@ -467,6 +523,20 @@ public static class ItemVisualBuilder
     {
         if (!AssetDatabase.IsValidFolder($"{parent}/{name}"))
             AssetDatabase.CreateFolder(parent, name);
+    }
+
+    /// 이 프리팹이 어드레서블 표에 없으면 등록한다. `AssetReference`로 무는 것만으로는
+    /// 부족하다 — 실제 그룹에 없으면 런타임 로드가 "unknown key"로 실패한다.
+    static void EnsureAddressable(Object asset, string address)
+    {
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null || asset == null) return;
+        var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
+        if (string.IsNullOrEmpty(guid)) return;
+        var group = settings.FindGroup("Default Local Group") ?? settings.DefaultGroup;
+        var entry = settings.CreateOrMoveEntry(guid, group, false, false);
+        entry.address = address;
+        EditorUtility.SetDirty(settings);
     }
 
     static Color Hex(uint rgb) => new(

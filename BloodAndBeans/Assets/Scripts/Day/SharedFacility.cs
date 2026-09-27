@@ -50,6 +50,16 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     }
     public void BeginInteractionClient() => UseRpc();
     public void EndInteractionClient() => EndRpc();
+
+    // 기획서 5.7.4: 손 상태로 불가능한 프롬프트는 숨긴다. 실행 권한은 RPC가 재검증한다.
+    public bool CanPromptClient(in InteractionContext ctx) =>
+        Busy || (!ctx.Reserved && PlayerController.CanUseFacility(kind, ctx.Held,
+            director != null ? director.CafeOf(PlayerTeam.Local())?.Dishes?.Dirty ?? 0 : 0));
+
+    /// 손에 더러운 그릇을 든 채 개수대가 아닌 설비 앞에 서면 「세척 필요」로 안내한다 —
+    /// 이 설비를 못 쓰는 이유가 손 상태라는 것을 알려 주는 예외다.
+    public string PromptFor(in InteractionContext ctx) =>
+        ctx.Held.Dirty && !Busy && kind != FacilityKind.Sink ? "세척 필요" : Prompt;
     public bool Near(ulong clientId)
     {
         var player = Station.PlayerOf(clientId);
@@ -96,7 +106,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         if (!IsServer || !Accepts(kind, CarryView.Of(carry.Held))) return;
         carry.SetServer(HeldItem.Of(Gives(kind)));
         carry.SetDishServer(true, kind == FacilityKind.Bread);
-        PlayerInteractor.ReportSuccessServer(carry.OwnerClientId, this);
+        PlayerController.ReportSuccessServer(carry.OwnerClientId, this);
     }
 
     void StartWashServer(ulong id, Cafe cafe, PlayerCarry carry)
@@ -141,7 +151,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         { ReleaseServer(); return; }
         if (NetworkManager.ServerTime.Time < completesAt) return;
         washing.SetServer(HeldItem.Dish(washing.Held.DishIsPlate));
-        PlayerInteractor.ReportSuccessServer(user, this);
+        PlayerController.ReportSuccessServer(user, this);
         ReleaseServer();
     }
     public void OverheatServer(float seconds)

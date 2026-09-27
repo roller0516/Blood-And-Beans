@@ -70,6 +70,8 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     public string Prompt => "팀원 · F로 식기 교환";
     public void BeginInteractionClient() => ExchangeRpc();
     public void EndInteractionClient() { }
+    public bool CanPromptClient(in InteractionContext ctx) => !Reserved && !ctx.Reserved && (!ctx.Held.Empty || !View.Empty);
+    public string PromptFor(in InteractionContext ctx) => Prompt;
     [Rpc(SendTo.Server)]
     void RequestTeamViewRpc(RpcParams p = default)
     {
@@ -100,7 +102,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         var item = held;
         SetServer(other.Held);
         other.SetServer(item);
-        if (!item.Empty || !held.Empty) PlayerInteractor.ReportSuccessServer(sender, this);
+        if (!item.Empty || !held.Empty) PlayerController.ReportSuccessServer(sender, this);
     }
 
     void PublishTeamServer()

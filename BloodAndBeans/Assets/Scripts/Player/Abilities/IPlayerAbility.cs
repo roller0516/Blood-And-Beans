@@ -45,6 +45,13 @@ public interface IDurationAbility
     /// 화면은 이 값만 보고 그린다 — 클라이언트에 능력별 분기가 생기지 않는다.
     EffectId AttachedEffect { get; }
 
-    /// 슬롯이 바뀌었다. **모든 피어에서 불린다.** 필요 없으면 비워 둔다.
+    /// 켜져 있는 동안 이동 속도에 곱하는 배수. 없으면 1이다. `PlayerCharacter`가 이 값을
+    /// 보석·페널티와 같은 축에 곱한다 — 어떤 능력이 활공인지는 몰라도 된다.
+    float MoveSpeedScale { get; }
+
+    /// 슬롯이 바뀌었다. **모든 피어에서 불린다.** `until`이 지금 시각 이하이면 "지금
+    /// 끝났다"는 뜻이므로, 자기 연출·물리를 여기서 동기로 정리해야 한다 — 지속 슬롯이
+    /// 캐릭터 변경·페이즈 전환으로 재사용될 다음 능력에 이전 상태를 넘기지 않는다.
+    /// 필요 없으면 비워 둔다.
     void OnDurationChanged(PlayerAbilities host, double until);
 }

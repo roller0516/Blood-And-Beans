@@ -31,6 +31,13 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
         if (offer.Length == 1) TakeRpc((int)offer[0]); else GridOpen = !GridOpen;
     }
     public void EndInteractionClient() => CancelFinishRpc();
+
+    // 기획서 5.7.4: 손 상태로 불가능한 프롬프트는 숨긴다. 실행 권한은 RPC가 재검증한다.
+    public bool CanPromptClient(in InteractionContext ctx) =>
+        !ctx.Reserved && LocalPlayerNear && SlotCountAt(0) > 0 && !ctx.Held.Dirty &&
+        (ctx.Held.IsProduct || (SlotItem(0) == Ingredient.BloodBean && ctx.Held.HasDish && !ctx.Held.DishIsPlate &&
+            (ctx.Held.Ingredient == Ingredient.None || ctx.Held.Ingredient == Ingredient.Bean)));
+    public string PromptFor(in InteractionContext ctx) => Prompt;
     void Awake() { ownerCafe = Cafe.Of(this); surface = GetComponentInChildren<Collider>(true); }
     public override void OnNetworkSpawn() { if (Stock != null) Stock.CountsChanged += OnStock; }
     public override void OnNetworkDespawn()
@@ -71,7 +78,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
                 product.Recipe = parts;
                 product.Menu = Menus.Match(parts);
                 pending.carry.SetServer(product);
-                PlayerInteractor.ReportSuccessServer(id, this);
+                PlayerController.ReportSuccessServer(id, this);
             }
             CancelFinishServer(id);
         }
@@ -117,7 +124,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
             var replacement = HeldItem.Of(want);
             replacement.HasDish = true;
             carry.SetServer(replacement);
-            PlayerInteractor.ReportSuccessServer(clientId, this);
+            PlayerController.ReportSuccessServer(clientId, this);
             return;
         }
 

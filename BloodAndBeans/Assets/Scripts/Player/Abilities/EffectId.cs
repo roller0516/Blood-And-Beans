@@ -28,4 +28,8 @@ public enum EffectId
 
     /// 대시로 재료가 쏟아진 자리. 밀리기만 한 것과 다른 사건이라 연출도 갈린다 (6.6).
     DashSpill = 6,
+
+    /// 상호작용 성공 — 노란 오각별. 서버가 아니라 소유자 자신이 결정한다
+    /// (`PlayerController.InteractionSucceeded`, `SuccessRpc`는 소유자에게만 온다).
+    InteractionSuccess = 7,
 }

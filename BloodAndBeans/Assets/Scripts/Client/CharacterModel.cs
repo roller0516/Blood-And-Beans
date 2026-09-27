@@ -17,7 +17,7 @@ public sealed class CharacterModel : MonoBehaviour
 
     [Header("애니메이션")]
     [SerializeField] Animator animator;
-    [Tooltip("이 속도(m/s)에서 이동 블렌드가 끝까지 간다. PlayerMove.speed와 맞춘다.")]
+    [Tooltip("이 속도(m/s)에서 이동 블렌드가 끝까지 간다. PlayerController.speed와 맞춘다.")]
     [SerializeField, Min(0.01f)] float fullBlendSpeed = 5f;
     [Tooltip("이동 블렌드 값이 따라가는 시간. 원격 플레이어의 보간 떨림을 흡수한다.")]
     [SerializeField, Min(0f)] float blendDampSeconds = 0.1f;

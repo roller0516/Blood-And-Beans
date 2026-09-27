@@ -9,10 +9,12 @@ public sealed class DishRack : NetworkBehaviour, IInteractable, IItemHolder
     Cafe cafe;
     Collider surface;
     public event System.Action ContentsChanged;
-    public int SlotCount => 1;
+    /// 깨끗한 것 **하나마다 하나씩** 선다. 개수를 UI로 세지 않고 선반을 보면 끝나야 한다
+    /// (기획서 5.7.3). 칸을 1로 두면 둘이 남았는지 하나가 남았는지가 화면에서 같아 보인다.
+    int Clean => cafe != null && cafe.Dishes != null ? (plate ? cafe.Dishes.CleanPlates : cafe.Dishes.CleanCups) : 0;
+    public int SlotCount => Clean;
     public int HighlightSlot => -1;
-    public CarryView SlotAt(int slot) => slot == 0 && cafe != null && cafe.Dishes != null &&
-        (plate ? cafe.Dishes.CleanPlates : cafe.Dishes.CleanCups) > 0
+    public CarryView SlotAt(int slot) => slot >= 0 && slot < Clean
         ? CarryView.Of(HeldItem.Dish(plate)) : CarryView.Nothing;
     public override void OnNetworkSpawn() { if (cafe?.Dishes != null) cafe.Dishes.CleanChanged += OnClean; OnClean(); }
     public override void OnNetworkDespawn() { if (cafe?.Dishes != null) cafe.Dishes.CleanChanged -= OnClean; }
@@ -21,6 +23,8 @@ public sealed class DishRack : NetworkBehaviour, IInteractable, IItemHolder
     void Awake() { cafe = Cafe.Of(this); surface = GetComponentInChildren<Collider>(true); }
     public void BeginInteractionClient() => TakeRpc();
     public void EndInteractionClient() { }
+    public bool CanPromptClient(in InteractionContext ctx) => !ctx.Reserved && ctx.Held.Empty && !SlotAt(0).Empty;
+    public string PromptFor(in InteractionContext ctx) => Prompt;
     [Rpc(SendTo.Server)]
     public void TakeRpc(RpcParams p = default)
     {
@@ -33,7 +37,7 @@ public sealed class DishRack : NetworkBehaviour, IInteractable, IItemHolder
         if (cafe.Dishes != null && cafe.Dishes.ClaimServer(plate))
         {
             carry.SetServer(HeldItem.Dish(plate));
-            PlayerInteractor.ReportSuccessServer(id, this);
+            PlayerController.ReportSuccessServer(id, this);
         }
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 ///
 /// **이동 입력은 여기서 카메라 기준으로 돌려 월드 방향으로 만든다.** 카메라가 플레이어를
 /// 중심으로 도는 3인칭이 되면서(폴 가이즈식) 스틱의 위쪽이 화면의 위쪽을 뜻하게 됐다.
-/// 회전을 여기서 끝내는 이유는 권위 때문이다 — `PlayerMove`는 받은 벡터를 그대로 월드
+/// 회전을 여기서 끝내는 이유는 권위 때문이다 — `PlayerController`는 받은 벡터를 그대로 월드
 /// 방향으로 쓰고 서버와 소유자가 같은 식을 돌린다. 카메라를 아는 것은 클라이언트뿐이므로
 /// 서버가 카메라를 몰라도 되도록 이미 돌아간 값을 보낸다.
 public class PlayerInputRouter : NetworkBehaviour
@@ -26,8 +26,9 @@ public class PlayerInputRouter : NetworkBehaviour
     /// 보내면 창을 열어 둔 내내 이동 RPC가 프레임 수만큼 나간다.
     bool inputBlocked;
 
-    PlayerMove movement;
-    PlayerInteractor interaction;
+    /// 이동과 상호작용이 한 컴포넌트다 (`PlayerController`) — 예전에는 `PlayerMove`·
+    /// `PlayerInteractor` 둘로 나뉘어 이 필드도 둘이었다.
+    PlayerController controller;
     PlayerInventory inventory;
     PlayerCharacter character;
     PlayerAbilities abilities;
@@ -47,8 +48,7 @@ public class PlayerInputRouter : NetworkBehaviour
     {
         if (!IsOwner || actions == null) return;
 
-        movement = GetComponent<PlayerMove>();
-        interaction = GetComponent<PlayerInteractor>();
+        controller = GetComponent<PlayerController>();
         inventory = GetComponent<PlayerInventory>();
         abilities = GetComponent<PlayerAbilities>();
         character = GetComponent<PlayerCharacter>();
@@ -139,10 +139,16 @@ public class PlayerInputRouter : NetworkBehaviour
         Send(raw);
     }
 
-    /// 마우스 델타를 카메라 축에 넘긴다 (Starter Assets의 `StarterAssetsInputs.look` 자리).
+    /// 마우스 델타를 읽어 카메라 축에 넘기고, 그 자리에서 바로 회전을 적용시킨다
+    /// (Starter Assets의 `StarterAssetsInputs.look` 자리).
     ///
     /// `LateUpdate`인 이유는 축이 같은 타이밍에 회전을 적용하기 때문이다. `Update`에서
     /// 넣으면 이번 프레임 것이 다음 프레임에 쓰여 한 박자 늦는다.
+    ///
+    /// **읽기 다음 줄에서 `cameraRoot.ApplyLook()`을 직접 부른다.** `PlayerCameraRoot`가
+    /// 따로 `LateUpdate`를 두면 이 스크립트와 실행 순서가 같아(둘 다 기본값 0) 어느 쪽이
+    /// 먼저 도는지가 미정이 된다. 여기서 순서를 못박아 "입력 읽기 → 회전 적용"이 항상
+    /// 같은 프레임, 같은 순서로 일어나게 한다.
     ///
     /// 커서가 풀려 있으면 넣지 않는다. 그것이 곧 "지금 마우스는 UI 것"이라는 뜻이라
     /// (`UIManager.ApplyInputGates`), 슬롯을 누르려 움직인 마우스가 시점까지 돌리지 않는다.
@@ -153,12 +159,13 @@ public class PlayerInputRouter : NetworkBehaviour
         cameraRoot.Look = lookAction != null && Cursor.lockState == CursorLockMode.Locked && !Blocked
             ? lookAction.ReadValue<Vector2>()
             : Vector2.zero;
+        cameraRoot.ApplyLook();
     }
 
     /// 화면 기준 입력을 월드 방향으로 돌려 보낸다.
     void Send(Vector2 raw)
     {
-        if (movement == null) return;
+        if (controller == null) return;
 
         var world = ToWorld(raw);
 
@@ -168,7 +175,7 @@ public class PlayerInputRouter : NetworkBehaviour
             return;
 
         sentInput = world;
-        movement.SetInputClient(world);
+        controller.SetInputClient(world);
     }
 
     Vector2 ToWorld(Vector2 raw)
@@ -197,12 +204,12 @@ public class PlayerInputRouter : NetworkBehaviour
     void OnInteractStarted(InputAction.CallbackContext _)
     {
         if (Blocked) return;
-        interaction?.BeginClient();
+        controller?.BeginClient();
     }
 
     /// 뗀 것은 막지 않는다. 누른 채로 창이 열렸다면 그 홀드는 이미 시작돼 있고, 여기서
     /// 끊지 않으면 창을 닫을 때까지 F를 누르고 있는 상태로 남는다.
-    void OnInteractCanceled(InputAction.CallbackContext _) => interaction?.EndClient();
+    void OnInteractCanceled(InputAction.CallbackContext _) => controller?.EndClient();
 
     /// 대시 (기획서 6.6). 액티브 스킬과 같은 자리로 간다 — 쿨다운과 페이즈 검사는 전부
     /// 서버가 하고, 여기서는 눌렸다는 사실만 넘긴다.
@@ -215,7 +222,7 @@ public class PlayerInputRouter : NetworkBehaviour
     void OnDump(InputAction.CallbackContext _)
     {
         if (Blocked) return;
-        interaction?.DumpClient();
+        controller?.DumpClient();
     }
 
     void OnBury(InputAction.CallbackContext _)

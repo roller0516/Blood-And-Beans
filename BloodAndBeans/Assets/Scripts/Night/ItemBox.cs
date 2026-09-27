@@ -68,7 +68,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     struct Session
     {
         public double OpenedAt;
-        public PlayerMove Mover;
+        public PlayerController Mover;
     }
 
     /// 개봉을 끝낸 사람의 루팅 세션. 여기 있으면 그 사람 화면에 창이 떠 있다는 뜻이다.
@@ -113,14 +113,18 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     public void BeginInteractionClient()
     {
         var player = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-        player?.GetComponent<PlayerInteract>()?.BeginBoxClient(this);
+        player?.GetComponent<PlayerController>()?.BeginBoxClient(this);
     }
 
     public void EndInteractionClient()
     {
         var player = NetworkManager.Singleton?.LocalClient?.PlayerObject;
-        player?.GetComponent<PlayerInteract>()?.EndBoxClient();
+        player?.GetComponent<PlayerController>()?.EndBoxClient();
     }
+
+    // 밤 상자는 손 상태로 가리지 않는다. 안개·거리·페이즈 판정은 서버 RPC가 한다.
+    public bool CanPromptClient(in InteractionContext ctx) => !ctx.Reserved;
+    public string PromptFor(in InteractionContext ctx) => Prompt;
 
     /// 박스는 그 위의 안개가 걷힌 뒤에야 존재한다 (기획서 6.1-2). 걷힌 칸은 전원이
     /// 공유하므로(6.1-3) 보는 사람을 가리지 않는다. 방금 쏟아진 더미는 그대로 드러나 있다.
@@ -308,11 +312,11 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         ? 0f
         : Mathf.Clamp01((float)(NetworkManager.ServerTime.Time - castStartedAt) / castRequired);
 
-    static PlayerMove MoverOf(ulong clientId)
+    static PlayerController MoverOf(ulong clientId)
     {
         var nm = NetworkManager.Singleton;
         if (nm == null || !nm.ConnectedClients.TryGetValue(clientId, out var c)) return null;
-        return c.PlayerObject != null ? c.PlayerObject.GetComponent<PlayerMove>() : null;
+        return c.PlayerObject != null ? c.PlayerObject.GetComponent<PlayerController>() : null;
     }
 
     /// 드러난 칸 하나를 통째로 가방에 넣는다 (기획서: 클릭하면 팀 인벤토리로 바로 이동).
@@ -340,7 +344,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         }
 
         stacks[index] = new LootStack(stack.Item, 0);
-        PlayerInteractor.ReportSuccessServer(clientId, this);
+        PlayerController.ReportSuccessServer(clientId, this);
 
         // 다 털린 임시 더미는 그 자리에서 치운다. 남겨 두면 빈 상자가 밤이 끝날 때까지
         // 서서 아직 뭔가 있는 것처럼 보인다. 숲 박스는 밤마다 다시 채워지므로 남긴다.

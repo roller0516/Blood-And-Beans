@@ -134,7 +134,7 @@ public class Station : NetworkBehaviour, IItemHolder
         operatorCarry.SetServer(new HeldItem { HasDish = true, DishIsPlate = input.DishIsPlate,
             IsProduct = true, Ingredient = Ingredient.None, Recipe = recipe, Menu = Menus.Match(recipe),
             GaugeMultiplier = CompletionGauge.MultiplierOf(judgement), Burnt = judgement == Judgement.Burnt });
-        if (judgement != Judgement.Burnt) PlayerInteractor.ReportSuccessServer(operatorCarry.OwnerClientId, this);
+        if (judgement != Judgement.Burnt) PlayerController.ReportSuccessServer(operatorCarry.OwnerClientId, this);
         ReleaseServer();
     }
 
@@ -155,7 +155,7 @@ public class Station : NetworkBehaviour, IItemHolder
 
     /// 설비까지의 거리는 원점이 아니라 **콜라이더 표면**에서 잰다.
     ///
-    /// 상호작용 후보는 콜라이더가 겹치면 잡히는데(`PlayerInteractor`의 트리거) 서버 판정만
+    /// 상호작용 후보는 콜라이더가 겹치면 잡히는데(`PlayerController`의 트리거) 서버 판정만
     /// 원점 기준이면 둘이 어긋난다. 조리대(12×1.6)와 카운터(8×1)는 원점이 한가운데라 끝에
     /// 서면 **프롬프트는 뜨는데 F가 통째로 무시됐다** — 12m 조리대에서 실제로 쓸 수 있는
     /// 구간이 가운데 2.5m뿐이었다. 머신·싱크는 1.5×1.5라 이 차이가 드러나지 않았다.

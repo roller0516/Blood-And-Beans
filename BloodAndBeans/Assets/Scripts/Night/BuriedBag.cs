@@ -207,6 +207,9 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
     public void EndInteractionClient() => EndHoldRpc();
 
+    public bool CanPromptClient(in InteractionContext ctx) => !ctx.Reserved;
+    public string PromptFor(in InteractionContext ctx) => Prompt;
+
     [Rpc(SendTo.Server)]
     void BeginHoldRpc(RpcParams p = default)
     {

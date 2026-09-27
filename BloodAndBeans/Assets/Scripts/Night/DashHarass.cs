@@ -10,7 +10,7 @@ using UnityEngine;
 /// 매 틱 돌진과 넉백을 미는 것, 그리고 **맞는 쪽으로서 피격을 받는 것**이다.
 /// 돌진 이동, 대상 선정, 결과 판정은 전부 서버가 한다.
 [RequireComponent(typeof(CharacterController))]
-[RequireComponent(typeof(PlayerMove))]
+[RequireComponent(typeof(PlayerController))]
 public class DashHarass : NetworkBehaviour
 {
     // ponytail: 기획서 14장 #7/#8에서 미결정이다. 기획서 6.6이 정한 것은 5~8초라는
@@ -47,7 +47,7 @@ public class DashHarass : NetworkBehaviour
     public event Action<Vector3, bool> TookHit;
 
     CharacterController controller;
-    PlayerMove move;
+    PlayerController move;
     PlayerInventory inventory;
 
     Vector3 dashDirection;
@@ -66,7 +66,7 @@ public class DashHarass : NetworkBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
-        move = GetComponent<PlayerMove>();
+        move = GetComponent<PlayerController>();
         inventory = GetComponent<PlayerInventory>();
     }
 
@@ -96,7 +96,7 @@ public class DashHarass : NetworkBehaviour
         if (pushing) { PushStepServer(); moved = true; }
 
         // 여기도 CharacterController로 민다. StepMove와 같은 이유로 y를 되돌린다
-        // (PlayerMove.PinToGround).
+        // (PlayerController.PinToGround).
         if (moved) move.PinToGround();
     }
 
@@ -206,7 +206,7 @@ public class DashHarass : NetworkBehaviour
         // 표시된다")와 같은 값을 써야 부풀어 보이는 상대가 실제로 흘린다.
         var spilled = inv != null && load >= LoadBands.OverloadRatio;
         if (spilled) inv.DropShareServer(NightBalance.DashSpillShare, victim.transform.position);
-        victim.GetComponent<PlayerInteract>()?.InterruptServer();
+        victim.GetComponent<PlayerController>()?.InterruptServer();
 
         var dir = victim.transform.position - transform.position;
         dir.y = 0f;

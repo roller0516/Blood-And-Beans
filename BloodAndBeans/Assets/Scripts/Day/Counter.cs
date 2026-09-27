@@ -15,6 +15,8 @@ public class Counter : NetworkBehaviour, IInteractable, IItemHolder
     void Awake() { cafe = Cafe.Of(this); surface = GetComponentInChildren<Collider>(true); }
     public void BeginInteractionClient() => ServeRpc();
     public void EndInteractionClient() { }
+    public bool CanPromptClient(in InteractionContext ctx) => !ctx.Reserved && ctx.Held.IsProduct;
+    public string PromptFor(in InteractionContext ctx) => Prompt;
     [Rpc(SendTo.Server)]
     public void ServeRpc(RpcParams p = default)
     {
@@ -26,7 +28,7 @@ public class Counter : NetworkBehaviour, IInteractable, IItemHolder
         if (cafe.Queue != null && cafe.Queue.TryServeServer(carry.Held))
         {
             carry.SetServer(HeldItem.Dish(carry.Held.DishIsPlate, true));
-            PlayerInteractor.ReportSuccessServer(id, this);
+            PlayerController.ReportSuccessServer(id, this);
         }
     }
 }

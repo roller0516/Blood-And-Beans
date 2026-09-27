@@ -6,6 +6,8 @@ public class Sink : NetworkBehaviour, IInteractable
     public string Prompt => string.Empty;
     public void BeginInteractionClient() { }
     public void EndInteractionClient() { }
+    public bool CanPromptClient(in InteractionContext ctx) => !ctx.Reserved;
+    public string PromptFor(in InteractionContext ctx) => Prompt;
     [Rpc(SendTo.Server)]
     public void WashHoldBeginRpc(RpcParams p = default) { }
     [Rpc(SendTo.Server)]

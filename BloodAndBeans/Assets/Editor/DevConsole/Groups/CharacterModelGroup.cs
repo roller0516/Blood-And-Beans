@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.UIElements;
 
 /// 캐릭터별로 어떤 모델 프리팹이 들어갔는지 보고, 그 자리에서 내 캐릭터에 입혀 본다.
@@ -45,13 +46,16 @@ public class CharacterModelGroup : DevConsoleGroup
             return;
         }
 
-        var placeholder = new SerializedObject(config).FindProperty("placeholderModel").objectReferenceValue;
+        var placeholderGuid = new SerializedObject(config).FindProperty("placeholderModel")
+            .FindPropertyRelative("m_AssetGUID").stringValue;
         var all = CharacterCatalog.All;
         for (var i = 0; i < all.Length; i++)
         {
             var index = i;
-            var prefab = config.ModelFor(all[i].Id);
-            var isPlaceholder = prefab != null && prefab == placeholder;
+            var reference = config.ReferenceFor(all[i].Id);
+            var prefab = CharacterSelectSetup.ResolveEditorAsset(reference);
+            var isPlaceholder = reference != null && !string.IsNullOrEmpty(placeholderGuid)
+                && reference.AssetGUID == placeholderGuid;
 
             var status = Row(list, $"{all[i].Name} ({all[i].Id})", Check(prefab, isPlaceholder, out var ok));
             status.EnableInClassList("warn", !ok);
@@ -74,7 +78,7 @@ public class CharacterModelGroup : DevConsoleGroup
         if (!state.Playing) { pendingSelect = CharacterCatalog.NoPick; return; }
 
         var local = PlayerCharacter.Local();
-        var look = local != null ? local.GetComponent<PlayerLook>() : null;
+        var look = local != null ? local.GetComponent<PlayerVisuals>() : null;
         if (look == null || look.Model == null || local.Index != pendingSelect) return;
 
         var animator = look.Model.GetComponentInChildren<Animator>();

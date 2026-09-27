@@ -20,9 +20,10 @@ public sealed class MatchHudPresenter
     MatchDirector director;
     NetworkObject cachedPlayer;
     PlayerInventory inventory;
-    PlayerMove move;
-    PlayerInteractor interactor;
-    PlayerInteract boxHold;
+
+    /// 이동과 상호작용이 한 컴포넌트다 (`PlayerController`) — 예전에는 `PlayerMove`·
+    /// `PlayerInteractor` 둘로 나뉘어 이 필드도 둘이었다.
+    PlayerController controller;
     DashHarass dash;
     PlayerCarry carry;
     PlayerCharacter character;
@@ -41,11 +42,9 @@ public sealed class MatchHudPresenter
     Camera cam;
 
     /// 로컬 플레이어의 상호작용 컴포넌트. 여기서 이미 한 번 풀어 두므로 루팅 창을
-    /// 여닫는 `MatchFlow`가 같은 것을 다시 찾지 않는다.
-    public PlayerInteractor Interactor => interactor;
-
-    /// 로컬 플레이어의 박스 홀드 상태. 고른 칸을 루팅 창에 그리는 데 쓴다.
-    public PlayerInteract BoxHold => boxHold;
+    /// 여닫는 `MatchFlow`가 같은 것을 다시 찾지 않는다. 상자 홀드(`LootBox`,
+    /// `TakeSlotClient`, `CastProgress01`)도 이 컴포넌트 하나가 갖는다.
+    public PlayerController Interactor => controller;
 
     /// 로컬 플레이어의 가방. 여기서 이미 한 번 풀어 두므로 루팅 창이 같은 것을 다시
     /// `GetComponent`로 찾지 않는다.
@@ -114,7 +113,7 @@ public sealed class MatchHudPresenter
                 // 화면은 인덱스만 받는다 — 어느 색인지는 표현의 몫이다.
                 model.BagBand = LoadBands.BandOf(inventory.LoadRatio);
                 model.BagPercent = $"가방 용량  {inventory.LoadRatio * 100f:0}%"
-                    + $"   속도 {(move != null ? move.SpeedScale : 1f) * 100f:0}%";
+                    + $"   속도 {(controller != null ? controller.SpeedScale : 1f) * 100f:0}%";
                 model.BagWeight = $"{inventory.Carried:0.0} / {inventory.Capacity:0.0} KG";
             }
             else
@@ -145,9 +144,12 @@ public sealed class MatchHudPresenter
             model.Ranking = text.ToString();
         }
         model.Details = model.IsDay ? string.Empty : BuildDetails(team, cafe, board);
-        model.Prompt = interactor != null && !string.IsNullOrEmpty(interactor.Prompt)
-            ? $"[F] {interactor.Prompt}"
-            : null;
+
+        // `controller.Prompt`를 두 번 읽지 않는다. 한 번만 읽어 한 갱신 안에서 두 번
+        // 훑던 것을 없앤다 — `PlayerController`가 프레임당 한 번만 대상을 캐시하므로
+        // 값 자체는 같지만, 여기서 두 번 읽으면 그 절약이 무의미해진다.
+        var prompt = controller != null ? controller.Prompt : string.Empty;
+        model.Prompt = string.IsNullOrEmpty(prompt) ? null : $"[F] {prompt}";
         return model;
     }
 
@@ -190,8 +192,7 @@ public sealed class MatchHudPresenter
             if (mate != null) text.AppendLine($"팀원 · {mate.View.Label}");
         }
 
-        if (cafe?.Dishes != null)
-            text.AppendLine($"접시 · 깨끗 {cafe.Dishes.Clean} / 사용 {cafe.Dishes.InUse} / 더러움 {cafe.Dishes.Dirty}");
+        // 식기 개수는 패널로 세지 않는다 (기획서 5.7.1). 선반과 쌓인 더미를 보면 끝난다 (5.7.3).
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
@@ -318,9 +319,9 @@ public sealed class MatchHudPresenter
         get
         {
             // 묻은 가방 회수·소각도 같은 막대를 쓴다. 다 파내면 서버가 디스폰하므로 파괴 판정을 거친다.
-            if (interactor != null && interactor.Current is BuriedBag bag && bag != null)
+            if (controller != null && controller.Current is BuriedBag bag && bag != null)
                 return bag.CastProgress01;
-            return boxHold != null ? boxHold.CastProgress01 : 0f;
+            return controller != null ? controller.CastProgress01 : 0f;
         }
     }
 
@@ -392,9 +393,7 @@ public sealed class MatchHudPresenter
 
         cachedPlayer = player;
         inventory = player != null ? player.GetComponent<PlayerInventory>() : null;
-        move = player != null ? player.GetComponent<PlayerMove>() : null;
-        interactor = player != null ? player.GetComponent<PlayerInteractor>() : null;
-        boxHold = player != null ? player.GetComponent<PlayerInteract>() : null;
+        controller = player != null ? player.GetComponent<PlayerController>() : null;
         dash = player != null ? player.GetComponent<DashHarass>() : null;
         abilities = player != null ? player.GetComponent<PlayerAbilities>() : null;
         carry = player != null ? player.GetComponent<PlayerCarry>() : null;

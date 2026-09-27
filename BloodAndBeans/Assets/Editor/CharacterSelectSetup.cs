@@ -7,6 +7,7 @@ using Unity.Cinemachine;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
@@ -33,7 +34,7 @@ public static class CharacterSelectSetup
         for (var i = 0; i < entries.arraySize; i++)
         {
             var entry = entries.GetArrayElementAtIndex(i);
-            var prefab = (GameObject)entry.FindPropertyRelative("model").objectReferenceValue;
+            var prefab = ResolveEditorAsset(entry.FindPropertyRelative("model"));
             if (prefab == null || !prefab.name.StartsWith("Ghost_")) continue;
             var path = AssetDatabase.GetAssetPath(prefab);
             Edit(path, root =>
@@ -264,8 +265,14 @@ public static class CharacterSelectSetup
             try
             {
                 var holder=new GameObject("Portrait");SceneManager.MoveGameObjectToScene(holder,scene);
-                var model=config.SpawnModel(id,holder.transform,12);
-                if(model==null)continue;
+                var prefabAsset=ResolveEditorAsset(config.ReferenceFor(id));
+                if(prefabAsset==null)continue;
+                var model=(GameObject)PrefabUtility.InstantiatePrefab(prefabAsset,scene);
+                model.transform.SetParent(holder.transform,false);
+                model.transform.localPosition=Vector3.zero;
+                model.transform.localRotation=Quaternion.identity;
+                config.ApplyTransform(id,model.transform);
+                foreach(var child in model.GetComponentsInChildren<Transform>(true))child.gameObject.layer=12;
                 model.GetComponent<CharacterModel>()?.Tint(TeamColors.Of(i%4),1);
                 var cam=CameraFor(scene,"PortraitCamera");
                 cam.transform.position=new Vector3(0,1.25f,5);
@@ -376,6 +383,20 @@ public static class CharacterSelectSetup
         try{RenderTexture.active=rt;tex.ReadPixels(new Rect(0,0,rt.width,rt.height),0,0);tex.Apply();File.WriteAllBytes(path,tex.EncodeToPNG());}
         finally{RenderTexture.active=previous;Object.DestroyImmediate(tex);}
     }
+    /// `AssetReference` 필드(SerializedProperty)가 가리키는 프리팹을 에디터에서 바로 읽는다.
+    /// 런타임 로드가 아니라 에디터 도구 전용 지름길이다 — 이 파일의 도구들은 재생 없이 돈다.
+    internal static GameObject ResolveEditorAsset(SerializedProperty assetReferenceProperty)
+    {
+        var guid = assetReferenceProperty?.FindPropertyRelative("m_AssetGUID")?.stringValue;
+        return string.IsNullOrEmpty(guid) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+    }
+
+    internal static GameObject ResolveEditorAsset(AssetReference reference)
+    {
+        var guid = reference?.AssetGUID;
+        return string.IsNullOrEmpty(guid) ? null : AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+    }
+
     static void Edit(string path,Action<GameObject> edit)
     {
         var root=PrefabUtility.LoadPrefabContents(path);
@@ -430,7 +451,7 @@ public sealed class CharacterVisualConfigEditor : Editor
     {
         foreach (var character in CharacterCatalog.All)
         {
-            var model = config.ModelFor(character.Id);
+            var model = CharacterSelectSetup.ResolveEditorAsset(config.ReferenceFor(character.Id));
             if (model == null || model.GetComponent<CharacterModel>() == null)
                 throw new InvalidOperationException(character.Name + ": Model과 루트 CharacterModel을 연결하세요.");
             if (model.GetComponentInChildren<Collider>(true) != null || model.GetComponentInChildren<Rigidbody>(true) != null)

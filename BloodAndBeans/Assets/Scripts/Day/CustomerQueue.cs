@@ -57,15 +57,22 @@ public class CustomerQueue : NetworkBehaviour
         if (now == null || now.Current != Phase.Day)
         {
             ClearAll();
+            ReportUrgentServer(false);
             return;
         }
 
+        var urgent = false;
         for (int i = waiting.Count - 1; i >= 0; i--)
         {
             if (waiting[i] == null) { waiting.RemoveAt(i); continue; }
-            if (waiting[i].Patience > 0f) continue;
+            if (waiting[i].Patience > 0f)
+            {
+                urgent |= waiting[i].PatienceRatio <= DayBalance.PatienceUrgent;
+                continue;
+            }
             Leave(i);                      // 인내심 소진: 나가고 매출 0
         }
+        ReportUrgentServer(urgent);
 
         if (waiting.Count >= maxWaiting || planned.Count == 0) return;
         // 기획서 5.5: 첫 진입만 간격을 두고, 그 뒤로는 자리가 비는 즉시 들어온다.
@@ -76,6 +83,20 @@ public class CustomerQueue : NetworkBehaviour
         }
         enteredToday++;
         Spawn();
+    }
+
+    bool reportedUrgent;
+
+    /// 카페 입구 등이 읽을 신호를 공개 판에 올린다 (기획서 5.7.6). 카페는 자기 팀에만
+    /// 복제되므로 남의 팀은 이 경로로만 알 수 있다.
+    void ReportUrgentServer(bool urgent)
+    {
+        if (urgent == reportedUrgent) return;
+        var cafe = ownerCafe != null ? ownerCafe : (ownerCafe = Cafe.Of(this));
+        var board = cafe != null ? cafe.Board : null;
+        if (board == null) return;                 // 아직 판이 서지 않았다. 다음 프레임에 다시 올린다
+        board.SetUrgentServer(cafe.TeamId, urgent);
+        reportedUrgent = urgent;
     }
 
     void Spawn()

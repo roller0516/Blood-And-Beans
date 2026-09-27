@@ -1,5 +1,7 @@
 using System.Linq;
 using UnityEditor;
+using UnityEditor.AddressableAssets;
+using UnityEditor.AddressableAssets.Settings;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 
@@ -36,7 +38,9 @@ public static class CompletionSetup
             }
             var entry = entries.GetArrayElementAtIndex(i);
             entry.FindPropertyRelative("id").enumValueIndex = (int)CharacterCatalog.All[i].Id;
-            entry.FindPropertyRelative("model").objectReferenceValue = prefab;
+            entry.FindPropertyRelative("model").FindPropertyRelative("m_AssetGUID").stringValue =
+                AssetDatabase.AssetPathToGUID(path);
+            EnsureAddressable(path, "Character_" + CharacterCatalog.All[i].Id);
         }
         data.ApplyModifiedPropertiesWithoutUndo();
         var playerPath = CharacterFolder + "Player.prefab";
@@ -50,14 +54,28 @@ public static class CompletionSetup
                 root.SetParent(player.transform, false);
                 root.localPosition = new Vector3(0, -1, 0);
             }
-            var look = new SerializedObject(player.GetComponent<PlayerLook>());
-            look.FindProperty("visuals").objectReferenceValue = config;
+            var look = new SerializedObject(player.GetComponent<PlayerVisuals>());
+            look.FindProperty("characterVisuals").objectReferenceValue = config;
             look.FindProperty("modelRoot").objectReferenceValue = root;
             look.ApplyModifiedPropertiesWithoutUndo();
             PrefabUtility.SaveAsPrefabAsset(player, playerPath);
         }
         finally { PrefabUtility.UnloadPrefabContents(player); }
         AssetDatabase.SaveAssets();
+    }
+
+    /// 이 프리팹이 어드레서블 표에 없으면 등록한다. 무거운 캐릭터 모델을 `AssetReference`로
+    /// 물기만 하고 실제 그룹에 없으면 런타임 로드가 "unknown key"로 실패한다.
+    static void EnsureAddressable(string path, string address)
+    {
+        var settings = AddressableAssetSettingsDefaultObject.Settings;
+        if (settings == null) return;
+        var guid = AssetDatabase.AssetPathToGUID(path);
+        if (string.IsNullOrEmpty(guid)) return;
+        var group = settings.FindGroup("Default Local Group") ?? settings.DefaultGroup;
+        var entry = settings.CreateOrMoveEntry(guid, group, false, false);
+        entry.address = address;
+        EditorUtility.SetDirty(settings);
     }
 
     public static void Grove()

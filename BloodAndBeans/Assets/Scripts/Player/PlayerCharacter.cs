@@ -20,7 +20,7 @@ public class PlayerCharacter : NetworkBehaviour
     readonly NetworkVariable<int> character = new(CharacterCatalog.NoPick);
 
     PlayerTeam team;
-    PlayerMove move;
+    PlayerController move;
     PlayerAbilities abilities;
     MatchDirector director;
 
@@ -42,7 +42,7 @@ public class PlayerCharacter : NetworkBehaviour
     void Awake()
     {
         team = GetComponent<PlayerTeam>();
-        move = GetComponent<PlayerMove>();
+        move = GetComponent<PlayerController>();
         abilities = GetComponent<PlayerAbilities>();
     }
 
@@ -163,23 +163,26 @@ public class PlayerCharacter : NetworkBehaviour
         PushPassiveScaleServer();
     }
 
-    /// 이동 배수를 한 축에서 합친다. 보석·미납 페널티·활공이 **곱으로 쌓이는 유일한 자리**다
-    /// (기획서 3.3 · 8.2 · 9.1.2). 나눠 두면 셋이 서로를 덮어쓴다.
+    /// 이동 배수를 한 축에서 합친다. 보석·미납 페널티·캐릭터 액티브가 **곱으로 쌓이는
+    /// 유일한 자리**다 (기획서 3.3 · 8.2 · 9.1.2). 나눠 두면 셋이 서로를 덮어쓴다.
+    ///
+    /// 실제 계산은 `MoveSpeed.Combine`(순수 함수)이 한다. 여기는 서버 상태를 모아 넘기고
+    /// 결과를 적용만 한다 — 어떤 액티브가 지금 이동을 미는지는 `PlayerAbilities`가 답하므로
+    /// 이 클래스는 특정 능력(활공 등)을 몰라도 된다.
     void PushPassiveScaleServer()
     {
         if (!IsServer || move == null) return;
 
         var cafe = CafeServer();
         var day = director != null && director.Phase.Current == Phase.Day;
-        var scale = day && cafe != null && cafe.HasGem(Gem.Wind) ? Gems.MoveSpeedScale : 1f;
 
         // 미납 페널티는 보석과 같은 축에 마이너스로 붙는다 (기획서 3.3). 낮 페널티라 밤에는 걸지 않는다.
         var ledger = day && director != null && team != null ? director.LedgerOf(team.Team) : null;
-        if (ledger != null) scale *= ledger.MoveSpeedScale;
 
-        // 활공은 라우터의 지속 슬롯이 든다. 켜져 있는 낮 액티브가 활공일 때만 곱한다.
-        if (day && abilities != null && abilities.Ability<GlideAbility>() != null &&
-            abilities.DurationRemaining > 0f) scale *= DaySkills.GlideSpeed;
+        var scale = MoveSpeed.Combine(
+            windGem: day && cafe != null && cafe.HasGem(Gem.Wind),
+            ledgerScale: ledger != null ? ledger.MoveSpeedScale : 1f,
+            abilityScale: day && abilities != null ? abilities.DurationMoveSpeedScale : 1f);
 
         if (Mathf.Approximately(scale, pushedPassiveScale)) return;
         pushedPassiveScale = scale;

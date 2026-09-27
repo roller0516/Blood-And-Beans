@@ -98,7 +98,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     /// 배치할 때 지면 위로 띄우는 높이. transform 원점이 캡슐 중심이므로(CharacterController
     /// center 0, height 2) 캡슐 반높이와 같아야 발이 지면에 닿는다. 크면 공중에 뜬 채로 남는다.
-    /// 평면 탑다운이라 중력이 없어서(PlayerMove) 한번 뜨면 스스로 내려오지 않는다.
+    /// 평면 탑다운이라 중력이 없어서(PlayerController) 한번 뜨면 스스로 내려오지 않는다.
     [SerializeField] float spawnHeight = 1f;
 
     /// 같은 팀 사람끼리 벌리는 간격. 캡슐 지름보다 커야 서로 밀어내지 않는다.
@@ -106,7 +106,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     /// 카페 원점에서 스폰 지점까지의 카페 로컬 오프셋. 원점 그대로 쓰면 그 자리에 서 있는
     /// 조리대(Cafe.prefab의 PrepIsland, 12x1x1.6 박스) 안에 캡슐이 박힌 채로 시작한다.
-    /// 중력이 없어서(PlayerMove) 스스로 빠져나오지 못하고 그대로 굳는다.
+    /// 중력이 없어서(PlayerController) 스스로 빠져나오지 못하고 그대로 굳는다.
     /// 조리대(z 0.8까지)와 복귀 구역(z -3부터) 사이의 빈 바닥이 기본값이다.
     [SerializeField] Vector3 cafeSpawnOffset = new(0f, 0f, -2f);
 
@@ -342,7 +342,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             return;
         }
 
-        // y는 프리팹 값을 쓴다. 중력이 없어(PlayerMove) 여기서 어긋나면 영영 뜬다.
+        // y는 프리팹 값을 쓴다. 중력이 없어(PlayerController) 여기서 어긋나면 영영 뜬다.
         var at = new Vector3(cafeOrigin.x, boxPrefab.transform.position.y, cafeOrigin.z);
         for (var i = forest.Count; i < count; i++)
             Instantiate(boxPrefab, at, Quaternion.identity).NetworkObject.Spawn();
@@ -379,7 +379,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             {
                 var box = targets[next++];
 
-                // 높이는 상자가 이미 안다. 중력이 없어서(PlayerMove) 여기서 어긋나면 영영 뜬다.
+                // 높이는 상자가 이미 안다. 중력이 없어서(PlayerController) 여기서 어긋나면 영영 뜬다.
                 var spot = box.transform.position;
                 for (var attempt = 0; attempt < boxPlaceAttempts; attempt++)
                 {
@@ -502,8 +502,17 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             return;
         }
 
+        if (cafeShellPrefab.GetComponentInChildren<CafeEntranceLight>(true) == null)
+            CDebug.LogError($"{name}: {nameof(cafeShellPrefab)}에 {nameof(CafeEntranceLight)}가 없다. "
+                          + "카페 입구 등이 켜지지 않아 광장에서 손님 상태를 알 수 없다 (기획서 5.7.6).", this);
+
         for (var team = 0; team < teamCount; team++)
-            Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
+        {
+            var shell = Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
+            // 껍데기는 복제되지 않아 팀을 스스로 알 수 없다. 세우는 자리에서 한 번 찍어 준다.
+            var light = shell.GetComponentInChildren<CafeEntranceLight>(true);
+            if (light != null) light.Bind(team);
+        }
     }
 
     /// 카페 입구가 광장 중앙을 보도록 돌린다. 입구는 카페 로컬 -Z다 (`CafeDecor/EntryRunner`가
