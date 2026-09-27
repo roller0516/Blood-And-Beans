@@ -1,0 +1,1011 @@
+{
+  "title": "Blood & Bean — 효과음 매니페스트",
+  "source_of_truth": "00__Docs/03__Sound/Blood&Bean_효과음_리스트.md (이 파일과 다르면 리스트가 맞다)",
+  "format": {
+    "sample_rate": 44100,
+    "channels": 1,
+    "bit_depth": 16,
+    "container": "wav"
+  },
+  "status_legend": {
+    "ready": "파일 있음 — clips를 쓴다",
+    "derived": "파일 없음 — base의 클립을 volume · pitch · lowpass_hz · trim_sec로 가공해 쓴다",
+    "todo": "아직 없음 — 호출 자리만 만들고 소리는 비워 둔다",
+    "voice_needed": "목소리 — 합성 불가. 녹음 · AI 음성 대기. temp_clips가 있으면 임시로 쓴다",
+    "removed": "쓰지 않는다",
+    "silent": "소리를 붙이지 않는다고 정한 것"
+  },
+  "mixing_rules": {
+    "spatial": "카페 · 광장에서 일어나는 사건은 3D (거리 감쇠 + 방향). 광장에서 카페 소리가 들려야 한다 (기획서 5.7.6)",
+    "own_team_gain_db": 3,
+    "max_same_clip_voices": 3,
+    "voice_steal": "가장 오래된 것을 끊는다",
+    "equipment": "설비 소리는 시작 · 끝만. 조리 중 루프는 없다 (S-03 삭제)",
+    "ui_2d": [
+      "S-44",
+      "S-45",
+      "S-46",
+      "S-47",
+      "S-48",
+      "S-49",
+      "S-50",
+      "S-51",
+      "S-52",
+      "S-53",
+      "S-65"
+    ]
+  },
+  "triggers": [
+    {
+      "code": "S-01",
+      "name": "재료 담기",
+      "priority": "1순위",
+      "when": "원두 · 빵 · 수집 재료를 담을 때 F",
+      "memo": "가장 잦다. 0.15초 이내. 재료마다 미세하게 다른 톤(8종 변주)",
+      "spec_refs": "5.1 · 5.7.3 · DF-21·DF-22",
+      "feedback": [
+        "DF-21",
+        "DF-22"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S01a_Ingredient_Liquid",
+        "SFX_S01b_Ingredient_Hard",
+        "SFX_S01c_Ingredient_Soft"
+      ],
+      "clip_by_ingredient": {
+        "우유": "a",
+        "초콜렛": "a",
+        "원두": "b",
+        "얼음": "b",
+        "아몬드": "b",
+        "베리": "b",
+        "빵": "c",
+        "크림": "c"
+      },
+      "pitch_by_ingredient": "같은 원본을 쓰는 재료끼리 pitch 0.9 ~ 1.15 사이로 벌린다"
+    },
+    {
+      "code": "S-02",
+      "name": "설비 투입",
+      "priority": "1순위",
+      "when": "머신·오븐에 잔/접시 넣기",
+      "memo": "철컥. 설비가 잠겼다는 신호",
+      "spec_refs": "5.2",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-03",
+      "name": "조리 중 루프",
+      "priority": "1순위",
+      "when": "조리 2~4초",
+      "memo": "뺀다 — 0.2의 「설비 소리는 시작 · 끝만」과 어긋난다. 시작은 S-02, 끝은 S-04가 맡는다",
+      "spec_refs": "5.2",
+      "feedback": [],
+      "status": "removed"
+    },
+    {
+      "code": "S-04",
+      "name": "완성 게이지 등장",
+      "priority": "1순위",
+      "when": "조리 끝난 순간",
+      "memo": "딩 — 주의를 끈다. 10초 안에 눌러야 한다",
+      "spec_refs": "5.2",
+      "feedback": [],
+      "status": "ready",
+      "clips": [
+        "SFX_S04_GaugeDing"
+      ]
+    },
+    {
+      "code": "S-05",
+      "name": "게이지 침 왕복",
+      "priority": "1순위",
+      "when": "게이지가 떠 있는 동안",
+      "memo": "틱틱틱. 화면을 안 봐도 리듬을 알 수 있어야 한다",
+      "spec_refs": "5.2",
+      "feedback": [],
+      "status": "ready",
+      "clips": [
+        "SFX_S05_GaugeTick"
+      ],
+      "repeat": "게이지가 떠 있는 동안 침이 끝에 닿을 때마다 한 번"
+    },
+    {
+      "code": "S-06",
+      "name": "Perfect",
+      "priority": "1순위",
+      "when": "중앙에서 정지",
+      "memo": "가장 기분 좋은 소리. 음이 위로 두 단. Perfect! 글자와 동시에",
+      "spec_refs": "5.2 · DF-02·DF-03",
+      "feedback": [
+        "DF-02",
+        "DF-03"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S06_Perfect"
+      ]
+    },
+    {
+      "code": "S-07",
+      "name": "Good",
+      "priority": "1순위",
+      "when": "중앙 인접",
+      "memo": "한 음. 담백하게. Good! 글자와 동시에",
+      "spec_refs": "5.2 · DF-03",
+      "feedback": [
+        "DF-03"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S07_Good"
+      ]
+    },
+    {
+      "code": "S-08",
+      "name": "Miss",
+      "priority": "1순위",
+      "when": "그 외",
+      "memo": "음이 아래로. 실패가 아니라 아쉬움 정도. Miss! 글자와 동시에",
+      "spec_refs": "5.2 · DF-03",
+      "feedback": [
+        "DF-03"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S08_Miss"
+      ]
+    },
+    {
+      "code": "S-09",
+      "name": "탐 — 타버림",
+      "priority": "1순위",
+      "when": "10초 방치",
+      "memo": "치익 + 낮은 종. 아프게",
+      "spec_refs": "5.2 · DF-04",
+      "feedback": [
+        "DF-04"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-10",
+      "name": "판매 성공",
+      "priority": "1순위",
+      "when": "손님에게 건네 주문 완료",
+      "memo": "이 게임에서 가장 자주 듣는 보상음. 코인이 날아가는 소리로 이어진다",
+      "spec_refs": "5.7.2 · DF-01",
+      "feedback": [
+        "DF-01"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S10_Sale"
+      ],
+      "then": {
+        "code": "S-11",
+        "delay_sec": 0.3
+      }
+    },
+    {
+      "code": "S-11",
+      "name": "코인 흡수",
+      "priority": "1순위",
+      "when": "코인이 상단 매출에 닿을 때",
+      "memo": "찰랑. S-10 뒤 0.3초",
+      "spec_refs": "DF-01",
+      "feedback": [
+        "DF-01"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S11_Coin"
+      ]
+    },
+    {
+      "code": "S-12",
+      "name": "오배송",
+      "priority": "1순위",
+      "when": "주문과 다른 것을 건넴 — 다른 메뉴 · 빈 식기 · 만드는 중 · 쓰레기까지",
+      "memo": "손님이 화내는 소리 + 낮은 부저. 주변 손님이 웅성거리는 소리가 겹친다 (인내심 −20%)",
+      "spec_refs": "5.3 · DF-05",
+      "feedback": [
+        "DF-05"
+      ],
+      "status": "voice_needed",
+      "temp_clips": [
+        "SFX_S12_Misdelivery_TEMP"
+      ]
+    },
+    {
+      "code": "S-13",
+      "name": "손님 이탈",
+      "priority": "1순위",
+      "when": "인내심 소진",
+      "memo": "한숨 + 문 닫히는 소리. 코인 소리가 안 나는 것이 정보다",
+      "spec_refs": "5.5 · DF-06",
+      "feedback": [
+        "DF-06"
+      ],
+      "status": "voice_needed"
+    },
+    {
+      "code": "S-14",
+      "name": "쓰레기가 됨",
+      "priority": "1순위",
+      "when": "조합 불가 재료 투입",
+      "memo": "푸슉. 짧고 김빠지게",
+      "spec_refs": "5.7.3 · DF-07",
+      "feedback": [
+        "DF-07"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S14_Spoiled"
+      ]
+    },
+    {
+      "code": "S-15",
+      "name": "세척 홀드 루프 → 완료",
+      "priority": "1순위",
+      "when": "개수대 F 홀드 3초",
+      "memo": "물소리 루프 + 끝에 딸깍. 끝이 명확해야 다음 행동으로 넘어간다",
+      "spec_refs": "5.3 · DF-30",
+      "feedback": [
+        "DF-30"
+      ],
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "S-16",
+      "name": "건네기 / 받기",
+      "priority": "1순위",
+      "when": "팀원에게 건네기 · 맞바꾸기 (1.5m 안 · F 대상)",
+      "memo": "주고받는 두 음. 이 게임의 핵심 장면. 맞바꿀 때도 같은 소리",
+      "spec_refs": "5.1 · 5.7.4 · DF-31",
+      "feedback": [
+        "DF-31"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S16_HandOff"
+      ]
+    },
+    {
+      "code": "S-17",
+      "name": "설비 선점 실패",
+      "priority": "1순위",
+      "when": "이미 쓰는 중인 설비에 F",
+      "memo": "S-62에 합친다. 설비 사용 중도 「안 됨」의 한 경우다 — 이유는 회색 「사용 중」 프롬프트가 말한다 (5.7.4 예외 1)",
+      "spec_refs": "5.4 · 5.7.4 · DF-28",
+      "feedback": [
+        "DF-28"
+      ],
+      "status": "derived",
+      "base": "S-62",
+      "note": "설비 사용 중도 「안 됨」. 같은 소리"
+    },
+    {
+      "code": "S-18",
+      "name": "설비가 빔",
+      "priority": "1순위",
+      "when": "점유 해제 순간",
+      "memo": "광장 전체에 들려야 한다. 선착순이 성립하려면",
+      "spec_refs": "5.7.4 · DF-12",
+      "feedback": [
+        "DF-12"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-19",
+      "name": "손님 입장",
+      "priority": "2순위",
+      "when": "자리가 비어 새 손님",
+      "memo": "종족별 6종 변주. 뱀파이어는 달라야 한다 (인내심 28초)",
+      "spec_refs": "5.5 · DF-08",
+      "feedback": [
+        "DF-08"
+      ],
+      "status": "voice_needed"
+    },
+    {
+      "code": "S-20",
+      "name": "인내심 80% 돌파",
+      "priority": "2순위",
+      "when": "채움 80%",
+      "memo": "경고음. 카페 밖에서도 방향이 실려 들린다",
+      "spec_refs": "5.7.2 · 5.7.6 · DF-10",
+      "feedback": [
+        "DF-10"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-21",
+      "name": "카페 입구 등 점멸",
+      "priority": "2순위",
+      "when": "위급 손님 발생",
+      "memo": "S-20에 합친다. 등 점멸은 인내심 80% 돌파와 같은 순간이다(DF-10) — 두 소리가 겹치면 뭉개진다",
+      "spec_refs": "5.7.6 · DF-60",
+      "feedback": [
+        "DF-60"
+      ],
+      "status": "derived",
+      "base": "S-20",
+      "note": "인내심 80% 돌파와 같은 순간. 따로 울리지 않는다 — S-20 한 번이면 된다"
+    },
+    {
+      "code": "S-22",
+      "name": "부분 전달",
+      "priority": "2순위",
+      "when": "여러 잔 중 하나를 건넴",
+      "memo": "S-10보다 작게. 완료가 아니라 진행",
+      "spec_refs": "5.5 · DF-09",
+      "feedback": [
+        "DF-09"
+      ],
+      "status": "derived",
+      "base": "S-10",
+      "volume": 0.3,
+      "note": "S-11 코인은 울리지 않는다"
+    },
+    {
+      "code": "S-23",
+      "name": "탄 것 판매",
+      "priority": "2순위",
+      "when": "Burnt를 건넴",
+      "memo": "S-10의 김빠진 버전. 코인이 적게",
+      "spec_refs": "5.3 · DF-11",
+      "feedback": [
+        "DF-11"
+      ],
+      "status": "derived",
+      "base": "S-10",
+      "pitch": 0.74,
+      "lowpass_hz": 3000,
+      "note": "S-11 코인은 작게 (volume 0.5)"
+    },
+    {
+      "code": "S-24",
+      "name": "쏟기 (B)",
+      "priority": "2순위",
+      "when": "식기 비우기",
+      "memo": "촤악",
+      "spec_refs": "11장 · DF-33",
+      "feedback": [
+        "DF-33"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-25",
+      "name": "보석 적용",
+      "priority": "2순위",
+      "when": "낮 시작 시 자동 적용",
+      "memo": "짧은 벨. 보석 6종은 음높이로 가른다",
+      "spec_refs": "8장 · DF-13",
+      "feedback": [
+        "DF-13"
+      ],
+      "status": "derived",
+      "base": "S-34",
+      "pitch_by_gem": [
+        1.0,
+        1.12,
+        1.26,
+        1.33,
+        1.5,
+        1.68
+      ],
+      "note": "보석 6종은 음높이로 가른다. 순서는 보석 정의 순서"
+    },
+    {
+      "code": "S-26",
+      "name": "보석 만료",
+      "priority": "2순위",
+      "when": "마지막 턴 종료",
+      "memo": "스르륵 꺼지는 소리",
+      "spec_refs": "8.1 · DF-14",
+      "feedback": [
+        "DF-14"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S26_GemExpire"
+      ],
+      "baked_from": "S-34"
+    },
+    {
+      "code": "S-27",
+      "name": "충돌 / 밀림",
+      "priority": "2순위",
+      "when": "캐릭터끼리 닿음",
+      "memo": "퉁 — 코믹하게. 쿨타임 중엔 소리 없음",
+      "spec_refs": "5.4.2 · DF-36",
+      "feedback": [
+        "DF-36"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S27_Bump"
+      ]
+    },
+    {
+      "code": "S-28",
+      "name": "낮 액티브 스킬",
+      "priority": "2순위",
+      "when": "Q",
+      "memo": "5종 각각. 프로토는 파티클 + 공용음 하나로",
+      "spec_refs": "9.1.2",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-29",
+      "name": "이동 (유령 부유)",
+      "priority": "2순위",
+      "when": "이동 중",
+      "memo": "발소리가 아니다. 스르륵 미끄러지는 소리",
+      "spec_refs": "9.3",
+      "feedback": [],
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "S-30",
+      "name": "박스 개봉 홀드 → 완료",
+      "priority": "3순위",
+      "when": "F 홀드 1.5초",
+      "memo": "루프 + 뚜껑 열리는 소리. 끊기면 즉시 닫히는 소리",
+      "spec_refs": "6.5.5 · NF-15 · NF-16",
+      "feedback": [
+        "NF-15",
+        "NF-16"
+      ],
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "S-31",
+      "name": "슬롯 공개",
+      "priority": "3순위",
+      "when": "색 채움 1초",
+      "memo": "채워지는 동안 상승음, 드러나는 순간 등급별로 갈린다",
+      "spec_refs": "6.5.5 · NF-01",
+      "feedback": [
+        "NF-01"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-32",
+      "name": "1등급 / 2등급 / 3등급 드러남",
+      "priority": "3순위",
+      "when": "슬롯 공개 끝",
+      "memo": "3종. 등급이 소리로 먼저 읽혀야 한다",
+      "spec_refs": "6.5.2",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-33",
+      "name": "블러드 빈 등장",
+      "priority": "3순위",
+      "when": "3등급 박스에서",
+      "memo": "이 게임에서 가장 큰 소리. 낮은 울림 + 심장 박동. 1.2초 써도 된다",
+      "spec_refs": "1.4 · NF-03",
+      "feedback": [
+        "NF-03"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S33_BloodBean"
+      ]
+    },
+    {
+      "code": "S-34",
+      "name": "보석 등장",
+      "priority": "3순위",
+      "when": "박스에서",
+      "memo": "금빛 벨. 블러드 빈보다 작게",
+      "spec_refs": "6.5.2 · NF-04",
+      "feedback": [
+        "NF-04"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S34_Gem"
+      ]
+    },
+    {
+      "code": "S-35",
+      "name": "재료 담기 (밤)",
+      "priority": "3순위",
+      "when": "0.2초",
+      "memo": "S-01과 구분되게 — 밤은 조심스러운 톤",
+      "spec_refs": "6.5.5",
+      "feedback": [],
+      "status": "derived",
+      "base": "S-01",
+      "lowpass_hz": 1500,
+      "volume": 0.6,
+      "note": "밤 담기 — 먹먹하게"
+    },
+    {
+      "code": "S-36",
+      "name": "가짜 상자 → 기절",
+      "priority": "3순위",
+      "when": "가짜 열기",
+      "memo": "코믹한 폭발 + 별 도는 소리 (기절 2초)",
+      "spec_refs": "9.2 · NF-05",
+      "feedback": [
+        "NF-05"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-37",
+      "name": "대시",
+      "priority": "3순위",
+      "when": "대시 입력 (낮 · 밤)",
+      "memo": "바람 가르는 소리. 쿨타임 6초",
+      "spec_refs": "6.6 · DF-35 · NF-18",
+      "feedback": [
+        "DF-35",
+        "NF-18"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S37_Dash"
+      ]
+    },
+    {
+      "code": "S-38",
+      "name": "견제 히트 / 피격",
+      "priority": "3순위",
+      "when": "대시 충돌",
+      "memo": "퍽. 아프지 않게, 웃기게",
+      "spec_refs": "6.6 · NF-19·NF-20",
+      "feedback": [
+        "NF-19",
+        "NF-20"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-39",
+      "name": "재료 낙하",
+      "priority": "3순위",
+      "when": "적재 80%+ 피격",
+      "memo": "후두둑. 개수가 소리로도 느껴져야 억울하지 않다",
+      "spec_refs": "6.6 · NF-06 · NF-22",
+      "feedback": [
+        "NF-06",
+        "NF-22"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-40",
+      "name": "무게 감속 진입",
+      "priority": "3순위",
+      "when": "무게 단계 변화",
+      "memo": "숨 가빠지는 소리. 숫자를 안 띄우는 대신",
+      "spec_refs": "6.7 · NF-07",
+      "feedback": [
+        "NF-07"
+      ],
+      "status": "voice_needed"
+    },
+    {
+      "code": "S-41",
+      "name": "가방 묻기 / 파내기 (R)",
+      "priority": "3순위",
+      "when": "R 홀드",
+      "memo": "흙 파는 루프 + 완료음",
+      "spec_refs": "6.8 · NF-23·NF-24",
+      "feedback": [
+        "NF-23",
+        "NF-24"
+      ],
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "S-42",
+      "name": "안개 걷힘",
+      "priority": "3순위",
+      "when": "반경 안으로 들어갈 때",
+      "memo": "스르륵. 아주 작게",
+      "spec_refs": "6.1 · NF-10",
+      "feedback": [
+        "NF-10"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-43",
+      "name": "귀환 성공 / 실패",
+      "priority": "3순위",
+      "when": "소환진 도달 / 실패",
+      "memo": "빛기둥 상승음 / 가방 터지는 소리",
+      "spec_refs": "6.8 · NF-12·NF-13",
+      "feedback": [
+        "NF-12",
+        "NF-13"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-44",
+      "name": "일차 전환",
+      "priority": "4순위",
+      "when": "낮 ↔ 밤",
+      "memo": "전환 화면 10초. 하루가 끝났다는 마디",
+      "spec_refs": "4.1",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-45",
+      "name": "임대료 정산 — 성공",
+      "priority": "4순위",
+      "when": "매출 ≥ 청구액",
+      "memo": "카운트업 틱 + 금빛 마무리",
+      "spec_refs": "3.2 · DF-15",
+      "feedback": [
+        "DF-15"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-46",
+      "name": "임대료 정산 — 미납",
+      "priority": "4순위",
+      "when": "매출 < 청구액",
+      "memo": "도장 찍히는 소리. 낮게",
+      "spec_refs": "3.3 · DF-15",
+      "feedback": [
+        "DF-15"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-47",
+      "name": "예보 공개",
+      "priority": "4순위",
+      "when": "전환 화면",
+      "memo": "종족 구성비 · 인기 재료가 뜰 때",
+      "spec_refs": "5.6",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-48",
+      "name": "순위 변동",
+      "priority": "4순위",
+      "when": "상단 티커 갱신",
+      "memo": "아주 작게. 잦으므로 거슬리면 안 된다",
+      "spec_refs": "5.7.1 · DF-62",
+      "feedback": [
+        "DF-62"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-49",
+      "name": "판 종료 — 승리 / 패배",
+      "priority": "4순위",
+      "when": "7일차 종료",
+      "memo": "—",
+      "spec_refs": "4.3",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-50",
+      "name": "조합법 팝업 열기 / 닫기 (F1)",
+      "priority": "4순위",
+      "when": "F1",
+      "memo": "종이 넘기는 소리",
+      "spec_refs": "5.7.7",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-51",
+      "name": "버튼 · 커서 (로비)",
+      "priority": "4순위",
+      "when": "메뉴 조작",
+      "memo": "—",
+      "spec_refs": "10.1",
+      "feedback": [],
+      "status": "todo"
+    },
+    {
+      "code": "S-52",
+      "name": "매치 시작",
+      "priority": "4순위",
+      "when": "로비 → 인게임",
+      "memo": "곧 1일차로 넘어가는 마디다 — S-44와 같은 소리",
+      "spec_refs": "10.1",
+      "feedback": [],
+      "status": "derived",
+      "base": "S-44"
+    },
+    {
+      "code": "S-53",
+      "name": "캐릭터 선택",
+      "priority": "4순위",
+      "when": "로비",
+      "memo": "버튼 소리 그대로",
+      "spec_refs": "9.3",
+      "feedback": [],
+      "status": "derived",
+      "base": "S-51"
+    },
+    {
+      "code": "S-54",
+      "name": "식기 집기",
+      "priority": "5순위",
+      "when": "선반에서 F",
+      "memo": "도자기 딸깍. 가볍게",
+      "spec_refs": "DF-17",
+      "feedback": [
+        "DF-17"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-55",
+      "name": "식기 내려놓기",
+      "priority": "5순위",
+      "when": "작업대에 놓기",
+      "memo": "툭. 더러운 식기 더미 위에 겹칠 때는 딸그락",
+      "spec_refs": "5.4-13 · DF-18",
+      "feedback": [
+        "DF-18"
+      ],
+      "status": "derived",
+      "base": "S-54",
+      "pitch": 0.8,
+      "note": "더러운 식기 더미에 겹칠 때는 S-54를 한 번 더 (딸그락)"
+    },
+    {
+      "code": "S-56",
+      "name": "더러운 식기 들기",
+      "priority": "5순위",
+      "when": "작업대 더미에서 집기",
+      "memo": "끈적한 소리. 코믹하게",
+      "spec_refs": "DF-20",
+      "feedback": [
+        "DF-20"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-57",
+      "name": "메뉴가 된 순간",
+      "priority": "5순위",
+      "when": "재료를 넣어 메뉴 완성",
+      "memo": "짧은 상승음 한 음. 행동 중 유일한 「좋은 일」 소리",
+      "spec_refs": "DF-24",
+      "feedback": [
+        "DF-24"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-58",
+      "name": "블러드 빈 담기",
+      "priority": "5순위",
+      "when": "잔에 블러드 빈",
+      "memo": "낮은 맥박 한 번. S-33의 작은 버전",
+      "spec_refs": "DF-25",
+      "feedback": [
+        "DF-25"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S58_BloodBeanPour"
+      ],
+      "baked_from": "S-33"
+    },
+    {
+      "code": "S-59",
+      "name": "달아오른 설비",
+      "priority": "5순위",
+      "when": "달아오른 설비에 F",
+      "memo": "치익 짧게",
+      "spec_refs": "DF-29 · DF-49",
+      "feedback": [
+        "DF-29",
+        "DF-49"
+      ],
+      "status": "derived",
+      "base": "S-09",
+      "trim_sec": [
+        0,
+        0.25
+      ],
+      "note": "S-09 앞의 치익만"
+    },
+    {
+      "code": "S-60",
+      "name": "벽 · 사물 충돌",
+      "priority": "5순위",
+      "when": "벽 · 카운터 · 설비에 닿음",
+      "memo": "퉁. 대시로 박으면 한 단 크게",
+      "spec_refs": "DF-37",
+      "feedback": [
+        "DF-37"
+      ],
+      "status": "derived",
+      "base": "S-27",
+      "pitch": 0.8,
+      "lowpass_hz": 1200,
+      "note": "대시로 박으면 volume 1.4"
+    },
+    {
+      "code": "S-61",
+      "name": "전용 구역에 막힘",
+      "priority": "5순위",
+      "when": "남의 카페 입구 반경",
+      "memo": "탄력 있는 튕김. S-60과 달라야 벽으로 오해하지 않는다",
+      "spec_refs": "DF-38",
+      "feedback": [
+        "DF-38"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-62",
+      "name": "「안 됨」 공통",
+      "priority": "5순위",
+      "when": "조건이 안 맞는데 F · Space · Q",
+      "memo": "낮고 짧은 퉁 — 음이 아래로. 없으면 입력이 씹힌 것처럼 느껴진다. UI로 이유를 보이든 토스트로 말하든 소리는 이것 하나 — 토스트에는 따로 소리를 붙이지 않는다",
+      "spec_refs": "DF-39 ~ DF-46 · DF-63 ~ DF-71 · NF-26 ~ NF-30 · NF-45 ~ NF-49",
+      "feedback": [
+        "DF-39",
+        "DF-46",
+        "DF-63",
+        "DF-71",
+        "NF-26",
+        "NF-30",
+        "NF-45",
+        "NF-49"
+      ],
+      "status": "ready",
+      "clips": [
+        "SFX_S62_NotAllowed"
+      ]
+    },
+    {
+      "code": "S-63",
+      "name": "홀드 끊김",
+      "priority": "5순위",
+      "when": "이동 · 피격으로 홀드 취소",
+      "memo": "쪼그라드는 소리. 세척 · 개봉 · 묻기 · 소각 공용",
+      "spec_refs": "DF-30 · NF-25",
+      "feedback": [
+        "DF-30",
+        "NF-25"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-64",
+      "name": "소각",
+      "priority": "5순위",
+      "when": "적의 가방 위에서 홀드",
+      "memo": "불 붙는 소리 + 킬킬 웃음. 제3팀에게도 들린다",
+      "spec_refs": "NF-24",
+      "feedback": [
+        "NF-24"
+      ],
+      "status": "voice_needed"
+    },
+    {
+      "code": "S-65",
+      "name": "내 가방이 소각당함",
+      "priority": "5순위",
+      "when": "소각 완료",
+      "memo": "가방이 타 버리는 소리. 주인에게만 크게",
+      "spec_refs": "NF-08",
+      "feedback": [
+        "NF-08"
+      ],
+      "status": "derived",
+      "base": "S-64",
+      "note": "S-64 끝부분. 가방 주인에게만 크게 (2D, volume 1.3)"
+    },
+    {
+      "code": "S-66",
+      "name": "가방 재생성",
+      "priority": "5순위",
+      "when": "소환 위치 도착",
+      "memo": "퐁. 가볍게",
+      "spec_refs": "NF-09",
+      "feedback": [
+        "NF-09"
+      ],
+      "status": "todo"
+    },
+    {
+      "code": "S-67",
+      "name": "밤 경보",
+      "priority": "5순위",
+      "when": "종료 30초 전",
+      "memo": "종소리. 돌아갈 시간 — 방향 점등과 동시에",
+      "spec_refs": "NF-11",
+      "feedback": [
+        "NF-11"
+      ],
+      "status": "todo"
+    }
+  ],
+  "extra_triggers": [
+    {
+      "code": "NF-16",
+      "name": "열린 상자 UI 열기 · 닫기",
+      "status": "derived",
+      "base": "S-30",
+      "note": "S-30의 뚜껑 열리는 부분만. 닫기는 S-30의 닫히는 소리를 volume 0.6"
+    },
+    {
+      "code": "NF-22",
+      "name": "밤 쏟기 (B)",
+      "status": "derived",
+      "base": "S-39",
+      "note": "배낭에서 재료가 쏟아지는 소리 — S-39와 같다"
+    },
+    {
+      "code": "DF-72 · NF-50",
+      "name": "F 대상 바뀜",
+      "status": "silent",
+      "note": "소리를 붙이지 않는다"
+    },
+    {
+      "code": "토스트",
+      "name": "「안 됨」 토스트",
+      "status": "silent",
+      "note": "S-62가 이미 울렸다. 토스트에는 소리 없음"
+    }
+  ],
+  "ambience": [
+    {
+      "code": "AMB-01",
+      "name": "광장 웅성거림",
+      "status": "voice_needed",
+      "loop": true
+    },
+    {
+      "code": "AMB-02",
+      "name": "카페 실내",
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "AMB-03",
+      "name": "숲 · 안개",
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "AMB-04",
+      "name": "숲 중심부",
+      "status": "todo",
+      "loop": true
+    },
+    {
+      "code": "AMB-05",
+      "name": "로비",
+      "status": "todo",
+      "loop": true
+    }
+  ]
+}
