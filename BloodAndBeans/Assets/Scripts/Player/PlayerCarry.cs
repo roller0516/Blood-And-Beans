@@ -103,6 +103,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         SetServer(other.Held);
         other.SetServer(item);
         if (!item.Empty || !held.Empty) PlayerController.ReportSuccessServer(sender, this);
+        if (!item.Empty || !held.Empty) PlayerController.ReportSoundServer(sender, this, SfxCue.HandOff);
     }
 
     void PublishTeamServer()

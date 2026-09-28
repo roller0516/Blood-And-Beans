@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// 데이터 표 애셋들을 들고 있다가 부팅 때 규칙 표에 한 번 밀어 넣는다.
@@ -29,36 +30,139 @@ public sealed class DataManager : ScriptableObject
         }
     }
 
-    /// 각 애셋이 엑셀에서 받아 둔 행을 규칙이 읽을 배열로 펴게 한다.
-    ///
-    /// 값은 애셋이 소유한다. 여기서 어디로 옮겨 담지 않는다 — 옮겨 담던 시절에는 같은
-    /// 수치가 엑셀과 코드 폴백 두 곳에 살았고, 엑셀만 고친 사람이 옛 값을 봤다.
-    ///
-    /// ponytail: 규칙은 아직 `Balance.Current`(`BalanceData`)를 읽는다. 읽기 76곳을
-    /// 애셋 직접 읽기로 바꾸는 작업이 남아 있고, 그때까지 엑셀 수정이 규칙에 반영되지
-    /// 않는다. 그래서 부팅 때 경고를 남긴다.
+    /// 실린 스냅샷의 원본 행 해시. 접속 승인이 호스트와 손님의 표가 같은지 비교한다.
+    /// 0이면 아직 실린 표가 없다.
+    public static int ContentHash { get; private set; }
+
+    /// 애셋 행을 펴서 후보 스냅샷을 만들고, 검증을 통과할 때만 `Balance.Load`로 갈아 끼운다.
+    /// 어긋난 재임포트는 오류만 남기고 기존 스냅샷을 그대로 둔다.
     public void Apply()
     {
         foreach (var table in tables)
+            if (table != null) table.Rebuild();
+
+        var problems = new List<string>();
+        var candidate = Compose(problems);
+        problems.AddRange(BalanceValidation.Problems(candidate));
+
+        if (problems.Count > 0)
         {
-            if (table == null) continue;
-            table.Rebuild();
+            foreach (var problem in problems)
+                CDebug.LogError($"{AssetName}: 데이터 표가 어긋나 싣지 않았다 — {problem} 원본은 {ExcelPath}다.");
+            return;
         }
 
-        CDebug.LogWarning($"{AssetName}: 규칙이 아직 {nameof(BalanceData)}를 읽는다. " +
-                          $"엑셀({ExcelPath}) 수정이 규칙에 반영되지 않는다 — 읽기 전환이 끝나면 이 경고를 지운다.");
-        ReportProblems();
+        Balance.Load(candidate);
+        ContentHash = HashRows();
     }
 
-    /// 표가 어긋난 채로 부팅되면 "쿨타임이 0이라 스킬이 무한 연타"처럼 엉뚱한 증상으로만
-    /// 드러난다. 부팅 때 한 번 찍어 원인이 엑셀 편집이라는 것을 바로 보이게 한다.
-    ///
-    /// 판정은 `BB.Rules`의 순수 함수가 하고 여기서는 로그만 찍는다 — `BB.Rules`는
-    /// `UnityEngine`을 못 쓰고(`noEngineReferences`), 같은 함수를 EditMode 테스트가 쓴다.
-    static void ReportProblems()
+    /// 애셋 필드를 `BalanceData`에 옮긴다. 빠진 카테고리는 문제로 남겨 폴백으로 성공하지 않게 한다.
+    BalanceData Compose(List<string> problems)
     {
-        foreach (var problem in BalanceValidation.Problems(Balance.Current))
-            CDebug.LogError($"{AssetName}: 데이터 표가 어긋났다 — {problem} 원본은 {ExcelPath}다.");
+        var d = new BalanceData();
+
+        // 단일 수치는 `CommonDataTable`의 필드 이름이 곧 `BalanceData`의 필드 이름이다 (시트 `key` 계약).
+        if (Find<CommonDataTable>(problems) is { } common)
+        {
+            var sourced = new HashSet<string>();
+            foreach (var (key, _) in CommonDataTable.ScalarFields(common))
+            {
+                var target = typeof(BalanceData).GetField(key);
+                if (target == null) { problems.Add($"공통 수치 '{key}'에 대응하는 {nameof(BalanceData)} 필드가 없다."); continue; }
+                target.SetValue(d, typeof(CommonDataTable).GetField(key).GetValue(common));
+                sourced.Add(key);
+            }
+            foreach (var f in typeof(BalanceData).GetFields())
+                if ((f.FieldType == typeof(int) || f.FieldType == typeof(float) || f.FieldType == typeof(double)) &&
+                    !sourced.Contains(f.Name))
+                    problems.Add($"{nameof(BalanceData)}.{f.Name}의 원본이 공통 수치 표에 없다.");
+        }
+
+        if (Find<EconomyDataTable>(problems) is { } economy)
+        {
+            d.RentByDay = economy.RentByDay;
+            d.PenaltyCraftLoss = economy.PenaltyCraftLoss;
+            d.PenaltyMoveLoss = economy.PenaltyMoveLoss;
+            d.PenaltyVisionLoss = economy.PenaltyVisionLoss;
+            d.PenaltyOpenLoss = economy.PenaltyOpenLoss;
+            d.Menus = economy.MenuTable;
+            d.MenuNames = economy.MenuNames;
+            d.GaugeMultiplier = economy.GaugeMultiplier;
+        }
+
+        if (Find<NightDataTable>(problems) is { } night)
+        {
+            d.LoadBandSpeed = night.LoadBandSpeed;
+            d.LoadBandMax = night.LoadBandMax;
+            d.LootSlotMin = night.LootSlotMin;
+            d.LootSlotMax = night.LootSlotMax;
+            d.Tier2GemChance = night.Tier2GemChance;
+            d.Tier3BloodBeanChance = night.Tier3BloodBeanChance;
+            d.ZoneShares = night.ZoneSharePercent;
+            d.TierTable = night.TierTable;
+            d.RegenWeights = night.RegenWeights;
+            d.RegenMaps = night.RegenMapPools;
+        }
+
+        if (Find<GemDataTable>(problems) is { } gem)
+        {
+            d.GemScale = gem.Scale;
+            d.GemNames = gem.Names;
+            d.GemEffects = gem.Effects;
+            d.GemItems = gem.Items;
+        }
+
+        if (Find<NameDataTable>(problems) is { } names)
+        {
+            d.IngredientWeight = names.ItemWeight;
+            d.IngredientNames = names.ItemNames;
+            d.RaceBagOrder = names.RaceBagOrder;
+            d.RaceNames = names.RaceNames;
+        }
+
+        if (Find<CharacterDataTable>(problems) is { } characters)
+        {
+            d.Characters = characters.CharacterTable;
+            d.DaySkillCooldown = characters.DaySkillCooldown;
+            d.DaySkillNames = characters.DaySkillNames;
+            d.DaySkillEffects = characters.DaySkillEffects;
+            d.NightSkillCooldown = characters.NightSkillCooldown;
+            d.DaySkillOfNight = characters.DaySkillOfNight;
+        }
+
+        if (d.RaceBagOrder.Length == 0) problems.Add($"{nameof(d.RaceBagOrder)}: 비어 있다. race 시트를 임포트한다.");
+        if (d.RegenWeights.Length == 0) problems.Add($"{nameof(d.RegenWeights)}: 비어 있다. regen 시트를 임포트한다.");
+        if (d.RegenMaps.Length == 0) problems.Add($"{nameof(d.RegenMaps)}: 비어 있다. regenmap 시트를 임포트한다.");
+        if (d.Menus.Length == 0) problems.Add($"{nameof(d.Menus)}: 비어 있다. menu 시트를 임포트한다.");
+        return d;
+    }
+
+    T Find<T>(List<string> problems) where T : DataTableAsset
+    {
+        T found = null;
+        foreach (var table in tables)
+        {
+            if (table is not T t) continue;
+            if (found != null) { problems.Add($"{typeof(T).Name} 애셋이 둘 이상 이어져 있다."); continue; }
+            found = t;
+        }
+        if (found == null) problems.Add($"{typeof(T).Name} 애셋이 이어져 있지 않다.");
+        return found;
+    }
+
+    /// 직렬화된 행(엑셀에서 온 값)을 FNV-1a로 접는다. `string.GetHashCode`는 플랫폼·실행마다 달라 쓰지 않는다.
+    int HashRows()
+    {
+        unchecked
+        {
+            var hash = (int)2166136261;
+            foreach (var table in tables)
+            {
+                if (table == null) continue;
+                foreach (var c in JsonUtility.ToJson(table)) hash = (hash ^ c) * 16777619;
+            }
+            return hash == 0 ? 1 : hash;
+        }
     }
 
     /// 값의 원본. 로그를 보는 사람이 어디를 열어야 하는지 알 수 있게 적는다.
@@ -66,19 +170,19 @@ public sealed class DataManager : ScriptableObject
 
     /// 씬보다 먼저 돈다. 규칙을 읽는 어떤 오브젝트보다 앞이라 첫 프레임부터 같은 값을 본다.
     ///
-    /// 애셋이 없어도 계속 간다 — `Balance.Reset()`이 기획서 확정치 폴백을 세워 두므로
-    /// 데이터를 아직 안 만든 상태에서도 게임이 그대로 돈다.
+    /// 애셋이 없거나 표가 어긋나면 폴백으로 돌되 `Balance.Loaded`가 false라 매치는 시작하지 않는다.
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
     static void ApplyOnBoot()
     {
         // 도메인 리로드를 끈 채 재생하면 이전 판의 데이터가 남는다 (`FogOfWar.ResetShared`와 같은 이유).
         instance = null;
+        ContentHash = 0;
         Balance.Reset();
 
         var manager = Instance;
         if (manager == null)
         {
-            CDebug.LogWarning($"Resources/{AssetName} 애셋이 없다. 기획서 확정치 폴백으로 돈다.");
+            CDebug.LogError($"Resources/{AssetName} 애셋이 없다. 폴백으로 돌며 매치는 시작하지 않는다.");
             return;
         }
         manager.Apply();

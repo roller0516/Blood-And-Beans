@@ -144,7 +144,7 @@ public sealed class NightDataTable : DataTableAsset
             case 1: sheet.Fill(lootSlots, "tier"); break;
             case 2: sheet.Fill(gemChances, "day"); break;
             case 3: sheet.Fill(zoneShares, "zone"); break;
-            case 4: sheet.Fill(tiers, "zone"); break;
+            case 4: sheet.Fill(tiers, "zone", unique: false); break;   // 구역 x 일차라 구역이 반복된다
             case 5: ReadRegen(sheet); break;
 
             case 6:

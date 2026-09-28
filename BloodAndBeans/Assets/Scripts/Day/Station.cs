@@ -84,7 +84,11 @@ public class Station : NetworkBehaviour, IItemHolder
         // ponytail: 조리 도중 이탈 규칙은 미결. 설비에서 벗어나면 투입물을 반환하고 취소한다.
         if (!facility.Near(operatorCarry.OwnerClientId)) { CancelServer(true); return; }
         if (ShouldBeginGauge(cafe.Director.Phase.Current, state.Value, CookRemaining))
-        { state.Value = StationState.Gauge; gauge.BeginServer(); }
+        {
+            state.Value = StationState.Gauge;
+            gauge.BeginServer();
+            PlayerController.ReportSoundServer(operatorCarry.OwnerClientId, this, SfxCue.GaugeDing);
+        }
     }
     void CancelServer(bool returnInput)
     {
@@ -135,6 +139,9 @@ public class Station : NetworkBehaviour, IItemHolder
             IsProduct = true, Ingredient = Ingredient.None, Recipe = recipe, Menu = Menus.Match(recipe),
             GaugeMultiplier = CompletionGauge.MultiplierOf(judgement), Burnt = judgement == Judgement.Burnt });
         if (judgement != Judgement.Burnt) PlayerController.ReportSuccessServer(operatorCarry.OwnerClientId, this);
+        var cue = judgement switch { Judgement.Perfect => SfxCue.Perfect, Judgement.Good => SfxCue.Good,
+            Judgement.Miss => SfxCue.Miss, _ => SfxCue.None };
+        PlayerController.ReportSoundServer(operatorCarry.OwnerClientId, this, cue);
         ReleaseServer();
     }
 

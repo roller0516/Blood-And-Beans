@@ -1,11 +1,8 @@
-/// 기획서가 확정한 수치 한 벌. **여기 있는 값이 곧 폴백이다.**
+/// 규칙이 읽는 수치 한 벌(런타임 스냅샷). 부팅 때 `DataManager`가 엑셀 애셋에서 조립해 싣는다.
 ///
-/// 데이터 파일(`Assets/Data/*.csv`)이 없거나 파싱에 실패해도 게임은 이 값으로 그대로 돈다.
-/// 데이터 기반 설계의 흔한 실패는 파일 하나가 깨지면 게임이 안 뜨는 것이라, 덮어쓰기로만
-/// 동작하게 만든다. EditMode 테스트와 에디터 툴도 로더 없이 규칙을 그대로 돌릴 수 있다.
-///
-/// 필드 묶음은 `Assets/Data/`의 CSV 파일과 1:1로 맞춘다 — 로더가 파일 하나를 읽어 묶음
-/// 하나를 채운다. 절 번호 주석은 기획서 대조의 근거이므로 값을 옮길 때 함께 옮긴다.
+/// **여기 적힌 초기값은 편집 원본이 아니다.** 엑셀 없이 도는 EditMode 테스트·에디터 툴용
+/// 폴백이고, 이 값으로 돌면 `Balance.Loaded`가 false라 매치는 시작하지 않는다.
+/// 절 번호 주석은 기획서 대조의 근거이므로 값을 옮길 때 함께 옮긴다.
 ///
 /// **enum은 여기 오지 않는다.** `Ingredient`·`MenuId`·`Gem`·`NightSkill` 같은 종류는
 /// 코드가 `switch`로 분기하고 프리팹이 정수로 직렬화한 값이다. 데이터로 늘어나는 것은
@@ -317,12 +314,23 @@ public static class Balance
     /// 기본값은 기획서 확정치 그대로다. 로더가 돌지 않아도 이 값으로 게임이 성립한다.
     public static BalanceData Current { get; private set; } = new();
 
-    /// 데이터를 싣는다. 부팅 때 한 번만 부르고, `null`이면 폴백으로 되돌린다.
-    public static void Load(BalanceData data) => Current = data ?? new();
+    /// 검증을 통과한 데이터 표가 실렸는가. 폴백으로 도는 중이면 false라 매치를 시작하지 않는다.
+    public static bool Loaded { get; private set; }
+
+    /// 검증을 마친 스냅샷을 싣는다. 실은 뒤에는 부분 수정하지 않는다 — 통째로 갈아 끼운다.
+    public static void Load(BalanceData data)
+    {
+        Current = data ?? new();
+        Loaded = data != null;
+    }
 
     /// 폴백으로 되돌린다. 도메인 리로드를 끈 채 재생하면 이전 판의 데이터가 그대로
     /// 남으므로, 진입점이 이것을 부른다 (`FogOfWar.ResetShared`와 같은 이유).
-    public static void Reset() => Current = new();
+    public static void Reset()
+    {
+        Current = new();
+        Loaded = false;
+    }
 
     /// 표를 넘는 일차는 마지막 값으로 고정한다 (기획서 3.2 `Rent.Due`가 세운 규칙을
     /// 일차 표 전부가 따른다). 일차는 1부터 센다.

@@ -34,13 +34,17 @@ public sealed class SheetTable
     ///
     /// `key` 칸이 빈 행은 버린다 — 시트 아래에 남은 메모 행이 빈 데이터로 들어오지
     /// 않게 한다. 읽는 타입은 `string`·`int`·`float`·`double`·열거자다.
-    public void Fill<T>(List<T> rows, string key) where T : new()
+    /// `unique`면 같은 `key`가 두 번 나온 행을 오류로 남긴다 — `Rebuild`가 키로 찍어 넣어 뒤 행이 앞 행을 조용히 덮는다.
+    public void Fill<T>(List<T> rows, string key, bool unique = true) where T : new()
     {
         var schema = Schema(typeof(T));
+        var seen = new HashSet<string>(System.StringComparer.OrdinalIgnoreCase);
         rows.Clear();
         foreach (var row in Rows)
         {
             if (!row.Has(key)) continue;
+            if (unique && !seen.Add(row.Text(key)))
+                Errors.Add($"[{Name}] {row.Line}행 '{key}' 칸: '{row.Text(key)}'이(가) 위에서 이미 나왔다.");
 
             // 구조체라 한 번 박싱해 두고 필드를 채운 뒤 꺼낸다.
             var boxed = (object)new T();
@@ -224,8 +228,8 @@ public abstract class DataTableAsset : ScriptableObject
 
     /// 담아 둔 행을 규칙이 읽을 배열로 편다. 부팅 때 `DataManager`가 부른다.
     ///
-    /// 값은 이 애셋이 소유한다 — 예전에는 `BalanceData`로 옮겨 담았고, 그래서 같은 수치가
-    /// 엑셀과 코드 두 곳에 살았다. 지금은 엑셀 하나뿐이고 규칙이 이 애셋을 직접 읽는다.
+    /// 편집 원본은 엑셀 하나다. 펴낸 배열은 `DataManager`가 `BalanceData` 스냅샷으로 조립해
+    /// 검증한 뒤 싣는다 — 규칙은 이 애셋을 직접 읽지 않는다.
     ///
     /// **비어 있는 시트는 건드리지 않는다.** 행이 없는 표까지 덮어쓰면, 한 시트를 빠뜨린
     /// 상태가 다른 시트까지 0으로 만드는 상태가 된다.

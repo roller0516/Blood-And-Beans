@@ -48,6 +48,8 @@ public class CompletionGauge : NetworkBehaviour
     public float Needle =>
         Mathf.PingPong((float)(NetworkManager.ServerTime.Time - startedAt.Value) * sweepsPerSecond, 1f);
 
+    public int Sweep => Mathf.FloorToInt((float)(NetworkManager.ServerTime.Time - startedAt.Value) * sweepsPerSecond);
+
     public float Remaining =>
         Mathf.Max(0f, windowNow.Value - (float)(NetworkManager.ServerTime.Time - startedAt.Value));
 

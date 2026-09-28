@@ -10,7 +10,7 @@ using UnityEngine.UI;
 /// 카메라가 씬에 있을 때만 보인다 — 타이틀에는 돌릴 카메라가 없다.
 public sealed class UISettingsPopup : UIPopup
 {
-    [SerializeField] Slider masterVolume;
+    [SerializeField] UIVolumeSlider[] volumes;
     [SerializeField] Toggle fullscreen;
     [SerializeField] Button applyButton;
     [SerializeField] Button closeButton;
@@ -32,7 +32,7 @@ public sealed class UISettingsPopup : UIPopup
     public void Bind(Action close)
     {
         previousSelection = EventSystem.current?.currentSelectedGameObject;
-        if (masterVolume != null) masterVolume.SetValueWithoutNotify(AudioListener.volume);
+        foreach (var volume in volumes) volume.Show();
         if (fullscreen != null) fullscreen.SetIsOnWithoutNotify(Screen.fullScreen);
         BindLook();
 
@@ -61,7 +61,7 @@ public sealed class UISettingsPopup : UIPopup
 
     void Apply(Action close)
     {
-        if (masterVolume != null) AudioListener.volume = Mathf.Clamp01(masterVolume.value);
+        foreach (var volume in volumes) volume.Apply();
         if (fullscreen != null) Screen.fullScreen = fullscreen.isOn;
         if (look != null && lookSensitivity != null) look.Apply(lookSensitivity.value);
         Close(close);

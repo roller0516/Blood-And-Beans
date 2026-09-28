@@ -87,4 +87,55 @@ public class DataTableTests
         Assert.IsEmpty(zero,
             "엑셀 scalars 시트에 빠진 키가 있다: " + string.Join(", ", zero));
     }
+
+    // --- 애셋 → Balance 스냅샷 연결 ---
+
+    [Test]
+    public void 애셋_값이_규칙_스냅샷으로_실린다()
+    {
+        var manager = LoadManager();
+        manager.Apply();
+
+        Assert.IsTrue(Balance.Loaded, "검증을 통과하지 못해 스냅샷이 실리지 않았다. 콘솔의 DataManager 오류를 본다");
+        Assert.AreNotEqual(0, DataManager.ContentHash);
+
+        foreach (var table in manager.Tables)
+        {
+            switch (table)
+            {
+                case EconomyDataTable economy:
+                    Assert.AreSame(economy.RentByDay, Balance.Current.RentByDay, "임대료가 엑셀 값이 아니다");
+                    Assert.AreSame(economy.MenuTable, Balance.Current.Menus, "메뉴 가격이 엑셀 값이 아니다");
+                    break;
+                case CharacterDataTable characters:
+                    Assert.AreSame(characters.DaySkillCooldown, Balance.Current.DaySkillCooldown, "쿨타임이 엑셀 값이 아니다");
+                    break;
+                case CommonDataTable common:
+                    Assert.AreEqual(common.DaySeconds, Balance.Current.DaySeconds, "공통 수치가 엑셀 값이 아니다");
+                    break;
+            }
+        }
+    }
+
+    [Test]
+    public void 표가_빠진_매니저는_기존_스냅샷을_바꾸지_않는다()
+    {
+        var before = Balance.Current;
+        var wasLoaded = Balance.Loaded;
+        var empty = ScriptableObject.CreateInstance<DataManager>();
+        try
+        {
+            // 빠진 카테고리마다 오류를 찍는 것이 기대 동작이다.
+            UnityEngine.TestTools.LogAssert.ignoreFailingMessages = true;
+            empty.Apply();
+
+            Assert.AreSame(before, Balance.Current, "어긋난 표가 스냅샷을 갈아 끼웠다");
+            Assert.AreEqual(wasLoaded, Balance.Loaded);
+        }
+        finally
+        {
+            UnityEngine.TestTools.LogAssert.ignoreFailingMessages = false;
+            Object.DestroyImmediate(empty);
+        }
+    }
 }

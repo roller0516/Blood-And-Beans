@@ -107,6 +107,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         carry.SetServer(HeldItem.Of(Gives(kind)));
         carry.SetDishServer(true, kind == FacilityKind.Bread);
         PlayerController.ReportSuccessServer(carry.OwnerClientId, this);
+        PlayerController.ReportSoundServer(carry.OwnerClientId, this, IngredientSfx.Of(Gives(kind)));
     }
 
     void StartWashServer(ulong id, Cafe cafe, PlayerCarry carry)

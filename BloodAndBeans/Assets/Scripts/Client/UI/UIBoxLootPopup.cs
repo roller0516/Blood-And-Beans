@@ -215,6 +215,11 @@ public sealed class UIBoxLootPopup : UIPopup
             if (previousRevealed >= 0 && i >= previousRevealed
                 && rarity == IngredientRarity.Rare)
                 slot.PlayRareFlourish();
+            if (previousRevealed >= 0 && i >= previousRevealed && source is ItemBox box)
+            {
+                var cue = item == Ingredient.BloodBean ? SfxCue.BloodBean : Gems.IsGem(item) ? SfxCue.Gem : SfxCue.None;
+                SoundManager.Instance?.PlayCue(cue, box.transform.position);
+            }
         }
     }
 

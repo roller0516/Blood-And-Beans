@@ -196,7 +196,7 @@ public sealed class MatchHudPresenter
         if (cafe?.Queue != null)
             foreach (var customer in cafe.Queue.Waiting)
                 if (customer != null)
-                    // 인내심은 손님 머리 위 게이지가 보여 준다 (`UICustomerPatienceBar`).
+                    // 인내심은 손님 머리 위 게이지가 보여 준다 (`UICustomerOrder` 말풍선 채움).
                     text.AppendLine($"{DisplayNames.Of(customer.Kind)} · x{customer.Remaining}");
 
         return text.ToString();

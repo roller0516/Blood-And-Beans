@@ -52,7 +52,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::UICustomerOrder
   view: {fileID: 2183539751078613811}
   group: {fileID: 7996453235378738890}
-  patience: {fileID: 5150529984948091079}
+  patience: {fileID: 3995214339091422352}
   product: {fileID: 8478387012453176313}
   theme: {fileID: 11400000, guid: 81b6ed88fb2d4f042a8d1b9890ae318f, type: 2}
   warning: {fileID: 3644995357245589692}
@@ -60,7 +60,6 @@ MonoBehaviour:
   calm: {r: 0.5, g: 0.85, b: 0.35, a: 1}
   urgent: {r: 1, g: 0.25, b: 0.2, a: 1}
   shakeDegrees: 3
-  showDistance: 8
 --- !u!82 &3644995357245589692
 AudioSource:
   m_ObjectHideFlags: 0
@@ -70,7 +69,7 @@ AudioSource:
   m_GameObject: {fileID: 10981127919066985}
   m_Enabled: 1
   serializedVersion: 4
-  OutputAudioMixerGroup: {fileID: 0}
+  OutputAudioMixerGroup: {fileID: -6254886743790743100, guid: 078ef346b82fb0c4aaa8aade2a302ee8, type: 2}
   m_audioClip: {fileID: 0}
   m_Resource: {fileID: 8300000, guid: 64054fc3b5c83d945bb39e9cf472c078, type: 3}
   m_PlayOnAwake: 0
@@ -158,116 +157,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!1 &153761161028155817
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7005071929392232168}
-  - component: {fileID: 1314867966712393667}
-  - component: {fileID: 8458717396478675827}
-  - component: {fileID: 5150529984948091079}
-  - component: {fileID: 5038741406794624211}
-  m_Layer: 0
-  m_Name: Patience
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &7005071929392232168
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153761161028155817}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 2183539751078613811}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 10, y: 10}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1314867966712393667
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153761161028155817}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
-  m_IgnoreLayout: 1
-  m_MinWidth: -1
-  m_MinHeight: -1
-  m_PreferredWidth: -1
-  m_PreferredHeight: -1
-  m_FlexibleWidth: -1
-  m_FlexibleHeight: -1
-  m_LayoutPriority: 1
---- !u!222 &8458717396478675827
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153761161028155817}
-  m_CullTransparentMesh: 1
---- !u!114 &5150529984948091079
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153761161028155817}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 566ec1e12f16a4c479b4f04749c1853b, type: 3}
-  m_Type: 3
-  m_PreserveAspect: 0
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 0
-  m_FillClockwise: 0
-  m_FillOrigin: 2
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
---- !u!114 &5038741406794624211
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 153761161028155817}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::UIRoundImage
-  radiusOverride: -1
 --- !u!1 &434871745112979427
 GameObject:
   m_ObjectHideFlags: 0
@@ -299,7 +188,6 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7005071929392232168}
   - {fileID: 6793749314392807365}
   - {fileID: 8361077363766347597}
   - {fileID: 3716974186113057747}
@@ -374,6 +262,7 @@ GameObject:
   - component: {fileID: 8140354075106393988}
   - component: {fileID: 9201175790567228781}
   - component: {fileID: 3255319235489082057}
+  - component: {fileID: 3995214339091422352}
   m_Layer: 0
   m_Name: Back
   m_TagString: Untagged
@@ -420,7 +309,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: c0b74debd2c7de7408d7596440e67de0, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -458,6 +347,19 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!114 &3995214339091422352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 533896191756013410}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7f6eb8da6bf7c34d8295246e64d4dcf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIBubbleFill
+  range: {x: 0.075, y: 0.923}
 --- !u!1 &5605505179077904287
 GameObject:
   m_ObjectHideFlags: 0

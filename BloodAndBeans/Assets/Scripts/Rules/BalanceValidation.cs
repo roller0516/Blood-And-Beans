@@ -91,7 +91,46 @@ public static class BalanceValidation
         NonZeroAfterNone(problems, nameof(d.DaySkillCooldown), d.DaySkillCooldown);
         NonZeroAfterNone(problems, nameof(d.NightSkillCooldown), d.NightSkillCooldown);
 
+        SaneNumbers(problems, d);
+        Probability(problems, nameof(d.ForecastPoolShare), d.ForecastPoolShare);
+        foreach (var p in d.Tier2GemChance) Probability(problems, nameof(d.Tier2GemChance), p);
+        foreach (var p in d.Tier3BloodBeanChance) Probability(problems, nameof(d.Tier3BloodBeanChance), p);
+
         return problems;
+    }
+
+    /// 단일 수치는 유한한 양수, 수치 배열은 비어 있지 않고 유한한 0 이상이어야 한다.
+    /// 단일 수치 0은 "엑셀에 그 키가 없었다"는 뜻이다 — 실제로 0이어야 하는 수치는 없다.
+    static void SaneNumbers(List<string> problems, BalanceData d)
+    {
+        foreach (var f in typeof(BalanceData).GetFields())
+        {
+            var v = f.GetValue(d);
+            switch (v)
+            {
+                case int or float or double:
+                    var x = Convert.ToDouble(v);
+                    if (double.IsNaN(x) || double.IsInfinity(x) || x <= 0)
+                        problems.Add($"{f.Name}: {x}다. 유한한 양수여야 한다.");
+                    break;
+                case Array array when array.GetType().GetElementType() is { } t &&
+                                      (t == typeof(int) || t == typeof(float) || t == typeof(double)):
+                    // 서로 길이만 비교하는 짝(페널티·상자 칸)은 둘 다 비면 통과한다. 여기서 막는다.
+                    if (array.Length == 0) problems.Add($"{f.Name}: 비어 있다. 그 시트를 임포트한다.");
+                    for (var i = 0; i < array.Length; i++)
+                    {
+                        var y = Convert.ToDouble(array.GetValue(i));
+                        if (double.IsNaN(y) || double.IsInfinity(y) || y < 0)
+                            problems.Add($"{f.Name}[{i}]: {y}다. 유한한 0 이상이어야 한다.");
+                    }
+                    break;
+            }
+        }
+    }
+
+    static void Probability(List<string> problems, string name, double p)
+    {
+        if (p < 0 || p > 1) problems.Add($"{name}: 확률 {p}가 0~1 밖이다.");
     }
 
     /// `null`은 임포터가 그 칸을 채우지 않았다는 뜻이다. 빈 문자열은 의도된 값일 수 있어

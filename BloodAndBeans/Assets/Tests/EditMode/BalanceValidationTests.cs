@@ -75,4 +75,46 @@ public class BalanceValidationTests
 
         Assert.IsNotEmpty(BalanceValidation.Problems(data), "100이 아닌 배분을 잡지 못했다");
     }
+
+    [Test]
+    public void MissingScalarIsCaught()
+    {
+        // 엑셀 scalars 시트에서 키가 빠지면 그 값은 0으로 남는다.
+        var data = new BalanceData { DaySeconds = 0f };
+
+        Assert.IsNotEmpty(BalanceValidation.Problems(data), "0으로 남은 단일 수치를 잡지 못했다");
+    }
+
+    [Test]
+    public void NaNAndNegativeAreCaught()
+    {
+        var nan = new BalanceData { CoffeeSeconds = float.NaN };
+        var negative = new BalanceData();
+        negative.RentByDay[2] = -1;
+
+        Assert.IsNotEmpty(BalanceValidation.Problems(nan), "NaN을 잡지 못했다");
+        Assert.IsNotEmpty(BalanceValidation.Problems(negative), "음수를 잡지 못했다");
+    }
+
+    [Test]
+    public void BothEmptyPairIsCaught()
+    {
+        // 페널티 표는 서로 길이만 비교한다. 시트를 통째로 빠뜨리면 둘 다 비어 길이가 같다.
+        var data = new BalanceData
+        {
+            PenaltyCraftLoss = new float[0], PenaltyMoveLoss = new float[0],
+            PenaltyVisionLoss = new float[0], PenaltyOpenLoss = new float[0],
+        };
+
+        Assert.IsNotEmpty(BalanceValidation.Problems(data), "둘 다 빈 짝 표를 잡지 못했다");
+    }
+
+    [Test]
+    public void ProbabilityAboveOneIsCaught()
+    {
+        var data = new BalanceData();
+        data.Tier3BloodBeanChance[4] = 1.5;
+
+        Assert.IsNotEmpty(BalanceValidation.Problems(data), "1을 넘는 확률을 잡지 못했다");
+    }
 }

@@ -103,6 +103,8 @@ public class PlayerVisuals : NetworkBehaviour
         abilities.EffectPlayed += OnEffect;
         abilities.AttachedChanged += OnAttached;
         interaction.InteractionSucceeded += OnInteractionSucceeded;
+        interaction.SoundPlayed += OnSound;
+        dash.DashStarted += OnDashSound;
         dash.DashStarted += dashPresentation.OnDashStarted;
         dash.HitLanded += dashPresentation.OnHitLanded;
         dash.TookHit += dashPresentation.OnTookHit;
@@ -123,8 +125,10 @@ public class PlayerVisuals : NetworkBehaviour
         if (character != null) character.CharacterChanged -= SetCharacter;
         if (abilities != null) { abilities.EffectPlayed -= OnEffect; abilities.AttachedChanged -= OnAttached; }
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
+        if (interaction != null) interaction.SoundPlayed -= OnSound;
         if (dash != null)
         {
+            dash.DashStarted -= OnDashSound;
             dash.DashStarted -= dashPresentation.OnDashStarted;
             dash.HitLanded -= dashPresentation.OnHitLanded;
             dash.TookHit -= dashPresentation.OnTookHit;
@@ -202,6 +206,11 @@ public class PlayerVisuals : NetworkBehaviour
     /// 상호작용 성공 — 노란 오각별. `SuccessRpc`는 소유자에게만 오므로 이 핸들러는 다른
     /// 사람 화면에서는 그냥 불리지 않는다.
     void OnInteractionSucceeded(Vector3 position) => EffectManager.Play(EffectId.InteractionSuccess, position);
+
+    void OnSound(SfxCue cue, Vector3 position, int team) =>
+        SoundManager.Instance?.PlayCue(cue, position, team);
+
+    void OnDashSound(float _) => OnSound(SfxCue.Dash, transform.position, playerTeam.Team);
 
     /// 지속 효과가 캐릭터에 붙는다 (활공 등). **어떤 능력인지는 모른다** — 라우터가
     /// 연출 id와 남은 시간만 준다.
