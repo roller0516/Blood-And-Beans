@@ -29,6 +29,11 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField] CharacterVisualConfig characterVisuals;
     [SerializeField] Transform modelRoot;
 
+    [Header("전송 잔상")]
+    [SerializeField] Material teleportAfterimageMaterial;
+    [SerializeField, Min(0.01f)] float teleportAfterimageSeconds = 1.35f;
+    [SerializeField, Min(0f)] float teleportAfterimageRise = 0.65f;
+
     [Header("대시/피격 피드백")]
     /// 색·시간·흔들림 수치는 전 플레이어가 공유하는 설정이다 (`PlayerFeedbackConfig`).
     [SerializeField] PlayerFeedbackConfig feedback;
@@ -99,6 +104,8 @@ public class PlayerVisuals : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         playerTeam.TeamChanged += OnTeamChanged;
+        playerTeam.Teleported += OnTeleported;
+        playerTeam.TeleportStarted += OnTeleportStarted;
         character.CharacterChanged += SetCharacter;
         abilities.EffectPlayed += OnEffect;
         abilities.AttachedChanged += OnAttached;
@@ -122,6 +129,8 @@ public class PlayerVisuals : NetworkBehaviour
         flash = null;
 
         if (playerTeam != null) playerTeam.TeamChanged -= OnTeamChanged;
+        if (playerTeam != null) playerTeam.Teleported -= OnTeleported;
+        if (playerTeam != null) playerTeam.TeleportStarted -= OnTeleportStarted;
         if (character != null) character.CharacterChanged -= SetCharacter;
         if (abilities != null) { abilities.EffectPlayed -= OnEffect; abilities.AttachedChanged -= OnAttached; }
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
@@ -202,6 +211,24 @@ public class PlayerVisuals : NetworkBehaviour
     // --- 액티브 연출 (예전 PlayerEffects) ---
 
     void OnEffect(EffectId id, Vector3 position, float scale) => EffectManager.Play(id, position, scale);
+
+    void OnTeleportStarted(Vector3 origin)
+    {
+        dashPresentation.Cancel();
+        if (trail != null) trail.Clear();
+        EffectManager.Play(EffectId.TeleportDeparture, origin);
+    }
+
+    void OnTeleported(Vector3 origin, Vector3 destination, Quaternion rotation)
+    {
+        // 대시 도중 전송되어도 두 장소를 잇는 긴 궤적은 남기지 않는다.
+        dashPresentation.Cancel();
+        if (trail != null) trail.Clear();
+        EffectManager.Play(EffectId.TeleportArrival, destination);
+        if (Model != null)
+            TeleportAfterimage.Play(Model.transform, transform, origin, rotation,
+                teleportAfterimageMaterial, teleportAfterimageSeconds, teleportAfterimageRise);
+    }
 
     /// 상호작용 성공 — 노란 오각별. `SuccessRpc`는 소유자에게만 오므로 이 핸들러는 다른
     /// 사람 화면에서는 그냥 불리지 않는다.

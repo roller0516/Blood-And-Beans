@@ -19,6 +19,9 @@ public class PlayerInventory : NetworkBehaviour
     /// 땅에 묻는 가방. 비워야 대시를 쓸 수 있으므로 기동성과 맞바꾸는 선택이다.
     [SerializeField] BuriedBag buriedBagPrefab;
 
+    /// 「환각」의 가짜 가방도 이것을 쓴다 — 진짜와 구별되면 미끼가 아니다.
+    public BuriedBag BuriedBagPrefab => buriedBagPrefab;
+
     /// 쪼개진 임시 상자를 벌려 놓는 간격. 겹쳐 놓으면 하나만 집을 수 있다.
     [SerializeField] float pileSpacing = 1.2f;
 

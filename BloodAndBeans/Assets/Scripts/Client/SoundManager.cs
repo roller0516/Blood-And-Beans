@@ -62,8 +62,11 @@ public sealed class SoundManager : PersistentMonoSingleton<SoundManager>
                 entry.voices = new AudioSource[VoicesPerClip];
                 for (var i = 0; i < entry.voices.Length; i++)
                 {
-                    var voice = Instantiate(sfxSource, transform);
-                    voice.name = entry.clip.name;
+                    // sfxSource를 Instantiate하면 같은 오브젝트의 SoundManager까지 복제되고,
+                    // 그 복제본은 싱글턴 중복으로 스스로 파괴된다. 소스만 가진 빈 오브젝트를 만든다.
+                    var voice = new GameObject(entry.clip.name).AddComponent<AudioSource>();
+                    voice.transform.SetParent(transform, false);
+                    voice.outputAudioMixerGroup = sfxSource.outputAudioMixerGroup;
                     voice.playOnAwake = false;
                     voice.loop = false;
                     voice.rolloffMode = AudioRolloffMode.Linear;

@@ -28,14 +28,6 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerTeam))]
 public class PlayerAbilities : NetworkBehaviour
 {
-    [Header("스폰하는 프리팹")]
-    /// 「도깨비불」이 세우는 가짜 상자. 비워 두면 그 스킬만 동작하지 않는다.
-    /// 수치가 아니라 에셋 참조라 표에 담기지 않는다 — 능력이 순수 객체라 여기가 든다.
-    [SerializeField] ItemBox decoyBoxPrefab;
-
-    /// 「환각」이 심는 가짜 가방. 비워 두면 그 스킬만 동작하지 않는다.
-    [SerializeField] BuriedBag decoyBagPrefab;
-
     /// 다음 액티브를 쓸 수 있는 서버 시각. 소유자만 읽으면 되므로 쿨다운 표시도 소유자 몫이다.
     readonly NetworkVariable<double> nextAt = new(0d,
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
@@ -63,6 +55,7 @@ public class PlayerAbilities : NetworkBehaviour
     PlayerTeam team;
     MatchDirector director;
     GamePhase subscribedPhase;
+    PlayerInventory inventory;
 
     IDayAbility day;
     INightAbility night;
@@ -109,8 +102,10 @@ public class PlayerAbilities : NetworkBehaviour
     public double ServerTime => NetworkManager != null ? NetworkManager.ServerTime.Time : 0d;
     public double DurationUntil => durationUntil.Value;
     public bool Flag => flag.Value;
-    public ItemBox DecoyBox => decoyBoxPrefab;
-    public BuriedBag DecoyBag => decoyBagPrefab;
+
+    /// 미끼는 진짜를 만드는 쪽의 프리팹을 빌린다. 따로 꽂으면 진짜만 바뀌었을 때 미끼가 들킨다.
+    public ItemBox DecoyBox => director != null ? director.BoxPrefab : null;
+    public BuriedBag DecoyBag => inventory != null ? inventory.BuriedBagPrefab : null;
     public int TeamId => team != null ? team.Team : -1;
 
     /// 같은 오브젝트의 부품들. 능력이 `GetComponent`를 반복하지 않게 여기서 한 번 잡는다.
@@ -152,6 +147,7 @@ public class PlayerAbilities : NetworkBehaviour
         character = GetComponent<PlayerCharacter>();
         team = GetComponent<PlayerTeam>();
         Carry = GetComponent<PlayerCarry>();
+        inventory = GetComponent<PlayerInventory>();
         Fog = GetComponent<FogOfWar>();
         Controller = GetComponent<CharacterController>();
         Dash = GetComponent<DashHarass>();

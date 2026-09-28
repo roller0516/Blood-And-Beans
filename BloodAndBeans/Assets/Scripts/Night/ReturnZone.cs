@@ -25,6 +25,8 @@ public class ReturnZone : NetworkBehaviour
 {
     [SerializeField] float radius = 4f;
 
+    public float Radius => radius;
+
     /// 가방은 메고 있지만 소환 위치 밖에서 밤이 끝났을 때 잃는 비율 (기획서: 일부(n%) 소실).
     [SerializeField, Range(0f, 1f)] float missedReturnLoss = 0.5f;
 

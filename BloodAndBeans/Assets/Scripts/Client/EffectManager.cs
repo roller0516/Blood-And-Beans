@@ -204,12 +204,15 @@ public class EffectManager : MonoBehaviour
         if (pools.ContainsKey(id)) return UniTask.CompletedTask;
         if (loading.TryGetValue(id, out var inFlight)) return inFlight;
 
-        var task = LoadAndPoolAsync(id, ct);
-        loading[id] = task;
-        return task;
+        // 합류자가 같은 로드를 함께 기다린다. UniTask는 대기자를 하나만 받아(Preserve도 대기 중엔 못 막는다)
+        // 두 번째 대기가 예외를 던지므로, 대기자를 여럿 받는 완료 소스를 나눠 준다.
+        var done = new UniTaskCompletionSource();
+        loading[id] = done.Task;
+        LoadAndPoolAsync(id, ct, done).Forget();
+        return done.Task;
     }
 
-    async UniTask LoadAndPoolAsync(EffectId id, System.Threading.CancellationToken ct)
+    async UniTaskVoid LoadAndPoolAsync(EffectId id, System.Threading.CancellationToken ct, UniTaskCompletionSource done)
     {
         try
         {
@@ -260,6 +263,7 @@ public class EffectManager : MonoBehaviour
         finally
         {
             loading.Remove(id);
+            done.TrySetResult();
         }
     }
 

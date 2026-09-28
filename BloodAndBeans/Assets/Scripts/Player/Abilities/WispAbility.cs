@@ -13,7 +13,7 @@ public sealed class WispAbility : INightAbility
     {
         if (host.DecoyBox == null)
         {
-            CDebug.LogError($"{host.name}: decoyBoxPrefab이 비어 있다. 도깨비불이 아무것도 세우지 못한다.", host);
+            CDebug.LogError($"{host.name}: MatchDirector.boxPrefab을 빌리지 못했다. 도깨비불이 아무것도 세우지 못한다.", host);
             return false;
         }
 

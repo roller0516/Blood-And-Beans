@@ -42,6 +42,7 @@ public class PlayerController : NetworkBehaviour
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
     CharacterController controller;
+    PlayerTeam playerTeam;
     GamePhase phase;
 
     /// 이 시각까지는 조작 입력을 무시한다. 대시 돌진·넉백처럼 위치를 직접 미는 기능이
@@ -107,6 +108,7 @@ public class PlayerController : NetworkBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        playerTeam = GetComponent<PlayerTeam>();
         localCarry = GetComponent<PlayerCarry>();
     }
 
@@ -193,6 +195,8 @@ public class PlayerController : NetworkBehaviour
 
     void UpdateMovement()
     {
+        if (playerTeam != null && playerTeam.IsTeleporting)
+        { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (phase != null && (!phase.Started || phase.Finished || phase.Current == Phase.Transition))
         { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (IsServer)
