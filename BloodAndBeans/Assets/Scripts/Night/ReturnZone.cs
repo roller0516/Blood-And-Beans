@@ -52,6 +52,7 @@ public class ReturnZone : NetworkBehaviour
     public void AssignTeamServer(int value) => pendingServerTeam = value;
 
     public int TeamId => team.Value;
+    public float Radius => radius;
 
     /// 재고를 넣을 카페. 팀 번호로 찾는다 — 더 이상 부모가 아니다.
     Cafe Cafe => director != null ? director.CafeOf(TeamId) : null;

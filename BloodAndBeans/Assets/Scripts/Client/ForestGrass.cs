@@ -22,6 +22,7 @@ public class ForestGrass : MonoBehaviour
 
     /// 밀도 마스크(R). 비워 두면 맵 전체에 가득 심는다. 길이나 빈터를 파고 싶을 때 넣는다.
     [SerializeField] Texture2D densityMask;
+    [SerializeField, Min(0f)] float returnClearingMargin = 0.8f;
 
     [Header("맵")]
     /// 풀이 자랄 사각형. 씬의 지면과 같아야 한다 — `ForestMapBuilder`가 채운다.
@@ -58,6 +59,8 @@ public class ForestGrass : MonoBehaviour
 
     GraphicsBuffer positions;
     GraphicsBuffer args;
+    GraphicsBuffer returnClearings;
+    Vector4[] clearingData;
     Mesh blade;
     Mesh argsMesh;
     int builtSubdivision = -1;
@@ -80,6 +83,8 @@ public class ForestGrass : MonoBehaviour
         args?.Release();
         args = null;
         argsMesh = null;
+        returnClearings?.Release();
+        returnClearings = null;
     }
 
     /// 도구가 맵을 다시 구울 때 부른다.
@@ -124,6 +129,7 @@ public class ForestGrass : MonoBehaviour
         positionsCompute.SetVector("_CameraPosition", camera.transform.position);
         positionsCompute.SetMatrix("_VPMatrix", camera.projectionMatrix * camera.worldToCameraMatrix);
         positionsCompute.SetTexture(0, "_GrassMask", densityMask != null ? densityMask : Texture2D.blackTexture);
+        SetReturnClearings(camera);
         positionsCompute.SetBuffer(0, GrassPositions, positions);
         positionsCompute.Dispatch(0, Mathf.CeilToInt(gridX / 8f), Mathf.CeilToInt(gridZ / 8f), 1);
 
@@ -145,6 +151,34 @@ public class ForestGrass : MonoBehaviour
         };
 
         Graphics.RenderMeshIndirect(rp, GetBlade(), args);
+    }
+
+    // 복제되어 있고 이 카메라에 보이는 귀환 구역만 비운다. 문양 아래의 풀 때문에
+    // 지점이 가려지지 않으며, 상대 팀의 비공개 지점을 빈터로 노출하지 않는다.
+    void SetReturnClearings(Camera camera)
+    {
+        var director = MatchDirector.Instance;
+        var capacity = Mathf.Max(1, director != null ? director.TeamCount : 0);
+        if (returnClearings == null || clearingData.Length != capacity)
+        {
+            returnClearings?.Release();
+            clearingData = new Vector4[capacity];
+            returnClearings = new GraphicsBuffer(GraphicsBuffer.Target.Structured, capacity, sizeof(float) * 4);
+        }
+        var count = 0;
+        if (director != null)
+            for (var team = 0; team < director.TeamCount; team++)
+            {
+                var zone = director.ZoneOf(team);
+                if (zone == null || (camera.cullingMask & (1 << zone.gameObject.layer)) == 0) continue;
+                var center = zone.Center;
+                if (!center.HasValue) continue;
+                clearingData[count++] = new Vector4(center.Value.x, center.Value.z,
+                    zone.Radius + returnClearingMargin, 0f);
+            }
+        returnClearings.SetData(clearingData);
+        positionsCompute.SetInt("_ReturnClearingCount", count);
+        positionsCompute.SetBuffer(0, "_ReturnClearings", returnClearings);
     }
 
     void EnsureBuffers()

@@ -70,7 +70,8 @@ public partial class ResourceManager
     AsyncOperationHandle Acquire((object, Type) id, Func<AsyncOperationHandle> load)
     {
         loaded ??= new Dictionary<(object, Type), Loaded>();
-        var entry = loaded.TryGetValue(id, out var existing) ? existing : new Loaded { Handle = load() };
+        var entry = loaded.TryGetValue(id, out var existing) && existing.Handle.IsValid()
+            ? existing : new Loaded { Handle = load() };
         entry.Count++;
         loaded[id] = entry;
         return entry.Handle;

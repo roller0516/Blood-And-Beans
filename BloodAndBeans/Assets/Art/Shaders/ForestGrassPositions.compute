@@ -35,6 +35,8 @@ Texture2D<float> _GrassMask;
 SamplerState linearClampSampler;
 
 AppendStructuredBuffer<float3> _GrassPositions;
+StructuredBuffer<float4> _ReturnClearings;
+int _ReturnClearingCount;
 
 uint murmurHash3(int input)
 {
@@ -67,6 +69,11 @@ void CSMain(uint3 id : SV_DispatchThreadID)
     // 맵 밖에는 심지 않는다. 지면이 없는 곳에 풀만 떠 있게 된다.
     float2 uv = (positionXZ - _MapMin) / _MapSize;
     if (any(uv < 0.0) || any(uv > 1.0)) return;
+    for (int clearing = 0; clearing < _ReturnClearingCount; clearing++)
+    {
+        float4 circle = _ReturnClearings[clearing];
+        if (distance(positionXZ, circle.xy) < circle.z) return;
+    }
 
     // 마스크는 밀도다. 난수가 마스크 값보다 크거나 같아야 심는다 —
     // 마스크 0이면 항상 통과(가득), 1이면 절대 통과하지 못한다(없음).
