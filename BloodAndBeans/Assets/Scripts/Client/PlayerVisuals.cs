@@ -37,7 +37,7 @@ public class PlayerVisuals : NetworkBehaviour
     [Header("대시/피격 피드백")]
     /// 색·시간·흔들림 수치는 전 플레이어가 공유하는 설정이다 (`PlayerFeedbackConfig`).
     [SerializeField] PlayerFeedbackConfig feedback;
-    /// 돌진하는 동안만 켜지는 잔상. 비워 두면 나머지 연출만 돈다.
+    /// 일반 이동 경로에 남기는 잔상. 멈추면 TrailRenderer의 수명에 따라 사라진다.
     [SerializeField] TrailRenderer trail;
     /// 흔들림을 쏘는 곳. 가상 카메라의 `CinemachineImpulseListener`가 받는다.
     [SerializeField] CinemachineImpulseSource impulse;
@@ -88,7 +88,8 @@ public class PlayerVisuals : NetworkBehaviour
         itemPresenter = new ItemSlotPresenter(itemVisuals, itemAnchors, itemHighlightScale, itemHighlightOffset);
         publicProps = new MaterialPropertyBlock();
 
-        dashPresentation = new DashPresentation(trail, this, impulse, GetComponent<NetworkObject>(),
+        if (trail != null) trail.emitting = false;
+        dashPresentation = new DashPresentation(this, impulse, GetComponent<NetworkObject>(),
             feedback != null ? feedback.hitFlash : Color.white,
             feedback != null ? feedback.spillFlash : new Color(1f, 0.65f, 0.15f),
             feedback != null ? feedback.flashSeconds : 0.16f,
@@ -121,6 +122,11 @@ public class PlayerVisuals : NetworkBehaviour
         SetCharacter(character.Index);
         OnTeamChanged(playerTeam.Team);
         RefreshHand();
+        if (trail != null)
+        {
+            trail.Clear();
+            trail.emitting = true;
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -149,6 +155,11 @@ public class PlayerVisuals : NetworkBehaviour
         }
 
         dashPresentation.Cancel();
+        if (trail != null)
+        {
+            trail.emitting = false;
+            trail.Clear();
+        }
         StopAttached();
         modelSpawner.Clear();
         itemPresenter.Clear();
@@ -215,15 +226,23 @@ public class PlayerVisuals : NetworkBehaviour
     void OnTeleportStarted(Vector3 origin)
     {
         dashPresentation.Cancel();
-        if (trail != null) trail.Clear();
+        if (trail != null)
+        {
+            trail.emitting = false;
+            trail.Clear();
+        }
         EffectManager.Play(EffectId.TeleportDeparture, origin);
     }
 
     void OnTeleported(Vector3 origin, Vector3 destination, Quaternion rotation)
     {
-        // 대시 도중 전송되어도 두 장소를 잇는 긴 궤적은 남기지 않는다.
+        // 전송 전의 이동 궤적을 지우고 도착 후 다시 그린다.
         dashPresentation.Cancel();
-        if (trail != null) trail.Clear();
+        if (trail != null)
+        {
+            trail.Clear();
+            trail.emitting = true;
+        }
         EffectManager.Play(EffectId.TeleportArrival, destination);
         if (Model != null)
             TeleportAfterimage.Play(Model.transform, transform, origin, rotation,

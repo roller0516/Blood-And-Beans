@@ -316,7 +316,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::Cafe
   ShowTopMostFoldoutHeaderGroup: 1
   teamTintStrength: 0.35
-  floor: {fileID: 0}
+  floor: {fileID: 4910921611819009832}
 --- !u!1 &269316302969757116
 GameObject:
   m_ObjectHideFlags: 0
@@ -1148,6 +1148,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4326778098579415335}
+  - component: {fileID: 4910921611819009832}
   m_Layer: 12
   m_Name: Floor
   m_TagString: Untagged
@@ -1270,6 +1271,27 @@ Transform:
   - {fileID: 5437807162770798565}
   m_Father: {fileID: 1914624446022514306}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!65 &4910921611819009832
+BoxCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1831449540465306039}
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_IsTrigger: 1
+  m_ProvidesContacts: 0
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Size: {x: 20, y: 0.08, z: 20}
+  m_Center: {x: 0, y: -0.049999997, z: 3}
 --- !u!1 &1854148956695796816
 GameObject:
   m_ObjectHideFlags: 0
