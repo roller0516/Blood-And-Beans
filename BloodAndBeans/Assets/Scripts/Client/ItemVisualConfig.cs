@@ -42,6 +42,9 @@ public class ItemVisualConfig : ScriptableObject
     [Tooltip("메뉴 표에 없는 조합의 완성품. CarryView가 「정체불명」이라 부르는 그것이다.")]
     [SerializeField] AssetReference unknownProduct;
 
+    [Tooltip("빈 접시. 비면 빵 베이스로 대신 그린다.")]
+    [SerializeField] AssetReference emptyPlate;
+
     [Tooltip("탄 것. 메시는 그대로 두고 재질만 이것으로 바꾼다 — 무엇이 탔는지도 보여야 한다. " +
              "재질은 가벼운 공유 애셋이라 직접 참조로 둔다(어드레서블화 대상은 무거운 모델뿐).")]
     [SerializeField] Material burnt;
@@ -53,7 +56,11 @@ public class ItemVisualConfig : ScriptableObject
     {
         if (view.Empty) return null;
         if (view.HasDish && !view.IsProduct && view.Ingredient == Ingredient.None)
+        {
+            if (view.DishIsPlate && emptyPlate != null && emptyPlate.RuntimeKeyIsValid()) return emptyPlate;
+            // ponytail: 빈 잔 프리팹이 없어 원두로 대신 그린다. 생기면 emptyPlate와 같은 칸을 둔다.
             view.Ingredient = view.DishIsPlate ? Ingredient.BreadBase : Ingredient.Bean;
+        }
 
         if (view.IsProduct)
         {

@@ -52,6 +52,8 @@ MonoBehaviour:
   fullBlendSpeed: 5
   blendDampSeconds: 0.1
   crossFadeSeconds: 0.08
+  coffeeSocket: {fileID: 8893071124985629447}
+  plateSocket: {fileID: 21673939773089231}
 --- !u!1 &8993433710452424532
 GameObject:
   m_ObjectHideFlags: 0
@@ -199,6 +201,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af301ce485dde9448a41155b69710329, type: 3}
+--- !u!4 &21673939773089231 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6558135574460192320, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 6579246526965724047}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1700761038619312688 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5536187267799396799, guid: af301ce485dde9448a41155b69710329, type: 3}
@@ -207,5 +214,10 @@ Transform:
 --- !u!95 &4718222045874706506 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 6579246526965724047}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8893071124985629447 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2316157294633482376, guid: af301ce485dde9448a41155b69710329, type: 3}
   m_PrefabInstance: {fileID: 6579246526965724047}
   m_PrefabAsset: {fileID: 0}

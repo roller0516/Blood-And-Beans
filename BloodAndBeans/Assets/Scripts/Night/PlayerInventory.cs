@@ -32,8 +32,9 @@ public class PlayerInventory : NetworkBehaviour
 
     /// 가방을 지금 메고 있는가. 묻어 두면 false다. 밤이 끝날 때 이 값이 정산을 가른다
     /// (가방 미소지는 소환 위치와 무관하게 전량 소실).
+    /// 전원이 읽는다 — 적은 가방 없이 다니는 플레이어를 보고 묻은 곳을 찾는다 (기획서 6.7 탐색).
     readonly NetworkVariable<bool> hasBag = new(true,
-        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     /// 적재가 80%를 넘었는가 (기획서 6.6).
     ///
@@ -72,7 +73,8 @@ public class PlayerInventory : NetworkBehaviour
 
         // 겉보기는 서버·클라이언트 양쪽에서 그린다. 남의 적재 상태도 보여야 하므로
         // 소유자 분기를 두지 않는다 (기획서 6.6).
-        overloaded.OnValueChanged += OnOverloadedChanged;
+        overloaded.OnValueChanged += OnAppearanceChanged;
+        hasBag.OnValueChanged += OnAppearanceChanged;
         LoadChanged?.Invoke();
 
         if (!IsServer) return;
@@ -86,7 +88,8 @@ public class PlayerInventory : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         MatchDirector.Unbind(BindDirector);
-        overloaded.OnValueChanged -= OnOverloadedChanged;
+        overloaded.OnValueChanged -= OnAppearanceChanged;
+        hasBag.OnValueChanged -= OnAppearanceChanged;
         if (IsServer) carried.OnValueChanged -= OnCarriedChangedServer;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
@@ -94,7 +97,7 @@ public class PlayerInventory : NetworkBehaviour
 
     void OnCarriedChangedServer(float previous, float current) => PushSpeedServer();
 
-    void OnOverloadedChanged(bool _, bool __) => LoadChanged?.Invoke();
+    void OnAppearanceChanged(bool _, bool __) => LoadChanged?.Invoke();
 
     /// 지금 무게와 밴드로 정해지는 속도 배수를 이동에 넣는다.
     ///
@@ -186,7 +189,7 @@ public class PlayerInventory : NetworkBehaviour
     /// 적재가 80%를 넘었는가 (기획서 6.6). 남의 것도 읽을 수 있는 유일한 적재 정보다.
     public bool Overloaded => overloaded.Value;
 
-    /// 겉보기(`LoadVisuals`)가 다시 그리는 신호. 소유자·관전자 양쪽에서 오른다.
+    /// 겉보기(`LoadVisuals`, 메고 있는 가방)가 다시 그리는 신호. 소유자·관전자 양쪽에서 오른다.
     public event System.Action LoadChanged;
 
     /// 임대료 페널티 3단계는 밴드를 정확히 한 칸 불리하게 옮긴다 (기획서 3.3 밤 항목).

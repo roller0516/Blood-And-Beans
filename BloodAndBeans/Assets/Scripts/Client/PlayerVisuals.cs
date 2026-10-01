@@ -21,6 +21,7 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerAbilities))]
 [RequireComponent(typeof(PlayerController))]
 [RequireComponent(typeof(DashHarass))]
+[RequireComponent(typeof(PlayerInventory))]
 public class PlayerVisuals : NetworkBehaviour
 {
     [Header("모델")]
@@ -62,10 +63,18 @@ public class PlayerVisuals : NetworkBehaviour
     PlayerAbilities abilities;
     PlayerController interaction;
     DashHarass dash;
+    PlayerInventory inventory;
 
     CharacterModelSpawner modelSpawner;
     ItemSlotPresenter itemPresenter;
     DashPresentation dashPresentation;
+
+    /// 손 앵커를 붙여 둔 모델. 모델을 갈기 전에 비운다 — 소켓에 붙은 채 모델이 파괴되면 앵커도 같이 사라진다.
+    CharacterModel handModel;
+    int spawnRequest;
+    Transform[] anchorHomes;
+    Vector3[] anchorHomePositions;
+    Quaternion[] anchorHomeRotations;
 
     Tween flash;
     ParticleSystem attached;
@@ -83,10 +92,23 @@ public class PlayerVisuals : NetworkBehaviour
         abilities = GetComponent<PlayerAbilities>();
         interaction = GetComponent<PlayerController>();
         dash = GetComponent<DashHarass>();
+        inventory = GetComponent<PlayerInventory>();
 
         modelSpawner = new CharacterModelSpawner(characterVisuals);
         itemPresenter = new ItemSlotPresenter(itemVisuals, itemAnchors, itemHighlightScale, itemHighlightOffset);
         publicProps = new MaterialPropertyBlock();
+
+        var anchorCount = itemAnchors?.Length ?? 0;
+        anchorHomes = new Transform[anchorCount];
+        anchorHomePositions = new Vector3[anchorCount];
+        anchorHomeRotations = new Quaternion[anchorCount];
+        for (var i = 0; i < anchorCount; i++)
+        {
+            if (itemAnchors[i] == null) continue;
+            anchorHomes[i] = itemAnchors[i].parent;
+            anchorHomePositions[i] = itemAnchors[i].localPosition;
+            anchorHomeRotations[i] = itemAnchors[i].localRotation;
+        }
 
         if (trail != null) trail.emitting = false;
         dashPresentation = new DashPresentation(this, impulse, GetComponent<NetworkObject>(),
@@ -118,6 +140,7 @@ public class PlayerVisuals : NetworkBehaviour
         dash.TookHit += dashPresentation.OnTookHit;
         carry.ContentsChanged += RefreshHand;
         carry.ContentsChanged += RefreshPublicMarker;
+        inventory.LoadChanged += RefreshBag;
 
         SetCharacter(character.Index);
         OnTeamChanged(playerTeam.Team);
@@ -153,6 +176,7 @@ public class PlayerVisuals : NetworkBehaviour
             carry.ContentsChanged -= RefreshHand;
             carry.ContentsChanged -= RefreshPublicMarker;
         }
+        if (inventory != null) inventory.LoadChanged -= RefreshBag;
 
         dashPresentation.Cancel();
         if (trail != null)
@@ -161,6 +185,7 @@ public class PlayerVisuals : NetworkBehaviour
             trail.Clear();
         }
         StopAttached();
+        DetachHand();
         modelSpawner.Clear();
         itemPresenter.Clear();
     }
@@ -187,6 +212,7 @@ public class PlayerVisuals : NetworkBehaviour
 
         if (!CharacterCatalog.IsValid(index))
         {
+            DetachHand();
             modelSpawner.Clear();
             Apply(playerTeam.Team);
             return;
@@ -201,7 +227,16 @@ public class PlayerVisuals : NetworkBehaviour
     {
         var ct = this.GetCancellationTokenOnDestroy();
         EffectManager.NoteCharacterAsync(id, ct).Forget();
+        DetachHand();
+        var request = spawnRequest;
         await modelSpawner.SpawnAsync(id, modelRoot, gameObject.layer, ct);
+        // 그사이 다른 교체가 왔으면 지금 모델은 곧 파괴된다. 앵커를 붙이지 않는다.
+        if (request == spawnRequest)
+        {
+            handModel = Model;
+            PlaceHand();
+            RefreshBag();
+        }
         Apply(playerTeam.Team);
     }
 
@@ -280,7 +315,42 @@ public class PlayerVisuals : NetworkBehaviour
     void RefreshHand()
     {
         if (carry == null) return;
+        PlaceHand();
         itemPresenter.Bind(carry);
+    }
+
+    void DetachHand()
+    {
+        spawnRequest++;
+        handModel = null;
+        PlaceHand();
+    }
+
+    /// 손 앵커를 든 것에 맞는 모델 소켓으로 옮기고 들기 자세를 맞춘다. 모델이나 소켓이 없으면 플레이어의 원래 자리로 돌린다.
+    void PlaceHand()
+    {
+        if (handModel != null)
+            handModel.PlayHold(carry != null ? carry.SlotAt(0) : CarryView.Nothing);
+        if (itemAnchors == null) return;
+
+        for (var i = 0; i < itemAnchors.Length; i++)
+        {
+            var anchor = itemAnchors[i];
+            if (anchor == null) continue;
+
+            var view = carry != null && i < carry.SlotCount ? carry.SlotAt(i) : CarryView.Nothing;
+            var socket = handModel != null ? handModel.HandSocketFor(view) : null;
+            if (socket != null)
+            {
+                anchor.SetParent(socket, false);
+                anchor.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            }
+            else
+            {
+                anchor.SetParent(anchorHomes[i], false);
+                anchor.SetLocalPositionAndRotation(anchorHomePositions[i], anchorHomeRotations[i]);
+            }
+        }
     }
 
     /// 손에 든 것도 팀 밖에서는 보이지 않아야 한다 (기획서 3.1). 손 앵커만 팀 레이어로
@@ -290,6 +360,12 @@ public class PlayerVisuals : NetworkBehaviour
         if (itemAnchors == null) return;
         foreach (var anchor in itemAnchors)
             if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
+    }
+
+    /// 묻으면 등의 가방이 꺼진다. 전원에게 보인다 — 적이 묻은 곳을 찾는 단서다 (기획서 6.7).
+    void RefreshBag()
+    {
+        if (Model != null) Model.ShowBag(inventory.HasBag);
     }
 
     // --- 공개 소지 표시 (예전 PublicCarryDisplay) ---
