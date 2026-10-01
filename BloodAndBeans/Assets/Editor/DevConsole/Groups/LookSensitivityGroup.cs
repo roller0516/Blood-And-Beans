@@ -38,7 +38,7 @@ public class LookSensitivityGroup : DevConsoleGroup
         if (lastPlaying != state.Playing || look == null)
         {
             lastPlaying = state.Playing;
-            look = Object.FindAnyObjectByType<LookSensitivity>();
+            look = LookSensitivity.Local;
             filled = false;
         }
 

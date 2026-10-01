@@ -144,6 +144,7 @@ MonoBehaviour:
   crossFadeSeconds: 0.08
   coffeeSocket: {fileID: 8429157220259044999}
   plateSocket: {fileID: 1143325595316662351}
+  bag: {fileID: 6347390774803721734}
 --- !u!1001 &6115542071219283471
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -214,6 +215,11 @@ Transform:
 --- !u!95 &5686521533531393482 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 6115542071219283471}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6347390774803721734 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 921183327845550089, guid: af301ce485dde9448a41155b69710329, type: 3}
   m_PrefabInstance: {fileID: 6115542071219283471}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8429157220259044999 stripped

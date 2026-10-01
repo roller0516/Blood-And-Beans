@@ -1,3 +1,4 @@
+using Unity.Netcode;
 using UnityEngine;
 
 /// 마우스 회전 감도. 설정 팝업이 고른 배수를 카메라 축에 얹는다.
@@ -23,6 +24,20 @@ public class LookSensitivity : MonoBehaviour
     PlayerCameraRoot root;
 
     public float Multiplier { get; private set; } = Default;
+
+    /// 로컬 플레이어의 감도. 플레이어 프리팹마다 붙어 있어서 `FindAnyObjectByType`은
+    /// 남의 것을 집을 수 있다 — 그러면 적용해도 내 카메라는 그대로다.
+    public static LookSensitivity Local
+    {
+        get
+        {
+            var manager = NetworkManager.Singleton;
+            var player = manager != null && manager.IsClient && manager.LocalClient != null
+                ? manager.LocalClient.PlayerObject
+                : null;
+            return player != null ? player.GetComponentInChildren<LookSensitivity>(true) : null;
+        }
+    }
 
     void Awake()
     {

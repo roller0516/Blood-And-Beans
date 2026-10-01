@@ -225,6 +225,14 @@ public class PlayerInventory : NetworkBehaviour
         return true;
     }
 
+    /// 개발 치트. 재료 없이 무게만 올려 밴드·과적을 바로 확인한다.
+    /// 담긴 재료 합과 어긋나므로 흘리기(`LoseShareServer`)가 재계산하면 이 몫은 사라진다.
+    public void AddWeightCheatServer(float kg)
+    {
+        if (!IsServer || !hasBag.Value || kg <= 0f) return;
+        carried.Value += kg;
+    }
+
     /// 밤이 끝날 때 복귀 구역 밖에 있으면 적재의 일부를 잃는다 (기획서 6.8).
     /// 완전 소실이라 아무도 주울 수 없다.
     public void LoseShareServer(float share)

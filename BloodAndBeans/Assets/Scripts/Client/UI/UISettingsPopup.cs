@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -19,15 +20,40 @@ public sealed class UISettingsPopup : UIPopup
     [SerializeField] Slider lookSensitivity;
     [SerializeField] TMP_Text lookLabel;
 
+    /// 슬라이더 옆 숫자 칸. 슬라이더와 같은 값을 쥐고 서로를 따라간다.
+    [SerializeField] TMP_InputField lookInput;
+
+    const string LookFormat = "0.00";
+
     GameObject previousSelection;
 
     /// 설정을 여는 동안은 조작을 통째로 접는다. 슬라이더를 잡고 있는 사이에 캐릭터가
     /// 걸어가거나 대시가 나가면, 밤중에 창 하나 여는 것이 그대로 위험이 된다.
     public override bool BlocksPlayerInput => true;
 
-    /// 열 때 한 번 찾는다. 매치 씬에만 있고 팝업은 씬을 넘어 살아남으므로 직렬화로
-    /// 이을 수 없다. 주기 실행이 아닌 한 번짜리 탐색이다 (AGENTS.md 참조와 결합도).
+    /// 열 때 한 번 찾는다. 로컬 플레이어와 함께 스폰되고 팝업은 씬을 넘어 살아남으므로
+    /// 직렬화로 이을 수 없다.
     LookSensitivity look;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        if (lookSensitivity == null || lookInput == null) return;
+
+        lookSensitivity.onValueChanged.AddListener(ShowLookValue);
+        lookInput.onEndEdit.AddListener(OnLookTyped);
+    }
+
+    void ShowLookValue(float value) =>
+        lookInput.SetTextWithoutNotify(value.ToString(LookFormat, CultureInfo.InvariantCulture));
+
+    /// 슬라이더에 넘기면 범위 밖 값은 슬라이더가 잘라 주고, 그 결과가 다시 칸에 찍힌다.
+    void OnLookTyped(string text)
+    {
+        if (float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+            lookSensitivity.value = value;
+        ShowLookValue(lookSensitivity.value);
+    }
 
     public void Bind(Action close)
     {
@@ -45,10 +71,11 @@ public sealed class UISettingsPopup : UIPopup
     /// 아무 일도 없는 슬라이더가 남아 있으면 고장으로 읽힌다.
     void BindLook()
     {
-        look = FindAnyObjectByType<LookSensitivity>();
+        look = LookSensitivity.Local;
 
         var available = look != null;
         if (lookLabel != null) lookLabel.gameObject.SetActive(available);
+        if (lookInput != null) lookInput.gameObject.SetActive(available);
         if (lookSensitivity == null) return;
 
         lookSensitivity.gameObject.SetActive(available);
@@ -57,6 +84,7 @@ public sealed class UISettingsPopup : UIPopup
         lookSensitivity.minValue = LookSensitivity.Min;
         lookSensitivity.maxValue = LookSensitivity.Max;
         lookSensitivity.SetValueWithoutNotify(look.Multiplier);
+        if (lookInput != null) ShowLookValue(look.Multiplier);
     }
 
     void Apply(Action close)

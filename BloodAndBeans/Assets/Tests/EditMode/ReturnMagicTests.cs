@@ -18,14 +18,14 @@ public class ReturnMagicTests
         Assert.That(zone.GetComponent<MeshRenderer>().enabled, Is.False);
         Assert.That(circle.GetComponent<MeshFilter>().sharedMesh.vertexCount, Is.EqualTo(4));
         Assert.That(AssetDatabase.GetAssetPath(circle.GetComponent<MeshRenderer>().sharedMaterial.GetTexture("_MainTex")),
-            Is.EqualTo("Assets/Art/VFX/ReturnMagicCircle.png"), "바닥 문양 텍스처가 연결되지 않았다.");
+            Is.EqualTo("Assets/Art/VFX/Teleport/Textures/ReturnMagicCircle.png"), "바닥 문양 텍스처가 연결되지 않았다.");
 
         var player = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/Character/Prefabs/Player.prefab");
         var look = new SerializedObject(player.GetComponent<PlayerVisuals>());
         Assert.That(look.FindProperty("teleportAfterimageMaterial").objectReferenceValue, Is.Not.Null);
         foreach (var name in new[] { "TeleportDeparture", "TeleportArrival" })
         {
-            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/VFX/" + name + ".prefab");
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Art/VFX/Teleport/Prefabs/" + name + ".prefab");
             Assert.That(prefab, Is.Not.Null);
             foreach (var ps in prefab.GetComponentsInChildren<ParticleSystem>())
                 Assert.That(ps.main.loop, Is.False, name + "가 풀로 돌아가지 않는다.");

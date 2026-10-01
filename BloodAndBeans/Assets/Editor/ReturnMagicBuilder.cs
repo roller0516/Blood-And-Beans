@@ -7,7 +7,14 @@ using UnityEngine.Rendering;
 /// 바닥 문양 텍스처와 입체 리본을 귀환·전송 프리팹에 연결한다.
 public static class ReturnMagicBuilder
 {
-    const string Folder = "Assets/Art/VFX/";
+    const string Root = "Assets/Art/VFX/";
+    const string TeleportFolder = Root + "Teleport/";
+    const string PrefabFolder = TeleportFolder + "Prefabs/";
+    const string MaterialFolder = TeleportFolder + "Materials/";
+    const string TextureFolder = TeleportFolder + "Textures/";
+    const string MeshFolder = TeleportFolder + "Meshes/";
+    const string ModelFolder = TeleportFolder + "Models/";
+    const string ManagerPath = Root + "Shared/Prefabs/EffectManager.prefab";
     const string ZonePath = "Assets/Art/Environment/Prefabs/ReturnZone.prefab";
     const string PlayerPath = "Assets/Art/Character/Prefabs/Player.prefab";
     const string ShaderName = "BB/ReturnMagic";
@@ -47,7 +54,7 @@ public static class ReturnMagicBuilder
 
     static Material Material(string name, Shader shader, Color color, float rim)
     {
-        var path = Folder + name + ".mat";
+        var path = MaterialFolder + name + ".mat";
         var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
         if (mat == null) { mat = new Material(shader); AssetDatabase.CreateAsset(mat, path); }
         mat.SetColor("_BaseColor", color);
@@ -155,7 +162,7 @@ public static class ReturnMagicBuilder
             main = dust.main; main.startSpeed = new ParticleSystem.MinMaxCurve(.15f,.65f);
             main.startRotation3D = true; main.startRotationX = -Mathf.PI/2;
             var velocity = dust.velocityOverLifetime; velocity.enabled = true; velocity.y = .65f;
-            PrefabUtility.SaveAsPrefabAsset(root, Folder + name + ".prefab");
+            PrefabUtility.SaveAsPrefabAsset(root, PrefabFolder + name + ".prefab");
         }
         finally { UnityEngine.Object.DestroyImmediate(root); }
     }
@@ -165,7 +172,7 @@ public static class ReturnMagicBuilder
         if (EditorApplication.isPlaying) throw new InvalidOperationException("플레이를 멈춘 뒤 적용하세요.");
         foreach (var name in new[] { "TeleportDeparture", "TeleportArrival" })
         {
-            var path = Folder + name + ".prefab";
+            var path = PrefabFolder + name + ".prefab";
             var root = PrefabUtility.LoadPrefabContents(path);
             try
             {
@@ -244,7 +251,7 @@ public static class ReturnMagicBuilder
 
     static Mesh GroundPlane()
     {
-        var path = Folder + "ReturnMagicPlane.asset";
+        var path = MeshFolder + "ReturnMagicPlane.asset";
         var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(path);
         if (mesh != null) return mesh;
         // 베이크 카메라 폭 2.1과 일치시켜 기존 문양의 반지름을 보존한다.
@@ -261,7 +268,7 @@ public static class ReturnMagicBuilder
 
     static Material GroundMaterial()
     {
-        var path = Folder + "ReturnMagicCircle.png";
+        var path = TextureFolder + "ReturnMagicCircle.png";
         AssetDatabase.ImportAsset(path);
         var importer = AssetImporter.GetAtPath(path) as TextureImporter;
         if (importer == null) throw new InvalidOperationException("마법진 PNG를 먼저 베이크하세요.");
@@ -348,7 +355,7 @@ public static class ReturnMagicBuilder
     {
         var settings = AddressableAssetSettingsDefaultObject.Settings;
         if (settings == null) throw new InvalidOperationException("어드레서블 설정이 없다.");
-        var managerPath = Folder + nameof(EffectManager) + ".prefab";
+        var managerPath = ManagerPath;
         var root = PrefabUtility.LoadPrefabContents(managerPath);
         try
         {
@@ -356,7 +363,7 @@ public static class ReturnMagicBuilder
             var entries = so.FindProperty("effects");
             foreach (var id in new[] { EffectId.TeleportDeparture, EffectId.TeleportArrival })
             {
-                var guid = AssetDatabase.AssetPathToGUID(Folder + id + ".prefab");
+                var guid = AssetDatabase.AssetPathToGUID(PrefabFolder + id + ".prefab");
                 var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
                 entry.address = id.ToString();
                 SerializedProperty row = null;
@@ -378,7 +385,7 @@ public static class ReturnMagicBuilder
 
     static Mesh ImportedMesh(string name)
     {
-        foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(Folder + "ReturnMagic.fbx"))
+        foreach (var asset in AssetDatabase.LoadAllAssetsAtPath(ModelFolder + "ReturnMagic.fbx"))
             if (asset is Mesh mesh && mesh.name == name) return mesh;
         throw new InvalidOperationException("Blender FBX에 메시가 없다: " + name);
     }
