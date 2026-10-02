@@ -69,7 +69,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.35
+    - _AOStrength: 0.25
     - _AddPrecomputedVelocity: 0
     - _AlphaToMask: 0
     - _BurntAmount: 0
@@ -86,15 +86,15 @@ Material:
     - _DirtySoftness: 0.22
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _GlazeAmount: 0
+    - _GlazeAmount: 0.12
     - _GlazeSmoothness: 0.65
     - _Metallic: 0
-    - _NormalStrength: 1
-    - _PoreColor: 0.055
+    - _NormalStrength: 0.35
+    - _PoreColor: 0.025
     - _PoreRoughness: 0.1
-    - _PoreStrength: 0.4
-    - _SmoothnessMax: 0.25
-    - _SmoothnessMin: 0.1
+    - _PoreStrength: 0.16
+    - _SmoothnessMax: 0.32
+    - _SmoothnessMin: 0.16
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
     - _UVChannel: 0
