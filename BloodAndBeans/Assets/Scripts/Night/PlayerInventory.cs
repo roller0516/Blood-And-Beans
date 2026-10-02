@@ -19,6 +19,9 @@ public class PlayerInventory : NetworkBehaviour
     /// 땅에 묻는 가방. 비워야 대시를 쓸 수 있으므로 기동성과 맞바꾸는 선택이다.
     [SerializeField] BuriedBag buriedBagPrefab;
 
+    /// 「환각」의 가짜 가방도 이것을 쓴다 — 진짜와 구별되면 미끼가 아니다.
+    public BuriedBag BuriedBagPrefab => buriedBagPrefab;
+
     /// 쪼개진 임시 상자를 벌려 놓는 간격. 겹쳐 놓으면 하나만 집을 수 있다.
     [SerializeField] float pileSpacing = 1.2f;
 
@@ -29,8 +32,9 @@ public class PlayerInventory : NetworkBehaviour
 
     /// 가방을 지금 메고 있는가. 묻어 두면 false다. 밤이 끝날 때 이 값이 정산을 가른다
     /// (가방 미소지는 소환 위치와 무관하게 전량 소실).
+    /// 전원이 읽는다 — 적은 가방 없이 다니는 플레이어를 보고 묻은 곳을 찾는다 (기획서 6.7 탐색).
     readonly NetworkVariable<bool> hasBag = new(true,
-        NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+        NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
     /// 적재가 80%를 넘었는가 (기획서 6.6).
     ///
@@ -69,7 +73,8 @@ public class PlayerInventory : NetworkBehaviour
 
         // 겉보기는 서버·클라이언트 양쪽에서 그린다. 남의 적재 상태도 보여야 하므로
         // 소유자 분기를 두지 않는다 (기획서 6.6).
-        overloaded.OnValueChanged += OnOverloadedChanged;
+        overloaded.OnValueChanged += OnAppearanceChanged;
+        hasBag.OnValueChanged += OnAppearanceChanged;
         LoadChanged?.Invoke();
 
         if (!IsServer) return;
@@ -83,7 +88,8 @@ public class PlayerInventory : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         MatchDirector.Unbind(BindDirector);
-        overloaded.OnValueChanged -= OnOverloadedChanged;
+        overloaded.OnValueChanged -= OnAppearanceChanged;
+        hasBag.OnValueChanged -= OnAppearanceChanged;
         if (IsServer) carried.OnValueChanged -= OnCarriedChangedServer;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
@@ -91,7 +97,7 @@ public class PlayerInventory : NetworkBehaviour
 
     void OnCarriedChangedServer(float previous, float current) => PushSpeedServer();
 
-    void OnOverloadedChanged(bool _, bool __) => LoadChanged?.Invoke();
+    void OnAppearanceChanged(bool _, bool __) => LoadChanged?.Invoke();
 
     /// 지금 무게와 밴드로 정해지는 속도 배수를 이동에 넣는다.
     ///
@@ -183,7 +189,7 @@ public class PlayerInventory : NetworkBehaviour
     /// 적재가 80%를 넘었는가 (기획서 6.6). 남의 것도 읽을 수 있는 유일한 적재 정보다.
     public bool Overloaded => overloaded.Value;
 
-    /// 겉보기(`LoadVisuals`)가 다시 그리는 신호. 소유자·관전자 양쪽에서 오른다.
+    /// 겉보기(`LoadVisuals`, 메고 있는 가방)가 다시 그리는 신호. 소유자·관전자 양쪽에서 오른다.
     public event System.Action LoadChanged;
 
     /// 임대료 페널티 3단계는 밴드를 정확히 한 칸 불리하게 옮긴다 (기획서 3.3 밤 항목).
@@ -217,6 +223,14 @@ public class PlayerInventory : NetworkBehaviour
             carried.Value += Ingredients.WeightOf(item);
         }
         return true;
+    }
+
+    /// 개발 치트. 재료 없이 무게만 올려 밴드·과적을 바로 확인한다.
+    /// 담긴 재료 합과 어긋나므로 흘리기(`LoseShareServer`)가 재계산하면 이 몫은 사라진다.
+    public void AddWeightCheatServer(float kg)
+    {
+        if (!IsServer || !hasBag.Value || kg <= 0f) return;
+        carried.Value += kg;
     }
 
     /// 밤이 끝날 때 복귀 구역 밖에 있으면 적재의 일부를 잃는다 (기획서 6.8).

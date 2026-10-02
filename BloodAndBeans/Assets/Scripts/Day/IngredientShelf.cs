@@ -79,6 +79,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
                 product.Menu = Menus.Match(parts);
                 pending.carry.SetServer(product);
                 PlayerController.ReportSuccessServer(id, this);
+                PlayerController.ReportSoundServer(id, this, IngredientSfx.Of(pending.item));
             }
             CancelFinishServer(id);
         }
@@ -125,6 +126,7 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
             replacement.HasDish = true;
             carry.SetServer(replacement);
             PlayerController.ReportSuccessServer(clientId, this);
+            PlayerController.ReportSoundServer(clientId, this, SfxCue.BloodBeanPour);
             return;
         }
 

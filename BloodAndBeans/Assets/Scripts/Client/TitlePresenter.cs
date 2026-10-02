@@ -46,7 +46,13 @@ public sealed class TitlePresenter
         SubscribeToNetwork();
 
         if (lobby.InRoom) EnterRoom();
-        else OpenScreenAsync<UITitleMenuScreen>().Forget();
+        else OpenTitle();
+    }
+
+    void OpenTitle()
+    {
+        SoundManager.Instance.PlayBgm(Bgm.Title);
+        OpenScreenAsync<UITitleMenuScreen>().Forget();
     }
 
     public void Disable()
@@ -144,6 +150,7 @@ public sealed class TitlePresenter
 
     async UniTaskVoid EnterRoomAsync()
     {
+        SoundManager.Instance.PlayBgm(Bgm.Lobby);
         if (await OpenScreenAsync<UICharacterSelectScreen>() == null)
         {
             if (active) OpenRoomAsync().Forget();
@@ -191,6 +198,7 @@ public sealed class TitlePresenter
     public void LeaveRoom()
     {
         lobby.LeaveRoom();
+        SoundManager.Instance.PlayBgm(Bgm.Title);
         ui.PopScreen();
         RefreshRooms();
     }

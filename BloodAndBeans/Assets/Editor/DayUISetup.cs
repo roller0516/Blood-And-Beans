@@ -38,8 +38,6 @@ public static class DayUISetup
         });
         Edit(CustomerPath, root =>
         {
-            var old = root.GetComponent<UICustomerPatienceBar>();
-            if (old != null) Object.DestroyImmediate(old);
             if (root.GetComponentInChildren<UICustomerOrder>(true) == null)
                 PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UICustomerOrder.prefab"), root.transform);
         });
@@ -90,6 +88,7 @@ public static class DayUISetup
         if (source == null) source = root.AddComponent<AudioSource>();
         source.clip = AssetDatabase.LoadAssetAtPath<AudioClip>("Assets/Art/Audio/sfx_bell.wav");
         source.playOnAwake = false;
+        source.outputAudioMixerGroup = SoundSetup.SfxGroup();
         source.spatialBlend = spatial ? 1f : 0f;
         source.rolloffMode = AudioRolloffMode.Linear;
         // ponytail: 기존 종소리로 피드백을 연결한다. 전용 효과음이 준비되면 프리팹에서 교체한다.
@@ -139,12 +138,14 @@ public static class DayUISetup
         try
         {
             var view = root.gameObject.AddComponent<UICustomerOrder>();
-            var back = Image(root, "Back", Theme.Panel); Stretch(back.rectTransform);
-            var ring = Ring(root, "Patience"); Stretch(ring.rectTransform);
+            var back = Image(root, "Back", Color.white); Stretch(back.rectTransform);
+            back.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Ingame/OrderBubble.png");
+            back.material = AssetDatabase.LoadAssetAtPath<Material>("Assets/Art/Environment/Materials/UIBubbleFill.mat");
+            var fill = back.gameObject.AddComponent<UIBubbleFill>();
             var row = Rect("Icons", root); Stretch(row, 12);
             var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>(); layout.spacing = 6; layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandWidth = layout.childForceExpandHeight = false;
-            Set(view, "canvas", root.GetComponent<Canvas>()); Set(view, "patience", ring); Set(view, "icons", row); Set(view, "theme", Theme);
+            Set(view, "canvas", root.GetComponent<Canvas>()); Set(view, "patience", fill); Set(view, "icons", row); Set(view, "theme", Theme);
             Set(view, "iconPrefab", AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UIDayItemIcon.prefab").GetComponent<UIDayItemIcon>());
             PrefabUtility.SaveAsPrefabAsset(root.gameObject, path);
         }
@@ -215,18 +216,6 @@ public static class DayUISetup
     {
         var root = Rect(name, null); root.sizeDelta = size; root.localScale = Vector3.one * .008f;
         root.localPosition = Vector3.up * height; root.gameObject.AddComponent<Canvas>().renderMode = RenderMode.WorldSpace; return root;
-    }
-    // 줄어드는 링 (기획서 5.7.1). 시작 위치와 방향은 만든 뒤 프리팹에서 바꿀 수 있다.
-    static UnityEngine.UI.Image Ring(Transform parent, string name)
-    {
-        var ring = Image(parent, name, Color.white);
-        ring.sprite = AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Ingame/Ring.png");
-        ring.type = UnityEngine.UI.Image.Type.Filled;
-        ring.fillMethod = UnityEngine.UI.Image.FillMethod.Radial360;
-        ring.fillOrigin = (int)UnityEngine.UI.Image.Origin360.Top;
-        ring.fillClockwise = true;
-        ring.raycastTarget = false;
-        return ring;
     }
     static UnityEngine.UI.Image Image(Transform parent, string name, Color color)
     {

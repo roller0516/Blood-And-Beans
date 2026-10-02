@@ -7,8 +7,8 @@ public sealed class UICustomerOrder : MonoBehaviour
 {
     [SerializeField] RectTransform view;
     [SerializeField] CanvasGroup group;
-    /// Filled·Radial 360 Image. 시작 위치와 방향은 프리팹에서 정한다.
-    [SerializeField] UnityEngine.UI.Image patience;
+    /// 말풍선 배경. 써 버린 인내심만큼 아래에서부터 차오른다 (기획서 5.7.2).
+    [SerializeField] UIBubbleFill patience;
     /// 완성품만 보인다. 조합식은 HUD의 F1 패널에서 본다 (`UIMatchHudScreen.ToggleRecipe`).
     [SerializeField] UINamedItemIcon product;
     [SerializeField] UIThemeConfig theme;
@@ -56,8 +56,7 @@ public sealed class UICustomerOrder : MonoBehaviour
         if (isUrgent && !wasUrgent && warning != null && warning.clip != null) warning.Play();
         wasUrgent = isUrgent;
         if (!visible) return;
-        if (!Mathf.Approximately(patience.fillAmount, ratio)) patience.fillAmount = ratio;
-        patience.color = isUrgent ? urgent : ratio <= DayBalance.PatienceWarning ? theme.Gold : calm;
+        patience.Show(1f - ratio, isUrgent ? urgent : ratio <= DayBalance.PatienceWarning ? theme.Gold : calm);
         view.localRotation = Quaternion.Euler(0f, 0f, isUrgent ? Mathf.Sin(Time.time * 12f) * shakeDegrees : 0f);
         if (Time.unscaledTime < refreshAt) return;
         refreshAt = Time.unscaledTime + 0.15f;

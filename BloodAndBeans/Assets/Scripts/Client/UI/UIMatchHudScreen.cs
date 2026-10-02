@@ -453,17 +453,13 @@ public sealed class UIMatchHudScreen : UIScreen
         return point * Mathf.Min(1f, Mathf.Min(scaleX, scaleY));
     }
 
-    /// 경보 구간에 들어간 순간 한 번만 울린다. `Camera.main`은 여기서만 쓴다 — 밤 한 번에
-    /// 한 번 도는 경로라 주기 실행이 아니다 (AGENTS.md).
+    /// 경보 구간에 들어간 순간 한 번만 울린다. 듣는 사람 귀에 붙는 소리라 2D로 SFX 버스에 낸다.
     void RingOnce()
     {
         if (alarmRung) return;
         alarmRung = true;
 
-        if (returnAlarmSound == null) return;
-        var listener = Camera.main;
-        AudioSource.PlayClipAtPoint(returnAlarmSound,
-            listener != null ? listener.transform.position : Vector3.zero);
+        SoundManager.Instance.PlaySfx(returnAlarmSound);
     }
 }
 

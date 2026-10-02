@@ -142,6 +142,9 @@ MonoBehaviour:
   fullBlendSpeed: 5
   blendDampSeconds: 0.1
   crossFadeSeconds: 0.08
+  coffeeSocket: {fileID: 4492975073885446581}
+  plateSocket: {fileID: 5007378542500237181}
+  bag: {fileID: 1348360335522894132}
 --- !u!1001 &2197446349336516925
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -202,6 +205,21 @@ PrefabInstance:
 --- !u!95 &309259530844926712 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 2197446349336516925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1348360335522894132 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 921183327845550089, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 2197446349336516925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &4492975073885446581 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2316157294633482376, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 2197446349336516925}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &5007378542500237181 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6558135574460192320, guid: af301ce485dde9448a41155b69710329, type: 3}
   m_PrefabInstance: {fileID: 2197446349336516925}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &5956741901911042178 stripped

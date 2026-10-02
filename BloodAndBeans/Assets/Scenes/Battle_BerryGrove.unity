@@ -489,6 +489,7 @@ GameObject:
   - component: {fileID: 410087041}
   - component: {fileID: 410087040}
   - component: {fileID: 410087042}
+  - component: {fileID: 410087043}
   m_Layer: 0
   m_Name: Directional Light
   m_TagString: Untagged
@@ -605,6 +606,20 @@ MonoBehaviour:
   m_ShadowLayerMask: 1
   m_RenderingLayers: 1
   m_ShadowRenderingLayers: 1
+--- !u!114 &410087043
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 410087039}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ded21bda27a9ed44eb0e4ad67d984b4c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::PhaseSkybox
+  nightSky: {fileID: 2100000, guid: e2dc7be856ea49b438a165fddaee7576, type: 2}
+  daySky: {fileID: 2100000, guid: be9dc822ac2b8b149960177b1dd84b8b, type: 2}
 --- !u!1 &500636056
 GameObject:
   m_ObjectHideFlags: 0

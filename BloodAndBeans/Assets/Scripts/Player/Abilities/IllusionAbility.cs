@@ -11,7 +11,7 @@ public sealed class IllusionAbility : INightAbility
     {
         if (host.DecoyBag == null)
         {
-            CDebug.LogError($"{host.name}: decoyBagPrefab이 비어 있다. 환각이 아무것도 심지 못한다.", host);
+            CDebug.LogError($"{host.name}: PlayerInventory.buriedBagPrefab을 빌리지 못했다. 환각이 아무것도 심지 못한다.", host);
             return false;
         }
 

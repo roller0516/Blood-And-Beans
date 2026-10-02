@@ -87,6 +87,23 @@ public sealed class MatchFlow : MonoBehaviour
     /// 불러오기를 시작했는가. 시작하지 않은 채 파괴되면 놓을 것도 없다.
     bool acquired;
 
+    /// 몇 번째 밤·낮인지. 복제된 `Day`는 페이즈와 같은 틱에 바뀌어 이벤트 시점 값을 믿지 않고 직접 센다.
+    int nightsEntered;
+    int daysEntered;
+
+    /// 첫 밤은 로딩을 기다리는 사이에 시작될 수 있어 Start의 대기보다 먼저 구독한다.
+    void Awake()
+    {
+        if (phase != null) phase.PhaseEntered += OnPhaseEntered;
+    }
+
+    /// 전환 화면에서는 곡을 바꾸지 않는다.
+    void OnPhaseEntered(Phase entered)
+    {
+        if (entered == Phase.Night) SoundManager.Instance.PlayBgm(Bgm.Night, nightsEntered++);
+        else if (entered == Phase.Day) SoundManager.Instance.PlayBgm(Bgm.Day, daysEntered++);
+    }
+
     async UniTaskVoid Start()
     {
         // 없으면 `Instance`가 만든다. 여기서 만들지 않으므로 씬 배선도 필요 없다.
@@ -215,6 +232,7 @@ public sealed class MatchFlow : MonoBehaviour
     /// 여기서 치우지 않으면 타이틀로 돌아가서도 매치 HUD가 스택에 남는다.
     void OnDestroy()
     {
+        if (phase != null) phase.PhaseEntered -= OnPhaseEntered;
         if (cancel != null) cancel.performed -= OnCancel;
         if (togglePanel != null) togglePanel.performed -= OnToggleRecipe;
         if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;

@@ -163,7 +163,7 @@ public class CustomerQueue : NetworkBehaviour
 
     /// 서버 권위 서빙. 누군가 물건을 받았으면 true를 돌려준다.
     /// 대조는 태그로 하며 메뉴 이름으로는 절대 하지 않는다 (기획서 7.2).
-    public bool TryServeServer(HeldItem item)
+    public bool TryServeServer(HeldItem item, ulong clientId = ulong.MaxValue)
     {
         if (!IsServer || !item.IsProduct || item.Recipe == null) return false;
 
@@ -192,7 +192,10 @@ public class CustomerQueue : NetworkBehaviour
             BasePrice = Menus.BasePriceOf(item.Menu),
         });
 
-        if (c.CountServedServer()) Leave(index);
+        var complete = c.CountServedServer();
+        PlayerController.ReportSoundServer(clientId, c,
+            !complete ? SfxCue.PartialSale : item.Burnt ? SfxCue.BurntSale : SfxCue.Sale);
+        if (complete) Leave(index);
         return true;
     }
 

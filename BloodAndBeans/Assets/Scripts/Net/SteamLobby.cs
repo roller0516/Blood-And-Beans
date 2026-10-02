@@ -584,6 +584,7 @@ public class SteamLobby : MonoBehaviour
         }
 
         if (!CanStartMatch) { Fail("모든 참가자의 준비와 팀 정원을 확인해 주세요."); return false; }
+        if (!Balance.Loaded) { Fail("데이터 표가 실리지 않았다. 콘솔의 DataManager 오류를 확인해 주세요."); return false; }
         backend.CloseRoom();
         Seating.ExpectPlayers(members.Count);
 

@@ -26,6 +26,7 @@ public class NetworkAutoStart : MonoBehaviour
     {
         var nm = NetworkManager.Singleton;
         if (nm == null || nm.IsListening) return;
+        if (!MatchSeating.PrepareDirectStart(nm)) return;
 
         if (IsMainEditor()) nm.StartHost();
         else nm.StartClient();

@@ -13,12 +13,14 @@ public sealed class UICompletionGauge : MonoBehaviour
     [SerializeField] UnityEngine.UI.Image progress;
     int lastTenths = -1;
     bool lastTarget;
+    CompletionGauge soundingGauge;
+    int soundingSweep = -1;
     void Awake() => canvas.enabled = false;
     void LateUpdate()
     {
         var gauge = Pick();
         canvas.enabled = gauge != null;
-        if (gauge == null) return;
+        if (gauge == null) { soundingGauge = null; soundingSweep = -1; return; }
         var cooking = gauge.Station.State == StationState.Cooking;
         good.gameObject.SetActive(!cooking);
         perfect.gameObject.SetActive(!cooking);
@@ -28,7 +30,12 @@ public sealed class UICompletionGauge : MonoBehaviour
             progress.gameObject.SetActive(cooking);
             progress.fillAmount = gauge.Station.CookProgress;
         }
-        if (cooking) { label.text = gauge.Station is Oven ? "굽는 중" : "추출 중"; lastTenths = -1; return; }
+        if (cooking) { label.text = gauge.Station is Oven ? "굽는 중" : "추출 중"; lastTenths = -1; soundingSweep = -1; return; }
+        var sweep = gauge.Sweep;
+        if (soundingGauge == gauge && soundingSweep >= 0 && sweep > soundingSweep)
+            SoundManager.Instance?.PlayCue(SfxCue.GaugeTick, gauge.Station.FacilityPosition, gauge.TeamId);
+        soundingGauge = gauge;
+        soundingSweep = sweep;
         var width = bar.rect.width;
         SetWidth(good, width * gauge.GoodHalfWidth * 2f);
         SetWidth(perfect, width * gauge.PerfectHalfWidth * 2f);

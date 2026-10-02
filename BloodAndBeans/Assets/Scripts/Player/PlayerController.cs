@@ -42,6 +42,7 @@ public class PlayerController : NetworkBehaviour
         NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
     CharacterController controller;
+    PlayerTeam playerTeam;
     GamePhase phase;
 
     /// 이 시각까지는 조작 입력을 무시한다. 대시 돌진·넉백처럼 위치를 직접 미는 기능이
@@ -107,6 +108,7 @@ public class PlayerController : NetworkBehaviour
     void Awake()
     {
         controller = GetComponent<CharacterController>();
+        playerTeam = GetComponent<PlayerTeam>();
         localCarry = GetComponent<PlayerCarry>();
     }
 
@@ -193,6 +195,8 @@ public class PlayerController : NetworkBehaviour
 
     void UpdateMovement()
     {
+        if (playerTeam != null && playerTeam.IsTeleporting)
+        { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (phase != null && (!phase.Started || phase.Finished || phase.Current == Phase.Transition))
         { serverInput = Vector2.zero; predictedInput = Vector2.zero; return; }
         if (IsServer)
@@ -279,6 +283,25 @@ public class PlayerController : NetworkBehaviour
     // ============================================================
 
     public event System.Action<Vector3> InteractionSucceeded;
+    public event System.Action<SfxCue, Vector3, int> SoundPlayed;
+
+    /// 서버가 확정한 팀 사건만 보낸다. 카페 내부 정보는 다른 팀에 전달하지 않는다 (3.4).
+    public static void ReportSoundServer(ulong clientId, Component target, SfxCue cue)
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager == null || !manager.IsServer || target == null || cue == SfxCue.None ||
+            !manager.ConnectedClients.TryGetValue(clientId, out var client) || client.PlayerObject == null) return;
+        var player = client.PlayerObject.GetComponent<PlayerController>();
+        var team = PlayerTeam.Of(clientId);
+        if (player == null || !player.IsSpawned || team < 0) return;
+        foreach (var receiver in manager.ConnectedClientsList)
+            if (PlayerTeam.Of(receiver.ClientId) == team)
+                player.SoundRpc(cue, target.transform.position, team, player.RpcTarget.Single(receiver.ClientId, RpcTargetUse.Temp));
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void SoundRpc(SfxCue cue, Vector3 position, int team, RpcParams p = default) =>
+        SoundPlayed?.Invoke(cue, position, team);
 
     /// 성공 결과를 반영한 서버만 호출한다. 피드백은 행동한 플레이어에게만 전달한다.
     public static void ReportSuccessServer(ulong clientId, Component target)
@@ -400,6 +423,8 @@ public class PlayerController : NetworkBehaviour
         if (CompletionGauge.TryStopLocalClient()) return;
 
         current = Nearest();
+        if (current == null && phase != null && phase.Started && !phase.Finished && phase.Current != Phase.Transition)
+            SoundPlayed?.Invoke(SfxCue.NotAllowed, transform.position, -1);
         if (current != null) Latest = current;
         current?.BeginInteractionClient();
     }

@@ -10,9 +10,16 @@ using UnityEngine;
 public static class PlayerTeleport
 {
     /// 서버에서만 호출한다. 회전과 스케일은 유지한다.
-    public static void ToServer(GameObject player, Vector3 destination)
+    public static void ToServer(GameObject player, Vector3 destination, bool notify = true)
     {
         if (player == null) return;
+
+        var networkObject = player.GetComponent<NetworkObject>();
+        if (networkObject != null && networkObject.IsSpawned && !networkObject.NetworkManager.IsServer) return;
+
+        if (notify && player.transform.position != destination)
+            player.GetComponent<PlayerTeam>()?.NotifyTeleportServer(
+                player.transform.position, destination, player.transform.rotation);
 
         var controller = player.GetComponent<CharacterController>();
         if (controller != null) controller.enabled = false;

@@ -3,12 +3,10 @@ using UnityEngine;
 
 /// 표로 묶이지 않는 단일 수치 전부. 시트 한 장에 `key · value · note` 세 열이다.
 ///
-/// **`key`는 이 애셋의 public 필드 이름 그대로다.** 예전에는 `BalanceData`의 필드 이름을
-/// 가리켰고 값은 행 목록으로만 들고 있었는데, `BalanceData`를 없애면서 값과 스키마가
-/// 여기 한 곳으로 합쳐졌다. 엑셀의 `key` 열은 그대로라 시트는 손댈 필요가 없다.
+/// **`key`는 이 애셋의 public 필드 이름이자 `BalanceData`의 필드 이름이다.** `DataManager`가
+/// 이 이름으로 스냅샷에 옮기고, 짝이 없는 이름은 로드를 막는다.
 ///
-/// **코드에는 기본값을 두지 않는다.** 수치를 고칠 곳은 엑셀 하나뿐이어야 한다 — 코드에
-/// 폴백을 적어 두면 같은 숫자가 두 곳에 살고, 엑셀만 고친 사람이 옛 값을 보게 된다.
+/// **코드에는 기본값을 두지 않는다.** 수치를 고칠 곳은 엑셀 하나뿐이어야 한다.
 /// 임포트하지 않은 키는 0으로 남고 `BalanceValidation`이 그것을 잡는다.
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/공통 수치", fileName = nameof(CommonDataTable))]
 public sealed class CommonDataTable : DataTableAsset
@@ -140,11 +138,13 @@ public sealed class CommonDataTable : DataTableAsset
     /// 시트에 있는 키를 읽어 같은 이름의 필드에 넣는다. 빠진 키는 0으로 남는다.
     public override void ReadSheet(int index, SheetTable sheet)
     {
+        var seen = new HashSet<string>();
         for (var i = 0; i < sheet.Count; i++)
         {
             var r = sheet[i];
             var key = r.Text("key");
             if (key.Length == 0) continue;
+            if (!seen.Add(key)) sheet.Errors.Add($"[{sheet.Name}] {r.Line}행 'key' 칸: '{key}'이(가) 위에서 이미 나왔다.");
 
             if (!Assign(this, key, r.Double("value")))
                 sheet.Errors.Add($"[{sheet.Name}] {r.Line}행 'key' 칸: '{key}'은(는) 단일 수치 필드가 아니다.");

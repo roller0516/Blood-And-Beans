@@ -65,7 +65,7 @@ public class EffectManager : MonoBehaviour
     readonly Dictionary<EffectId, Vector3> baseScales = new();
 
     /// 지금 불러오는 중인 연출. 같은 연출을 여러 참가자가 동시에 필요로 해도 한 번만 불러온다.
-    readonly Dictionary<EffectId, AsyncLazy> loading = new();
+    readonly Dictionary<EffectId, UniTask> loading = new();
 
     /// 이번 매치에서 새로 불러온(공통이 아닌) 연출. 매치가 끝나면 이 몫만 놓는다 —
     /// 공통 연출은 앱이 사는 동안 계속 쓰이므로 매치가 바뀌어도 놓지 않는다.
@@ -202,16 +202,17 @@ public class EffectManager : MonoBehaviour
     UniTask EnsureLoadedAsync(EffectId id, System.Threading.CancellationToken ct)
     {
         if (pools.ContainsKey(id)) return UniTask.CompletedTask;
-        if (loading.TryGetValue(id, out var inFlight)) return inFlight.Task.AttachExternalCancellation(ct);
+        if (loading.TryGetValue(id, out var inFlight)) return inFlight;
 
-        // UniTask 자체는 동시에 여러 번 await할 수 없다. 공유 로드는 다중 대기를
-        // 지원하는 AsyncLazy로 감싸고, 시작 전에 등록해 동기 완료도 표에서 지워지게 한다.
-        var task = new AsyncLazy(() => LoadAndPoolAsync(id, this.GetCancellationTokenOnDestroy()));
-        loading[id] = task;
-        return task.Task.AttachExternalCancellation(ct);
+        // 합류자가 같은 로드를 함께 기다린다. UniTask는 대기자를 하나만 받아(Preserve도 대기 중엔 못 막는다)
+        // 두 번째 대기가 예외를 던지므로, 대기자를 여럿 받는 완료 소스를 나눠 준다.
+        var done = new UniTaskCompletionSource();
+        loading[id] = done.Task;
+        LoadAndPoolAsync(id, ct, done).Forget();
+        return done.Task;
     }
 
-    async UniTask LoadAndPoolAsync(EffectId id, System.Threading.CancellationToken ct)
+    async UniTaskVoid LoadAndPoolAsync(EffectId id, System.Threading.CancellationToken ct, UniTaskCompletionSource done)
     {
         try
         {
@@ -262,6 +263,7 @@ public class EffectManager : MonoBehaviour
         finally
         {
             loading.Remove(id);
+            done.TrySetResult();
         }
     }
 

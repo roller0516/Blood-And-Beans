@@ -25,7 +25,7 @@ public class Counter : NetworkBehaviour, IInteractable, IItemHolder
         var carry = PlayerCarry.Of(id);
         if (carry == null || carry.Reserved || !carry.Held.IsProduct) return;
         if (!Station.WithinReach(surface, transform, carry.transform.position, reach)) return;
-        if (cafe.Queue != null && cafe.Queue.TryServeServer(carry.Held))
+        if (cafe.Queue != null && cafe.Queue.TryServeServer(carry.Held, id))
         {
             carry.SetServer(HeldItem.Dish(carry.Held.DishIsPlate, true));
             PlayerController.ReportSuccessServer(id, this);

@@ -37,11 +37,12 @@ public class SessionGroup : DevConsoleGroup
             : $"{(state.IsServer ? manager.ConnectedClients.Count : 1)}명 접속";
     }
 
-    static void StartHost() { var n = NetworkManager.Singleton; if (n != null) n.StartHost(); }
+    // 접속 승인이 데이터 해시를 보므로 로비를 거치지 않아도 페이로드를 싣는다.
+    static void StartHost() { var n = NetworkManager.Singleton; if (n != null && MatchSeating.PrepareDirectStart(n)) n.StartHost(); }
 
-    static void StartClient() { var n = NetworkManager.Singleton; if (n != null) n.StartClient(); }
+    static void StartClient() { var n = NetworkManager.Singleton; if (n != null && MatchSeating.PrepareDirectStart(n)) n.StartClient(); }
 
-    static void StartServer() { var n = NetworkManager.Singleton; if (n != null) n.StartServer(); }
+    static void StartServer() { var n = NetworkManager.Singleton; if (n != null && MatchSeating.PrepareDirectStart(n)) n.StartServer(); }
 
     static void Shutdown() { var n = NetworkManager.Singleton; if (n != null) n.Shutdown(); }
 }

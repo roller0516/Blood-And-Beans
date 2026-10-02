@@ -126,10 +126,34 @@ public class MatchSeating
     /// 형식을 쓰게 하려고 여기 둔다.
     public static byte[] EncodeTeamRequest(int team, int character = CharacterCatalog.NoPick)
     {
-        var payload = new byte[sizeof(int) * 2];
+        var payload = new byte[sizeof(int) * 3];
         BitConverter.GetBytes(team).CopyTo(payload, 0);
         BitConverter.GetBytes(character).CopyTo(payload, sizeof(int));
+        BitConverter.GetBytes(DataManager.ContentHash).CopyTo(payload, sizeof(int) * 2);
         return payload;
+    }
+
+    /// 호스트와 표가 다르면 코인 예고와 서버 정산이 어긋난다 (남은 작업 설계 1단계).
+    const string DataMismatchMessage = "데이터 표가 호스트와 다르다. 같은 빌드로 다시 접속한다.";
+    const string DataNotLoadedMessage = "호스트의 데이터 표가 실리지 않았다. 호스트 콘솔의 DataManager 오류를 확인한다.";
+
+    static bool SameData(byte[] payload) =>
+        payload != null && payload.Length >= sizeof(int) * 3 &&
+        BitConverter.ToInt32(payload, sizeof(int) * 2) == DataManager.ContentHash;
+
+    /// 로비를 거치지 않는 개발용 시작(자동 시작·개발 콘솔)이 부른다. 표가 실리지 않았으면
+    /// 시작하지 않고, 페이로드가 비어 있으면 데이터 해시를 실어 둔다. 시작해도 되면 true.
+    public static bool PrepareDirectStart(NetworkManager manager)
+    {
+        if (!Balance.Loaded)
+        {
+            CDebug.LogError("데이터 표가 실리지 않아 접속을 시작하지 않는다. 콘솔의 DataManager 오류를 확인한다.");
+            return false;
+        }
+
+        if (manager.NetworkConfig.ConnectionData == null || manager.NetworkConfig.ConnectionData.Length == 0)
+            manager.NetworkConfig.ConnectionData = EncodeTeamRequest(TeamSeats.NoPreference);
+        return true;
     }
 
     public static int DecodeTeamRequest(byte[] payload) =>
@@ -142,6 +166,16 @@ public class MatchSeating
     void ApproveConnectionServer(NetworkManager.ConnectionApprovalRequest request,
                                  NetworkManager.ConnectionApprovalResponse response)
     {
+        // 호스트 자신은 서버와 같은 표다. NGO는 호스트 거절을 무시하고 플레이어 생성만 막으므로 검사하지 않는다.
+        var isHost = request.ClientNetworkId == NetworkManager.ServerClientId;
+        if (!isHost && (DataManager.ContentHash == 0 || !SameData(request.Payload)))
+        {
+            response.Approved = false;
+            response.CreatePlayerObject = false;
+            response.Reason = DataManager.ContentHash == 0 ? DataNotLoadedMessage : DataMismatchMessage;
+            return;
+        }
+
         var requested = forcedSeat >= 0 ? forcedSeat : DecodeTeamRequest(request.Payload);
         var seat = seats.Take(requested);
 

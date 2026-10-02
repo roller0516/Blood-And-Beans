@@ -32,4 +32,8 @@ public enum EffectId
     /// 상호작용 성공 — 노란 오각별. 서버가 아니라 소유자 자신이 결정한다
     /// (`PlayerController.InteractionSucceeded`, `SuccessRpc`는 소유자에게만 온다).
     InteractionSuccess = 7,
+
+    /// 귀환·페이즈 이동의 출발과 도착 연출.
+    TeleportDeparture = 8,
+    TeleportArrival = 9,
 }

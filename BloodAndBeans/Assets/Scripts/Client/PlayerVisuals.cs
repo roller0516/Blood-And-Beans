@@ -21,6 +21,7 @@ using UnityEngine;
 [RequireComponent(typeof(PlayerAbilities))]
 [RequireComponent(typeof(PlayerController))]
 [RequireComponent(typeof(DashHarass))]
+[RequireComponent(typeof(PlayerInventory))]
 public class PlayerVisuals : NetworkBehaviour
 {
     [Header("모델")]
@@ -29,10 +30,15 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField] CharacterVisualConfig characterVisuals;
     [SerializeField] Transform modelRoot;
 
+    [Header("전송 잔상")]
+    [SerializeField] Material teleportAfterimageMaterial;
+    [SerializeField, Min(0.01f)] float teleportAfterimageSeconds = 1.35f;
+    [SerializeField, Min(0f)] float teleportAfterimageRise = 0.65f;
+
     [Header("대시/피격 피드백")]
     /// 색·시간·흔들림 수치는 전 플레이어가 공유하는 설정이다 (`PlayerFeedbackConfig`).
     [SerializeField] PlayerFeedbackConfig feedback;
-    /// 돌진하는 동안만 켜지는 잔상. 비워 두면 나머지 연출만 돈다.
+    /// 일반 이동 경로에 남기는 잔상. 멈추면 TrailRenderer의 수명에 따라 사라진다.
     [SerializeField] TrailRenderer trail;
     /// 흔들림을 쏘는 곳. 가상 카메라의 `CinemachineImpulseListener`가 받는다.
     [SerializeField] CinemachineImpulseSource impulse;
@@ -57,10 +63,18 @@ public class PlayerVisuals : NetworkBehaviour
     PlayerAbilities abilities;
     PlayerController interaction;
     DashHarass dash;
+    PlayerInventory inventory;
 
     CharacterModelSpawner modelSpawner;
     ItemSlotPresenter itemPresenter;
     DashPresentation dashPresentation;
+
+    /// 손 앵커를 붙여 둔 모델. 모델을 갈기 전에 비운다 — 소켓에 붙은 채 모델이 파괴되면 앵커도 같이 사라진다.
+    CharacterModel handModel;
+    int spawnRequest;
+    Transform[] anchorHomes;
+    Vector3[] anchorHomePositions;
+    Quaternion[] anchorHomeRotations;
 
     Tween flash;
     ParticleSystem attached;
@@ -78,12 +92,26 @@ public class PlayerVisuals : NetworkBehaviour
         abilities = GetComponent<PlayerAbilities>();
         interaction = GetComponent<PlayerController>();
         dash = GetComponent<DashHarass>();
+        inventory = GetComponent<PlayerInventory>();
 
         modelSpawner = new CharacterModelSpawner(characterVisuals);
         itemPresenter = new ItemSlotPresenter(itemVisuals, itemAnchors, itemHighlightScale, itemHighlightOffset);
         publicProps = new MaterialPropertyBlock();
 
-        dashPresentation = new DashPresentation(trail, this, impulse, GetComponent<NetworkObject>(),
+        var anchorCount = itemAnchors?.Length ?? 0;
+        anchorHomes = new Transform[anchorCount];
+        anchorHomePositions = new Vector3[anchorCount];
+        anchorHomeRotations = new Quaternion[anchorCount];
+        for (var i = 0; i < anchorCount; i++)
+        {
+            if (itemAnchors[i] == null) continue;
+            anchorHomes[i] = itemAnchors[i].parent;
+            anchorHomePositions[i] = itemAnchors[i].localPosition;
+            anchorHomeRotations[i] = itemAnchors[i].localRotation;
+        }
+
+        if (trail != null) trail.emitting = false;
+        dashPresentation = new DashPresentation(this, impulse, GetComponent<NetworkObject>(),
             feedback != null ? feedback.hitFlash : Color.white,
             feedback != null ? feedback.spillFlash : new Color(1f, 0.65f, 0.15f),
             feedback != null ? feedback.flashSeconds : 0.16f,
@@ -99,19 +127,29 @@ public class PlayerVisuals : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         playerTeam.TeamChanged += OnTeamChanged;
+        playerTeam.Teleported += OnTeleported;
+        playerTeam.TeleportStarted += OnTeleportStarted;
         character.CharacterChanged += SetCharacter;
         abilities.EffectPlayed += OnEffect;
         abilities.AttachedChanged += OnAttached;
         interaction.InteractionSucceeded += OnInteractionSucceeded;
+        interaction.SoundPlayed += OnSound;
+        dash.DashStarted += OnDashSound;
         dash.DashStarted += dashPresentation.OnDashStarted;
         dash.HitLanded += dashPresentation.OnHitLanded;
         dash.TookHit += dashPresentation.OnTookHit;
         carry.ContentsChanged += RefreshHand;
         carry.ContentsChanged += RefreshPublicMarker;
+        inventory.LoadChanged += RefreshBag;
 
         SetCharacter(character.Index);
         OnTeamChanged(playerTeam.Team);
         RefreshHand();
+        if (trail != null)
+        {
+            trail.Clear();
+            trail.emitting = true;
+        }
     }
 
     public override void OnNetworkDespawn()
@@ -120,11 +158,15 @@ public class PlayerVisuals : NetworkBehaviour
         flash = null;
 
         if (playerTeam != null) playerTeam.TeamChanged -= OnTeamChanged;
+        if (playerTeam != null) playerTeam.Teleported -= OnTeleported;
+        if (playerTeam != null) playerTeam.TeleportStarted -= OnTeleportStarted;
         if (character != null) character.CharacterChanged -= SetCharacter;
         if (abilities != null) { abilities.EffectPlayed -= OnEffect; abilities.AttachedChanged -= OnAttached; }
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
+        if (interaction != null) interaction.SoundPlayed -= OnSound;
         if (dash != null)
         {
+            dash.DashStarted -= OnDashSound;
             dash.DashStarted -= dashPresentation.OnDashStarted;
             dash.HitLanded -= dashPresentation.OnHitLanded;
             dash.TookHit -= dashPresentation.OnTookHit;
@@ -134,9 +176,16 @@ public class PlayerVisuals : NetworkBehaviour
             carry.ContentsChanged -= RefreshHand;
             carry.ContentsChanged -= RefreshPublicMarker;
         }
+        if (inventory != null) inventory.LoadChanged -= RefreshBag;
 
         dashPresentation.Cancel();
+        if (trail != null)
+        {
+            trail.emitting = false;
+            trail.Clear();
+        }
         StopAttached();
+        DetachHand();
         modelSpawner.Clear();
         itemPresenter.Clear();
     }
@@ -163,6 +212,7 @@ public class PlayerVisuals : NetworkBehaviour
 
         if (!CharacterCatalog.IsValid(index))
         {
+            DetachHand();
             modelSpawner.Clear();
             Apply(playerTeam.Team);
             return;
@@ -177,7 +227,16 @@ public class PlayerVisuals : NetworkBehaviour
     {
         var ct = this.GetCancellationTokenOnDestroy();
         EffectManager.NoteCharacterAsync(id, ct).Forget();
+        DetachHand();
+        var request = spawnRequest;
         await modelSpawner.SpawnAsync(id, modelRoot, gameObject.layer, ct);
+        // 그사이 다른 교체가 왔으면 지금 모델은 곧 파괴된다. 앵커를 붙이지 않는다.
+        if (request == spawnRequest)
+        {
+            handModel = Model;
+            PlaceHand();
+            RefreshBag();
+        }
         Apply(playerTeam.Team);
     }
 
@@ -199,9 +258,40 @@ public class PlayerVisuals : NetworkBehaviour
 
     void OnEffect(EffectId id, Vector3 position, float scale) => EffectManager.Play(id, position, scale);
 
+    void OnTeleportStarted(Vector3 origin)
+    {
+        dashPresentation.Cancel();
+        if (trail != null)
+        {
+            trail.emitting = false;
+            trail.Clear();
+        }
+        EffectManager.Play(EffectId.TeleportDeparture, origin);
+    }
+
+    void OnTeleported(Vector3 origin, Vector3 destination, Quaternion rotation)
+    {
+        // 전송 전의 이동 궤적을 지우고 도착 후 다시 그린다.
+        dashPresentation.Cancel();
+        if (trail != null)
+        {
+            trail.Clear();
+            trail.emitting = true;
+        }
+        EffectManager.Play(EffectId.TeleportArrival, destination);
+        if (Model != null)
+            TeleportAfterimage.Play(Model.transform, transform, origin, rotation,
+                teleportAfterimageMaterial, teleportAfterimageSeconds, teleportAfterimageRise);
+    }
+
     /// 상호작용 성공 — 노란 오각별. `SuccessRpc`는 소유자에게만 오므로 이 핸들러는 다른
     /// 사람 화면에서는 그냥 불리지 않는다.
     void OnInteractionSucceeded(Vector3 position) => EffectManager.Play(EffectId.InteractionSuccess, position);
+
+    void OnSound(SfxCue cue, Vector3 position, int team) =>
+        SoundManager.Instance?.PlayCue(cue, position, team);
+
+    void OnDashSound(float _) => OnSound(SfxCue.Dash, transform.position, playerTeam.Team);
 
     /// 지속 효과가 캐릭터에 붙는다 (활공 등). **어떤 능력인지는 모른다** — 라우터가
     /// 연출 id와 남은 시간만 준다.
@@ -225,7 +315,42 @@ public class PlayerVisuals : NetworkBehaviour
     void RefreshHand()
     {
         if (carry == null) return;
+        PlaceHand();
         itemPresenter.Bind(carry);
+    }
+
+    void DetachHand()
+    {
+        spawnRequest++;
+        handModel = null;
+        PlaceHand();
+    }
+
+    /// 손 앵커를 든 것에 맞는 모델 소켓으로 옮기고 들기 자세를 맞춘다. 모델이나 소켓이 없으면 플레이어의 원래 자리로 돌린다.
+    void PlaceHand()
+    {
+        if (handModel != null)
+            handModel.PlayHold(carry != null ? carry.SlotAt(0) : CarryView.Nothing);
+        if (itemAnchors == null) return;
+
+        for (var i = 0; i < itemAnchors.Length; i++)
+        {
+            var anchor = itemAnchors[i];
+            if (anchor == null) continue;
+
+            var view = carry != null && i < carry.SlotCount ? carry.SlotAt(i) : CarryView.Nothing;
+            var socket = handModel != null ? handModel.HandSocketFor(view) : null;
+            if (socket != null)
+            {
+                anchor.SetParent(socket, false);
+                anchor.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+            }
+            else
+            {
+                anchor.SetParent(anchorHomes[i], false);
+                anchor.SetLocalPositionAndRotation(anchorHomePositions[i], anchorHomeRotations[i]);
+            }
+        }
     }
 
     /// 손에 든 것도 팀 밖에서는 보이지 않아야 한다 (기획서 3.1). 손 앵커만 팀 레이어로
@@ -235,6 +360,12 @@ public class PlayerVisuals : NetworkBehaviour
         if (itemAnchors == null) return;
         foreach (var anchor in itemAnchors)
             if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
+    }
+
+    /// 묻으면 등의 가방이 꺼진다. 전원에게 보인다 — 적이 묻은 곳을 찾는 단서다 (기획서 6.7).
+    void RefreshBag()
+    {
+        if (Model != null) Model.ShowBag(inventory.HasBag);
     }
 
     // --- 공개 소지 표시 (예전 PublicCarryDisplay) ---

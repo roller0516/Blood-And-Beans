@@ -69,6 +69,9 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 사용자 결정이다. 개수·구역 배분·등급 확률은 6.3.1을 따른다 (`ForestRings`).
     [SerializeField] ItemBox boxPrefab;
 
+    /// 「도깨비불」의 가짜 상자도 이것을 쓴다 — 그 맵의 진짜 상자와 모양이 같아야 한다.
+    public ItemBox BoxPrefab => boxPrefab;
+
     /// 상자끼리, 그리고 팀 스폰 자리와 벌리는 최소 거리. 붙어 있으면 한 번 개척으로 둘을
     /// 다 먹고, 스폰 위에 서면 밤이 시작하자마자 주워진다.
     [SerializeField] float boxSeparation = 7f;

@@ -43,6 +43,7 @@ public static class CafeLayoutSetup
             var lamp=Box(decor,"EntryLamp",new Vector3(0,1.24f,-7.75f),new Vector3(21.7f,.09f,.32f),lampMaterial);
             var alarm=lamp.AddComponent<AudioSource>();
             alarm.playOnAwake=false; alarm.loop=true; alarm.spatialBlend=1f;
+            alarm.outputAudioMixerGroup=SoundSetup.SfxGroup();
             alarm.rolloffMode=AudioRolloffMode.Linear; alarm.maxDistance=120f;
             // ponytail: 위급 알람 클립은 아직 없다. 에디터에서 꽂으면 그때부터 운다.
             var light=decor.gameObject.AddComponent<CafeEntranceLight>();

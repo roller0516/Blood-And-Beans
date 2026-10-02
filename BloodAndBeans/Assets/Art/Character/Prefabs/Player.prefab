@@ -27,7 +27,7 @@ Transform:
   m_GameObject: {fileID: 293512304723403924}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0.8, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -42,8 +42,8 @@ TrailRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 293512304723403924}
   m_Enabled: 1
-  m_CastShadows: 1
-  m_ReceiveShadows: 1
+  m_CastShadows: 0
+  m_ReceiveShadows: 0
   m_DynamicOccludee: 1
   m_StaticShadowCaster: 0
   m_MotionVectors: 0
@@ -59,7 +59,7 @@ TrailRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 869737dc239462b41ac2122315ab0b59, type: 2}
+  - {fileID: 2100000, guid: 406f4d958ff698b48aaaf8bc10492a26, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -82,17 +82,26 @@ TrailRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Time: 0.22
+  m_Time: 0.32
   m_PreviewTimeScale: 1
   m_Parameters:
     serializedVersion: 3
-    widthMultiplier: 1
+    widthMultiplier: 0.75
     widthCurve:
       serializedVersion: 2
       m_Curve:
       - serializedVersion: 3
         time: 0
-        value: 0.55
+        value: 0.8
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 0
+        weightedMode: 0
+        inWeight: 0
+        outWeight: 0
+      - serializedVersion: 3
+        time: 0.18
+        value: 1
         inSlope: 0
         outSlope: 0
         tangentMode: 0
@@ -113,8 +122,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 1, g: 1, b: 1, a: 1}
-      key1: {r: 1, g: 1, b: 1, a: 1}
+      key0: {r: 1, g: 1, b: 1, a: 0.85}
+      key1: {r: 1, g: 1, b: 1, a: 0.6}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}
@@ -130,8 +139,8 @@ TrailRenderer:
       ctime6: 0
       ctime7: 0
       atime0: 0
-      atime1: 65535
-      atime2: 0
+      atime1: 29491
+      atime2: 65535
       atime3: 0
       atime4: 0
       atime5: 0
@@ -140,15 +149,15 @@ TrailRenderer:
       m_Mode: 0
       m_ColorSpace: -1
       m_NumColorKeys: 2
-      m_NumAlphaKeys: 2
-    numCornerVertices: 0
-    numCapVertices: 0
+      m_NumAlphaKeys: 3
+    numCornerVertices: 3
+    numCapVertices: 3
     alignment: 0
     textureMode: 0
     textureScale: {x: 1, y: 1}
     shadowBias: 0.5
     generateLightingData: 0
-  m_MinVertexDistance: 0.05
+  m_MinVertexDistance: 0.06
   m_Autodestruct: 0
   m_Emitting: 0
   m_ApplyActiveColorSpace: 1
@@ -590,7 +599,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 5
+  speed: 20
   turnDegreesPerSecond: 720
 --- !u!114 &6026915820970784790
 MonoBehaviour:
@@ -644,6 +653,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerTeam
   ShowTopMostFoldoutHeaderGroup: 1
+  teleportWindupSeconds: 1.35
 --- !u!114 &4876331868302406599
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -711,7 +721,7 @@ Rigidbody:
   m_ImplicitCom: 1
   m_ImplicitTensor: 1
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 64
   m_CollisionDetection: 0
@@ -814,7 +824,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8382456007198119544}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: f6c0be61502bb534f922ebb746851216, type: 3}
   m_Name: 
@@ -837,8 +847,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Game::PlayerAbilities
   ShowTopMostFoldoutHeaderGroup: 1
-  decoyBoxPrefab: {fileID: 2242796622637705624, guid: 36718396aeaa0fb4cb84c7d174d860bf, type: 3}
-  decoyBagPrefab: {fileID: 7637260236126393840, guid: 98b9ec48a6968974396952141a318dad, type: 3}
 --- !u!114 &965033098571953602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -855,6 +863,9 @@ MonoBehaviour:
   tintStrength: 1
   characterVisuals: {fileID: 11400000, guid: 5dd83ea862961f441831ecd30da301ec, type: 2}
   modelRoot: {fileID: 7051559851510125875}
+  teleportAfterimageMaterial: {fileID: 2100000, guid: 221354923122aff4a9c0f4f20412a3c6, type: 2}
+  teleportAfterimageSeconds: 1.35
+  teleportAfterimageRise: 0.65
   feedback: {fileID: 11400000, guid: a93af15ed95962f44b31fe1ef8695725, type: 2}
   trail: {fileID: 2996048368405250492}
   impulse: {fileID: 4624483277839359458}

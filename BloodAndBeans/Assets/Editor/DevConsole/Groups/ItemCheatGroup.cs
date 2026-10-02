@@ -26,6 +26,7 @@ public class ItemCheatGroup : DevConsoleGroup
     Label note;
     Button pick;
     IntegerField amount;
+    FloatField weight;
 
     /// 사람·팀마다 한 줄. 명단이 바뀔 때만 다시 만든다 — `Refresh`는 10Hz라 매번 다시
     /// 만들면 버튼을 누르는 순간 그 버튼이 사라지고 목록도 함께 닫힌다.
@@ -33,7 +34,7 @@ public class ItemCheatGroup : DevConsoleGroup
 
     readonly List<ulong> shownClients = new();
     readonly List<Label> bagValues = new();
-    readonly List<Button> bagAdds = new(), bagClears = new();
+    readonly List<Button> bagAdds = new(), bagWeights = new(), bagClears = new();
 
     int shownTeams = -1;
     readonly List<Label> stockValues = new();
@@ -52,6 +53,7 @@ public class ItemCheatGroup : DevConsoleGroup
         pick = Btn(pickRow, "-", OpenItemList);
 
         amount = FieldRow(group, "수량", 5);
+        weight = FloatRow(group, "무게(kg)", 1f);
 
         bags = Section(group, "가방");
         stocks = Section(group, "팀 재고");
@@ -117,6 +119,7 @@ public class ItemCheatGroup : DevConsoleGroup
         shownClients.Clear();
         bagValues.Clear();
         bagAdds.Clear();
+        bagWeights.Clear();
         bagClears.Clear();
         bags.Clear();
 
@@ -129,6 +132,7 @@ public class ItemCheatGroup : DevConsoleGroup
 
             var buttons = ButtonRow(bags);
             bagAdds.Add(Btn(buttons, "넣기", () => AddToBag(id), "btn--primary"));
+            bagWeights.Add(Btn(buttons, "무게+", () => InventoryOf(id)?.AddWeightCheatServer(weight.value)));
             bagClears.Add(Btn(buttons, "비우기", () => ClearBag(id), "btn--danger"));
         }
     }
@@ -146,6 +150,7 @@ public class ItemCheatGroup : DevConsoleGroup
                   + (inv.Overloaded ? " · 과적" : string.Empty);
 
             bagAdds[i].SetEnabled(usable);
+            bagWeights[i].SetEnabled(usable);
             bagClears[i].SetEnabled(usable);
         }
     }
@@ -276,6 +281,7 @@ public class ItemCheatGroup : DevConsoleGroup
         shownClients.Clear();
         bagValues.Clear();
         bagAdds.Clear();
+        bagWeights.Clear();
         bagClears.Clear();
         bags?.Clear();
 

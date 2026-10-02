@@ -7,6 +7,39 @@ using UnityEngine;
 public class PlayerTeam : NetworkBehaviour
 {
     readonly NetworkVariable<int> team = new();
+    [SerializeField, Min(0f)] float teleportWindupSeconds = 1.35f;
+    readonly NetworkVariable<bool> teleporting = new();
+    Vector3 teleportDestination;
+    float teleportAt;
+    public bool IsTeleporting => teleporting.Value;
+    public event System.Action<Vector3> TeleportStarted;
+
+    public void BeginTeleportServer(Vector3 destination)
+    {
+        if (!IsServer || !IsSpawned || Team < 0) return;
+        if (teleporting.Value)
+        {
+            teleportDestination = destination;
+            return;
+        }
+        if (transform.position == destination) return;
+        teleportDestination = destination;
+        teleportAt = Time.time + teleportWindupSeconds;
+        teleporting.Value = true;
+        foreach (var client in NetworkManager.ConnectedClientsList)
+            if (Of(client.ClientId) == Team)
+                TeleportStartRpc(transform.position, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void TeleportStartRpc(Vector3 origin, RpcParams p = default) => TeleportStarted?.Invoke(origin);
+
+    void Update()
+    {
+        if (!IsServer || !IsSpawned || !teleporting.Value || Time.time < teleportAt) return;
+        PlayerTeleport.ToServer(gameObject, teleportDestination);
+        teleporting.Value = false;
+    }
 
     public int Team => team.Value;
 
@@ -17,6 +50,23 @@ public class PlayerTeam : NetworkBehaviour
     /// 자리 배정은 서버가 스폰 뒤에 하므로 표현 쪽은 스폰이 아니라 값의 변화를 따라가야 한다
     /// (Customer.RaceChanged와 같은 이유).
     public event System.Action<int> TeamChanged;
+
+    /// 위치 복제와 도착 순서가 달라도 연출은 서버가 보낸 출발점에 남긴다.
+    public event System.Action<Vector3, Vector3, Quaternion> Teleported;
+
+    public void NotifyTeleportServer(Vector3 origin, Vector3 destination, Quaternion rotation)
+    {
+        if (!IsServer || !IsSpawned || Team < 0) return;
+        // 카페 도착 위치는 팀 정보다 (기획서 3.4). 다른 팀에는 보내지 않는다.
+        foreach (var client in NetworkManager.ConnectedClientsList)
+            if (Of(client.ClientId) == Team)
+                TeleportCueRpc(origin, destination, rotation,
+                    RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void TeleportCueRpc(Vector3 origin, Vector3 destination, Quaternion rotation, RpcParams p = default) =>
+        Teleported?.Invoke(origin, destination, rotation);
 
     public override void OnNetworkSpawn()
     {
@@ -77,7 +127,7 @@ public class PlayerTeam : NetworkBehaviour
             subscribedPhase.PhaseEntered += OnPhaseEntered;
         }
 
-        MoveToPhaseStartServer(director.Phase.Current);
+        MoveToPhaseStartServer(director.Phase.Current, false);
     }
 
     /// 밤 진입만 여기서 처리한다. 밤이 *끝날* 때의 카페 복귀는 `ReturnZone`이 부른다 —
@@ -91,7 +141,7 @@ public class PlayerTeam : NetworkBehaviour
 
     /// 밤은 숲 가장자리, 그 외에는 자기 팀 카페. 카페는 런타임에 스폰되므로 씬에
     /// 직렬화된 시작 위치를 쓸 수 없다.
-    public void MoveToPhaseStartServer(Phase p)
+    public void MoveToPhaseStartServer(Phase p, bool animate = true)
     {
         var director = MatchDirector.Instance;
         if (!IsServer || team.Value < 0 || director == null) return;
@@ -100,7 +150,13 @@ public class PlayerTeam : NetworkBehaviour
         var destination = p == Phase.Night
             ? director.NightSpawnPosition(team.Value, slot)
             : director.CafeSpawnPosition(team.Value, slot);
-        if (destination.HasValue) PlayerTeleport.ToServer(gameObject, destination.Value);
+        if (!destination.HasValue) return;
+        if (animate) BeginTeleportServer(destination.Value);
+        else
+        {
+            teleporting.Value = false;
+            PlayerTeleport.ToServer(gameObject, destination.Value, false);
+        }
     }
 
     /// 팀 안에서 이 플레이어의 자리 번호. 좌석표는 팀만 돌려주므로 같은 팀에서 나보다
@@ -115,6 +171,7 @@ public class PlayerTeam : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (IsServer) teleporting.Value = false;
         team.OnValueChanged -= OnTeamValueChanged;
         if (subscribedPhase != null)
         {
