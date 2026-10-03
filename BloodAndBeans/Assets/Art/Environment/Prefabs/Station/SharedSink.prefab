@@ -32,6 +32,37 @@ Transform:
   - {fileID: 2317624828214600397}
   m_Father: {fileID: 1931785678125367735}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4478502701944872711
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7171631660335037519}
+  m_Layer: 0
+  m_Name: VfxOutlet
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7171631660335037519
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4478502701944872711}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0000009536743, y: 1.075, z: -0.07999992}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1931785678125367735}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5475785766583488507
 GameObject:
   m_ObjectHideFlags: 0
@@ -43,6 +74,7 @@ GameObject:
   - component: {fileID: 1931785678125367735}
   - component: {fileID: 8264546831142629044}
   - component: {fileID: 5899123683801367049}
+  - component: {fileID: 3066751834392386869}
   m_Layer: 0
   m_Name: SharedSink
   m_TagString: Untagged
@@ -65,6 +97,7 @@ Transform:
   m_Children:
   - {fileID: 702314990789412791}
   - {fileID: 3585855012887552695}
+  - {fileID: 7171631660335037519}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &8264546831142629044
@@ -104,6 +137,22 @@ MonoBehaviour:
   kind: 2
   reach: 2.5
   statusRenderer: {fileID: 5541196197467568484}
+--- !u!114 &3066751834392386869
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5475785766583488507}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19d7f1357bea38f4ca9bb7151e21192c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::FacilityVisuals
+  facility: {fileID: 5899123683801367049}
+  outlet: {fileID: 7171631660335037519}
+  workingEffect: 19
+  completedEffect: 20
 --- !u!1 &7391560107395363878
 GameObject:
   m_ObjectHideFlags: 0

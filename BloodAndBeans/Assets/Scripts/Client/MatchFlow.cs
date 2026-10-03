@@ -267,6 +267,12 @@ public sealed class MatchFlow : MonoBehaviour
             // 0.1초마다 옮기면 카메라가 도는 동안 끊겨 보인다 (기획서 6.4).
             hud.SetReturnMarker(presenter.Marker);
 
+            // 건네기 프롬프트도 두 사람의 머리를 따라가야 해서 매 프레임이다 (기획서 5.7.4).
+            hud.SetHandoff(presenter.Handoff);
+
+            // 제조 카드는 들고 있는 식기를 따라다닌다 (기획서 5.7.3).
+            hud.SetMakingCards(presenter.Cards);
+
             // 완성 게이지도 매 프레임이다. 침이 초당 1.4회 왕복해서 0.1초마다 옮기면
             // 노릴 수 없는 계단이 된다 (기획서 5.2).
             hud.SetCompletionGauge(default);
@@ -441,41 +447,26 @@ public sealed class MatchFlow : MonoBehaviour
         if (board != null)
             for (var t = 0; t < board.TeamCount; t++)
                 standings.Add(new UIDaySettlementScreen.StandingRow(
-                    DisplayNames.Team(t), board.RevenueOf(t),
-                    t == team && today.Valid ? today.Sales : 0, t == team));
+                    t == team ? "우리" : DisplayNames.Team(t), board.RevenueOf(t), t == team));
         standings.Sort((a, b) => b.Total.CompareTo(a.Total));
 
-        // 예보. 종족별 인원수와 인기 재료만 온다 (기획서 5.6.3).
-        var guests = new List<UIDaySettlementScreen.GuestCard>();
-        var counts = ledger != null ? ledger.RaceCounts : null;
-        if (counts != null)
-            // 0마리 종족은 내보내지 않는다. 예보 칸이 6개뿐이라 「x0」 카드가 자리를 차지하면
-            // 실제로 오는 구성이 밀려 안 보인다 (기획서 5.6은 등장 종족만 나열한다).
-            for (var r = 0; r < counts.Length; r++)
-                if (counts[r] > 0)
-                    guests.Add(new UIDaySettlementScreen.GuestCard(
-                        DisplayNames.Of((Race)r), counts[r]));
-
-        var popular = new List<UIDaySettlementScreen.PopularItem>();
+        // 예보. 종족별 인원수와 인기 재료만 온다 (기획서 5.6.3). 화면은 인원수를 구성비로만 그린다.
+        var popular = new List<Sprite>();
         var shown = ledger != null ? ledger.PopularShown : null;
         if (shown != null)
             foreach (var item in shown)
-                popular.Add(new UIDaySettlementScreen.PopularItem(
-                    DisplayNames.Of(item),
-                    Mathf.RoundToInt(SalePrice.PopularBonus * 100f)));
+                popular.Add(ResourceManager.Instance.IngredientSprite(item));
 
         settlement.Bind(
             day,
-            TradeLines(today),
             today.Valid ? today.Sales : 0,
             today.Valid ? today.RentOwed : Rent.Due(day),
             today.Valid ? today.RentPaid : 0,
-            today.Valid ? today.Debt : 0,
-            Rent.Due(day + 1),
-            standings, guests, popular,
-            GemRows(),
             today.Valid ? today.MissStreak : 0,
-            PenaltyStages);
+            standings,
+            GemRows(),
+            ledger != null ? ledger.RaceCounts : null,
+            popular);
     }
 
     /// 적용 중인 보석 (기획서 4.1 「자동 업그레이드」). 남은 턴은 다음 낮 기준이다 —
@@ -497,27 +488,6 @@ public sealed class MatchFlow : MonoBehaviour
         }
         return rows;
     }
-
-    /// 오늘의 거래 내역. 지금 복제되는 것은 합계뿐이라 한 줄이다 — 판매 잔 수와 판정
-    /// 내역은 서버에만 있고 아직 내려오지 않는다.
-    static List<UIDaySettlementScreen.TradeLine> TradeLines(TransitionLedger.Settlement s)
-    {
-        var lines = new List<UIDaySettlementScreen.TradeLine>();
-        if (!s.Valid) return lines;
-        lines.Add(new UIDaySettlementScreen.TradeLine(
-            "오늘 판매", $"+{s.Sales:N0}", UITheme.GoldLit));
-        return lines;
-    }
-
-    /// 기획서 3.3 표. 화면이 아니라 여기서 넘긴다 — 표의 내용은 규칙이지 표시가 아니다.
-    static readonly UIDaySettlementScreen.PenaltyStage[] PenaltyStages =
-    {
-        new("1회", "제작 속도 -10%", "시야 반경 -15%"),
-        new("2회 연속", "제작 -15% + 이동 속도 -10%",
-                        "시야 -25% + 박스 개봉 속도 -20%"),
-        new("3회 연속", "제작 -20% + 이동 속도 -20%",
-                        "시야 -35% + 개봉 -30% + 무게 감속 구간 한 단계 불리하게"),
-    };
 
     /// 판이 끝나면 최종 결산을 띄운다 (기획서 3.1: 마지막 낮이 끝나면 최종 결산, 1위 팀 승리).
     ///

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 /// 아이템 자리(`IItemHolder`)에 실제 3D 오브젝트를 세운다. 손에 든 원두가 원두로 보이고,
@@ -24,6 +25,18 @@ public class ItemDisplay : MonoBehaviour
     [SerializeField] float highlightScale = 1.4f;
     [SerializeField] Vector3 highlightOffset = new(0f, 0.1f, 0f);
 
+    [Header("개수 제한 없는 자리")]
+    [Tooltip("켜면 내용 수만큼 자리를 늘린다 (보관대, 기획서 5.4-13). 잔은 가로로 늘어서고 접시는 위로 쌓인다. "
+           + "좌표는 첫 앵커의 부모 기준이다.")]
+    [SerializeField] bool unlimited;
+    [SerializeField] Vector3 rowStart;
+    [SerializeField] Vector3 rowStep = new(0.5f, 0f, 0f);
+    [Tooltip("한 줄에 놓을 개수. 차면 wrapStep만큼 옮겨 다음 줄을 시작한다. 0이면 꺾지 않는다.")]
+    [SerializeField, Min(0)] int rowWrap;
+    [SerializeField] Vector3 wrapStep = new(0f, 0f, 0.5f);
+    [SerializeField] Vector3 stackStart;
+    [SerializeField] Vector3 stackStep = new(0f, 0.1f, 0f);
+
     /// 같은 오브젝트에 붙은 자리 주인. **인터페이스는 Inspector에서 이을 수 없어서**
     /// 여기서만 조회한다 (AGENTS.md 참조와 결합도의 예외). 주기 실행이 아니다.
     IItemHolder holder;
@@ -35,16 +48,22 @@ public class ItemDisplay : MonoBehaviour
 
     ItemSlotPresenter presenter;
 
+    /// 실제 칸 목록. `unlimited`면 직렬화된 `anchors` 뒤로 런타임에 늘어난다.
+    List<Transform> slots;
+
     void Awake()
     {
         holder = GetComponent<IItemHolder>();
         team = GetComponent<PlayerTeam>();
+        slots = new List<Transform>(anchors ?? System.Array.Empty<Transform>());
 
         if (holder == null)
             CDebug.LogError($"{name}: 같은 오브젝트에 IItemHolder가 없다. 이 표시는 아무것도 "
                          + "그릴 수 없다.", this);
         if (config == null)
             CDebug.LogError($"{name}: ItemVisualConfig가 비었다. 아이템이 보이지 않는다.", this);
+        if (unlimited && (slots.Count == 0 || slots[0] == null))
+            CDebug.LogError($"{name}: 개수 제한 없는 자리는 새 칸을 달 첫 앵커가 있어야 한다.", this);
 
         presenter = new ItemSlotPresenter(config, anchors, highlightScale, highlightOffset);
     }
@@ -70,16 +89,47 @@ public class ItemDisplay : MonoBehaviour
     void Refresh()
     {
         if (holder == null) return;
+        if (unlimited) Arrange();
         presenter.Bind(holder);
+    }
+
+    /// 내용 수만큼 칸을 늘리고 놓인 순서대로 자리를 준다. 잔은 가로로, 접시는 위로 쌓는다.
+    /// ponytail: 줄 수에는 상한이 없어 상판 깊이를 넘게 놓으면 밖으로 나간다. 식기 수가 그만큼 늘면 층을 올린다.
+    void Arrange()
+    {
+        if (slots.Count == 0 || slots[0] == null) return;
+
+        var row = 0;
+        var stack = 0;
+        for (var slot = 0; slot < holder.SlotCount; slot++)
+        {
+            if (slot == slots.Count) AddSlot();
+            var position = holder.SlotAt(slot).DishIsPlate
+                ? stackStart + stackStep * stack++
+                : RowPosition(row++);
+            if (slots[slot] != null) slots[slot].localPosition = position;
+        }
+    }
+
+    Vector3 RowPosition(int index) => rowWrap > 0
+        ? rowStart + rowStep * (index % rowWrap) + wrapStep * (index / rowWrap)
+        : rowStart + rowStep * index;
+
+    void AddSlot()
+    {
+        var first = slots[0];
+        var anchor = new GameObject($"Slot{slots.Count}").transform;
+        anchor.SetParent(first.parent, false);
+        anchor.gameObject.layer = first.gameObject.layer;
+        slots.Add(anchor);
+        presenter.AddSlot(anchor);
     }
 
     /// 팀이 정해지면 손 앵커를 그 팀의 레이어로 옮긴다. 이미 서 있는 아이템도 앵커의
     /// 자식이라 같이 따라간다.
     void ApplyTeamLayer(int myTeam)
     {
-        if (anchors == null) return;
-
-        foreach (var anchor in anchors)
+        foreach (var anchor in slots)
             if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
     }
 }

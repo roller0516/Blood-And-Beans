@@ -1,0 +1,74 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2935773805432024839
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6807318689830543712}
+  - component: {fileID: 6590204869296903191}
+  m_Layer: 0
+  m_Name: UISaleFeedback
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6807318689830543712
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2935773805432024839}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &6590204869296903191
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2935773805432024839}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6d2d1d005dc83dc46bdc242cc8191298, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UISaleFeedback
+  flightLayer: {fileID: 6807318689830543712}
+  revenueTarget: {fileID: 0}
+  bubblePrefab: {fileID: 4083484489034340025, guid: e72fc59e2254a4e44add23ea4895bf87, type: 3}
+  coinPrefab: {fileID: 4218564644260231368, guid: 9dd8c57daf380f14aaff4c214722c407, type: 3}
+  sparklePrefab: {fileID: 4841073686257591279, guid: 4571e8177c84cf44b82d7a1d5c67c3a9, type: 3}
+  shardPrefab: {fileID: 7699701797924932629, guid: bd625a8010a4fc64685dd3a7752f21ac, type: 3}
+  orderOffset: {x: 0, y: 2.904, z: 0}
+  bubbleSize: {x: 150, y: 130}
+  gold: {r: 1, g: 0.79, b: 0.24, a: 1}
+  goodCoins: 7
+  perfectCoins: 12
+  missCoins: 5
+  burntCoins: 2
+  coinSize: 28
+  perfectCoinScale: 1.3
+  burstSeconds: 0.24
+  popSeconds: 0.19
+  scatterHoldSeconds: 0.1
+  flightSeconds: 0.48
+  coinStagger: 0.045
+  scatter: {x: 145, y: 115}
+  flightArc: {x: -100, y: 90}
+  revenuePunch: 0.1
+  revenuePunchSeconds: 0.2

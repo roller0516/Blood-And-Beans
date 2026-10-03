@@ -92,9 +92,6 @@ public static class ItemVisualBuilder
     /// 것이 보여야 하므로 일부러 아무것도 닮지 않은 회색 덩어리다.
     const uint UnknownColour = 0x6B6B73;
 
-    /// 탄 것. 메시는 그대로 두고 이 재질로 덮는다.
-    const uint BurntColour = 0x1E1712;
-
     [MenuItem(MenuPath)]
     public static void Build()
     {
@@ -155,12 +152,6 @@ public static class ItemVisualBuilder
         if (config.ReferenceFor(unknown) == null)
         {
             CDebug.LogError("[ItemVisualBuilder] 정체불명 완성품에 프리팹이 없다.");
-            failures++;
-        }
-
-        if (config.Burnt == null)
-        {
-            CDebug.LogError("[ItemVisualBuilder] 탄 것 재질이 없다.");
             failures++;
         }
 
@@ -296,8 +287,6 @@ public static class ItemVisualBuilder
         so.FindProperty("unknownProduct").FindPropertyRelative("m_AssetGUID").stringValue =
             AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(unknown));
         EnsureAddressable(unknown, "ItemUnknown");
-        so.FindProperty("burnt").objectReferenceValue =
-            EnsureMaterial("ItemBurnt", Hex(BurntColour));
 
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(config);

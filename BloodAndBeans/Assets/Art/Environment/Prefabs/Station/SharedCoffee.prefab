@@ -318,6 +318,7 @@ GameObject:
   - component: {fileID: 387932067668768267}
   - component: {fileID: 6271656778630149361}
   - component: {fileID: 2850374713137173501}
+  - component: {fileID: 1856950534908381911}
   m_Layer: 0
   m_Name: SharedCoffee
   m_TagString: Untagged
@@ -340,6 +341,7 @@ Transform:
   m_Children:
   - {fileID: 8247938125061169453}
   - {fileID: 7615054580313544291}
+  - {fileID: 7124878967007571986}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!65 &5008481260216318231
@@ -410,6 +412,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Game::CoffeeMachine
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1856950534908381911
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5481336027205357941}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19d7f1357bea38f4ca9bb7151e21192c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::FacilityVisuals
+  facility: {fileID: 387932067668768267}
+  outlet: {fileID: 7124878967007571986}
+  workingEffect: 17
+  completedEffect: 0
 --- !u!1 &5924207744500336513
 GameObject:
   m_ObjectHideFlags: 0
@@ -594,3 +612,34 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1 &8075818720915659525
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7124878967007571986}
+  m_Layer: 0
+  m_Name: VfxOutlet
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7124878967007571986
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8075818720915659525}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.0014839172, y: 1.51706, z: -0.2808025}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5564327099262588042}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

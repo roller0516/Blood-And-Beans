@@ -505,17 +505,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             return;
         }
 
-        if (cafeShellPrefab.GetComponentInChildren<CafeEntranceLight>(true) == null)
-            CDebug.LogError($"{name}: {nameof(cafeShellPrefab)}에 {nameof(CafeEntranceLight)}가 없다. "
-                          + "카페 입구 등이 켜지지 않아 광장에서 손님 상태를 알 수 없다 (기획서 5.7.6).", this);
-
         for (var team = 0; team < teamCount; team++)
-        {
-            var shell = Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
-            // 껍데기는 복제되지 않아 팀을 스스로 알 수 없다. 세우는 자리에서 한 번 찍어 준다.
-            var light = shell.GetComponentInChildren<CafeEntranceLight>(true);
-            if (light != null) light.Bind(team);
-        }
+            Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
     }
 
     /// 카페 입구가 광장 중앙을 보도록 돌린다. 입구는 카페 로컬 -Z다 (`CafeDecor/EntryRunner`가

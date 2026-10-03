@@ -17,8 +17,6 @@ public static class CafeLayoutSetup
             var wood = Material("CafeWalnut", new Color(.25f,.13f,.075f));
             var green = Material("CafeSage", new Color(.26f,.40f,.31f));
             var brass = Material("CafeBrass", new Color(.66f,.45f,.20f));
-            // 등은 팀 색을 그대로 받아야 해서 흰 바탕이다 (CafeEntranceLight가 덮어쓴다).
-            var lampMaterial = Material("CafeLamp", Color.white);
             var floor = root.transform.Find("Floor");
             floor.GetComponent<Renderer>().sharedMaterial = cream;
             Place(root,"CupRack",new Vector3(-3.6f,.5f,-5.5f));
@@ -39,18 +37,6 @@ public static class CafeLayoutSetup
             Box(decor,"LeftPanel",new Vector3(-10.7f,.6f,3.0f),new Vector3(.25f,1.2f,21.5f),wood);
             Box(decor,"RightPanel",new Vector3(10.7f,.6f,3.0f),new Vector3(.25f,1.2f,21.5f),wood);
             Box(decor,"BackCap",new Vector3(0,1.24f,14.0f),new Vector3(21.7f,.09f,.32f),brass);
-            // 입구 상단의 팀 색 등 (기획서 5.7.6). 입구는 로컬 -Z이고 옆판 앞끝이 z -7.75다.
-            var lamp=Box(decor,"EntryLamp",new Vector3(0,1.24f,-7.75f),new Vector3(21.7f,.09f,.32f),lampMaterial);
-            var alarm=lamp.AddComponent<AudioSource>();
-            alarm.playOnAwake=false; alarm.loop=true; alarm.spatialBlend=1f;
-            alarm.outputAudioMixerGroup=SoundSetup.SfxGroup();
-            alarm.rolloffMode=AudioRolloffMode.Linear; alarm.maxDistance=120f;
-            // ponytail: 위급 알람 클립은 아직 없다. 에디터에서 꽂으면 그때부터 운다.
-            var light=decor.gameObject.AddComponent<CafeEntranceLight>();
-            var serialized=new SerializedObject(light);
-            serialized.FindProperty("lamp").objectReferenceValue=lamp.GetComponent<Renderer>();
-            serialized.FindProperty("alarm").objectReferenceValue=alarm;
-            serialized.ApplyModifiedPropertiesWithoutUndo();
             foreach(var x in new[]{-10.7f,10.7f}) Box(decor,"SideCap",new Vector3(x,1.24f,3),new Vector3(.32f,.09f,21.5f),brass);
             foreach(var x in new[]{-9.5f,9.5f})
             {

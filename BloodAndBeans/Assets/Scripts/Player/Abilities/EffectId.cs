@@ -36,4 +36,23 @@ public enum EffectId
     /// 귀환·페이즈 이동의 출발과 도착 연출.
     TeleportDeparture = 8,
     TeleportArrival = 9,
+
+    /// 제작 판정 — 머신에서 터지는 팀 전용 피드백 (5.2, DF-03).
+    CraftingPerfect = 10,
+    CraftingGood = 11,
+    CraftingMiss = 12,
+    CraftingBurnt = 13,
+    /// 재료 조합 결과 — 탁한 연기와 금빛 반짝임 (5.7.3, DF-07·DF-24).
+    Spoiled = 14,
+    MenuReady = 15,
+
+    /// Perfect 판매 — 손님 중심에서 퍼지는 금빛 원형 (DF-02).
+    SalePerfect = 16,
+
+    /// 공용 설비의 작동과 세척 완료 (DF-26·DF-30).
+    CoffeeSteam = 17,
+    OvenHeat = 18,
+    WashFoam = 19,
+    WashComplete = 20,
 }
+

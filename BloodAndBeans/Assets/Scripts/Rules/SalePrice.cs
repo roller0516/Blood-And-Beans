@@ -24,6 +24,13 @@ public static class SalePrice
         return table[i < 0 ? 0 : i >= table.Length ? table.Length - 1 : i];
     }
 
+    /// 완성품에 실린 배수를 판정으로 되돌린다. 계산대와 말풍선 코인 탭이 같은 판정을 읽게 한 곳에 둔다.
+    public static Gauge GaugeOf(bool burnt, float multiplier) =>
+        burnt ? Gauge.Burnt :
+        multiplier >= GaugeMultiplier(Gauge.Perfect) ? Gauge.Perfect :
+        multiplier >= GaugeMultiplier(Gauge.Good) ? Gauge.Good :
+                                                    Gauge.Miss;
+
     /// 메뉴에 인기 재료가 몇 개 들어 있는지 센다. 메뉴는 재료 집합이라 중복이
     /// 없으므로 단순 순회로 충분하다.
     public static int PopularCount(IReadOnlyList<Ingredient> menu, IReadOnlyList<Ingredient> popular)

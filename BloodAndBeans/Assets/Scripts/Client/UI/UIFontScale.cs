@@ -12,6 +12,9 @@ using UnityEngine;
 [DisallowMultipleComponent]
 public class UIFontScale : MonoBehaviour
 {
+    /// 이미 최종 크기로 제작한 영역은 테마 배율을 중복 적용하지 않는다.
+    [SerializeField] Transform[] fixedSizeRoots = System.Array.Empty<Transform>();
+
     TMP_Text[] texts;
     float[] baseSizes;
 
@@ -29,7 +32,8 @@ public class UIFontScale : MonoBehaviour
         // 비활성 자식까지 포함해 한 번만 모은다. 이후에는 캐시만 쓴다.
         if (texts == null)
         {
-            texts = GetComponentsInChildren<TMP_Text>(true);
+            texts = System.Array.FindAll(GetComponentsInChildren<TMP_Text>(true),
+                text => !System.Array.Exists(fixedSizeRoots, root => root != null && text.transform.IsChildOf(root)));
             baseSizes = new float[texts.Length];
             for (var i = 0; i < texts.Length; i++)
                 baseSizes[i] = texts[i] != null ? texts[i].fontSize : 0f;
@@ -42,3 +46,4 @@ public class UIFontScale : MonoBehaviour
             if (texts[i] != null) texts[i].fontSize = baseSizes[i] * scale;
     }
 }
+

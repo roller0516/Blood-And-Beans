@@ -9,13 +9,14 @@ public sealed class IllusionAbility : INightAbility
 
     public bool TryCastServer(PlayerAbilities host)
     {
-        if (host.DecoyBag == null)
+        if (host.Inventory == null || host.Inventory.BuriedBagPrefab == null)
         {
             CDebug.LogError($"{host.name}: PlayerInventory.buriedBagPrefab을 빌리지 못했다. 환각이 아무것도 심지 못한다.", host);
             return false;
         }
 
-        var bag = Object.Instantiate(host.DecoyBag, host.transform.position, Quaternion.identity);
+        // 진짜 가방과 같은 자리 맞춤을 쓴다. 플레이어 위치는 캡슐 중심이라 그대로 쓰면 떠서 가짜가 들킨다.
+        var bag = host.Inventory.InstantiateBagAtFeetServer();
 
         // 팀을 먼저 심고 스폰한다 (`PlayerInventory.BuryRpc`와 같은 이유 — 스폰 뒤에 쓰면
         // 적 클라이언트가 팀 미상 상태의 가방을 한 틱 동안 그대로 렌더한다).

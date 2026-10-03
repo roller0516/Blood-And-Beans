@@ -31,6 +31,9 @@ public class UIRoundImage : BaseMeshEffect
     /// 이 이미지만 다른 반지름을 쓸 때 채운다. 음수면 테마 값을 따른다.
     [SerializeField] float radiusOverride = -1f;
 
+    /// 아래쪽 명암. 1이면 기존 단색을 유지한다.
+    [SerializeField, Range(0f, 1f)] float bottomBrightness = 1f;
+
     /// 셰이더가 깎지 않게 하는 값. 반지름이 0일 때 정점에 실어 보낸다.
     static readonly Vector2 NoRounding = new(-1f, -1f);
 
@@ -101,6 +104,8 @@ public class UIRoundImage : BaseMeshEffect
             // 9-slice나 타일이면 정점이 넷보다 많다. 위치에서 재므로 몇 개든 상관없다.
             vertex.uv1 = ((Vector2)vertex.position - center) * scale;
             vertex.uv2 = halfSize;
+            var shade = Mathf.Lerp(bottomBrightness, 1f, Mathf.InverseLerp(rect.yMin, rect.yMax, vertex.position.y));
+            vertex.color = (Color)vertex.color * new Color(shade, shade, shade, 1f);
             helper.SetUIVertex(vertex, i);
         }
     }

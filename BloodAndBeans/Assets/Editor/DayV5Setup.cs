@@ -12,6 +12,9 @@ public static class DayV5Setup
     const string BattlePath = "Assets/Scenes/Battle_01.unity";
     const string PlazaName = "SharedPlaza";
 
+    // ponytail: 광장 실치수는 14장 #4 미결. 카페 4채(cafeCell 46×40)를 덮는 크기로 둔다.
+    static readonly Vector2 PlazaSize = new(84f, 72f);
+
     public static string Apply()
     {
         if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이를 종료한 뒤 적용한다.");
@@ -21,10 +24,10 @@ public static class DayV5Setup
         var director = Object.FindFirstObjectByType<MatchDirector>();
         if (director == null) throw new System.InvalidOperationException("매치 디렉터가 없다.");
         var source = AssetDatabase.LoadAssetAtPath<GameObject>(CafePath);
-        var existing = GameObject.Find(PlazaName);
-        if (existing == null)
+        var plaza = GameObject.Find(PlazaName);
+        if (plaza == null)
         {
-            var plaza = new GameObject(PlazaName);
+            plaza = new GameObject(PlazaName);
             plaza.transform.position = director.PlazaCenter;
             plaza.AddComponent<NetworkObject>();
             var coffee = source.GetComponentInChildren<CoffeeMachine>(true).transform.Find("Model");
@@ -40,9 +43,11 @@ public static class DayV5Setup
             floor.name = "PlazaFloor";
             floor.transform.SetParent(plaza.transform, false);
             floor.transform.localPosition = new Vector3(0, -0.15f, 0);
-            floor.transform.localScale = new Vector3(84, 0.2f, 72);
+            floor.transform.localScale = new Vector3(PlazaSize.x, 0.2f, PlazaSize.y);
             floor.GetComponent<Renderer>().sharedMaterial = source.transform.Find("Floor").GetComponent<Renderer>().sharedMaterial;
         }
+        // 중력이 없어 바닥이 끝나도 떨어지지 않는다. 가장자리를 벽으로 막는다.
+        ForestMapBuilder.BuildBoundary(plaza.transform, Vector3.zero, PlazaSize, night: false);
         var cafe = PrefabUtility.LoadPrefabContents(CafePath);
         try
         {

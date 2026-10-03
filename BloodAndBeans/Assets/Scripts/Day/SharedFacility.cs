@@ -23,6 +23,9 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     MatchDirector director;
     public FacilityKind Kind => kind;
     public bool Busy => busy.Value;
+    /// DF-26·DF-30: 복제된 점유 변화와 실제 세척 완료를 표현 계층에 알린다.
+    public event System.Action<bool> BusyChanged;
+    public event System.Action Washed;
     public int OccupyingTeam => occupyingTeam.Value;
     public bool Hot => NetworkManager != null && IsSpawned && NetworkManager.ServerTime.Time < hotUntil.Value;
     public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : Hot ? "달아오름" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
@@ -42,11 +45,12 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         occupyingTeam.OnValueChanged += OnTeam;
         OnBusy(false, busy.Value);
     }
-    public override void OnNetworkDespawn() { busy.OnValueChanged -= OnBusy; occupyingTeam.OnValueChanged -= OnTeam; }
+    public override void OnNetworkDespawn() { busy.OnValueChanged -= OnBusy; occupyingTeam.OnValueChanged -= OnTeam; BusyChanged?.Invoke(false); }
     void OnTeam(int _, int __) => OnBusy(false, Busy);
     void OnBusy(bool _, bool value)
     {
         if (statusRenderer != null) TeamColors.TintWith(statusRenderer.gameObject, value ? TeamColors.Of(OccupyingTeam) : Color.white, 1f);
+        BusyChanged?.Invoke(value);
     }
     public void BeginInteractionClient() => UseRpc();
     public void EndInteractionClient() => EndRpc();
@@ -152,9 +156,13 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         { ReleaseServer(); return; }
         if (NetworkManager.ServerTime.Time < completesAt) return;
         washing.SetServer(HeldItem.Dish(washing.Held.DishIsPlate));
+        WashedRpc();
         PlayerController.ReportSuccessServer(user, this);
         ReleaseServer();
     }
+    [Rpc(SendTo.ClientsAndHost, InvokePermission = RpcInvokePermission.Server)]
+    void WashedRpc() => Washed?.Invoke();
+
     public void OverheatServer(float seconds)
     {
         if (IsServer) hotUntil.Value = NetworkManager.ServerTime.Time + seconds;
@@ -169,3 +177,4 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         occupyingTeam.Value = -1;
     }
 }
+

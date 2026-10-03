@@ -1,6 +1,4 @@
 using System;
-using System.Globalization;
-using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -17,13 +15,10 @@ public sealed class UISettingsPopup : UIPopup
     [SerializeField] Button closeButton;
 
     [Header("마우스 감도")]
+    /// 음량 줄과 같은 파츠 줄이다. 돌릴 카메라가 없으면 줄째 감춘다.
+    [SerializeField] GameObject lookRow;
     [SerializeField] Slider lookSensitivity;
-    [SerializeField] TMP_Text lookLabel;
-
-    /// 슬라이더 옆 숫자 칸. 슬라이더와 같은 값을 쥐고 서로를 따라간다.
-    [SerializeField] TMP_InputField lookInput;
-
-    const string LookFormat = "0.00";
+    [SerializeField] UISliderInput lookInput;
 
     GameObject previousSelection;
 
@@ -34,26 +29,6 @@ public sealed class UISettingsPopup : UIPopup
     /// 열 때 한 번 찾는다. 로컬 플레이어와 함께 스폰되고 팝업은 씬을 넘어 살아남으므로
     /// 직렬화로 이을 수 없다.
     LookSensitivity look;
-
-    protected override void Awake()
-    {
-        base.Awake();
-        if (lookSensitivity == null || lookInput == null) return;
-
-        lookSensitivity.onValueChanged.AddListener(ShowLookValue);
-        lookInput.onEndEdit.AddListener(OnLookTyped);
-    }
-
-    void ShowLookValue(float value) =>
-        lookInput.SetTextWithoutNotify(value.ToString(LookFormat, CultureInfo.InvariantCulture));
-
-    /// 슬라이더에 넘기면 범위 밖 값은 슬라이더가 잘라 주고, 그 결과가 다시 칸에 찍힌다.
-    void OnLookTyped(string text)
-    {
-        if (float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
-            lookSensitivity.value = value;
-        ShowLookValue(lookSensitivity.value);
-    }
 
     public void Bind(Action close)
     {
@@ -74,17 +49,13 @@ public sealed class UISettingsPopup : UIPopup
         look = LookSensitivity.Local;
 
         var available = look != null;
-        if (lookLabel != null) lookLabel.gameObject.SetActive(available);
-        if (lookInput != null) lookInput.gameObject.SetActive(available);
-        if (lookSensitivity == null) return;
-
-        lookSensitivity.gameObject.SetActive(available);
+        lookRow.SetActive(available);
         if (!available) return;
 
         lookSensitivity.minValue = LookSensitivity.Min;
         lookSensitivity.maxValue = LookSensitivity.Max;
         lookSensitivity.SetValueWithoutNotify(look.Multiplier);
-        if (lookInput != null) ShowLookValue(look.Multiplier);
+        lookInput.Refresh();
     }
 
     void Apply(Action close)

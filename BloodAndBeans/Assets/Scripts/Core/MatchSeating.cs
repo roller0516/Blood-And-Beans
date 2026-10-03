@@ -36,6 +36,16 @@ public class MatchSeating
     readonly Dictionary<ulong, int> characters = new();
     public int CharacterOf(ulong clientId) => characters.TryGetValue(clientId, out var pick) ? pick : CharacterCatalog.NoPick;
 
+    /// 접속 승인 때 받은 닉네임 (기획서 5.7.6-a 이름표). 로비를 거치지 않은 시작이면 비어 있다.
+    readonly Dictionary<ulong, string> names = new();
+    public string NameOf(ulong clientId) => names.TryGetValue(clientId, out var name) ? name : string.Empty;
+
+    /// ponytail: 기획서에 닉네임 길이 규칙이 없다. 이름표 폭이 넘치지 않게 임시로 자른다 — 정해지면 BB.Rules 표로 옮긴다.
+    const int MaxNameLength = 16;
+
+    /// 페이로드 머리(팀 · 캐릭터 · 데이터 해시)의 길이. 닉네임은 그 뒤에 UTF-8로 붙는다.
+    const int PayloadHeader = sizeof(int) * 3;
+
     TeamSeats seats;
     int forcedSeat = NoForcedSeat;
 
@@ -100,6 +110,7 @@ public class MatchSeating
         seats = new TeamSeats(TeamCount, playersPerTeam);
         reservedSeats.Clear();
         characters.Clear();
+        names.Clear();
         ExpectedPlayers = 0;
         if (forcedSeat >= TeamCount) forcedSeat = NoForcedSeat;
     }
@@ -124,13 +135,37 @@ public class MatchSeating
 
     /// 클라이언트가 고른 팀을 접속 승인 페이로드로 싣고 푸는 단 한 쌍. 로비와 서버가 같은
     /// 형식을 쓰게 하려고 여기 둔다.
-    public static byte[] EncodeTeamRequest(int team, int character = CharacterCatalog.NoPick)
+    public static byte[] EncodeTeamRequest(int team, int character = CharacterCatalog.NoPick, string name = null)
     {
-        var payload = new byte[sizeof(int) * 3];
+        var nameBytes = System.Text.Encoding.UTF8.GetBytes(CleanName(name));
+        var payload = new byte[PayloadHeader + nameBytes.Length];
         BitConverter.GetBytes(team).CopyTo(payload, 0);
         BitConverter.GetBytes(character).CopyTo(payload, sizeof(int));
         BitConverter.GetBytes(DataManager.ContentHash).CopyTo(payload, sizeof(int) * 2);
+        nameBytes.CopyTo(payload, PayloadHeader);
         return payload;
+    }
+
+    static string DecodeName(byte[] payload) =>
+        payload != null && payload.Length > PayloadHeader
+            ? CleanName(System.Text.Encoding.UTF8.GetString(payload, PayloadHeader, payload.Length - PayloadHeader))
+            : string.Empty;
+
+    /// 클라이언트가 보낸 이름이라 서버가 다시 다듬는다. 제어 문자를 빼고 길이를 자른다.
+    static string CleanName(string name)
+    {
+        if (string.IsNullOrEmpty(name)) return string.Empty;
+
+        var clean = new System.Text.StringBuilder(name.Length);
+        foreach (var c in name)
+            if (!char.IsControl(c)) clean.Append(c);
+
+        var trimmed = clean.ToString().Trim();
+        if (trimmed.Length <= MaxNameLength) return trimmed;
+
+        // 서로게이트 쌍 가운데서 자르면 깨진 글자가 남는다.
+        var cut = char.IsHighSurrogate(trimmed[MaxNameLength - 1]) ? MaxNameLength - 1 : MaxNameLength;
+        return trimmed.Substring(0, cut);
     }
 
     /// 호스트와 표가 다르면 코인 예고와 서버 정산이 어긋난다 (남은 작업 설계 1단계).
@@ -193,6 +228,7 @@ public class MatchSeating
         foreach (var entry in reservedSeats)
             if (entry.Value == seat && CharacterOf(entry.Key) == pick) pick = CharacterCatalog.NoPick;
         characters[request.ClientNetworkId] = pick;
+        names[request.ClientNetworkId] = DecodeName(request.Payload);
         reservedSeats[request.ClientNetworkId] = seat;
         response.Approved = true;
         response.CreatePlayerObject = true;
@@ -206,6 +242,7 @@ public class MatchSeating
 
         reservedSeats.Remove(clientId);
         characters.Remove(clientId);
+        names.Remove(clientId);
         seats.Release(seat);
     }
 

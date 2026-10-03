@@ -1,4 +1,4 @@
-﻿using Unity.Netcode;
+using Unity.Netcode;
 
 /// 카페 안에서 플레이어가 들고 있는 것.
 public struct HeldItem
@@ -67,11 +67,12 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     int ownerTeam = -1;
     public int PublicState => publicState.Value;
     public bool BloodGlow => bloodGlow.Value;
-    public string Prompt => "팀원 · F로 식기 교환";
     public void BeginInteractionClient() => ExchangeRpc();
     public void EndInteractionClient() { }
     public bool CanPromptClient(in InteractionContext ctx) => !Reserved && !ctx.Reserved && (!ctx.Held.Empty || !View.Empty);
-    public string PromptFor(in InteractionContext ctx) => Prompt;
+
+    /// 둘 다 들고 있으면 맞바꾸고, 한쪽만 들고 있으면 건넨다 (기획서 5.7.4).
+    public string PromptFor(in InteractionContext ctx) => ctx.Held.Empty ? "받기" : View.Empty ? "건네기" : "맞바꾸기";
     [Rpc(SendTo.Server)]
     void RequestTeamViewRpc(RpcParams p = default)
     {
@@ -209,6 +210,24 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     void OnPublicState(int _, int __) => ContentsChanged?.Invoke();
     void OnBloodGlow(bool _, bool __) => ContentsChanged?.Invoke();
 
+    /// 재료 추가로 확정된 결과만 팀에게 보낸다. 손 교환·재접속에는 다시 터뜨리지 않는다.
+    public event System.Action<EffectId> RecipeEffectPlayed;
+    public void ReportRecipeResultServer()
+    {
+        if (!IsServer || !IsSpawned || held.Recipe == null) return;
+        var effect = held.Menu != MenuId.None ? EffectId.MenuReady :
+            !Menus.CanComplete(held.Recipe) ? EffectId.Spoiled : EffectId.None;
+        var team = PlayerTeam.Of(OwnerClientId);
+        if (effect == EffectId.None || team < 0) return;
+        foreach (var client in NetworkManager.ConnectedClientsList)
+            if (PlayerTeam.Of(client.ClientId) == team)
+                RecipeEffectRpc(effect, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+        if (effect == EffectId.Spoiled)
+            PlayerController.ReportSoundServer(OwnerClientId, this, SfxCue.Spoiled);
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void RecipeEffectRpc(EffectId effect, RpcParams p = default) => RecipeEffectPlayed?.Invoke(effect);
     public void SetServer(HeldItem item)
     {
         if (!IsServer) return;

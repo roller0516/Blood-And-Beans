@@ -30,6 +30,8 @@ public class Station : NetworkBehaviour, IItemHolder
     public int Team => host != null ? host.OccupyingTeam : -1;
     public float CookRemaining => NetworkManager == null ? 0f : Mathf.Max(0f, (float)(doneAt.Value - NetworkManager.ServerTime.Time));
     public event System.Action ContentsChanged;
+    /// DF-03: 서버가 확정한 최종 판정 사건. 점유 팀에게만 전달된다.
+    public static event System.Action<Station, Judgement, int> JudgementShown;
     public int SlotCount => 1;
     public int HighlightSlot => -1;
     public CarryView SlotAt(int slot) => slot == 0 ? CarryView.Of(ingredient.Value) : CarryView.Nothing;
@@ -142,8 +144,15 @@ public class Station : NetworkBehaviour, IItemHolder
         var cue = judgement switch { Judgement.Perfect => SfxCue.Perfect, Judgement.Good => SfxCue.Good,
             Judgement.Miss => SfxCue.Miss, _ => SfxCue.None };
         PlayerController.ReportSoundServer(operatorCarry.OwnerClientId, this, cue);
+        foreach (var client in NetworkManager.ConnectedClientsList)
+            if (PlayerTeam.Of(client.ClientId) == Team)
+                JudgementRpc(judgement, Team, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
         ReleaseServer();
     }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void JudgementRpc(Judgement judgement, int team, RpcParams p = default) =>
+        JudgementShown?.Invoke(this, judgement, team);
 
     public static Transform PlayerOf(ulong clientId)
     {

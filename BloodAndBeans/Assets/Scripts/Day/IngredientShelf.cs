@@ -72,12 +72,14 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
             if (Stock != null && Stock.TakeServer(pending.item))
             {
                 var product = pending.carry.Held;
+                var wasPossible = Menus.CanComplete(product.Recipe);
                 var parts = new Ingredient[product.Recipe.Length + 1];
                 System.Array.Copy(product.Recipe, parts, product.Recipe.Length);
                 parts[parts.Length - 1] = pending.item;
                 product.Recipe = parts;
                 product.Menu = Menus.Match(parts);
                 pending.carry.SetServer(product);
+                if (wasPossible) pending.carry.ReportRecipeResultServer();
                 PlayerController.ReportSuccessServer(id, this);
                 PlayerController.ReportSoundServer(id, this, IngredientSfx.Of(pending.item));
             }

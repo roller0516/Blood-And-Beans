@@ -1,4 +1,4 @@
-﻿using TMPro;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -127,6 +127,22 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] RectTransform promptBox;
     [SerializeField] TMP_Text promptText;
 
+    /// 건네기 프롬프트가 발밑에서 뜨는 높이(m). 이름표(1.5m)보다 위다.
+    [SerializeField, Min(0f)] float handoffHeight = 2f;
+
+    /// 건네기 프롬프트 두 개 — 나와 팀원의 머리 위 (기획서 5.7.4). `promptBox`를 처음 쓸 때 복제한다.
+    RectTransform[] handoffBoxes;
+    TMP_Text[] handoffTexts;
+
+    [Header("제조 카드")]
+    /// 들고 있는 식기 위에 뜨는 카드 (기획서 5.7.3). 나와 팀원 둘이라 처음 쓸 때 두 장을 만든다.
+    [SerializeField] UIMakingCard makingCardPrefab;
+
+    /// 식기 자리에서 카드가 뜨는 높이(m).
+    [SerializeField, Min(0f)] float makingCardHeight = 0.45f;
+
+    UIMakingCard[] makingCards;
+
     [Header("귀환 표시")]
     [SerializeField] RectTransform returnBox;
     [SerializeField] RectTransform returnArrow;
@@ -146,18 +162,19 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] TMP_Text completionLabel;
 
     [Header("대시")]
-    [SerializeField] RectTransform dashSlot;
-    [SerializeField] TMP_Text dashLabelText;
-    [SerializeField] TMP_Text dashTimeText;
-    [SerializeField] RectTransform dashFill;
+    [SerializeField] UISkillSlot dashSlot;
 
     /// 이번 경보의 종을 이미 울렸는가. 경보가 꺼지면 풀려서 다음 밤에 다시 울린다.
     bool alarmRung;
     [Header("낮 상단 띠")]
     [SerializeField] GameObject dayHeader;
-    [SerializeField] TMP_Text dayRanking;
     [SerializeField] TMP_Text dayClock;
     [SerializeField] TMP_Text dayRevenue;
+    [SerializeField] UIStandingRow[] dayStandingRows = System.Array.Empty<UIStandingRow>();
+    [SerializeField] TMP_Text dayCounter;
+    [SerializeField] TMP_Text dayGoal;
+    [SerializeField] Image dayTimeGauge;
+    [SerializeField] GameObject dayRentBadge;
     [SerializeField] GameObject[] nightHeader;
     [SerializeField] Color rentMetColor = new(0.45f, 0.85f, 0.5f);
     // ponytail: 경고 시점은 PDF 목업의 30초. 밸런스 확정 시 인스펙터에서 조정한다.
@@ -235,6 +252,15 @@ public sealed class UIMatchHudScreen : UIScreen
     /// 않게 층 밖으로 내보낸다. HUD가 다시 뜨면 `PlaceMarker`가 다시 데려온다.
     public override void OnUnload()
     {
+        // 건네기 표식만은 HUD가 주인이다. 층 밖으로 내보내면 주인 없이 씬에 남는다.
+        if (handoffBoxes != null)
+            foreach (var box in handoffBoxes) Destroy(box.gameObject);
+        handoffBoxes = null;
+        handoffTexts = null;
+        if (makingCards != null)
+            foreach (var card in makingCards) Destroy(card.gameObject);
+        makingCards = null;
+
         for (var i = worldMarkers.childCount - 1; i >= 0; i--) worldMarkers.GetChild(i).SetParent(null, false);
         markerDepth.Clear();
     }
@@ -296,9 +322,21 @@ public sealed class UIMatchHudScreen : UIScreen
         if (nightHeader != null) foreach (var part in nightHeader) if (part != null) part.SetActive(!model.IsDay);
         if (model.IsDay)
         {
-            SetText(dayRanking, model.Ranking);
-            SetText(dayClock, $"{model.Day}   {model.Timer.Split('.')[0]}");
-            SetText(dayRevenue, model.Revenue);
+            for (var i = 0; i < dayStandingRows.Length; i++)
+            {
+                var visible = model.Standings != null && i < model.Standings.Count;
+                var row = dayStandingRows[i];
+                row.gameObject.SetActive(visible);
+                if (!visible) continue;
+                var standing = model.Standings[i];
+                row.Render(i + 1, standing.Name, standing.Revenue, standing.Mine, standing.Team);
+            }
+            SetText(dayClock, model.Timer.Split('.')[0]);
+            SetText(dayCounter, model.DayCounter);
+            SetText(dayRevenue, model.DaySales.ToString("N0"));
+            SetText(dayGoal, model.DayBill.ToString("N0"));
+            if (dayTimeGauge != null) dayTimeGauge.fillAmount = Mathf.Clamp01(model.DayTimeRatio);
+            if (dayRentBadge != null) dayRentBadge.SetActive(model.RentMet);
             if (dayRevenue != null) dayRevenue.color = model.RentMet ? rentMetColor :
                 model.DayRemaining <= rentWarningSeconds ? Color.Lerp(accent, alarmColor, 0.5f + 0.5f * Mathf.Sin(Time.unscaledTime * 5f)) : accent;
         }
@@ -354,10 +392,11 @@ public sealed class UIMatchHudScreen : UIScreen
         SetGroup(dashSlot, model.ShowDash);
         if (model.ShowDash)
         {
-            SetText(dashTimeText, model.DashTime);
-            dashLabelText.color = model.DashReady ? accent : muted;
-            dashFill.localScale = new Vector3(Mathf.Clamp01(model.DashRatio), 1f, 1f);
+            dashSlot.SetCooldown(model.DashRatio);
+            dashSlot.SetCount(model.DashTime);
+            dashSlot.SetKey(model.DashKey);
         }
+        else dashSlot.ResetCooldown();
     }
 
     /// 0이면 감추고, 그 위면 그만큼 채운다. 매 프레임 불러도 된다 — 켜고 끄는 것은
@@ -400,6 +439,62 @@ public sealed class UIMatchHudScreen : UIScreen
     {
         if (zone == null || Mathf.Approximately(zone.sizeDelta.x, width)) return;
         zone.sizeDelta = new Vector2(width, zone.sizeDelta.y);
+    }
+
+    /// 매 프레임 불린다. 두 사람이 움직이는 동안 머리를 따라가야 한다.
+    public void SetHandoff(in MatchHudPresenter.HandoffMarker marker)
+    {
+        if (!marker.Show)
+        {
+            if (handoffBoxes != null)
+                foreach (var box in handoffBoxes) SetGroup(box, false);
+            return;
+        }
+
+        if (handoffBoxes == null)
+        {
+            handoffBoxes = new RectTransform[2];
+            handoffTexts = new TMP_Text[2];
+            for (var i = 0; i < handoffBoxes.Length; i++)
+            {
+                handoffBoxes[i] = Instantiate(promptBox, worldMarkers);
+                handoffTexts[i] = handoffBoxes[i].GetComponentInChildren<TMP_Text>(true);
+            }
+        }
+
+        PlaceHandoff(0, marker.Self, marker);
+        PlaceHandoff(1, marker.Mate, marker);
+    }
+
+    void PlaceHandoff(int index, Vector3 feet, in MatchHudPresenter.HandoffMarker marker)
+    {
+        var box = handoffBoxes[index];
+        var visible = PlaceMarker(box, feet + Vector3.up * handoffHeight, marker.View);
+        SetGroup(box, visible);
+        if (visible && handoffTexts[index].text != marker.Label) SetText(handoffTexts[index], marker.Label);
+    }
+
+    /// 매 프레임 불린다. 카드는 식기를 따라다닌다. 내용은 손이 바뀔 때만 다시 그린다.
+    public void SetMakingCards(in MatchHudPresenter.MakingCards cards)
+    {
+        if (makingCardPrefab == null) return;
+        if (!cards.ShowSelf && !cards.ShowMate && makingCards == null) return;
+
+        if (makingCards == null)
+        {
+            makingCards = new UIMakingCard[2];
+            for (var i = 0; i < makingCards.Length; i++) makingCards[i] = Instantiate(makingCardPrefab, worldMarkers);
+        }
+
+        PlaceCard(makingCards[0], cards.ShowSelf, cards.Self, cards.SelfAt, cards.View);
+        PlaceCard(makingCards[1], cards.ShowMate, cards.Mate, cards.MateAt, cards.View);
+    }
+
+    void PlaceCard(UIMakingCard card, bool show, in CarryView view, Vector3 held, Camera camera)
+    {
+        var visible = show && camera != null && card.Render(view)
+            && PlaceMarker((RectTransform)card.transform, held + Vector3.up * makingCardHeight, camera);
+        SetGroup(card, visible);
     }
 
     static void SetText(TMP_Text target, string value)
@@ -470,7 +565,20 @@ public struct MatchHudModel
     public bool IsDay;
     public bool RentMet;
     public float DayRemaining;
-    public string Ranking;
+    public float DayTimeRatio;
+    public string DayCounter;
+    public int DaySales;
+    public int DayBill;
+    public System.Collections.Generic.IReadOnlyList<Standing> Standings;
+
+    /// 공개 정보판에서 받은 누적 매출. 행의 순서는 프레젠터가 정한다 (기획서 3.1·3.4).
+    public struct Standing
+    {
+        public int Team;
+        public string Name;
+        public int Revenue;
+        public bool Mine;
+    }
     public string Day;          // "2일차"
     public string PhaseName;    // "야간 탐색"
     public string Timer;        // "02:46.021"
@@ -493,7 +601,7 @@ public struct MatchHudModel
     public bool BagBuried;
 
     public bool ShowDash;
-    public bool DashReady;
-    public string DashTime;     // "6.0s" / "과적"
-    public float DashRatio;     // 남은 쿨다운 비율
+    public string DashTime;     // 원 안의 남은 초 "6" / "과적". 준비면 빈 문자열
+    public float DashRatio;     // 남은 쿨다운 비율. 0이면 준비
+    public string DashKey;      // 원 아래의 키
 }

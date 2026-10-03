@@ -7,6 +7,25 @@ using UnityEngine;
 public class PlayerTeam : NetworkBehaviour
 {
     readonly NetworkVariable<int> team = new();
+
+    /// 머리 위 이름표에 쓰는 닉네임 (기획서 5.7.6-a). 접속 승인 때 서버가 받은 값을 스폰에서 넣는다.
+    readonly NetworkVariable<NetName> nickname = new(new NetName());
+
+    /// 닉네임 복제용. NGO 2.13의 NetworkVariable은 문자열을 든 값을 클래스로만 받는다
+    /// (`InitializeSerializer_ManagedINetworkSerializable`). FixedString은 BB.Game이
+    /// Unity.Collections를 참조하지 않아 쓰지 않는다.
+    public sealed class NetName : INetworkSerializable, System.IEquatable<NetName>
+    {
+        public string Value = string.Empty;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            Value ??= string.Empty;
+            serializer.SerializeValue(ref Value);
+        }
+
+        public bool Equals(NetName other) => other != null && other.Value == Value;
+    }
     [SerializeField, Min(0f)] float teleportWindupSeconds = 1.35f;
     readonly NetworkVariable<bool> teleporting = new();
     Vector3 teleportDestination;
@@ -43,6 +62,11 @@ public class PlayerTeam : NetworkBehaviour
 
     public int Team => team.Value;
 
+    public string Nickname => nickname.Value != null ? nickname.Value.Value : string.Empty;
+
+    /// 늦게 복제돼 올 수 있어 표현 쪽은 값의 변화를 따라간다 (`TeamChanged`와 같은 이유).
+    public event System.Action<string> NicknameChanged;
+
     /// 구독해 둔 페이즈 시계. 플레이어는 타이틀 씬에서 스폰되고 매치 씬은 그 뒤에 서므로
     /// 스폰 시점에는 구독할 대상이 없다. 해제할 때 같은 인스턴스를 잡고 있어야 한다.
     GamePhase subscribedPhase;
@@ -72,7 +96,9 @@ public class PlayerTeam : NetworkBehaviour
     {
         // 구독은 서버 가드보다 먼저다. 팀 값을 받아 색을 입히는 것은 클라이언트 쪽 일이다.
         team.OnValueChanged += OnTeamValueChanged;
+        nickname.OnValueChanged += OnNicknameValueChanged;
         TeamChanged?.Invoke(team.Value);
+        NicknameChanged?.Invoke(Nickname);
 
         if (!IsServer) return;
 
@@ -91,6 +117,7 @@ public class PlayerTeam : NetworkBehaviour
             return;
         }
 
+        nickname.Value = new NetName { Value = seating.NameOf(OwnerClientId) };
         team.Value = seating.SeatServer(OwnerClientId);
         if (team.Value == TeamSeats.NoSeat)
         {
@@ -173,6 +200,7 @@ public class PlayerTeam : NetworkBehaviour
     {
         if (IsServer) teleporting.Value = false;
         team.OnValueChanged -= OnTeamValueChanged;
+        nickname.OnValueChanged -= OnNicknameValueChanged;
         if (subscribedPhase != null)
         {
             subscribedPhase.PhaseEntered -= OnPhaseEntered;
@@ -181,6 +209,8 @@ public class PlayerTeam : NetworkBehaviour
     }
 
     void OnTeamValueChanged(int _, int now) => TeamChanged?.Invoke(now);
+
+    void OnNicknameValueChanged(NetName _, NetName now) => NicknameChanged?.Invoke(now != null ? now.Value : string.Empty);
 
     IEnumerator ApplyVisibilityAfterSceneSpawn(MatchDirector director)
     {

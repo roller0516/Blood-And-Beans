@@ -47,6 +47,10 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField] ItemVisualConfig itemVisuals;
     /// 아이템이 놓일 자리. `PlayerCarry.SlotCount`(1칸)만큼 있으면 된다.
     [SerializeField] Transform[] itemAnchors;
+
+    /// 들고 있는 식기의 자리. 제조 카드가 그 바로 위에 뜬다 (기획서 5.7.3).
+    public Transform HeldAnchor => itemAnchors is { Length: > 0 } && itemAnchors[0] != null ? itemAnchors[0] : transform;
+
     [SerializeField] float itemHighlightScale = 1.4f;
     [SerializeField] Vector3 itemHighlightOffset = new(0f, 0.1f, 0f);
 
@@ -139,6 +143,7 @@ public class PlayerVisuals : NetworkBehaviour
         dash.HitLanded += dashPresentation.OnHitLanded;
         dash.TookHit += dashPresentation.OnTookHit;
         carry.ContentsChanged += RefreshHand;
+        carry.RecipeEffectPlayed += OnRecipeEffect;
         carry.ContentsChanged += RefreshPublicMarker;
         inventory.LoadChanged += RefreshBag;
 
@@ -174,6 +179,7 @@ public class PlayerVisuals : NetworkBehaviour
         if (carry != null)
         {
             carry.ContentsChanged -= RefreshHand;
+            carry.RecipeEffectPlayed -= OnRecipeEffect;
             carry.ContentsChanged -= RefreshPublicMarker;
         }
         if (inventory != null) inventory.LoadChanged -= RefreshBag;
@@ -312,6 +318,16 @@ public class PlayerVisuals : NetworkBehaviour
 
     // --- 손 아이템 표시 (예전 PlayerCarry의 ItemDisplay) ---
 
+    void OnRecipeEffect(EffectId id)
+    {
+        PlaceHand();
+        if (itemAnchors == null || itemAnchors.Length == 0 || itemAnchors[0] == null)
+        {
+            CDebug.LogError($"{name}: 조합 VFX를 붙일 손 앵커가 없습니다.", this);
+            return;
+        }
+        EffectManager.PlayAttached(id, itemAnchors[0], 0f);
+    }
     void RefreshHand()
     {
         if (carry == null) return;
@@ -362,10 +378,10 @@ public class PlayerVisuals : NetworkBehaviour
             if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
     }
 
-    /// 묻으면 등의 가방이 꺼진다. 전원에게 보인다 — 적이 묻은 곳을 찾는 단서다 (기획서 6.7).
+    /// 묻으면 등의 가방이 꺼진다. 전원에게 보인다 — 적이 묻은 곳을 찾는 단서다 (기획서 6.7). 낮에도 꺼진다.
     void RefreshBag()
     {
-        if (Model != null) Model.ShowBag(inventory.HasBag);
+        if (Model != null) Model.ShowBag(inventory.BagVisible);
     }
 
     // --- 공개 소지 표시 (예전 PublicCarryDisplay) ---

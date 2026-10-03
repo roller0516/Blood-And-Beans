@@ -16,6 +16,7 @@ public class SaleRegister : NetworkBehaviour
 
     public Ingredient[] Popular { get; set; } = NoPopular;
     public int LastSale { get; private set; }
+    public static event System.Action<ulong, Vector3, int, Gauge, bool, int> SaleShown;
 
     public override void OnNetworkSpawn()
     {
@@ -46,17 +47,18 @@ public class SaleRegister : NetworkBehaviour
         var grade = recipe.Contains(Ingredient.BloodBean) ? BeanGrade.Blood : BeanGrade.Normal;
 
         var price = SalePrice.Calculate(
-            info.BasePrice, GaugeOf(info), grade, isDessert, recipe, Popular);
+            info.BasePrice, SalePrice.GaugeOf(info.Burnt, info.GaugeMultiplier), grade, isDessert, recipe, Popular);
 
         // 종족 가중치는 손님 고유의 배율이고 (5.5), 5.6.2 공식의 일부가 아니다.
         LastSale = Mathf.RoundToInt(price * Mathf.Max(0f, info.RacePriceWeight));
         board?.AddSale(team, LastSale);
+        if (LastSale > 0)
+            foreach (var client in NetworkManager.ConnectedClientsList)
+                if (PlayerTeam.Of(client.ClientId) == team)
+                    SaleRpc(info.CustomerId, info.Position, LastSale, SalePrice.GaugeOf(info.Burnt, info.GaugeMultiplier),
+                        info.Complete, team, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
     }
-
-    /// ServeInfo는 배율을 들고 오지만 SalePrice가 원하는 것은 그 배율을 만든 판정이다.
-    static Gauge GaugeOf(ServeInfo info) =>
-        info.Burnt ? Gauge.Burnt :
-        info.GaugeMultiplier >= 1.3f ? Gauge.Perfect :
-        info.GaugeMultiplier >= 1.0f ? Gauge.Good :
-                                       Gauge.Miss;
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void SaleRpc(ulong customerId, Vector3 position, int amount, Gauge gauge, bool complete, int saleTeam, RpcParams p = default) =>
+        SaleShown?.Invoke(customerId, position, amount, gauge, complete, saleTeam);
 }

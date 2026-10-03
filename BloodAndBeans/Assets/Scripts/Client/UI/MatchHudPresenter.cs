@@ -13,6 +13,7 @@ public sealed class MatchHudPresenter
     readonly TransitionLedger ledger;
     readonly float refreshInterval;
     readonly StringBuilder text = new();
+    readonly System.Collections.Generic.List<MatchHudModel.Standing> standings = new();
 
     float nextRefresh;
 
@@ -25,6 +26,7 @@ public sealed class MatchHudPresenter
     /// `PlayerInteractor` 둘로 나뉘어 이 필드도 둘이었다.
     PlayerController controller;
     DashHarass dash;
+    PlayerInputRouter input;
     PlayerCarry carry;
     PlayerCharacter character;
     PlayerAbilities abilities;
@@ -36,6 +38,10 @@ public sealed class MatchHudPresenter
     /// 1인 1팀이면 영영 못 찾지만, 후보가 접속자 수(최대 8)뿐이라 갱신 주기당 그 순회가
     /// 전부다.
     PlayerCarry mate;
+
+    /// 손 아이템이 놓이는 자리를 든 표현 컴포넌트. 제조 카드가 그 위에 뜬다 (5.7.3).
+    PlayerVisuals visuals;
+    PlayerVisuals mateVisuals;
 
     /// 브레인이 붙은 카메라. 귀환 방향을 화면 기준으로 돌리는 데만 쓴다. 늦게 생기므로
     /// 아직 못 잡았을 때만 한 번 찾고, 잡은 뒤에는 다시 찾지 않는다 (AGENTS.md).
@@ -83,7 +89,7 @@ public sealed class MatchHudPresenter
 
         model.Day = $"{phase.Day}일차";
         model.PhaseName = phase.Finished ? "종료" : PhaseLabel(phase.Current);
-        model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining);
+        model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining, phase.Current == Phase.Day);
         model.Team = DisplayNames.Team(team);
 
         // 호스트는 자기 자신이 서버라 잴 왕복이 없다.
@@ -131,17 +137,30 @@ public sealed class MatchHudPresenter
         if (phase.Current != Phase.Transition) FillDash(ref model);
 
         model.IsDay = phase.Current == Phase.Day && !phase.Finished;
+        model.DayCounter = $"{phase.Day}/{DayPhases.TotalDays}";
+        model.DayRemaining = phase.Remaining;
+        var dayDuration = phase.Duration(Phase.Day);
+        model.DayTimeRatio = dayDuration > 0f ? Mathf.Clamp01(model.DayRemaining / dayDuration) : 0f;
+        // 팀원의 제조 카드도 그린다. 낮에는 `BuildDetails`가 돌지 않아 여기서 찾는다 — 찾은 뒤에는 다시 찾지 않는다.
+        if (model.IsDay) RefreshMate(team);
         if (model.IsDay && cafe != null)
         {
             model.Revenue = $"오늘 매출 {cafe.DaySales:N0} / {cafe.DayBill:N0}G";
             model.RentMet = cafe.DayBill > 0 && cafe.DaySales >= cafe.DayBill;
-            model.DayRemaining = phase.Remaining;
+            model.DaySales = cafe.DaySales;
+            model.DayBill = cafe.DayBill;
             model.ShowDash = false;
-            text.Clear();
+            standings.Clear();
             if (board != null)
                 foreach (var rankedTeam in board.Ranking())
-                    text.Append($"{(rankedTeam == team ? "●" : "")} {DisplayNames.Team(rankedTeam)} {board.RevenueOf(rankedTeam):N0}   ");
-            model.Ranking = text.ToString();
+                    standings.Add(new MatchHudModel.Standing
+                    {
+                        Team = rankedTeam,
+                        Name = DisplayNames.Team(rankedTeam),
+                        Revenue = board.RevenueOf(rankedTeam),
+                        Mine = rankedTeam == team,
+                    });
+            model.Standings = standings;
         }
         model.Details = model.IsDay ? string.Empty : BuildDetails(team, cafe, board);
 
@@ -149,7 +168,13 @@ public sealed class MatchHudPresenter
         // 훑던 것을 없앤다 — `PlayerController`가 프레임당 한 번만 대상을 캐시하므로
         // 값 자체는 같지만, 여기서 두 번 읽으면 그 절약이 무의미해진다.
         var prompt = controller != null ? controller.Prompt : string.Empty;
-        model.Prompt = string.IsNullOrEmpty(prompt) ? null : $"[F] {prompt}";
+
+        // 건네기는 중앙이 아니라 양쪽 머리 위에 뜬다 (기획서 5.7.4) — `Handoff`가 그린다.
+        if (controller != null && controller.Target is PlayerCarry) prompt = string.Empty;
+
+        model.Prompt = !string.IsNullOrEmpty(prompt) ? $"[F] {prompt}"
+            : controller != null && controller.Denied ? "안 됨"
+            : null;
         return model;
     }
 
@@ -209,6 +234,7 @@ public sealed class MatchHudPresenter
         if (dash == null || abilities == null) return;
 
         model.ShowDash = true;
+        model.DashKey = input != null ? input.DashBinding : string.Empty;
         if (dash.BlockedByLoad)
         {
             model.DashTime = "과적";
@@ -219,9 +245,8 @@ public sealed class MatchHudPresenter
         // 쿨다운은 공통 슬롯이 든다. 무게 차단만 몸(`DashHarass`)이 답한다.
         var left = abilities.CommonCooldownRemaining;
         var full = abilities.CommonCooldownDuration;
-        model.DashReady = left <= 0f;
-        model.DashTime = model.DashReady ? "준비" : $"{left:0.0}s";
-        model.DashRatio = model.DashReady || full <= 0f ? 1f : 1f - left / full;
+        model.DashTime = left > 0f ? Mathf.CeilToInt(left).ToString() : string.Empty;
+        model.DashRatio = left > 0f && full > 0f ? Mathf.Clamp01(left / full) : 0f;
     }
 
     /// 귀환 지시기 한 프레임분. 화면 어디에 놓을지와 무엇을 쓸지만 담는다 —
@@ -233,6 +258,86 @@ public sealed class MatchHudPresenter
         public bool Offscreen;
         public float Angle;        // 화살표 회전(도). 화면 밖일 때만 의미가 있다
         public string Label;       // "귀환 · 42m"
+    }
+
+    /// 건네기 프롬프트 한 프레임분. 포커스 대상이 팀원일 때만 켜진다 (기획서 5.7.4).
+    public struct HandoffMarker
+    {
+        public bool Show;
+        public Vector3 Self;       // 두 사람의 발밑 좌표. 머리 위 높이는 화면이 정한다
+        public Vector3 Mate;
+        public string Label;       // "[F] 건네기"
+        public Camera View;
+    }
+
+    /// 제조 카드 한 프레임분 (기획서 5.7.3). 나와 팀원의 손. 공개 범위가 자기 팀이라 둘뿐이다.
+    public struct MakingCards
+    {
+        public bool ShowSelf;
+        public CarryView Self;
+        public Vector3 SelfAt;     // 들고 있는 식기 자리. 카드 높이는 화면이 정한다
+        public bool ShowMate;
+        public CarryView Mate;
+        public Vector3 MateAt;
+        public Camera View;
+    }
+
+    /// 매 프레임 불린다 — 식기를 따라다녀야 한다. 문자열은 만들지 않는다.
+    public MakingCards Cards
+    {
+        get
+        {
+            var cards = new MakingCards();
+            if (phase == null || !phase.IsSpawned || phase.Current != Phase.Day || phase.Finished) return cards;
+
+            if (cam == null) cam = Camera.main;
+            if (cam == null) return cards;
+            cards.View = cam;
+
+            if (carry != null && visuals != null)
+            {
+                cards.Self = carry.View;
+                cards.ShowSelf = cards.Self.PartCount > 0;
+                cards.SelfAt = visuals.HeldAnchor.position;
+            }
+            if (mate != null && mateVisuals != null)
+            {
+                cards.Mate = mate.View;
+                cards.ShowMate = cards.Mate.PartCount > 0;
+                cards.MateAt = mateVisuals.HeldAnchor.position;
+            }
+            return cards;
+        }
+    }
+
+    string handoffPrompt;
+    string handoffLabel;
+
+    /// 매 프레임 불린다 — 두 사람이 움직이는 동안 머리를 따라가야 한다. 문구는 바뀔 때만 만든다.
+    public HandoffMarker Handoff
+    {
+        get
+        {
+            var marker = new HandoffMarker();
+            if (controller == null || cachedPlayer == null || controller.Target is not PlayerCarry mate) return marker;
+
+            if (cam == null) cam = Camera.main;
+            if (cam == null) return marker;
+
+            var prompt = controller.Prompt;
+            if (!ReferenceEquals(prompt, handoffPrompt))
+            {
+                handoffPrompt = prompt;
+                handoffLabel = $"[F] {prompt}";
+            }
+
+            marker.Show = true;
+            marker.Self = cachedPlayer.transform.position;
+            marker.Mate = mate.transform.position;
+            marker.Label = handoffLabel;
+            marker.View = cam;
+            return marker;
+        }
     }
 
     /// 마커가 뜨는 높이. 복귀 구역은 바닥에 깔려 있어서 그 자리에 그대로 붙이면
@@ -298,11 +403,12 @@ public sealed class MatchHudPresenter
         }
     }
 
-    /// mm:ss.fff. 밤은 초 단위로 쫓기는 구간이라 소수점이 남아 있어야 한다.
-    static string Clock(float seconds)
+    /// 낮 시계는 m:ss, 밤은 초 단위로 쫓기는 구간이라 mm:ss.fff로 표시한다.
+    static string Clock(float seconds, bool compact)
     {
         var span = System.TimeSpan.FromSeconds(Mathf.Max(0f, seconds));
-        return $"{(int)span.TotalMinutes:00}:{span.Seconds:00}.{span.Milliseconds:000}";
+        return compact ? $"{(int)span.TotalMinutes}:{span.Seconds:00}"
+            : $"{(int)span.TotalMinutes:00}:{span.Seconds:00}.{span.Milliseconds:000}";
     }
 
     static string PhaseLabel(Phase p) => p switch
@@ -395,12 +501,15 @@ public sealed class MatchHudPresenter
         inventory = player != null ? player.GetComponent<PlayerInventory>() : null;
         controller = player != null ? player.GetComponent<PlayerController>() : null;
         dash = player != null ? player.GetComponent<DashHarass>() : null;
+        input = player != null ? player.GetComponent<PlayerInputRouter>() : null;
         abilities = player != null ? player.GetComponent<PlayerAbilities>() : null;
         carry = player != null ? player.GetComponent<PlayerCarry>() : null;
+        visuals = player != null ? player.GetComponent<PlayerVisuals>() : null;
 
         // 로컬 플레이어가 바뀌면 팀도 바뀔 수 있다. 옛 팀의 팀원을 계속 들고 있으면
         // 남의 손을 내 HUD에 그린다.
         mate = null;
+        mateVisuals = null;
     }
 
     /// 같은 팀의 다른 플레이어를 한 번 찾는다. 이미 잡았거나 팀이 없으면 아무것도 하지 않는다.
@@ -428,7 +537,10 @@ public sealed class MatchHudPresenter
             if (owner == null || owner.Team != team) continue;
 
             mate = player.GetComponent<PlayerCarry>();
+            mateVisuals = player.GetComponent<PlayerVisuals>();
             if (mate != null) return;
         }
     }
 }
+
+

@@ -42,7 +42,10 @@ public class PlayerInputRouter : NetworkBehaviour
 
     /// 이 플레이어의 카메라 축. 소유자만 돌린다 (`PlayerCameraRoot`).
     PlayerCameraRoot cameraRoot;
-    public string SkillBinding => skillAction != null ? skillAction.GetBindingDisplayString() : string.Empty;
+    /// HUD 칸 아래에 적는 키. 게임패드 바인딩까지 이어 붙지 않게 키보드 스킴만 읽는다.
+    const string KeyboardScheme = "Keyboard&Mouse";
+    public string SkillBinding => skillAction != null ? skillAction.GetBindingDisplayString(group: KeyboardScheme) : string.Empty;
+    public string DashBinding => dashAction != null ? dashAction.GetBindingDisplayString(group: KeyboardScheme) : string.Empty;
 
     public override void OnNetworkSpawn()
     {
@@ -63,7 +66,7 @@ public class PlayerInputRouter : NetworkBehaviour
         buryAction = actions.FindAction("Player/Sprint", true);
 
         // 밤 액티브 스킬 (기획서 9.2). 액션 애셋에 이미 있고 쓰이지 않던 Previous를 쓴다
-        // (키보드 1, 게임패드 D-pad 왼쪽). 새 바인딩을 만들지 않았다 — 묻기가 Sprint를
+        // (키보드 Q, 게임패드 D-pad 왼쪽). 새 바인딩을 만들지 않았다 — 묻기가 Sprint를
         // 쓴 것과 같은 방식이다.
         //
         // 기획서 11장은 "캐릭터 능력은 전부 패시브이므로 스킬 키가 없다"고 적혀 있지만,

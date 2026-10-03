@@ -105,7 +105,7 @@ public class PlayerAbilities : NetworkBehaviour
 
     /// 미끼는 진짜를 만드는 쪽의 프리팹을 빌린다. 따로 꽂으면 진짜만 바뀌었을 때 미끼가 들킨다.
     public ItemBox DecoyBox => director != null ? director.BoxPrefab : null;
-    public BuriedBag DecoyBag => inventory != null ? inventory.BuriedBagPrefab : null;
+    public PlayerInventory Inventory => inventory;
     public int TeamId => team != null ? team.Team : -1;
 
     /// 같은 오브젝트의 부품들. 능력이 `GetComponent`를 반복하지 않게 여기서 한 번 잡는다.

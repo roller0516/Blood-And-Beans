@@ -12,7 +12,8 @@ public class PrepIsland : NetworkBehaviour, IInteractable, IItemHolder
     Collider surface;
     public event System.Action ContentsChanged;
     public int SlotCount => views.Count;
-    public int HighlightSlot => -1;
+    /// 먼저 둔 것부터 나가므로(5.4-13) 다음에 F가 집는 것은 늘 맨 앞이다.
+    public int HighlightSlot => views.Count > 0 ? 0 : -1;
     public CarryView SlotAt(int index) => index >= 0 && index < views.Count ? views[index] : CarryView.Nothing;
     public string Prompt => views.Count == 0 ? "보관대 · F로 내려놓기" : $"보관대 · {views.Count}개 · F로 놓기/가져가기";
     void Awake() { cafe = Cafe.Of(this); surface = GetComponentInChildren<Collider>(true); }

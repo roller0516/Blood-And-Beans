@@ -376,6 +376,13 @@ public class PlayerController : NetworkBehaviour
     /// 여기를 읽는다 — 안내와 테두리가 서로 다른 설비를 가리키면 둘 다 못 믿게 된다.
     public IInteractable Target => IsAlive(cachedTarget) ? cachedTarget : null;
 
+    /// F가 아무 대상에도 닿지 않았을 때 프롬프트 자리에 「안 됨」을 띄우는 시간 (기획서 5.7.3).
+    [SerializeField, Min(0f)] float deniedSeconds = 0.8f;
+    float deniedUntil = float.NegativeInfinity;
+
+    /// 방금 F가 먹지 않았다. 소리(`NotAllowed`)와 같은 순간에 켜진다.
+    public bool Denied => Time.unscaledTime < deniedUntil;
+
     /// 마지막으로 F를 누른 대상. `Current`와 달리 F를 놓아도 남는다 — 재료 칸의 그리드
     /// 창은 누르고 있는 동안이 아니라 닫을 때까지 떠 있다 (기획서 6.5.4). 창을 여는 쪽이
     /// 거리를 다시 확인하므로, 여기 남아 있다는 것만으로 창이 뜨지는 않는다.
@@ -424,7 +431,10 @@ public class PlayerController : NetworkBehaviour
 
         current = Nearest();
         if (current == null && phase != null && phase.Started && !phase.Finished && phase.Current != Phase.Transition)
+        {
             SoundPlayed?.Invoke(SfxCue.NotAllowed, transform.position, -1);
+            deniedUntil = Time.unscaledTime + deniedSeconds;
+        }
         if (current != null) Latest = current;
         current?.BeginInteractionClient();
     }

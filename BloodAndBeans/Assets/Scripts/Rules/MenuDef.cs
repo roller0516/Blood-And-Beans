@@ -109,6 +109,21 @@ public static class Menus
         return MenuId.None;
     }
 
+    /// 기획서 5.7.3: 지금 조합에 재료를 더하면 메뉴가 되는 길이 남아 있는가.
+    public static bool CanComplete(IEnumerable<Ingredient> parts)
+    {
+        var got = parts.Select(Normalize).ToArray();
+        if (got.Length == 0) return false;
+        foreach (var menu in All)
+        {
+            var remaining = new List<Ingredient>(menu.Parts);
+            var possible = true;
+            foreach (var ingredient in got)
+                if (!remaining.Remove(ingredient)) { possible = false; break; }
+            if (possible) return true;
+        }
+        return false;
+    }
     public static int BasePriceOf(MenuId id)
     {
         foreach (var m in All) if (m.Id == id) return m.BasePrice;

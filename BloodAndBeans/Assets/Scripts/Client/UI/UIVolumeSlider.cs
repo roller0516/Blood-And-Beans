@@ -6,9 +6,14 @@ public sealed class UIVolumeSlider : MonoBehaviour
 {
     [SerializeField] SoundBus bus;
     [SerializeField] Slider slider;
+    [SerializeField] UISliderInput input;
 
     /// 저장된 값을 보여 준다. 적용 전까지는 소리를 바꾸지 않는다.
-    public void Show() => slider.SetValueWithoutNotify(SoundManager.Instance.GetVolume(bus));
+    public void Show()
+    {
+        slider.SetValueWithoutNotify(SoundManager.Instance.GetVolume(bus));
+        input.Refresh();
+    }
 
     public void Apply() => SoundManager.Instance.SetVolume(bus, slider.value);
 }

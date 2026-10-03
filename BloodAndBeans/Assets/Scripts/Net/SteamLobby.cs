@@ -664,7 +664,8 @@ public class SteamLobby : MonoBehaviour
         }
 
         // 원하는 팀은 접속 승인 페이로드로 간다. 서버가 정원을 보고 받아들이거나 거절한다.
-        manager.NetworkConfig.ConnectionData = MatchSeating.EncodeTeamRequest(team, SelectedCharacter);
+        manager.NetworkConfig.ConnectionData = MatchSeating.EncodeTeamRequest(team, SelectedCharacter,
+            backend != null ? backend.SelfName : null);
 
         // 에디터 플랫폼은 스팀을 아예 켜지 않으므로 로컬 트랜스포트로 붙는다 — 같은 PC의
         // 창끼리라 상대 주소가 필요 없다.

@@ -510,7 +510,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Game::PrepIsland
   ShowTopMostFoldoutHeaderGroup: 1
   reach: 2.5
-  beltSeconds: 1.2
 --- !u!114 &6930565554344663811
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -526,8 +525,15 @@ MonoBehaviour:
   config: {fileID: 11400000, guid: 14d50ef31c03c2449a41ded492084163, type: 2}
   anchors:
   - {fileID: 5293362674561000999}
-  highlightScale: 1.4
-  highlightOffset: {x: 0, y: 0.1, z: 0}
+  highlightScale: 1
+  highlightOffset: {x: 0, y: 0, z: 0}
+  unlimited: 1
+  rowStart: {x: -1.2, y: 1.095, z: -0.25}
+  rowStep: {x: 0.5, y: 0, z: 0}
+  rowWrap: 7
+  wrapStep: {x: 0, y: 0, z: 0.5}
+  stackStart: {x: -1.85, y: 1.095, z: 0}
+  stackStep: {x: 0, y: 0.1, z: 0}
 --- !u!65 &6567904271454453720
 BoxCollider:
   m_ObjectHideFlags: 0

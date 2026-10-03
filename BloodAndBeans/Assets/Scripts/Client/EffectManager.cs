@@ -80,20 +80,37 @@ public class EffectManager : MonoBehaviour
 
     /// 어떤 씬 오브젝트의 `Awake`보다 먼저 돈다. 불러오기는 비동기라 첫 연출보다 늦을 수는
     /// 있지만, 연출은 한 판이 시작된 뒤에야 터진다.
+    ///
+    /// `Preserve()`가 아니라 `UniTaskCompletionSource`다 — `Preserve()`는 끝나기 전에 둘이 동시에
+    /// 기다리면 "can not await twice"로 터진다. 매치 준비와 캐릭터 준비가 실제로 동시에 기다린다.
+    static UniTaskCompletionSource creation;
+
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-    static void CreateIfMissing() => CreateAsync().Forget();
+    static void CreateIfMissing()
+    {
+        creation = new UniTaskCompletionSource();
+        CreateAsync().Forget();
+    }
 
     /// 표 프리팹 자체의 핸들은 놓지 않는다. 앱이 끝날 때까지 사는 오브젝트라 놓을 시점이 없다.
     /// 표 안의 개별 연출 프리팹은 별개로 관리한다(`loading`/`matchOwned`).
     static async UniTaskVoid CreateAsync()
     {
-        var prefab = await ResourceManager.Instance.LoadAsync<GameObject>(Address);
+        // 불러오기가 실패해도 기다리는 쪽을 풀어 준다. 표가 없으면 연출 없이 진행한다.
+        try
+        {
+            var prefab = await ResourceManager.Instance.LoadAsync<GameObject>(Address);
 
-        // 씬에 손으로 놓아 둔 것이 있으면 두 번 만들지 않는다.
-        if (Instance != null) return;
+            // 씬에 손으로 놓아 둔 것이 있으면 두 번 만들지 않는다.
+            if (Instance != null) return;
 
-        // "(Clone)"을 떼어 로그에서 프리팹과 같은 이름으로 보이게 한다.
-        Instantiate(prefab).name = Address;
+            // "(Clone)"을 떼어 로그에서 프리팹과 같은 이름으로 보이게 한다.
+            Instantiate(prefab).name = Address;
+        }
+        finally
+        {
+            creation.TrySetResult();
+        }
     }
 
     void Awake()
@@ -121,6 +138,9 @@ public class EffectManager : MonoBehaviour
         }
     }
 
+    /// UI 로딩이 지연돼도 공통 연출은 매니저가 독립적으로 준비한다.
+    void Start() => PrepareCommonAsync(this.GetCancellationTokenOnDestroy()).Forget();
+
     void OnDestroy()
     {
         if (Instance == this) Instance = null;
@@ -130,24 +150,28 @@ public class EffectManager : MonoBehaviour
 
     /// 전원이 쓰는 공통 연출(대시 히트·쏟김·상호작용 성공)을 불러온다. 매치 준비 단계에서
     /// 한 번 기다린다 — 첫 대시가 터지는 순간에야 불러오면 그 한 번만 늦게 보인다.
-    public static UniTask PrepareCommonAsync(System.Threading.CancellationToken ct = default)
+    public static async UniTask PrepareCommonAsync(System.Threading.CancellationToken ct = default)
     {
+        // 직접 매치 씬에서 시작해도 표가 생기기 전에 준비 요청을 버리지 않는다.
+        await creation.Task.AttachExternalCancellation(ct);
         var manager = Instance;
-        if (manager == null) return UniTask.CompletedTask;
+        if (manager == null) return;
 
         var loads = new List<UniTask>();
         foreach (var entry in manager.table.Values)
             if (entry.common) loads.Add(manager.EnsureLoadedAsync(entry.id, ct));
-        return UniTask.WhenAll(loads);
+        await UniTask.WhenAll(loads);
     }
 
     /// 이 캐릭터가 이번 매치에 있다. 그 캐릭터의 낮·밤 액티브가 쓰는 연출만 골라 불러온다.
     /// 같은 캐릭터를 여러 참가자가 골랐어도, 이미 불러왔거나 불러오는 중인 연출은
     /// 다시 요청하지 않는다(`EnsureLoadedAsync`).
-    public static UniTask NoteCharacterAsync(CharacterId characterId, System.Threading.CancellationToken ct = default)
+    public static async UniTask NoteCharacterAsync(CharacterId characterId, System.Threading.CancellationToken ct = default)
     {
+        // 직접 매치 씬에서 시작해도 표가 생기기 전에 준비 요청을 버리지 않는다.
+        await creation.Task.AttachExternalCancellation(ct);
         var manager = Instance;
-        if (manager == null) return UniTask.CompletedTask;
+        if (manager == null) return;
 
         var loads = new List<UniTask>();
         foreach (var id in CharacterEffectIds(characterId))
@@ -155,7 +179,7 @@ public class EffectManager : MonoBehaviour
             if (!manager.table.TryGetValue(id, out var entry) || entry.common) continue;
             loads.Add(manager.EnsureLoadedAsync(id, ct));
         }
-        return UniTask.WhenAll(loads);
+        await UniTask.WhenAll(loads);
     }
 
     /// 이 캐릭터의 낮 액티브·밤 액티브가 그리는 연출 id. `AbilityFactory`가 스킬 종류를
@@ -384,3 +408,6 @@ public class EffectManager : MonoBehaviour
         else Park(effect);
     }
 }
+
+
+

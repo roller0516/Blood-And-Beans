@@ -15,6 +15,9 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public MenuId Menu;
     public bool IsProduct;
     public bool Burnt;
+
+    /// 완성품의 판정 (기획서 5.2). 말풍선 코인 탭이 받을 돈에 곱한다 (5.7.2). 완성품일 때만 뜻이 있다.
+    public Gauge Gauge;
     public bool HasDish;
     public bool DishIsPlate;
     public bool Dirty;
@@ -25,6 +28,37 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
 
     /// 재료 개수 (기획서 9.1 「양손잡이」). 1이면 이름표에 표시하지 않는다.
     public int Count;
+
+    /// 깨끗한 식기에 담긴 재료를 넣은 순서대로 (제조 카드, 기획서 5.7.3). 한 칸에 8비트로
+    /// `(int)재료 + 1`을 싣고 0은 빈칸이다. 배열은 `NetworkVariable`에 실을 수 없어서 접는다.
+    public ulong Parts;
+
+    public const int MaxParts = 8;
+
+    public int PartCount
+    {
+        get
+        {
+            var count = 0;
+            for (var packed = Parts; packed != 0 && count < MaxParts; packed >>= 8) count++;
+            return count;
+        }
+    }
+
+    public Ingredient PartAt(int index) => (Ingredient)((int)((Parts >> (8 * index)) & 0xFF) - 1);
+
+    /// 조리 전의 바탕은 `Recipe` 없이 `Ingredient`로만 들려 있다. 그것도 첫 칸으로 싣는다.
+    static ulong PackParts(HeldItem item)
+    {
+        if (!item.HasDish || item.Dirty) return 0;
+        if (item.Recipe == null || item.Recipe.Length == 0)
+            return item.Ingredient == Ingredient.None ? 0 : (ulong)((int)item.Ingredient + 1);
+
+        ulong packed = 0;
+        var count = System.Math.Min(item.Recipe.Length, MaxParts);
+        for (var i = 0; i < count; i++) packed |= (ulong)((int)item.Recipe[i] + 1) << (8 * i);
+        return packed;
+    }
 
     /// `default(CarryView)`는 "우유를 들고 있음"으로 읽힌다. `Ingredient.None`과
     /// `MenuId.None`이 0이 아니라 -1이기 때문이다 (`HeldItem.Nothing`과 같은 함정).
@@ -41,16 +75,23 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     /// (`HeldItem.Amount`) 그 자리에 개수를 넣으면 항상 1만 보인다.
     public static CarryView Of(HeldItem item) => new()
     {
-        Ingredient = item.IsProduct ? Ingredient.None : item.Ingredient,
+        Ingredient = item.IsProduct ? BaseOf(item) : item.Ingredient,
         Menu = item.IsProduct ? item.Menu : MenuId.None,
         IsProduct = item.IsProduct,
         Assembled = item.IsAssembly,
         Burnt = item.Burnt,
+        Gauge = SalePrice.GaugeOf(item.Burnt, item.GaugeMultiplier),
         HasDish = item.HasDish,
         DishIsPlate = item.DishIsPlate,
         Dirty = item.Dirty,
         Count = item.IsAssembly ? item.Recipe.Length : (item.Empty ? 0 : item.Amount),
+        Parts = PackParts(item),
     };
+
+    /// 메뉴가 없는 한 가지짜리 완성품(오븐에서 나온 빵 베이스)은 바탕을 실어 바탕 모델로 그린다.
+    /// 설비 판정(`SharedFacility.Accepts`)은 완성품을 먼저 걸러 이 값을 보지 않는다.
+    static Ingredient BaseOf(HeldItem item) =>
+        item.Menu == MenuId.None && item.Recipe is { Length: 1 } ? item.Recipe[0] : Ingredient.None;
 
     /// 표시용 이름. 재료·메뉴의 한글 이름표가 아직 없어서 enum 이름을 그대로 쓴다 —
     /// HUD의 인기 재료 표시와 같은 방식이다.
@@ -80,10 +121,12 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
         serializer.SerializeValue(ref IsProduct);
         serializer.SerializeValue(ref Assembled);
         serializer.SerializeValue(ref Burnt);
+        serializer.SerializeValue(ref Gauge);
         serializer.SerializeValue(ref Count);
         serializer.SerializeValue(ref HasDish);
         serializer.SerializeValue(ref DishIsPlate);
         serializer.SerializeValue(ref Dirty);
+        serializer.SerializeValue(ref Parts);
     }
 
     /// `NetworkVariable`은 `IEquatable`을 구현한 타입이면 `Equals`로 변경을 판정한다
@@ -92,5 +135,5 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
     public bool Equals(CarryView other) =>
         Ingredient == other.Ingredient && Menu == other.Menu &&
         IsProduct == other.IsProduct && Assembled == other.Assembled &&
-        Burnt == other.Burnt && Count == other.Count && HasDish == other.HasDish && DishIsPlate == other.DishIsPlate && Dirty == other.Dirty;
+        Burnt == other.Burnt && Gauge == other.Gauge && Count == other.Count && HasDish == other.HasDish && DishIsPlate == other.DishIsPlate && Dirty == other.Dirty && Parts == other.Parts;
 }

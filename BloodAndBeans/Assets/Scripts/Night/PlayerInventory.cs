@@ -123,6 +123,7 @@ public class PlayerInventory : NetworkBehaviour
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = phase;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered += OnPhaseEntered;
+        LoadChanged?.Invoke();  // 낮에 붙었으면 가방을 지금 숨겨야 한다
 
         // 원장이 이제야 잡혔다. 밴드가 옮겨져 있으면 지금 값이 달라진다.
         PushSpeedServer();
@@ -131,6 +132,7 @@ public class PlayerInventory : NetworkBehaviour
     /// 가방을 잃어버리거나 소각당했더라도 다음 밤이 시작되면 다시 기본 지급된다.
     void OnPhaseEntered(Phase p)
     {
+        LoadChanged?.Invoke();  // 낮 가방 숨김은 페이즈로 갈린다 (`BagVisible`)
         if (!IsServer || p != Phase.Night) return;
         ClearServer();
         hasBag.Value = true;
@@ -175,6 +177,9 @@ public class PlayerInventory : NetworkBehaviour
 
     /// 가방을 메고 있는가. 묻어 둔 동안에는 아무것도 담을 수 없고 무게도 0이다.
     public bool HasBag => hasBag.Value;
+
+    /// 등에 가방이 보이는가. 낮에는 가방을 쓰지 않으므로 메고 있어도 숨긴다.
+    public bool BagVisible => hasBag.Value && (subscribedPhase == null || subscribedPhase.Current != Phase.Day);
 
     /// 이번 밤에 묻고 아무도 회수하지 않은 재료 수. 빈 가방 재지급으로 지우지 않는다.
     /// 팀원이 회수하면 그 가방의 수량만 차감하고, 새 밤에는 초기화한다 (기획서 6.8).
@@ -334,6 +339,24 @@ public class PlayerInventory : NetworkBehaviour
         SpawnPilesServer(DrainServer(), transform.position);
     }
 
+    /// 서 있는 자리 발밑에 가방을 세운다. 진짜(`BuryRpc`)와 미끼(`IllusionAbility`)가 같은 높이에
+    /// 놓여야 높이로 가짜가 들키지 않으므로 한 곳에 둔다. 스폰은 부르는 쪽이 한다.
+    public BuriedBag InstantiateBagAtFeetServer()
+    {
+        var at = transform.position;
+        var bag = Instantiate(buriedBagPrefab, at, Quaternion.identity);
+
+        var body = bag.GetComponent<Collider>();
+        if (body == null)
+            // 콜라이더가 없으면 `PlayerController`의 트리거 후보에 잡히지 않아 아무도 회수도
+            // 소각도 할 수 없고, 접지 보정도 걸리지 않아 가슴 높이에 뜬 채로 남는다.
+            Debug.LogError($"{buriedBagPrefab.name}에 Collider가 없다. 가방을 찾을 수도 "
+                         + "바닥에 맞출 수도 없다.", buriedBagPrefab);
+        else
+            bag.transform.position += Vector3.up * (FeetY(at) - body.bounds.min.y);
+        return bag;
+    }
+
     /// 서 있는 자리에 가방을 묻는다 (기획서: 무게를 비워 대시를 쓰기 위한 선택).
     /// 묻은 가방은 아군에게만 표시되고, 적이 찾아내면 소각당한다 (`BuriedBag`).
     [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
@@ -348,17 +371,7 @@ public class PlayerInventory : NetworkBehaviour
             return;
         }
 
-        var at = transform.position;
-        var bag = Instantiate(buriedBagPrefab, at, Quaternion.identity);
-
-        var body = bag.GetComponent<Collider>();
-        if (body == null)
-            // 콜라이더가 없으면 `PlayerController`의 트리거 후보에 잡히지 않아 아무도 회수도
-            // 소각도 할 수 없고, 접지 보정도 걸리지 않아 가슴 높이에 뜬 채로 남는다.
-            Debug.LogError($"{buriedBagPrefab.name}에 Collider가 없다. 가방을 찾을 수도 "
-                         + "바닥에 맞출 수도 없다.", buriedBagPrefab);
-        else
-            bag.transform.position += Vector3.up * (FeetY(at) - body.bounds.min.y);
+        var bag = InstantiateBagAtFeetServer();
 
         // 팀을 먼저 심고 스폰한다. 스폰 뒤에 쓰면 그 값은 다음 틱의 델타로 가고, 적
         // 클라이언트는 팀 미상(-1) 상태로 스폰을 받아 그동안 가방을 그대로 렌더한다.

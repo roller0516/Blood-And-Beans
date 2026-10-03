@@ -1,5 +1,23 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-60032301405974998
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5fc7dab8e5308a0488a3a2a9cc5b695b, type: 3}
+  m_Name: TargetOutline
+  m_EditorClassIdentifier: BB.Client::OutlineFeature
+  m_Active: 1
+  maskMaterial: {fileID: 2100000, guid: 9081feafb66e5984bac952f145d08aab, type: 2}
+  outlineMaterial: {fileID: 2100000, guid: 074b881f32e6ad24abeed20ecba17043, type: 2}
+  nextMaskMaterial: {fileID: 2100000, guid: d8cf96c6fff88e84fa7f9910e39a1901, type: 2}
+  nextOutlineMaterial: {fileID: 2100000, guid: d78e06ed2ddee4d479ce711d144b082f, type: 2}
+  passEvent: 600
 --- !u!114 &11400000
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -27,7 +45,8 @@ MonoBehaviour:
   m_RendererFeatures:
   - {fileID: 7833122117494664109}
   - {fileID: 7282109198944180144}
-  m_RendererFeatureMap: ad6b866f10d7b46cb017acf2bb3f0f65
+  - {fileID: -60032301405974998}
+  m_RendererFeatureMap: ad6b866f10d7b46cb017acf2bb3f0f652acea59ff0b82aff
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
@@ -95,9 +114,9 @@ MonoBehaviour:
     AfterOpaque: 0
     Source: 1
     NormalSamples: 1
-    Intensity: 0.4
+    Intensity: 0.6
     DirectLightingStrength: 0.25
-    Radius: 0.3
+    Radius: 0.8
     Samples: 1
     BlurQuality: 0
     Falloff: 100

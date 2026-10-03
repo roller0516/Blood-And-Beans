@@ -11,16 +11,34 @@ public sealed class UICompletionGauge : MonoBehaviour
     [SerializeField] RectTransform needle;
     [SerializeField] TMP_Text label;
     [SerializeField] UnityEngine.UI.Image progress;
+    [SerializeField] UICraftingJudgement judgement;
     int lastTenths = -1;
     bool lastTarget;
     CompletionGauge soundingGauge;
     int soundingSweep = -1;
     void Awake() => canvas.enabled = false;
+    void OnEnable() => Station.JudgementShown += OnJudgement;
+    void OnDisable()
+    {
+        Station.JudgementShown -= OnJudgement;
+        judgement?.Clear();
+    }
+    void OnJudgement(Station station, Judgement result, int team)
+    {
+        var director = MatchDirector.Instance;
+        if (judgement == null || station == null || team < 0 || team != PlayerTeam.Local() ||
+            director == null || director.Phase.Current != Phase.Day) return;
+        judgement.PlayAt(result, station.FacilityPosition);
+    }
     void LateUpdate()
     {
         var gauge = Pick();
-        canvas.enabled = gauge != null;
-        if (gauge == null) { soundingGauge = null; soundingSweep = -1; return; }
+        var day = MatchDirector.Instance != null && MatchDirector.Instance.Phase.Current == Phase.Day;
+        if (!day) judgement?.Clear();
+        judgement?.RefreshPosition();
+        canvas.enabled = gauge != null || (judgement != null && judgement.IsPlaying);
+        bar.gameObject.SetActive(gauge != null);
+        if (gauge == null) { soundingGauge = null; soundingSweep = -1; lastTenths = -1; return; }
         var cooking = gauge.Station.State == StationState.Cooking;
         good.gameObject.SetActive(!cooking);
         perfect.gameObject.SetActive(!cooking);
