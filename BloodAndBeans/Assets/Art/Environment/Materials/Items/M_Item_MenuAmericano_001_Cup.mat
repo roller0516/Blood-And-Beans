@@ -21,11 +21,10 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: M_Item_MenuAmericano_001_Cup
-  m_Shader: {fileID: 4800000, guid: 5af53c68926e0fe4db6d0c3a3cec8989, type: 3}
+  m_Shader: {fileID: 4800000, guid: bb817d9ead51527429ee00ddfd3a1c86, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _SOFT_TOON
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -42,27 +41,11 @@ Material:
         m_Texture: {fileID: 2800000, guid: d1c0958db187c4f4ea46d340faa431bc, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _BurntMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DetailRegion:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _DirtyMap:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
     - _NormalMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _OverlayRegion:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _PoreMap:
+    - _OcclusionMap:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -84,66 +67,32 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.35
-    - _AddPrecomputedVelocity: 0
-    - _AlphaToMask: 0
-    - _BurntAmount: 0
-    - _BurntBlur: 2.5
-    - _BurntOpacity: 1
-    - _BurntSmoothness: 0.06
-    - _BurntSoftness: 0.2
-    - _BurntUpFacing: 0
-    - _Cull: 2
-    - _Cutoff: 0.5
-    - _DiffuseWrap: 0.024
-    - _DirtyAmount: 0
-    - _DirtyBlur: 2.5
-    - _DirtyOpacity: 0.8
-    - _DirtySmoothness: 0.12
-    - _DirtySoftness: 0.2
-    - _DstBlend: 0
-    - _DstBlendAlpha: 0
+    - _AOStrength: 0.45
+    - _DiffuseWrap: 0.14
     - _EmissionIntensity: 0
-    - _EmissionStrength: 2.58
-    - _GlazeAmount: 0
-    - _GlazeSmoothness: 0.65
+    - _EmissionStrength: 0
     - _Metallic: 0
     - _NormalStrength: 0
-    - _OverlayTileSize: 0.3
-    - _OverlayTriplanar: 0
-    - _OverlayUpFacing: 0
-    - _PoreColor: 0.06
-    - _PoreRoughness: 0.12
-    - _PoreStrength: 0.35
     - _PulseAmount: 0
     - _PulseSpeed: 3.87
     - _QueueControl: 0
     - _QueueOffset: 0
     - _RimPower: 4.56
-    - _RimStrength: 0.35
-    - _RoughnessScale: 1.6
-    - _ShadowStrength: 0.619
+    - _RimStrength: 1.38
+    - _Roughness: 0.72
+    - _RoughnessScale: 1.1
+    - _ShadowStrength: 0.85
     - _SmoothnessMax: 0.34
     - _SmoothnessMin: 0.22
-    - _SoftToon: 1
-    - _SpecularStrength: 2
-    - _SrcBlend: 1
-    - _SrcBlendAlpha: 1
-    - _ToonAmbient: 0.45
-    - _ToonSoftness: 0.35
-    - _ToonSpecular: 0.2
-    - _ToonWrap: 0.2
-    - _UVChannel: 0
-    - _ZWrite: 1
+    - _SpecularStrength: 0.65
+    - _SurfaceLayout: 0
+    - _TeamStrength: 0
+    - _TextureContrast: 0.9
+    - _TextureSaturation: 0.96
     m_Colors:
     - _BaseColor: {r: 1, g: 0.9103774, b: 0.9103774, a: 1}
-    - _BurntColor: {r: 0.022, g: 0.016, b: 0.012, a: 1}
-    - _BurntHeight: {r: 0, g: 0, b: 0, a: 0}
-    - _DirtyColor: {r: 0.17999998, g: 0.10499997, b: 0.05199997, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OverlayHeight: {r: 0, g: 0, b: 0, a: 0}
     - _RimColor: {r: 0.46226418, g: 0.2747682, b: 0.18970276, a: 1}
-    - _ToastColor: {r: 0.29999998, g: 0.11999995, b: 0.035, a: 1}
-    - _ToonShadowTint: {r: 0.42, g: 0.44, b: 0.62, a: 1}
+    - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

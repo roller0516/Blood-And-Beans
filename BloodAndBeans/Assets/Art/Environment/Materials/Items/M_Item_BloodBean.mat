@@ -11,8 +11,7 @@ Material:
   m_Shader: {fileID: 4800000, guid: 5af53c68926e0fe4db6d0c3a3cec8989, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
-  m_ValidKeywords:
-  - _SOFT_TOON
+  m_ValidKeywords: []
   m_InvalidKeywords: []
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
@@ -70,7 +69,7 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.35
+    - _AOStrength: 0.25
     - _AddPrecomputedVelocity: 0
     - _AlphaToMask: 0
     - _BurntAmount: 0
@@ -87,36 +86,23 @@ Material:
     - _DirtySoftness: 0.22
     - _DstBlend: 0
     - _DstBlendAlpha: 0
-    - _GlazeAmount: 0.182
+    - _GlazeAmount: 0.12
     - _GlazeSmoothness: 0.63
     - _Metallic: 0
-    - _NormalStrength: 1
-    - _OverlayTileSize: 1
-    - _OverlayTriplanar: 0
-    - _OverlayUpFacing: 0
-    - _PoreColor: 0.389
+    - _NormalStrength: 0.35
+    - _PoreColor: 0.025
     - _PoreRoughness: 0
-    - _PoreStrength: 0.15
-    - _RimPower: 3
-    - _RimStrength: 0.35
-    - _SmoothnessMax: 1
-    - _SmoothnessMin: 0.465
-    - _SoftToon: 1
+    - _PoreStrength: 0.16
+    - _SmoothnessMax: 0.32
+    - _SmoothnessMin: 0.16
     - _SrcBlend: 1
     - _SrcBlendAlpha: 1
-    - _ToonAmbient: 0.45
-    - _ToonSoftness: 0.35
-    - _ToonSpecular: 0.2
-    - _ToonWrap: 0.2
     - _UVChannel: 0
     - _ZWrite: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 0.98182124, b: 0.9103774, a: 1}
     - _BurntColor: {r: 0.022, g: 0.016, b: 0.012, a: 1}
     - _DirtyColor: {r: 0.17999998, g: 0.10499997, b: 0.05199997, a: 1}
-    - _OverlayHeight: {r: 0, g: 0, b: 0, a: 0}
-    - _RimColor: {r: 1, g: 0.94, b: 0.85, a: 1}
     - _ToastColor: {r: 0.29999998, g: 0.11999995, b: 0.035, a: 1}
-    - _ToonShadowTint: {r: 0.42, g: 0.44, b: 0.62, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
