@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Blood & Beans · 루이지 UI 시안</title>
+  <meta name="description" content="루이지 맨션 3 스타일의 Blood & Beans 캐릭터 교체 UI 시안. 네 캐릭터와 밤 가방 디자인을 비교합니다.">
+  <style>:root{font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#302a31;background:#f4f0e9;font-synthesis:none}
+*{box-sizing:border-box}body{margin:0}main{max-width:1008px;margin:auto;padding:32px 24px 40px}header{margin-bottom:20px}.eyebrow{color:#756181;font-size:10px;letter-spacing:.15em;font-weight:700;margin:0 0 10px}h1{font-size:24px;line-height:1.4;margin:0;font-weight:800}.intro{font-size:13px;color:#786b74;margin:10px 0 16px}nav{display:flex;flex-wrap:wrap;gap:8px}a{color:#655177;font-size:12px}nav a{padding:6px 10px;border:1px solid #dfd4df;border-radius:6px;text-decoration:none;background:#fffaf4}nav a:hover{background:#eee5f2}.character-bar{display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;background:#f4f0e9ed;backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid #e4dbe2}.picker-label{font-size:11px;color:#786b74;white-space:nowrap}.character-options{display:flex;gap:7px;flex-wrap:wrap}button{font:inherit;cursor:pointer}.character-options button{border:1px solid #ddd1df;border-radius:6px;background:#fffaf4;color:#534757;padding:8px 14px;font-size:12px}.character-options button[aria-pressed=true]{background:#675176;border-color:#675176;color:#fff}.character-options button:hover{border-color:#675176}button:focus-visible,a:focus-visible{outline:3px solid #8070ac;outline-offset:3px}.selection-note{margin:12px 0 0;font-size:11px;color:#877a84}section{margin-top:26px;scroll-margin-top:90px}h2{font-size:15px;margin:0 0 12px;line-height:1.5}.scene{position:relative;container-type:inline-size}.scene>img{display:block;width:100%;height:auto;border-radius:8px}.bag-picker{margin:0 0 14px}.bag-heading{display:flex;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px}.bag-heading strong{font-size:12px}.bag-heading span{font-size:11px;color:#877a84}.bag-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.bag-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px 6px;border:1px solid #dcd0df;border-radius:8px;background:#fffaf4;color:#514354;font-size:11px}.bag-choice[aria-pressed=true]{border:2px solid #77608c;background:#ede4f1;padding:9px 5px}.bag-art{display:block;background-image:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/images/bags-light-v2.webp");background-size:200% 200%;background-repeat:no-repeat;border-radius:10%}.bag-choice .bag-art{width:64px;height:64px}.night-bag{position:absolute;right:2%;bottom:4%;width:5.8%;aspect-ratio:1}.night-bag .bag-art{width:100%;height:100%}footer{margin-top:28px;padding-top:18px;border-top:1px solid #e1d8df;color:#877a84;font-size:11px}footer p{margin:0 0 8px}@media(max-width:600px){main{padding:22px 14px 30px}h1{font-size:21px}.character-bar{gap:10px}.character-options{gap:5px}.character-options button{padding:8px 10px;font-size:11px}.bag-choice{font-size:10px}.bag-choice .bag-art{width:52px;height:52px}.bag-heading{gap:5px}}
+
+.gallery-links{margin-bottom:12px}.gallery-links a{background:transparent;border-color:transparent;padding:4px 0;margin-right:14px}.gallery-links a:hover{background:transparent;text-decoration:underline}
+
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <p class="eyebrow">BLOOD & BEANS · UI DESIGN</p>
+    <h1>루이지 맨션 · 캐릭터 교체 시안</h1>
+    <p class="intro">PC 화면에 맞춘 작은 HUD · 선택한 캐릭터가 모든 화면에 함께 반영됩니다.</p>
+    <nav aria-label="화면 바로가기" id="screen-nav"></nav>
+  </header>
+  <div class="character-bar">
+    <span class="picker-label">캐릭터</span>
+    <div class="character-options" role="group" aria-label="플레이어 캐릭터 선택">
+      <button type="button" data-character="vampire" aria-pressed="true">흡혈귀</button>
+      <button type="button" data-character="zombie" aria-pressed="false">좀비</button>
+      <button type="button" data-character="werewolf" aria-pressed="false">늑대인간</button>
+      <button type="button" data-character="witch" aria-pressed="false">마녀</button>
+    </div>
+  </div>
+  <p class="selection-note" id="selection-note" aria-live="polite">흡혈귀 · 손님은 유령</p>
+  <div id="screens"></div>
+  <footer>
+    <p>추가 UI 시안도 이 갤러리에 이어서 정리합니다.</p>
+    <a href="https://blood-beans-ui-gallery.free-earth-2790.chatgpt.site/" target="_blank" rel="noopener">기존 스타일 비교 갤러리 ↗</a>
+  </footer>
+</main>
+<script>(() => {
+  const characters={vampire:{name:'흡혈귀',asset:'pcVampire'},zombie:{name:'좀비',asset:'pcZombie'},werewolf:{name:'늑대인간',asset:'pcWerewolf'},witch:{name:'마녀',asset:'pcWitch'}};
+  // Add future screen definitions here, together with the four character images.
+  const screens=[{id:'cafe',title:'낮 · 카페 운영',index:0},{id:'night',title:'밤 · 야간 탐색',index:1,bag:true},{id:'main-menu',title:'메인 메뉴',index:2},{id:'crew',title:'크루 선택',index:3}];
+  const bags=['채집 주머니','탐색 배낭','랜턴 크로스백','유령 트렁크'];
+  let character='vampire',bag=0;
+  const container=document.getElementById('screens');
+  function art(index){const span=document.createElement('span');span.className='bag-art';span.setAttribute('aria-hidden','true');span.style.backgroundPosition=(index%2*100)+'% '+(Math.floor(index/2)*100)+'%';return span;}
+  screens.forEach(screen=>{
+    const link=document.createElement('a');link.href='#'+screen.id;link.textContent=screen.title;document.getElementById('screen-nav').append(link);
+    const section=document.createElement('section');section.id=screen.id;section.dataset.screen=screen.index;
+    const heading=document.createElement('h2');heading.textContent=screen.title;section.append(heading);
+    if(screen.bag){
+      const picker=document.createElement('div');picker.className='bag-picker';picker.innerHTML='<div class="bag-heading"><strong>밤 · 가방 디자인</strong><span>선택하면 아래 시안에 적용됩니다.</span></div>';
+      const options=document.createElement('div');options.className='bag-options';options.setAttribute('role','group');options.setAttribute('aria-label','밤 가방 디자인 선택');
+      bags.forEach((name,index)=>{const button=document.createElement('button');button.type='button';button.className='bag-choice';button.dataset.bag=index;button.setAttribute('aria-pressed',String(index===bag));button.setAttribute('aria-label',name+' 적용');button.append(art(index));const label=document.createElement('span');label.textContent=name;button.append(label);button.addEventListener('click',()=>{bag=index;renderBag();});options.append(button);});
+      picker.append(options);section.append(picker);
+    }
+    const scene=document.createElement('div');scene.className='scene';const image=document.createElement('img');image.width=1672;image.height=941;image.decoding='async';image.loading=screen.index===0?'eager':'lazy';scene.append(image);section.append(scene);container.append(section);
+  });
+  function renderBag(){
+    const scene=document.querySelector('#night .scene');scene.querySelector('.night-bag')?.remove();
+    const icon=document.createElement('div');icon.className='night-bag';icon.setAttribute('role','img');icon.setAttribute('aria-label',bags[bag]);icon.dataset.bag=bag;icon.append(art(bag));scene.append(icon);
+    document.querySelectorAll('button[data-bag]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.bag)===bag)));
+  }
+  function render(){
+    screens.forEach(screen=>{const image=document.querySelector('#'+screen.id+' .scene>img');image.src='https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/images/'+characters[character].asset+screen.index+'.webp';image.alt=characters[character].name+' · '+screen.title+' · 루이지 맨션 캐릭터 교체 시안';});
+    document.querySelectorAll('[data-character]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.character===character)));
+    document.getElementById('selection-note').textContent=characters[character].name+' · 손님은 유령 · 이름과 스킬 문구는 기존 시안 유지';renderBag();
+  }
+  document.querySelectorAll('[data-character]').forEach(button=>button.addEventListener('click',()=>{character=button.dataset.character;render();}));render();
+})();
+
+
+</script>
+</body>
+</html>
