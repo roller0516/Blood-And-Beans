@@ -602,6 +602,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   speed: 20
   turnDegreesPerSecond: 720
+  deniedSeconds: 0.8
 --- !u!114 &6026915820970784790
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -635,7 +636,7 @@ MonoBehaviour:
   reach: 1.6
   knockback: 3
   spawnProtectionSeconds: 15
-  dashDistance: 3.5
+  dashDistance: 14.4
   dashSeconds: 0.18
   recoil: 0.7
   recoilSeconds: 0.12
@@ -670,6 +671,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   cellSize: 1
   revealRadius: 12
+  gridMargin: 0
   sampleInterval: 0.15
 --- !u!114 &5060293335489257787
 MonoBehaviour:

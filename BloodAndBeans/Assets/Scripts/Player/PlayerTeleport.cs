@@ -9,8 +9,8 @@ using UnityEngine;
 /// 목적지까지 미끄러져 온다. 귀환 페널티와 페이즈 시작 배치가 같은 처리를 쓰도록 모았다.
 public static class PlayerTeleport
 {
-    /// 서버에서만 호출한다. 회전과 스케일은 유지한다.
-    public static void ToServer(GameObject player, Vector3 destination, bool notify = true)
+    /// 서버에서만 호출한다. 스케일은 유지하고, 회전은 `rotation`이 없으면 유지한다.
+    public static void ToServer(GameObject player, Vector3 destination, bool notify = true, Quaternion? rotation = null)
     {
         if (player == null) return;
 
@@ -25,10 +25,11 @@ public static class PlayerTeleport
         if (controller != null) controller.enabled = false;
 
         var networkTransform = player.GetComponent<NetworkTransform>();
+        var facing = rotation ?? player.transform.rotation;
         if (networkTransform != null)
-            networkTransform.Teleport(destination, player.transform.rotation, player.transform.localScale);
+            networkTransform.Teleport(destination, facing, player.transform.localScale);
         else
-            player.transform.position = destination;
+            player.transform.SetPositionAndRotation(destination, facing);
 
         if (controller != null) controller.enabled = true;
 

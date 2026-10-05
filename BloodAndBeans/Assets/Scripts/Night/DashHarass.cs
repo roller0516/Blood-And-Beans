@@ -21,8 +21,9 @@ public class DashHarass : NetworkBehaviour
     [SerializeField] float spawnProtectionSeconds = 15f;
 
     [Header("돌진")]
-    // ponytail: 거리·시간도 기획서 미결정이다. 걷는 속도(5)의 약 4배로 잡은 임시값이다.
-    [SerializeField] float dashDistance = 3.5f;
+    // ponytail: 거리·시간도 기획서 미결정이다. 돌진 속도(거리/시간)를 걷는 속도(20)의 4배로
+    // 잡은 임시값이다. 돌진 중엔 입력이 죽으므로 걷는 속도를 올리면 이것도 같이 올려야 한다.
+    [SerializeField] float dashDistance = 14.4f;
     [SerializeField] float dashSeconds = 0.18f;
 
     /// 맞힌 쪽도 부딪힌 반작용으로 뒤로 조금 튕긴다. 맞은 쪽만 밀리면 벽을 통과한 것처럼

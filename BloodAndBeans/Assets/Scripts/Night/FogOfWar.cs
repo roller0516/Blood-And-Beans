@@ -17,7 +17,7 @@ public class FogOfWar : NetworkBehaviour
     /// 숲을 못 찾았을 때만 쓰는 임시 반경(칸). 실제 값은 `ApplyGrid`가 정한다.
     const int FallbackHalfCells = 64;
 
-    /// 격자 반경(칸). **직렬화하지 않는다 — `MatchDirector.ForestSize`에서 유도한다.**
+    /// 격자 반경(칸). **직렬화하지 않는다 — `MatchDirector.GroundSize`에서 유도한다.**
     /// 예전에는 Inspector 값이었고, 숲이 60에서 100으로 커졌을 때 따라가지 않아 격자가
     /// 맵의 51.8%만 덮었다. 스폰 자리(±44)와 상자 17개 중 3개가 격자 밖이었고, 밖은
     /// `CellIndex`의 Clamp로 가장자리 한 줄에 접혀 「개척자의 딜레마」가 성립하지 않았다.
@@ -85,14 +85,14 @@ public class FogOfWar : NetworkBehaviour
         halfCells = sharedHalfCells;
     }
 
-    /// 격자를 숲에 맞춘다. **숲만 덮는다** — 안개는 밤 전용이고(기획서 6.1) 카페는
-    /// 숲에서 `cafeAreaGap`만큼 떨어져 있어서, 카페까지 덮으려 들면 칸 수만 몇 배가 된다.
+    /// 격자를 숲 터레인(숲 + 여유분)에 맞춘다. 카페 구역은 덮지 않는다 — 안개는 밤 전용이다(기획서 6.1).
+    /// 숲만 덮으면 연장한 터레인이 격자 밖이라 걷히지 않는다.
     ///
-    /// 숲 절반에 `revealRadius`를 더한다. 가장자리에 선 플레이어가 걷는 원이 격자 밖으로
+    /// 절반에 `revealRadius`를 더한다. 가장자리에 선 플레이어가 걷는 원이 격자 밖으로
     /// 나가면 그만큼이 경계 칸에 접혀 맵 밖을 걷은 것으로 기록된다.
-    void ApplyGrid(Vector2 forestSize)
+    void ApplyGrid(Vector2 groundSize)
     {
-        var reach = Mathf.Max(forestSize.x, forestSize.y) * 0.5f + revealRadius;
+        var reach = Mathf.Max(groundSize.x, groundSize.y) * 0.5f + revealRadius;
         var half = Mathf.Max(1, Mathf.CeilToInt(reach / Mathf.Max(0.01f, cellSize)));
         halfCells = half;
 
@@ -146,7 +146,7 @@ public class FogOfWar : NetworkBehaviour
         if (director == null) return;
 
         director.Phase.PhaseEntered += OnPhaseEntered;
-        ApplyGrid(director.ForestSize);
+        ApplyGrid(director.GroundSize);
     }
 
     /// 로컬 플레이어의 안개. 클라이언트에서는 이 인스턴스가 채워져야 한다.

@@ -82,11 +82,13 @@ public static class ForestMapBuilder
     const float BoundaryFogBottom = -30f;
     const float BoundaryFogHeight = 400f;
 
-    /// 구름 띠는 벽 두께 안, 안개 상자 면 바로 앞에 얇게 띄운다. 면 뒤로 가면 안개에 묻히고,
-    /// 숲 쪽으로 들어오면 경계에 선 플레이어를 덮는다. 두께는 프리팹의 shape 깊이가 정한다.
-    /// 프리팹(`BoundaryClouds`)은 길이 `BoundaryCloudReferenceLength`의 띠로 맞춰 두고, 변 길이에 비례해 늘린다.
+    /// 구름 띠는 안개 원통과 같은 타원을 따라 원통 면 바로 안쪽에 한 바퀴 두른다. 면 뒤로 가면
+    /// 불투명한 안개에 가려진다. 프리팹(`BoundaryClouds`)의 밀도는 길이 `BoundaryCloudReferenceLength`
+    /// 기준이라 둘레에 비례해 늘린다.
     const float BoundaryCloudHeight = 2.5f;
     const float BoundaryCloudReferenceLength = 100f;
+    const float BoundaryCloudInset = 3f;          // 원통 면에서 안쪽으로 물린 거리
+    const float BoundaryCloudTube = 2f;           // 띠의 두께(높이·깊이) 반경
 
     /// 연결성 검사 격자. 플레이어가 지나갈 틈보다 촘촘해야 통로를 놓치지 않는다.
     const float ReachCell = 0.5f;
@@ -116,10 +118,6 @@ public static class ForestMapBuilder
     const string TerrainFolder = "Assets/Art/Environment/Terrain/";
     const float TerrainHeight = 1f;               // 높이가 없어 경계 상자 두께로만 쓰인다
 
-    /// 숲 경계 밖으로 더 깔아 두는 땅. 땅이 안개 원통 앞에서 끝나면 그 선이 칼같이 보인다.
-    /// 원통은 변 가운데에서 경계보다 약 22m 바깥에 있고(100m 숲 기준), 그 뒤로 소프트 파티클 Far(12)만큼
-    /// 땅이 더 있어야 땅 끝이 안개에 묻힌다.
-    const float TerrainMargin = 35f;
     const int TerrainHeightmapResolution = 33;    // Unity 최솟값
     const int TerrainAlphamapResolution = 16;     // Unity 최솟값. 레이어 하나라 칠할 것이 없다
     const int TerrainBaseMapResolution = 16;
@@ -305,7 +303,7 @@ public static class ForestMapBuilder
 
         var scene = director.gameObject.scene;
         DressBoxes(boxes, origin, forestSize);
-        var planted = PlantForest(scene, origin, forestSize, keepOut, spawns, boxPositions, densityScale);
+        var planted = PlantForest(scene, origin, forestSize, director.GroundSize, keepOut, spawns, boxPositions, densityScale);
 
         Random.state = state;
 
@@ -316,7 +314,7 @@ public static class ForestMapBuilder
         // 안개가 따라왔는지 눈으로 보라고 남긴다.
         Debug.Log($"숲 맵 생성: 씨앗 {seed}, 나무·수풀 {planted}개, 상자 {boxes.Length}개. "
                 + $"숲 {forestSize.x}x{forestSize.y}, 원점 {origin}. "
-                + $"안개 격자는 숲에서 유도된다 (월드 ±{Mathf.Max(forestSize.x, forestSize.y) * 0.5f:F0} + 시야 반경).");
+                + $"안개 격자는 터레인에서 유도된다 (월드 ±{Mathf.Max(director.GroundSize.x, director.GroundSize.y) * 0.5f:F0} + 시야 반경).");
     }
 
     /// 팀 스폰 자리. `MatchDirector.NightSpawnPosition`과 같은 식이다 — 어긋나면 팀이
@@ -779,7 +777,7 @@ public static class ForestMapBuilder
         return props;
     }
 
-    static int PlantForest(Scene scene, Vector3 origin, Vector2 forestSize, List<KeepOut> keepOut,
+    static int PlantForest(Scene scene, Vector3 origin, Vector2 forestSize, Vector2 groundSize, List<KeepOut> keepOut,
                            List<Vector3> spawns, List<Vector3> boxes, float densityScale)
     {
         var old = GameObject.Find(ForestRootName);
@@ -812,7 +810,6 @@ public static class ForestMapBuilder
         var props = Scatter(origin, forestSize, keepOut, trees, undergrowth, radii, densityScale);
         var carved = OpenPassages(props, origin, forestSize, spawns, boxes);
 
-        var groundSize = forestSize + Vector2.one * (TerrainMargin * 2f);
         var corner = new Vector3(origin.x - groundSize.x * 0.5f, GroundY, origin.z - groundSize.y * 0.5f);
         var data = BakeTerrainData(scene, groundSize, GroundLayer(forestSize));
         data.treePrototypes = prototypes.ToArray();
@@ -851,7 +848,7 @@ public static class ForestMapBuilder
         return props.Count;
     }
 
-    /// `center`(부모 로컬) 둘레 `size` 직사각형의 네 변에 벽·안개 상자·구름 띠를 세운다. 벽 안쪽 면이
+    /// `center`(부모 로컬) 둘레 `size` 직사각형의 네 변에 벽을, 그 바깥에 안개 원통·구름 띠를 세운다. 벽 안쪽 면이
     /// 경계에 맞닿는다. 다시 부르면 이전 것을 지우고 새로 세운다. 광장(`DayV5Setup`)도 같은 것을 쓴다.
     internal static void BuildBoundary(Transform parent, Vector3 center, Vector2 size, bool night)
     {
@@ -882,12 +879,15 @@ public static class ForestMapBuilder
             var wall = holder.AddComponent<BoxCollider>();
             wall.center = edge + outward * (BoundaryThickness * 0.5f) + Vector3.up * (BoundaryHeight * 0.5f);
             wall.size = Abs(facing * new Vector3(length + BoundaryThickness * 2f, BoundaryHeight, BoundaryThickness));
-
-            if (cloud != null && clouds != null) AddClouds(holder.transform, edge, facing, length, clouds, cloud);
         }
 
         if (fog != null) AddFogRing(holder.transform, center, size, fog);
+        if (cloud != null && clouds != null) AddCloudRing(holder.transform, center, size, clouds, cloud);
     }
+
+    /// 안개 원통의 타원 반축(x, z). 원통과 구름 띠가 같은 타원을 쓴다.
+    static Vector2 RingRadii(Vector2 size) =>
+        size * (0.5f * Mathf.Sqrt(2f)) + Vector2.one * BoundaryThickness;
 
     static Vector3 Abs(Vector3 v) => new(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
 
@@ -898,8 +898,8 @@ public static class ForestMapBuilder
         ring.layer = holder.gameObject.layer;
         ring.transform.SetParent(holder, false);
         ring.transform.localPosition = center + Vector3.up * BoundaryFogBottom;
-        ring.transform.localScale = new Vector3(size.x * 0.5f * Mathf.Sqrt(2f) + BoundaryThickness, BoundaryFogHeight,
-                                                size.y * 0.5f * Mathf.Sqrt(2f) + BoundaryThickness);
+        var radii = RingRadii(size);
+        ring.transform.localScale = new Vector3(radii.x, BoundaryFogHeight, radii.y);
         ring.GetComponent<MeshFilter>().sharedMesh = RingMesh();
 
         var renderer = ring.GetComponent<MeshRenderer>();
@@ -941,18 +941,38 @@ public static class ForestMapBuilder
         return mesh;
     }
 
-    /// 구름 띠 프리팹을 변 길이에 맞춰 늘린다. 밀도는 프리팹 값을 길이 비례로 유지한다.
-    static void AddClouds(Transform holder, Vector3 edge, Quaternion facing, float length,
-                          ParticleSystem prefab, Material material)
+    /// 구름 띠 프리팹을 안개 원통 안쪽의 타원 도넛으로 편다. 밀도는 프리팹 값을 둘레 비례로 유지한다.
+    static void AddCloudRing(Transform holder, Vector3 center, Vector2 size, ParticleSystem prefab, Material material)
     {
         var clouds = (ParticleSystem)PrefabUtility.InstantiatePrefab(prefab, holder);
         clouds.gameObject.layer = holder.gameObject.layer;
-        clouds.transform.SetLocalPositionAndRotation(
-            edge + facing * Vector3.forward * (BoundaryThickness * 0.5f) + Vector3.up * BoundaryCloudHeight, facing);
+        clouds.transform.SetLocalPositionAndRotation(center + Vector3.up * BoundaryCloudHeight, Quaternion.identity);
 
-        var ratio = length / BoundaryCloudReferenceLength;
+        var radii = RingRadii(size) - Vector2.one * BoundaryCloudInset;
+        var radius = Mathf.Min(radii.x, radii.y);
+        // Donut은 shape 로컬 XY 평면이다. x축으로 90° 눕히면 scale.x가 월드 x, scale.y가 월드 z 반경을 늘린다.
         var shape = clouds.shape;
-        shape.scale = new Vector3(length, shape.scale.y, shape.scale.z);
+        shape.shapeType = ParticleSystemShapeType.Donut;
+        shape.radius = radius;
+        shape.donutRadius = BoundaryCloudTube;
+        shape.radiusThickness = 1f;
+        shape.arc = 360f;
+        shape.rotation = new Vector3(90f, 0f, 0f);
+        shape.scale = new Vector3(radii.x / radius, radii.y / radius, 1f);
+
+        // 프리팹의 x 흐름은 직선 띠 기준이다. 원에서는 둘레를 따라 도는 각속도로 바꿔야 띠를 벗어나지 않는다.
+        // 선속도 x·y·z와 궤도 x·y·z는 각각 같은 커브 모드여야 한다 — 전부 두 상수로 맞춘다.
+        var velocity = clouds.velocityOverLifetime;
+        var drift = velocity.x;
+        velocity.orbitalX = new ParticleSystem.MinMaxCurve(0f, 0f);
+        velocity.orbitalY = new ParticleSystem.MinMaxCurve(drift.constantMin / radius, drift.constantMax / radius);
+        velocity.orbitalZ = new ParticleSystem.MinMaxCurve(0f, 0f);
+        velocity.x = new ParticleSystem.MinMaxCurve(0f, 0f);
+
+        // 타원 둘레 (Ramanujan 근사).
+        var (a, b) = (radii.x, radii.y);
+        var perimeter = Mathf.PI * (3f * (a + b) - Mathf.Sqrt((3f * a + b) * (a + 3f * b)));
+        var ratio = perimeter / BoundaryCloudReferenceLength;
         var main = clouds.main;
         main.maxParticles = Mathf.CeilToInt(main.maxParticles * ratio);
         var emission = clouds.emission;

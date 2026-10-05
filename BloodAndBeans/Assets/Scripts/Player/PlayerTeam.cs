@@ -29,13 +29,15 @@ public class PlayerTeam : NetworkBehaviour
     [SerializeField, Min(0f)] float teleportWindupSeconds = 1.35f;
     readonly NetworkVariable<bool> teleporting = new();
     Vector3 teleportDestination;
+    Quaternion? teleportRotation;
     float teleportAt;
     public bool IsTeleporting => teleporting.Value;
     public event System.Action<Vector3> TeleportStarted;
 
-    public void BeginTeleportServer(Vector3 destination)
+    public void BeginTeleportServer(Vector3 destination, Quaternion? rotation = null)
     {
         if (!IsServer || !IsSpawned || Team < 0) return;
+        teleportRotation = rotation;
         if (teleporting.Value)
         {
             teleportDestination = destination;
@@ -56,7 +58,7 @@ public class PlayerTeam : NetworkBehaviour
     void Update()
     {
         if (!IsServer || !IsSpawned || !teleporting.Value || Time.time < teleportAt) return;
-        PlayerTeleport.ToServer(gameObject, teleportDestination);
+        PlayerTeleport.ToServer(gameObject, teleportDestination, true, teleportRotation);
         teleporting.Value = false;
     }
 
@@ -178,11 +180,13 @@ public class PlayerTeam : NetworkBehaviour
             ? director.NightSpawnPosition(team.Value, slot)
             : director.CafeSpawnPosition(team.Value, slot);
         if (!destination.HasValue) return;
-        if (animate) BeginTeleportServer(destination.Value);
+        // 밤에는 숲 중앙을 보고 선다. 낮은 카페 위라 회전을 건드리지 않는다.
+        Quaternion? facing = p == Phase.Night ? director.NightSpawnRotation(destination.Value) : null;
+        if (animate) BeginTeleportServer(destination.Value, facing);
         else
         {
             teleporting.Value = false;
-            PlayerTeleport.ToServer(gameObject, destination.Value, false);
+            PlayerTeleport.ToServer(gameObject, destination.Value, false, facing);
         }
     }
 

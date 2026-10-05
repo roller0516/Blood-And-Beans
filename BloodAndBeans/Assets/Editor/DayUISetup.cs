@@ -222,7 +222,16 @@ public static class DayUISetup
             dashSlot.SetKey("Space");
         });
         AssetDatabase.SaveAssets();
-        return "반투명 원형 배경 · 흰 테두리 · Q/Space 키 배지 · 준비 완료 이펙트 연결";
+        return "반투명 원형 배경 · 흰 테두리 · Q/Space 키 배지 · 준비 완료 VFX 연결";
+    }
+    public static string ApplySkillVfx()
+    {
+        if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이 종료 후 적용한다.");
+        MakeSkillReadyVfx();
+        Edit(SkillReadyVfx, EnergyPulse);
+        Edit(SkillSlotPart, ReadyVfx);
+        AssetDatabase.SaveAssets();
+        return "스킬·대시 공통 파츠에 준비 완료 Particle System VFX 연결";
     }
     static void AsSprite(string path)
     {
@@ -275,25 +284,19 @@ public static class DayUISetup
         var back = face.Find("Back").GetComponent<UnityEngine.UI.Image>();
         back.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(CircleSprite);
         back.color = new Color(.2f, .2f, .2f, .55f);
-        var ring = face.Find("Ring").GetComponent<UnityEngine.UI.Image>();
-        ring.color = new Color(1, 1, 1, .95f);
-        var border = ring.GetComponent<Outline>();
-        if (border == null) border = ring.gameObject.AddComponent<Outline>();
-        border.effectColor = Color.white; border.effectDistance = Vector2.one;
-        var data = new SerializedObject(part);
-        data.FindProperty("ringColor").colorValue = ring.color;
-        data.ApplyModifiedPropertiesWithoutUndo();
-
-        var glowTransform = face.Find("ReadyGlow");
-        var glow = glowTransform == null ? Image(face, "ReadyGlow", Color.white) : glowTransform.GetComponent<UnityEngine.UI.Image>();
-        glow.sprite = ring.sprite; Stretch(glow.rectTransform, -2); glow.enabled = false;
-        glow.transform.SetSiblingIndex(1);
-        var burstTransform = face.Find("ReadyBurst");
-        var burst = burstTransform == null ? Image(face, "ReadyBurst", Color.white) : burstTransform.GetComponent<UnityEngine.UI.Image>();
-        burst.sprite = AssetDatabase.LoadAssetAtPath<Sprite>(BurstSprite);
-        Stretch(burst.rectTransform, -40); burst.preserveAspect = true; burst.enabled = false;
-        burst.transform.SetSiblingIndex(ring.transform.GetSiblingIndex() + 1);
-        Set(part, "readyGlow", glow); Set(part, "readyBurst", burst);
+        var ringTransform = face.Find("Ring");
+        if (ringTransform != null)
+        {
+            var ring = ringTransform.GetComponent<UnityEngine.UI.Image>();
+            ring.color = new Color(1, 1, 1, .95f);
+            var border = ring.GetComponent<Outline>();
+            if (border == null) border = ring.gameObject.AddComponent<Outline>();
+            border.effectColor = Color.white; border.effectDistance = Vector2.one;
+            var data = new SerializedObject(part);
+            data.FindProperty("ringColor").colorValue = ring.color;
+            data.ApplyModifiedPropertiesWithoutUndo();
+        }
+        ReadyVfx(root);
 
         var badgeTransform = root.transform.Find("KeyBadge");
         var badge = badgeTransform == null ? Image(root.transform, "KeyBadge", Color.white) : badgeTransform.GetComponent<UnityEngine.UI.Image>();
@@ -315,6 +318,154 @@ public static class DayUISetup
         key.fontStyle = FontStyles.Bold; key.alignment = TextAlignmentOptions.Center; key.color = Color.white;
         if (string.IsNullOrEmpty(key.text)) key.text = "Q";
     }
+    static void ReadyVfx(GameObject root)
+    {
+        var face = root.transform.Find("Circle");
+        var effect = face.Find("ReadyVfx");
+        if (effect == null)
+        {
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(MakeSkillReadyVfx(), face);
+            instance.name = "ReadyVfx";
+            effect = instance.transform;
+            Stretch((RectTransform)effect, -40);
+        }
+        Set(root.GetComponent<UISkillSlot>(), "readyEffect", effect.GetComponent<ParticleSystem>());
+        foreach (var name in new[] { "ReadyGlow", "ReadyBurst", "ReadyFlash" })
+        {
+            var obsolete = face.Find(name);
+            if (obsolete != null) Object.DestroyImmediate(obsolete.gameObject);
+        }
+        effect.SetAsLastSibling();
+    }
+    static GameObject MakeSkillReadyVfx()
+    {
+        var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(SkillReadyVfx);
+        if (prefab != null) return prefab;
+        var root = Rect("SkillReadyVfx", null);
+        try
+        {
+            // 연출값은 생성 후 VFX 프리팹의 Particle System 모듈에서 조정한다.
+            root.sizeDelta = new Vector2(180, 180);
+            EnergyPulse(root.gameObject);
+            return PrefabUtility.SaveAsPrefabAsset(root.gameObject, SkillReadyVfx);
+        }
+        finally { Object.DestroyImmediate(root.gameObject); }
+    }
+    static void EnergyPulse(GameObject root)
+    {
+        var point = AssetDatabase.LoadAssetAtPath<Material>(ReadyPointMaterial);
+        var circle = AssetDatabase.LoadAssetAtPath<Material>(ReadyCircleMaterial);
+        if (point == null || circle == null) throw new System.InvalidOperationException("Point와 Circle 재질이 필요하다.");
+        point = ReadyUIMaterial(point, ReadyPointUIMaterialPath);
+        circle = ReadyUIMaterial(circle, ReadyCircleUIMaterialPath);
+        // ponytail: 레퍼런스 기준 초기 연출값. 이후 아트 조정은 프리팹의 직렬화된 파티클 모듈에서 한다.
+        var red = new Color(1, .035f, .065f, 1);
+        var hot = new Color(1, .7f, .72f, 1);
+        var core = ReadyParticles(root, "", point, .68f, 0, 76, 1);
+        ReadySize(core, 1, .85f, .65f, .75f, 1.05f, 1.15f);
+        ReadyTint(core, hot, Color.white, Color.white, 0, .35f, .9f, 1, .65f, 0);
+
+        var halo = ReadyParticles(root, "ChargeHalo", point, .68f, 0, 170, 1);
+        ReadySize(halo, 1.15f, 1, .75f, .55f, .85f, 1.1f);
+        ReadyTint(halo, red, red, hot, 0, .15f, .4f, .7f, .35f, 0);
+
+        var gather = ReadyParticles(root, "InwardEnergy", point, ReadyChargeSeconds, 0, 7, 18);
+        var shape = gather.shape; shape.enabled = true; shape.shapeType = ParticleSystemShapeType.Circle;
+        shape.radius = 70; shape.radiusThickness = .12f;
+        var motion = gather.velocityOverLifetime; motion.enabled = true;
+        motion.space = ParticleSystemSimulationSpace.Local; motion.radial = -150; motion.orbitalZ = 1.3f;
+        ReadySize(gather, .2f, .8f, 1, 1, .75f, .1f);
+        ReadyTint(gather, red, hot, Color.white, 0, .8f, 1, 1, .8f, 0);
+
+        var flash = ReadyParticles(root, "WhiteFlash", ReadyUIMaterial(point, ReadyFlashMaterialPath, ReadyFlashBrightness), .55f, ReadyChargeSeconds, 110, 1);
+        ReadySize(flash, .06f, .18f, .45f, .82f, 1.22f, 1.6f);
+        ReadyTint(flash, Color.white, Color.white, Color.white, 1, 1, .85f, .45f, .15f, 0);
+
+        var wave = ReadyParticles(root, "CircleBurst", circle, .34f, ReadyChargeSeconds, 118, 1);
+        ReadySize(wave, .3f, .7f, 1.05f, 1.3f, 1.45f, 1.6f);
+        ReadyTint(wave, hot, red, red, 1, .9f, .65f, .35f, .12f, 0);
+
+        var sparks = ReadyParticles(root, "OutwardSparks", point, .32f, ReadyChargeSeconds, 5, 12);
+        var sparkShape = sparks.shape; sparkShape.enabled = true;
+        sparkShape.shapeType = ParticleSystemShapeType.Circle; sparkShape.radius = 20;
+        var sparkMain = sparks.main; sparkMain.startSpeed = new ParticleSystem.MinMaxCurve(100, 180);
+        ReadySize(sparks, 1, 1, .8f, .6f, .3f, 0);
+        ReadyTint(sparks, hot, red, red, 1, 1, .8f, .5f, .2f, 0);
+
+        var graphic = root.GetComponent<Coffee.UIExtensions.UIParticle>();
+        if (graphic == null) graphic = root.AddComponent<Coffee.UIExtensions.UIParticle>();
+        graphic.raycastTarget = false;
+        graphic.autoScalingMode = Coffee.UIExtensions.UIParticle.AutoScalingMode.None;
+        graphic.scale = ReadyParticleScale;
+        graphic.useCustomView = true;
+        graphic.customViewSize = 1000;
+        // 흰 코어를 붉은 후광보다 나중에 그려 중앙이 어두워지지 않게 한다.
+        graphic.particles.Clear();
+        graphic.particles.AddRange(new[] { halo, gather, wave, sparks, core, flash });
+        graphic.RefreshParticles(graphic.particles);
+        foreach (var name in new[] { "Wave", "Sparks" })
+        {
+            var old = root.transform.Find(name);
+            if (old != null) Object.DestroyImmediate(old.gameObject);
+        }
+    }
+    static Material ReadyUIMaterial(Material source, string path, float brightness = 1)
+    {
+        var shader = Shader.Find(ReadyUIShader);
+        if (shader == null) throw new System.InvalidOperationException("UIParticle의 UI/Additive 셰이더가 필요하다.");
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(shader) { mainTexture = source.mainTexture };
+            var tint = source.GetColor("_Color");
+            tint.r *= brightness; tint.g *= brightness; tint.b *= brightness;
+            material.SetColor("_Color", tint);
+            AssetDatabase.CreateAsset(material, path);
+        }
+        else if (material.shader != shader)
+        {
+            // 기존 아트 밝기는 보존하고, Overlay UI에서 쓸 수 없는 깊이 페이딩과 알파 합성만 제거한다.
+            material.shader = shader;
+            material.shaderKeywords = System.Array.Empty<string>();
+            EditorUtility.SetDirty(material);
+        }
+        return material;
+    }
+    static ParticleSystem ReadyParticles(GameObject root, string name, Material material, float lifetime, float delay, float size, short count)
+    {
+        var layer = string.IsNullOrEmpty(name) ? root.transform : root.transform.Find(name);
+        if (layer == null) layer = Rect(name, root.transform);
+        var particles = layer.GetComponent<ParticleSystem>();
+        if (particles == null) particles = layer.gameObject.AddComponent<ParticleSystem>();
+        particles.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+        var main = particles.main;
+        main.loop = false; main.duration = lifetime; main.playOnAwake = false;
+        main.startLifetime = lifetime; main.startDelay = delay; main.startSize = size; main.startSpeed = 0;
+        main.startColor = Color.white; main.maxParticles = count;
+        main.useUnscaledTime = true; main.simulationSpace = ParticleSystemSimulationSpace.Local;
+        main.cullingMode = ParticleSystemCullingMode.AlwaysSimulate;
+        var emission = particles.emission;
+        emission.rateOverTime = 0; emission.SetBursts(new[] { new ParticleSystem.Burst(0, count) });
+        var shape = particles.shape; shape.enabled = false;
+        var renderer = particles.GetComponent<ParticleSystemRenderer>();
+        renderer.sharedMaterial = material; renderer.maxParticleSize = 1;
+        return particles;
+    }
+    static void ReadySize(ParticleSystem particles, params float[] values)
+    {
+        var keys = new Keyframe[values.Length];
+        for (var i = 0; i < values.Length; i++) keys[i] = new Keyframe((float)i / (values.Length - 1), values[i]);
+        var size = particles.sizeOverLifetime; size.enabled = true;
+        size.size = new ParticleSystem.MinMaxCurve(1, new AnimationCurve(keys));
+    }
+    static void ReadyTint(ParticleSystem particles, Color begin, Color peak, Color end, params float[] alphas)
+    {
+        var alpha = new GradientAlphaKey[alphas.Length];
+        for (var i = 0; i < alphas.Length; i++) alpha[i] = new GradientAlphaKey(alphas[i], (float)i / (alphas.Length - 1));
+        var gradient = new Gradient();
+        gradient.SetKeys(new[] { new GradientColorKey(begin, 0), new GradientColorKey(peak, .65f), new GradientColorKey(end, 1) }, alpha);
+        var color = particles.colorOverLifetime; color.enabled = true; color.color = gradient;
+    }
     static void SkillIcons(UIDaySkillSlot view)
     {
         Set(view, "igniteIcon", AssetDatabase.LoadAssetAtPath<Sprite>(SkillSprites + "Skill_Dokkaebi_Day_Ignite.png"));
@@ -326,7 +477,18 @@ public static class DayUISetup
     const string CircleSprite = "Assets/Art/UI/Sprites/Ingame/Circle.png";
     const string RingSprite = "Assets/Art/UI/Sprites/Ingame/SkillRing.png";
     const string DashIcon = "Assets/Art/UI/Sprites/Ingame/Skill_Dash.png";
-    const string BurstSprite = "Assets/Art/UI/Sprites/Ingame/SkillReadyBurst.png";
+    const string SkillReadyVfx = "Assets/Art/VFX/Common/Prefabs/SkillReadyVfx.prefab";
+    const string ReadyPointMaterial = "Assets/AssetStore/Hovl Studio/Magic effects pack/Materials/Point.mat";
+    const string ReadyCircleMaterial = "Assets/AssetStore/Hovl Studio/Magic effects pack/Materials/Circle.mat";
+    const string ReadyPointUIMaterialPath = "Assets/Art/VFX/Common/Materials/SkillReadyPoint.mat";
+    const string ReadyCircleUIMaterialPath = "Assets/Art/VFX/Common/Materials/SkillReadyCircle.mat";
+    const string ReadyFlashMaterialPath = "Assets/Art/VFX/Common/Materials/SkillReadyFlash.mat";
+    const string ReadyUIShader = "UI/Additive";
+    // ponytail: 요청에 맞춘 초기 HDR 배율. 생성 후 밝기는 섬광 재질의 Color에서 직접 조정한다.
+    const float ReadyFlashBrightness = 4f;
+    const float ReadyChargeSeconds = .44f;
+    /// 파티클 크기를 캔버스 좌표 그대로 사용한다. 커스텀 베이크 뷰로 화면 크기 제한을 피한다.
+    const float ReadyParticleScale = 1f;
     const string SkillSlotPart = Parts + "UISkillSlot.prefab";
     static void Header(GameObject root)
     {

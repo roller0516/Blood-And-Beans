@@ -6,6 +6,37 @@ using UnityEngine;
 /// 낮·밤 매핑과 실제 HUD 배선을 함께 확인한다.
 public class SkillIconTests
 {
+    [Test]
+    public void 준비_VFX는_UIParticle이_렌더러_재질로_그린다()
+    {
+        var slots = AssetDatabase.FindAssets($"{nameof(UISkillSlot)} t:Prefab");
+        Assert.AreEqual(1, slots.Length);
+        var slot = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(slots[0])).GetComponent<UISkillSlot>();
+        var effect = (ParticleSystem)new SerializedObject(slot).FindProperty("readyEffect").objectReferenceValue;
+        Assert.IsNotNull(effect);
+        // UIParticle은 같은 오브젝트나 부모에 있어야 이 파티클을 모은다. 렌더러 재질이 비면 아무것도 그리지 않는다.
+        Assert.IsNotNull(effect.GetComponentInParent<Coffee.UIExtensions.UIParticle>(true));
+        Assert.IsNotNull(effect.GetComponent<ParticleSystemRenderer>().sharedMaterial);
+        Assert.IsNotNull(effect.GetComponentInParent<Coffee.UIExtensions.UIParticle>(true).GetComponent<CanvasRenderer>());
+    }
+
+    [Test]
+    public void 준비_완료는_쿨타임이_끝나는_순간에만_발생한다()
+    {
+        var root = PrefabUtility.LoadPrefabContents("Assets/Art/UI/Prefabs/Parts/UISkillSlot.prefab");
+        try
+        {
+            var slot = root.GetComponent<UISkillSlot>();
+            Assert.IsFalse(slot.SetCooldown(.5f));
+            Assert.IsTrue(slot.SetCooldown(0));
+            Assert.IsFalse(slot.SetCooldown(0));
+            Assert.IsFalse(slot.SetCooldown(.5f));
+            slot.ResetCooldown();
+            Assert.IsFalse(slot.SetCooldown(0));
+        }
+        finally { PrefabUtility.UnloadPrefabContents(root); }
+    }
+
     [TestCase(Phase.Day, DaySkill.Ignite, NightSkill.WillOWisp, "igniteIcon")]
     [TestCase(Phase.Day, DaySkill.Glide, NightSkill.Echo, "glideIcon")]
     [TestCase(Phase.Night, DaySkill.Ignite, NightSkill.WillOWisp, "wispIcon")]

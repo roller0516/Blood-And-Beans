@@ -58,6 +58,13 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 않고 여기 하나를 본다.
     public Vector2 ForestSize => forestSize;
 
+    /// 숲 경계 밖으로 더 깔아 두는 땅. `ForestMapBuilder`가 터레인을 굽고 안개 격자도 여기까지 덮는다.
+    /// 땅이 경계 안개 원통 앞에서 끝나면 선이 보이므로 원통(~22m)과 파티클 Far(12)보다 넓어야 한다.
+    [SerializeField, Min(0f)] float terrainMargin = 35f;
+
+    /// 터레인 전체의 가로·세로. 숲 + 양쪽 여유분.
+    public Vector2 GroundSize => forestSize + Vector2.one * (terrainMargin * 2f);
+
     /// 스폰을 모서리에서 숲 안쪽으로 들여놓는 거리. 0이면 지형 가장자리에 반쯤 걸쳐 선다.
     [SerializeField] float spawnInset = 6f;
 
@@ -536,6 +543,14 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         var inward = new Vector3(-corner.x, 0f, -corner.y).normalized;
 
         return cafeOrigin + edge + inward * (slot * spawnSlotSpacing) + Vector3.up * spawnHeight;
+    }
+
+    /// 밤 시작 지점에서 숲 중앙(`cafeOrigin`)을 보는 회전. 모서리 출발이라 등 뒤는 경계다.
+    public Quaternion NightSpawnRotation(Vector3 spawn)
+    {
+        var inward = cafeOrigin - spawn;
+        inward.y = 0f;
+        return inward.sqrMagnitude > 0f ? Quaternion.LookRotation(inward, Vector3.up) : Quaternion.identity;
     }
 
     /// 낮·전환의 시작 지점. 자기 팀 카페 위다. 팀이 없거나 카페가 아직 없으면 null.
