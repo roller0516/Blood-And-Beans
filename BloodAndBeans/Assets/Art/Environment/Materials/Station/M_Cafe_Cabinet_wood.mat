@@ -24,7 +24,7 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 8dec605e370fedb479269c4dea65bcbb, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
@@ -45,25 +45,25 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.5
-    - _DiffuseWrap: 0.16
+    - _AOStrength: 1
+    - _DiffuseWrap: 0.2
     - _EmissionMaskSource: 0
     - _EmissionStrength: 0
-    - _FillStrength: 0.16
-    - _Metallic: 0
+    - _FillStrength: 0.189
+    - _Metallic: 1
     - _NormalStrength: 0
-    - _Roughness: 0.9
-    - _RoughnessScale: 1
-    - _ShadowStrength: 0.85
-    - _SpecularStrength: 0.6
+    - _Roughness: 0.537
+    - _RoughnessScale: 0.7
+    - _ShadowStrength: 1
+    - _SpecularStrength: 0.17
     - _SurfaceLayout: 3
     - _TeamStrength: 0
-    - _TextureContrast: 0.9
-    - _TextureSaturation: 0.95
+    - _TextureContrast: 1.123
+    - _TextureSaturation: 0.666
     m_Colors:
-    - _BaseColor: {r: 0.87592536, g: 0.9176869, b: 0.92589116, a: 1}
+    - _BaseColor: {r: 0.8773585, g: 0.8378548, b: 0.7325116, a: 1}
     - _EmissionColor: {r: 1, g: 0.66, b: 0.2, a: 1}
-    - _FillColor: {r: 0.6, g: 0.7, b: 0.85, a: 1}
-    - _TeamColor: {r: 1, g: 0.65, b: 0.19999996, a: 1}
+    - _FillColor: {r: 0.8509804, g: 0.7621114, b: 0.6, a: 1}
+    - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
