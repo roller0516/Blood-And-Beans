@@ -393,9 +393,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2269293269579200789}
   - component: {fileID: 5442759204544379124}
-  - component: {fileID: 4144862267941304181}
-  - component: {fileID: 7633934908194868544}
-  - component: {fileID: 9061455771888071550}
   m_Layer: 8
   m_Name: IngredientShelf
   m_TagString: Untagged
@@ -441,80 +438,6 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 1.5, y: 1, z: 1.5}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &4144862267941304181
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7884732256529217514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 16935822
-  InScenePlacedSourceGlobalObjectIdHash: 0
-  DeferredDespawnTick: 0
-  Ownership: 1
-  AlwaysReplicateAsRoot: 0
-  SynchronizeTransform: 1
-  m_InScenePlaced: 0
-  ActiveSceneSynchronization: 0
-  SceneMigrationSynchronization: 1
-  SpawnWithObservers: 1
-  DontDestroyWithOwner: 0
-  AutoObjectParentSync: 1
-  SyncOwnerTransformWhenParented: 1
-  AllowOwnerToParent: 0
---- !u!114 &7633934908194868544
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7884732256529217514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 7f8d6e366c80a054a8be98e5e56631d7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::IngredientShelf
-  ShowTopMostFoldoutHeaderGroup: 1
-  offer: 08000000090000000000000001000000020000000300000004000000050000000600000007000000
-  reach: 2.5
---- !u!114 &9061455771888071550
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7884732256529217514}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 722e96e6d0eaa754ea965f2bddb1d4fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::ItemDisplay
-  config: {fileID: 11400000, guid: 14d50ef31c03c2449a41ded492084163, type: 2}
-  anchors:
-  - {fileID: 75797894137522322}
-  - {fileID: 2272017766960063653}
-  - {fileID: 6705017893423608471}
-  - {fileID: 8463224267973434034}
-  - {fileID: 1367393939947206668}
-  - {fileID: 9109854573394769294}
-  - {fileID: 4857209594569530146}
-  - {fileID: 5973839613482755567}
-  - {fileID: 3416138621764040197}
-  - {fileID: 5954150593343957380}
-  highlightScale: 1.4
-  highlightOffset: {x: 0, y: 0.1, z: 0}
-  unlimited: 0
-  rowStart: {x: 0, y: 0, z: 0}
-  rowStep: {x: 0.5, y: 0, z: 0}
-  rowWrap: 0
-  wrapStep: {x: 0, y: 0, z: 0.5}
-  stackStart: {x: 0, y: 0, z: 0}
-  stackStep: {x: 0, y: 0.1, z: 0}
 --- !u!1001 &4735226024337056292
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -19,6 +19,7 @@ public static class ForestMapBuilder
     const string MenuPath = "Blood & Beans/숲 맵 생성";
     const string RerollMenuPath = "Blood & Beans/숲 맵 생성 — 씨앗 무작위";
     const string VerifyMenuPath = "Blood & Beans/숲 씨앗 훑기";
+    const string SurfaceMenuPath = "Blood & Beans/숲 잔디·흙·풀 적용";
 
     /// 씨앗 훑기가 볼 씨앗 수. 씬의 씨앗부터 이만큼 이어서 센다.
     const int VerifySeedCount = 200;
@@ -113,14 +114,44 @@ public static class ForestMapBuilder
     const float TreeScale = 1.75f;
     const float TreeScaleJitter = 0.35f;
 
+    /// 둥근 그림자 블롭의 지름. 나무 메시 너비의 비율이다 (`AddRoundShadow`). 가장자리가 옅어지고
+    /// 잎 아래에 가려지므로, 1을 넘겨야 잎 밖으로 부드러운 테두리가 비어져 나온다.
+    const float RoundShadowScale = 1.4f;
+
+    /// 블롭을 지면에서 띄우는 높이(나무 로컬). 지면과 깊이가 겹쳐 깜빡이지 않을 만큼만 띄운다.
+    const float RoundShadowBottom = 0.03f;
+
+    /// 블롭 중심부가 균일하게 어두운 반지름 비율(0~1)과 최대 불투명도. 바깥으로 갈수록 옅어진다.
+    // ponytail: 둘 다 눈으로 맞춘 임시값. 기획서에 그림자 농도 규정이 없다. 연출을 확정하면 옮긴다.
+    const float RoundShadowCore = 0.4f;
+    const float RoundShadowOpacity = 0.5f;
+    const int RoundShadowTextureSize = 64;
+
     /// 터레인 설정. **도구가 소유한다** — 매번 새로 만들므로 Inspector에서 고친 값은 다음 굽기에
-    /// 되돌아간다. 지면은 평평하고(중력 없음, `GroundY`) 레이어는 하나뿐이라 해상도를 최소로 둔다.
+    /// 되돌아간다. 지면은 평평하게 두고, 잔디·흙 경계와 풀 군락은 별도 격자에 굽는다.
     const string TerrainFolder = "Assets/Art/Environment/Terrain/";
     const float TerrainHeight = 1f;               // 높이가 없어 경계 상자 두께로만 쓰인다
 
     const int TerrainHeightmapResolution = 33;    // Unity 최솟값
-    const int TerrainAlphamapResolution = 16;     // Unity 최솟값. 레이어 하나라 칠할 것이 없다
-    const int TerrainBaseMapResolution = 16;
+    const int TerrainAlphamapResolution = 512;
+    const int TerrainBaseMapResolution = 512;
+    const int GrassResolution = 256;
+    const int GrassPatchResolution = 16;
+
+    // ponytail: 참고 이미지에 맞춘 임시 연출 프리셋. 아트 확정 시 이 도구의 직렬화 설정으로 옮긴다.
+    const float GroundTileSize = 5f;
+    const float DirtPathHalfWidth = 1.3f;
+    const float DirtEdgeWidth = 0.8f;
+    const float DirtPathBend = 3f;
+    const float DirtNoiseScale = 0.08f;
+    const float GrassNoiseScale = 0.18f;
+    const float GrassNoiseThreshold = 0.46f;
+    const float GrassScatterChance = 0.65f;
+    const float GrassMinScale = 2.3f;
+    const float GrassMaxScale = 3.6f;
+    const float GrassDrawDistance = 65f;
+    const float GrassDirtThreshold = 0.25f;
+    const float GrassTreeClearance = 0.9f;
 
     /// 평지라 LOD가 틀어질 높이가 없다. 최댓값으로 두어 패치를 가장 거칠게 쓴다.
     const float TerrainPixelError = 200f;
@@ -128,9 +159,9 @@ public static class ForestMapBuilder
     /// LODGroup이 없는 팩 모델에 붙일 컬링 높이. 팩의 다른 모델(돌·그루터기)이 쓰는 값과 맞춘다.
     const float PackLodCullHeight = 0.03f;
 
-    /// 예전 바닥(Plane)의 머티리얼. 텍스처·타일링·매끄러움을 TerrainLayer로 옮겨 겉모습을 유지한다.
-    const string GroundMaterialPath =
-        "Assets/AssetStore/Supercyan Free Forest Sample/Textures/Ground/Materials/forestpack_moss_light_tile_diffuse.mat";
+    const string GroundTextureFolder = "Assets/AssetStore/Supercyan Free Forest Sample/Textures/Ground/";
+    const string GrassTexturePath = GroundTextureFolder + "forestpack_moss_light_tile_diffuse.png";
+    const string DirtTexturePath = GroundTextureFolder + "forestpack_road_tile_diffuse.png";
 
     /// 숲의 나무·수풀. Supercyan Free Forest Sample의 High Quality 프리팹을 쓴다.
     /// Mobile 쪽은 같은 메시에 저해상도 텍스처라 탑다운에서 흐리게 뭉친다.
@@ -162,8 +193,15 @@ public static class ForestMapBuilder
         "Foliage/Mushroom/forestpack_foliage_mushroom_red_small",
     };
 
+    static readonly string[] GrassModels =
+    {
+        "Foliage/Grass/forestpack_foliage_grassPatch_small_1",
+        "Foliage/Grass/forestpack_foliage_grassPatch_small_2",
+    };
+
     /// 등급별 겉모습 (기획서 6.5.2). 형태·재질·색·발광이 모두 달라야 원거리에서 구분된다.
-    static readonly string[] TierMeshModels = { "box", "chest", "box-large" };
+    const string ChestModels = "Assets/Art/Environment/Models/NightChests/";
+    static readonly string[] TierMeshModels = { "T1_Wood_Closed", "T2_Iron_Closed", "T3_Rune_Closed" };
     static readonly string[] TierMaterialNames = { "Box_T1", "Box_T2", "Box_T3" };
 
     // 링별 등급 가중치는 `ForestRings`에 있다 (기획서 6.3). 런타임 재배치와 같은 표를 본다.
@@ -303,7 +341,7 @@ public static class ForestMapBuilder
 
         var scene = director.gameObject.scene;
         DressBoxes(boxes, origin, forestSize);
-        var planted = PlantForest(scene, origin, forestSize, director.GroundSize, keepOut, spawns, boxPositions, densityScale);
+        var planted = PlantForest(scene, origin, forestSize, director.GroundSize, keepOut, spawns, boxPositions, densityScale, seed);
 
         Random.state = state;
 
@@ -428,7 +466,7 @@ public static class ForestMapBuilder
     /// 터레인 트리 원형으로 쓸 프리팹 변형을 만든다. 팩 프리팹의 머티리얼을 인스턴싱 사본으로
     /// 바꾸고, 팩 콜라이더를 `LocalRadius` 캡슐 하나로 갈아 끼운다. TerrainCollider가 이 캡슐을
     /// 나무마다 크기에 맞춰 세운다 — 통로 검사(`Prop.Radius`)와 같은 반경이어야 한다.
-    static GameObject TreePrefab(GameObject model, Dictionary<Material, Material> copies)
+    static GameObject TreePrefab(GameObject model, Dictionary<Material, Material> copies, bool roundShadow)
     {
         var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
         try
@@ -462,6 +500,9 @@ public static class ForestMapBuilder
                 capsule.center = Vector3.up * (capsule.height * 0.5f);
             }
 
+            // LOD 묶기 전에 세워야 그림자 구도 터레인이 같이 그린다.
+            if (roundShadow) AddRoundShadow(instance);
+
             // LODGroup이 없는 원형은 터레인이 빌보드 나무로 취급해 Soft Occlusion 셰이더를 요구한다.
             if (instance.GetComponent<LODGroup>() == null)
                 instance.AddComponent<LODGroup>().SetLODs(new[]
@@ -477,14 +518,101 @@ public static class ForestMapBuilder
         }
     }
 
+    /// 나무 본체의 그림자를 끄고, 밑동에 가장자리가 옅어지는 둥근 블롭을 깐다. 잎 끝이 그림자를
+    /// 톱니로 만들어서다. 그림자 맵으로 드리우던 구체 caster는 가장자리가 이진이라 딱딱한 원이
+    /// 됐다 — 블롭은 알파 그라데이션이라 가장자리가 부드럽다.
+    ///
+    /// 블롭은 불투명 패스 큐(≤2500)에 그린다. 투명 큐면 안개 패스(BeforeRenderingTransparents)
+    /// 뒤에 그려져 안 걷힌 자리의 나무 위치가 블롭으로 새어 나온다 (기획서 6.1-2).
+    static void AddRoundShadow(GameObject tree)
+    {
+        var body = tree.GetComponentInChildren<MeshRenderer>();
+        var bounds = body.GetComponent<MeshFilter>().sharedMesh.bounds;
+        body.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+
+        var blob = GameObject.CreatePrimitive(PrimitiveType.Quad);
+        blob.name = "RoundShadow";
+        Object.DestroyImmediate(blob.GetComponent<Collider>());
+        blob.transform.SetParent(body.transform, false);
+        blob.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);   // 쿼드 앞면(-Z)이 위를 보게 눕힌다
+        blob.transform.localPosition = new Vector3(bounds.center.x, RoundShadowBottom, bounds.center.z);
+        blob.transform.localScale = new Vector3(bounds.size.x * RoundShadowScale, bounds.size.z * RoundShadowScale, 1f);
+
+        var renderer = blob.GetComponent<MeshRenderer>();
+        renderer.sharedMaterial = EnsureRoundShadowMaterial();
+        renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+        renderer.receiveShadows = false;
+    }
+
+    /// 블롭 머티리얼. 터레인 트리는 인스턴싱이 꺼진 머티리얼을 받으면 URP 프레임이 죽으므로
+    /// (`EnsureInstancedCopy`) 인스턴싱을 켠다. 굽을 때마다 값을 다시 적어 손으로 고친 흔적을 지운다.
+    static Material EnsureRoundShadowMaterial()
+    {
+        var path = TerrainFolder + "TreeRoundShadow.mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            material = new Material(Shader.Find("Universal Render Pipeline/Unlit"));
+            AssetDatabase.CreateAsset(material, path);
+        }
+
+        material.SetFloat("_Surface", 1f);                                        // Transparent
+        material.SetFloat("_Blend", 0f);                                          // Alpha
+        material.SetFloat("_SrcBlend", (float)UnityEngine.Rendering.BlendMode.SrcAlpha);
+        material.SetFloat("_DstBlend", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_SrcBlendAlpha", (float)UnityEngine.Rendering.BlendMode.One);
+        material.SetFloat("_DstBlendAlpha", (float)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+        material.SetFloat("_ZWrite", 0f);
+        material.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
+        material.SetOverrideTag("RenderType", "Transparent");
+        material.SetTexture("_BaseMap", EnsureRoundShadowTexture());
+        material.SetColor("_BaseColor", new Color(0f, 0f, 0f, RoundShadowOpacity));
+        material.enableInstancing = true;
+        // 2500 이하여야 불투명 패스에서 안개보다 먼저 그려진다. URP 인스펙터가 머티리얼을 다시
+        // 검증하면 3000으로 되돌릴 수 있다 — 굽는 쪽(여기)이 값의 원천이니 이상하면 다시 굽는다.
+        material.renderQueue = 2450;
+        EditorUtility.SetDirty(material);
+        return material;
+    }
+
+    /// 중심에서 가장자리로 알파가 부드럽게 0이 되는 방사형 텍스처. 색은 검정이라 알파만 쓰인다.
+    static Texture2D EnsureRoundShadowTexture()
+    {
+        var path = TerrainFolder + "TreeRoundShadow.png";
+        var existing = AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+        if (existing != null) return existing;
+
+        var size = RoundShadowTextureSize;
+        var generated = new Texture2D(size, size, TextureFormat.RGBA32, false);
+        for (var y = 0; y < size; y++)
+        for (var x = 0; x < size; x++)
+        {
+            var offset = new Vector2((x + 0.5f) / size * 2f - 1f, (y + 0.5f) / size * 2f - 1f);
+            // Mathf.SmoothStep은 from→to 보간이지 GLSL smoothstep이 아니다 — 직접 푼다.
+            var u = Mathf.Clamp01((offset.magnitude - RoundShadowCore) / (1f - RoundShadowCore));
+            generated.SetPixel(x, y, new Color(0f, 0f, 0f, 1f - u * u * (3f - 2f * u)));
+        }
+
+        System.IO.File.WriteAllBytes(path, generated.EncodeToPNG());
+        Object.DestroyImmediate(generated);
+        AssetDatabase.ImportAsset(path);
+
+        var importer = (TextureImporter)AssetImporter.GetAtPath(path);
+        importer.alphaIsTransparency = true;
+        importer.mipmapEnabled = false;
+        importer.wrapMode = TextureWrapMode.Clamp;
+        importer.SaveAndReimport();
+        return AssetDatabase.LoadAssetAtPath<Texture2D>(path);
+    }
+
     /// 팩 머티리얼의 프로젝트 소유 사본을 만든다. 색·텍스처는 그대로 두고 GPU 인스턴싱만 켠다.
     ///
     /// 원본을 직접 고치지 않는 이유는 두 가지다. 서드파티 원본은 건드리지 않는 것이 규칙이고
     /// (AGENTS.md), 팩을 다시 임포트하면 플래그가 조용히 되돌아간다. 인스턴싱이 꺼진
     /// 머티리얼을 `RenderMeshInstanced`에 넘기면 예외가 URP 프레임을 죽여 화면이 하얘진다.
     ///
-    /// 사본은 매번 원본 속성을 다시 받는다 — 팩 쪽 색이 바뀌면 다음 굽기에 따라온다.
-    static Material EnsureInstancedCopy(Material source)
+    /// 사본은 원본 속성을 다시 받되, 풀 전용 사본의 조정한 색은 유지한다.
+    static Material EnsureInstancedCopy(Material source, string suffix = "")
     {
         var sourcePath = AssetDatabase.GetAssetPath(source);
         if (string.IsNullOrEmpty(sourcePath))
@@ -496,7 +624,7 @@ public static class ForestMapBuilder
         if (!AssetDatabase.IsValidFolder(ForestMaterialFolder.TrimEnd('/')))
             AssetDatabase.CreateFolder(MaterialFolder.TrimEnd('/'), "Forest");
 
-        var path = ForestMaterialFolder + source.name + ".mat";
+        var path = ForestMaterialFolder + source.name + suffix + ".mat";
         var copy = AssetDatabase.LoadAssetAtPath<Material>(path);
 
         if (copy == null)
@@ -510,25 +638,25 @@ public static class ForestMapBuilder
             copy = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (copy == null) return null;
         }
-        else copy.CopyPropertiesFromMaterial(source);
+        else
+        {
+            var tint = copy.color;
+            copy.CopyPropertiesFromMaterial(source);
+            if (!string.IsNullOrEmpty(suffix)) copy.color = tint;
+        }
 
         copy.enableInstancing = true;
         EditorUtility.SetDirty(copy);
         return copy;
     }
 
-    /// 숲 바닥 레이어. 예전 Plane(UV 0~1이 숲 전체)과 같은 겉모습이 되도록 타일 크기를
-    /// 숲 크기 ÷ 머티리얼 타일링으로 잡는다.
-    static TerrainLayer GroundLayer(Vector2 forestSize)
+    /// 팩 텍스처를 프로젝트 소유 레이어에 연결한다. 반복 크기는 월드 미터 단위다.
+    static TerrainLayer GroundLayer(string name, string texturePath)
     {
-        var source = AssetDatabase.LoadAssetAtPath<Material>(GroundMaterialPath);
-        if (source == null)
-        {
-            Debug.LogError($"바닥 머티리얼을 찾지 못했다: {GroundMaterialPath}");
-            return null;
-        }
+        var texture = AssetDatabase.LoadAssetAtPath<Texture2D>(texturePath);
+        if (texture == null) throw new System.InvalidOperationException($"바닥 텍스처 누락: {texturePath}");
 
-        var path = TerrainFolder + "ForestGround.terrainlayer";
+        var path = TerrainFolder + name + ".terrainlayer";
         var layer = AssetDatabase.LoadAssetAtPath<TerrainLayer>(path);
         if (layer == null)
         {
@@ -536,13 +664,152 @@ public static class ForestMapBuilder
             AssetDatabase.CreateAsset(layer, path);
         }
 
-        var tiling = source.mainTextureScale;
-        layer.diffuseTexture = source.mainTexture as Texture2D;
-        layer.tileSize = new Vector2(forestSize.x / tiling.x, forestSize.y / tiling.y);
+        layer.diffuseTexture = texture;
+        layer.tileSize = Vector2.one * GroundTileSize;
         layer.metallic = 0f;
-        layer.smoothness = source.HasProperty("_Smoothness") ? source.GetFloat("_Smoothness") : 0f;
+        layer.smoothness = 0f;
         EditorUtility.SetDirty(layer);
         return layer;
+    }
+
+    /// 현재 나무·높이·콜라이더를 보존하고 표면만 다시 칠한다.
+    [MenuItem(SurfaceMenuPath)]
+    internal static void ApplySurface()
+    {
+        if (EditorApplication.isPlayingOrWillChangePlaymode)
+            throw new System.InvalidOperationException("플레이를 정지한 뒤 숲 표면을 적용한다.");
+        var director = Object.FindFirstObjectByType<MatchDirector>();
+        if (director == null) throw new System.InvalidOperationException("열린 씬에 MatchDirector가 없다.");
+        var terrain = director.gameObject.scene.GetRootGameObjects()
+            .SelectMany(root => root.GetComponentsInChildren<Terrain>(true))
+            .FirstOrDefault(t => t.name == ForestRootName);
+        if (terrain == null) throw new System.InvalidOperationException("열린 씬에 숲 Terrain이 없다.");
+
+        var so = new SerializedObject(director);
+        var origin = so.FindProperty("cafeOrigin").vector3Value;
+        var size = so.FindProperty("forestSize").vector2Value;
+        var spawns = SpawnPoints(origin, size, so.FindProperty("spawnInset").floatValue,
+            so.FindProperty("spawnSlotSpacing").floatValue);
+        var boxes = Object.FindObjectsByType<ItemBox>(FindObjectsInactive.Include, FindObjectsSortMode.None)
+            .Where(box => box.gameObject.scene == director.gameObject.scene)
+            .Select(box => box.transform.position).ToList();
+        PaintSurface(terrain, origin, size, CollectKeepOut(spawns, boxes), so.FindProperty("mapSeed").intValue);
+        AssetDatabase.SaveAssets();
+        EditorSceneManager.MarkSceneDirty(terrain.gameObject.scene);
+    }
+
+    /// 콜라이더 없는 풀 두 종류를 GPU 인스턴싱용 프로젝트 프리팹으로 만든다.
+    static DetailPrototype[] GrassPrototypes()
+    {
+        var models = LoadModels(ForestModels, GrassModels);
+        if (models.Count != GrassModels.Length)
+            throw new System.InvalidOperationException("숲 풀 원형을 모두 찾지 못했다.");
+        var prototypes = new List<DetailPrototype>();
+        var copies = new Dictionary<Material, Material>();
+        foreach (var model in models)
+        {
+            var instance = (GameObject)PrefabUtility.InstantiatePrefab(model);
+            try
+            {
+                foreach (var renderer in instance.GetComponentsInChildren<Renderer>(true))
+                {
+                    var materials = renderer.sharedMaterials;
+                    for (var i = 0; i < materials.Length; i++)
+                    {
+                        if (!copies.TryGetValue(materials[i], out var copy))
+                            copies[materials[i]] = copy = EnsureInstancedCopy(materials[i], "_TerrainGrass");
+                        if (copy == null) throw new System.InvalidOperationException("풀 머티리얼 사본 생성 실패.");
+                        materials[i] = copy;
+                    }
+                    renderer.sharedMaterials = materials;
+                }
+                foreach (var collider in instance.GetComponentsInChildren<Collider>(true))
+                    Object.DestroyImmediate(collider);
+                var prefab = PrefabUtility.SaveAsPrefabAsset(instance, TerrainFolder + model.name + ".prefab");
+                var prototype = new DetailPrototype
+                {
+                    prototype = prefab, usePrototypeMesh = true, useInstancing = true,
+                    renderMode = DetailRenderMode.VertexLit,
+                    minWidth = GrassMinScale, maxWidth = GrassMaxScale,
+                    minHeight = GrassMinScale, maxHeight = GrassMaxScale,
+                    healthyColor = Color.white, dryColor = Color.white,
+                    positionJitter = 1f,
+                };
+                if (!prototype.Validate(out var error)) throw new System.InvalidOperationException(error);
+                prototypes.Add(prototype);
+            }
+            finally { Object.DestroyImmediate(instance); }
+        }
+        return prototypes.ToArray();
+    }
+
+    /// 씨앗별 흙길·빈터와 풀 군락을 같은 마스크로 굽는다. Unity 난수 상태는 건드리지 않는다.
+    static void PaintSurface(Terrain terrain, Vector3 origin, Vector2 forestSize, List<KeepOut> keepOut, int seed)
+    {
+        var layers = new[] { GroundLayer("ForestGround", GrassTexturePath), GroundLayer("ForestDirt", DirtTexturePath) };
+        var prototypes = GrassPrototypes();
+        var data = terrain.terrainData;
+        Undo.RegisterCompleteObjectUndo(data, "숲 잔디·흙·풀 적용");
+        Undo.RecordObject(terrain, "숲 풀 렌더 설정");
+        var random = new System.Random(seed);
+        var offset = new Vector2((float)random.NextDouble(), (float)random.NextDouble()) * TerrainAlphamapResolution;
+        data.alphamapResolution = TerrainAlphamapResolution;
+        data.baseMapResolution = TerrainBaseMapResolution;
+        data.terrainLayers = layers;
+        var weights = new float[data.alphamapHeight, data.alphamapWidth, layers.Length];
+        for (var z = 0; z < data.alphamapHeight; z++)
+        for (var x = 0; x < data.alphamapWidth; x++)
+        {
+            var world = terrain.transform.position + new Vector3(
+                x * data.size.x / (data.alphamapWidth - 1), 0f, z * data.size.z / (data.alphamapHeight - 1));
+            var dirt = DirtWeight(Flat(world - origin), offset, keepOut, world);
+            weights[z, x, 0] = 1f - dirt;
+            weights[z, x, 1] = dirt;
+        }
+        data.SetAlphamaps(0, 0, weights);
+        data.SetDetailScatterMode(DetailScatterMode.InstanceCountMode);
+        data.SetDetailResolution(GrassResolution, GrassPatchResolution);
+        data.detailPrototypes = prototypes;
+        var grassKeepOut = new List<KeepOut>(keepOut);
+        foreach (var tree in data.treeInstances)
+            grassKeepOut.Add(new KeepOut(terrain.transform.position + Vector3.Scale(tree.position, data.size), GrassTreeClearance));
+        var maps = prototypes.Select(_ => new int[data.detailHeight, data.detailWidth]).ToArray();
+        for (var z = 0; z < data.detailHeight; z++)
+        for (var x = 0; x < data.detailWidth; x++)
+        {
+            var world = terrain.transform.position + new Vector3(
+                (x + 0.5f) * data.size.x / data.detailWidth, 0f, (z + 0.5f) * data.size.z / data.detailHeight);
+            var local = Flat(world - origin);
+            if (Mathf.Abs(local.x) >= forestSize.x * 0.5f || Mathf.Abs(local.z) >= forestSize.y * 0.5f
+                || Blocked(world, grassKeepOut) || DirtWeight(local, offset, keepOut, world) > GrassDirtThreshold) continue;
+            var noise = Mathf.PerlinNoise(local.x * GrassNoiseScale + offset.x, local.z * GrassNoiseScale + offset.y);
+            if (noise < GrassNoiseThreshold || random.NextDouble() > GrassScatterChance) continue;
+            maps[random.Next(maps.Length)][z, x] = 1;
+        }
+        for (var i = 0; i < maps.Length; i++) data.SetDetailLayer(0, 0, i, maps[i]);
+        terrain.detailObjectDistance = GrassDrawDistance;
+        terrain.detailObjectDensity = 1f;
+        terrain.drawTreesAndFoliage = true;
+        terrain.collectDetailPatches = true;
+        terrain.Flush();
+        EditorUtility.SetDirty(data);
+        EditorUtility.SetDirty(terrain);
+    }
+
+    static float DirtWeight(Vector3 local, Vector2 offset, List<KeepOut> clearings, Vector3 world)
+    {
+        var bendX = (Mathf.PerlinNoise(local.z * DirtNoiseScale, offset.x) - 0.5f) * DirtPathBend;
+        var bendZ = (Mathf.PerlinNoise(offset.y, local.x * DirtNoiseScale) - 0.5f) * DirtPathBend;
+        var distance = Mathf.Min(Mathf.Abs(local.x - bendX), Mathf.Abs(local.z - bendZ));
+        var dirt = 1f - Mathf.SmoothStep(0f, 1f,
+            Mathf.InverseLerp(DirtPathHalfWidth, DirtPathHalfWidth + DirtEdgeWidth, distance));
+        foreach (var clearing in clearings)
+        {
+            var radius = clearing.Radius * 0.5f;
+            dirt = Mathf.Max(dirt, 1f - Mathf.SmoothStep(0f, 1f,
+                Mathf.InverseLerp(radius, radius + DirtEdgeWidth, Flat(world - clearing.Centre).magnitude)));
+        }
+        return dirt;
     }
 
     /// 나무를 놓지 않을 자리. 상자와 팀 스폰이다.
@@ -582,7 +849,7 @@ public static class ForestMapBuilder
     {
         var meshes = new Object[TierMeshModels.Length];
         for (var i = 0; i < TierMeshModels.Length; i++)
-            meshes[i] = LoadMesh(SurvivalModels + TierMeshModels[i] + ".fbx");
+            meshes[i] = LoadMesh(ChestModels + TierMeshModels[i] + ".asset");
 
         var materials = new Object[TierMaterialNames.Length];
         for (var i = 0; i < TierMaterialNames.Length; i++)
@@ -778,7 +1045,7 @@ public static class ForestMapBuilder
     }
 
     static int PlantForest(Scene scene, Vector3 origin, Vector2 forestSize, Vector2 groundSize, List<KeepOut> keepOut,
-                           List<Vector3> spawns, List<Vector3> boxes, float densityScale)
+                           List<Vector3> spawns, List<Vector3> boxes, float densityScale, int seed)
     {
         var old = GameObject.Find(ForestRootName);
         if (old != null) Object.DestroyImmediate(old);
@@ -803,7 +1070,7 @@ public static class ForestMapBuilder
         {
             if (prototypeIndex.ContainsKey(model)) continue;
             prototypeIndex[model] = prototypes.Count;
-            prototypes.Add(new TreePrototype { prefab = TreePrefab(model, copies) });
+            prototypes.Add(new TreePrototype { prefab = TreePrefab(model, copies, trees.Contains(model)) });
             radii[model] = LocalRadius(model);
         }
 
@@ -811,7 +1078,7 @@ public static class ForestMapBuilder
         var carved = OpenPassages(props, origin, forestSize, spawns, boxes);
 
         var corner = new Vector3(origin.x - groundSize.x * 0.5f, GroundY, origin.z - groundSize.y * 0.5f);
-        var data = BakeTerrainData(scene, groundSize, GroundLayer(forestSize));
+        var data = BakeTerrainData(scene, groundSize);
         data.treePrototypes = prototypes.ToArray();
 
         var instances = new TreeInstance[props.Count];
@@ -838,6 +1105,8 @@ public static class ForestMapBuilder
         root.name = ForestRootName;
         root.transform.position = corner;
         SetupTerrain(root.GetComponent<Terrain>(), forestSize);
+        PaintSurface(root.GetComponent<Terrain>(), origin, forestSize, keepOut, seed);
+        AssetDatabase.SaveAssets();
         // 터레인 원점이 여유분 바깥 모서리라 숲은 로컬 margin~margin+forestSize다.
         BuildBoundary(root.transform, new Vector3(groundSize.x * 0.5f, 0f, groundSize.y * 0.5f), forestSize, night: true);
 
@@ -982,7 +1251,7 @@ public static class ForestMapBuilder
     }
 
     /// 씬마다 TerrainData 한 벌. 다시 구우면 같은 에셋을 덮어써 GUID가 유지된다.
-    static TerrainData BakeTerrainData(Scene scene, Vector2 groundSize, TerrainLayer ground)
+    static TerrainData BakeTerrainData(Scene scene, Vector2 groundSize)
     {
         var path = TerrainFolder + scene.name + "_Forest.asset";
         var data = AssetDatabase.LoadAssetAtPath<TerrainData>(path);
@@ -997,21 +1266,6 @@ public static class ForestMapBuilder
         data.size = new Vector3(groundSize.x, TerrainHeight, groundSize.y);
         data.SetHeights(0, 0, new float[TerrainHeightmapResolution, TerrainHeightmapResolution]);
 
-        data.alphamapResolution = TerrainAlphamapResolution;
-        data.baseMapResolution = TerrainBaseMapResolution;
-        data.terrainLayers = ground != null ? new[] { ground } : new TerrainLayer[0];
-        if (ground != null)
-        {
-            var weights = new float[TerrainAlphamapResolution, TerrainAlphamapResolution, 1];
-            for (var z = 0; z < TerrainAlphamapResolution; z++)
-            for (var x = 0; x < TerrainAlphamapResolution; x++)
-                weights[z, x, 0] = 1f;
-            data.SetAlphamaps(0, 0, weights);
-        }
-
-        // 디테일(풀)은 쓰지 않는다.
-        data.detailPrototypes = new DetailPrototype[0];
-        data.SetDetailResolution(0, 8);
         return data;
     }
 
@@ -1027,8 +1281,6 @@ public static class ForestMapBuilder
         terrain.reflectionProbeUsage = UnityEngine.Rendering.ReflectionProbeUsage.Off;
         terrain.treeDistance = diagonal;
         terrain.treeBillboardDistance = diagonal;
-        terrain.detailObjectDistance = 0f;
-        terrain.collectDetailPatches = false;
         terrain.allowAutoConnect = false;
     }
 

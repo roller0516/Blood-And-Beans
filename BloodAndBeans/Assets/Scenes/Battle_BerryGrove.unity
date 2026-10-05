@@ -189,6 +189,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3878997297
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3920436817
+      objectReference: {fileID: 0}
     - target: {fileID: 5481336027205357941, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
       propertyPath: m_Name
       value: Coffee
@@ -744,6 +760,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::PhaseSkybox
   nightSky: {fileID: 2100000, guid: e2dc7be856ea49b438a165fddaee7576, type: 2}
   daySky: {fileID: 2100000, guid: be9dc822ac2b8b149960177b1dd84b8b, type: 2}
+  sun: {fileID: 410087040}
+  nightIntensity: 0.5
+  dayIntensity: 3
 --- !u!1 &500636056
 GameObject:
   m_ObjectHideFlags: 0
@@ -853,6 +872,7 @@ MonoBehaviour:
   cafeOrigin: {x: 0, y: 0, z: 0}
   plaza: {fileID: 1720864810}
   forestSize: {x: 100, y: 100}
+  terrainMargin: 35
   spawnInset: 10
   boxPrefab: {fileID: 2242796622637705624, guid: 36718396aeaa0fb4cb84c7d174d860bf, type: 3}
   boxSeparation: 7
@@ -888,6 +908,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 497310977
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 4142447363
+      objectReference: {fileID: 0}
     - target: {fileID: 1931785678125367735, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -950,6 +986,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1048562199
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 4142447363
+      objectReference: {fileID: 0}
     - target: {fileID: 1931785678125367735, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -1052,6 +1104,22 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8510641977673206614, guid: bc7e2fd15c306a74b9a8f599fa58989f, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8510641977673206614, guid: bc7e2fd15c306a74b9a8f599fa58989f, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3442442079
+      objectReference: {fileID: 0}
+    - target: {fileID: 8510641977673206614, guid: bc7e2fd15c306a74b9a8f599fa58989f, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8510641977673206614, guid: bc7e2fd15c306a74b9a8f599fa58989f, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1687451101
+      objectReference: {fileID: 0}
     - target: {fileID: 9151007304871078282, guid: bc7e2fd15c306a74b9a8f599fa58989f, type: 3}
       propertyPath: m_Name
       value: Beans
@@ -1077,6 +1145,22 @@ PrefabInstance:
     - target: {fileID: 3015757620415679374, guid: e7f56d81a95955a488e9990438907c34, type: 3}
       propertyPath: m_Name
       value: Bread
+      objectReference: {fileID: 0}
+    - target: {fileID: 7171874311691434031, guid: e7f56d81a95955a488e9990438907c34, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7171874311691434031, guid: e7f56d81a95955a488e9990438907c34, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 3086429636
+      objectReference: {fileID: 0}
+    - target: {fileID: 7171874311691434031, guid: e7f56d81a95955a488e9990438907c34, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7171874311691434031, guid: e7f56d81a95955a488e9990438907c34, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 2578813337
       objectReference: {fileID: 0}
     - target: {fileID: 7916630657265359380, guid: e7f56d81a95955a488e9990438907c34, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1822,6 +1906,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2052308682
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3920436817
+      objectReference: {fileID: 0}
     - target: {fileID: 5481336027205357941, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
       propertyPath: m_Name
       value: Coffee
@@ -1884,6 +1984,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1610700771
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -6154008316899428853, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 4142447363
+      objectReference: {fileID: 0}
     - target: {fileID: 1931785678125367735, guid: 371766db616b9dd49abfaf532bd6a718, type: 3}
       propertyPath: m_LocalPosition.x
       value: 10
@@ -2515,6 +2631,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 2938445376
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -1405366709879035940, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3920436817
+      objectReference: {fileID: 0}
     - target: {fileID: 5481336027205357941, guid: 2f12c2f8595e13243b10a6c85dfd1bd2, type: 3}
       propertyPath: m_Name
       value: Coffee
@@ -2911,6 +3043,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1384488622
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1666112136
+      objectReference: {fileID: 0}
     - target: {fileID: 3869085471439649423, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
       propertyPath: m_LocalPosition.x
       value: 4
@@ -2973,6 +3121,22 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1720864810}
     m_Modifications:
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: m_InScenePlaced
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1605561795
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: SceneMigrationSynchronization
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 1065762206665360905, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 1666112136
+      objectReference: {fileID: 0}
     - target: {fileID: 3869085471439649423, guid: b355ac622c3c61d41b2725356c20707e, type: 3}
       propertyPath: m_LocalPosition.x
       value: -4
