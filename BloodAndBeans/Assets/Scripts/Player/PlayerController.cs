@@ -224,12 +224,29 @@ public class PlayerController : NetworkBehaviour
 
         // 회전은 이동과 무관하다. 입력이 이미 월드 방향이라 서버와 소유자가 같은 결과를
         // 얻고, 회전이 이동식에 끼어들지 않으므로 예측 화해도 흔들리지 않는다.
-        if (direction.sqrMagnitude <= 0.0001f) return;
+        // 입력이 없으면 상호작용 대상 쪽(`faceDirection`)으로 돈다. 걷기 시작하면 그쪽을 버린다.
+        var moving = direction.sqrMagnitude > 0.0001f;
+        if (moving) faceDirection = Vector3.zero;
+        else if (faceDirection == Vector3.zero) return;
 
+        var look = Quaternion.LookRotation(moving ? direction.normalized : faceDirection, Vector3.up);
         transform.rotation = Quaternion.RotateTowards(
-            transform.rotation,
-            Quaternion.LookRotation(direction.normalized, Vector3.up),
-            turnDegreesPerSecond * Time.deltaTime);
+            transform.rotation, look, turnDegreesPerSecond * Time.deltaTime);
+        if (!moving && transform.rotation == look) faceDirection = Vector3.zero;
+    }
+
+    /// 상호작용 대상 쪽으로 돌 방향. 서버만 쓴다 (회전은 서버 값이 복제된다). 영벡터면 없음.
+    Vector3 faceDirection;
+
+    /// 소유자가 상호작용을 시작하며 대상 방향을 알린다. 표현일 뿐이라 서버 상태는
+    /// 회전 외에 바꾸지 않고, 값은 유한한 수평 방향으로만 받는다.
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    void FaceRpc(Vector3 direction)
+    {
+        direction.y = 0f;
+        if (float.IsNaN(direction.x + direction.z) || float.IsInfinity(direction.x + direction.z)) return;
+        if (direction.sqrMagnitude <= 0.0001f) return;
+        faceDirection = direction.normalized;
     }
 
     /// 평면 탑다운이라 y는 상수다. 그런데 CharacterController는 겹침을 풀 때 수평만
@@ -438,7 +455,11 @@ public class PlayerController : NetworkBehaviour
             SoundPlayed?.Invoke(SfxCue.NotAllowed, transform.position, -1);
             deniedUntil = Time.unscaledTime + deniedSeconds;
         }
-        if (current != null) Latest = current;
+        if (current != null)
+        {
+            Latest = current;
+            FaceRpc(((MonoBehaviour)current).transform.position - transform.position);
+        }
         current?.BeginInteractionClient();
     }
 
