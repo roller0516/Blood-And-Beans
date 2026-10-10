@@ -4,22 +4,335 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Blood & Beans · 루이지 UI 시안</title>
-  <meta name="description" content="루이지 맨션 3 스타일의 Blood & Beans 캐릭터 교체 UI 시안. 네 캐릭터와 밤 가방 디자인을 비교합니다.">
+  <meta name="description" content="Blood & Beans Unity 프로젝트 기준 루이지 콘셉트 UI 시안. 입장·낮·밤·정산·공통 18개 항목과 원본 배치를 비교합니다.">
   <style>:root{font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#302a31;background:#f4f0e9;font-synthesis:none}
+@font-face{font-family:Bagel;src:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/fonts/BagelFatOne-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:Jua;src:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/fonts/Jua-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
+@font-face{font-family:Coiny;src:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/fonts/Coiny-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
 *{box-sizing:border-box}body{margin:0}main{max-width:1008px;margin:auto;padding:32px 24px 40px}header{margin-bottom:20px}.eyebrow{color:#756181;font-size:10px;letter-spacing:.15em;font-weight:700;margin:0 0 10px}h1{font-size:24px;line-height:1.4;margin:0;font-weight:800}.intro{font-size:13px;color:#786b74;margin:10px 0 16px}nav{display:flex;flex-wrap:wrap;gap:8px}a{color:#655177;font-size:12px}nav a{padding:6px 10px;border:1px solid #dfd4df;border-radius:6px;text-decoration:none;background:#fffaf4}nav a:hover{background:#eee5f2}.character-bar{display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:10;background:#f4f0e9ed;backdrop-filter:blur(10px);padding:12px 0;border-bottom:1px solid #e4dbe2}.picker-label{font-size:11px;color:#786b74;white-space:nowrap}.character-options{display:flex;gap:7px;flex-wrap:wrap}button{font:inherit;cursor:pointer}.character-options button{border:1px solid #ddd1df;border-radius:6px;background:#fffaf4;color:#534757;padding:8px 14px;font-size:12px}.character-options button[aria-pressed=true]{background:#675176;border-color:#675176;color:#fff}.character-options button:hover{border-color:#675176}button:focus-visible,a:focus-visible{outline:3px solid #8070ac;outline-offset:3px}.selection-note{margin:12px 0 0;font-size:11px;color:#877a84}section{margin-top:26px;scroll-margin-top:90px}h2{font-size:15px;margin:0 0 12px;line-height:1.5}.scene{position:relative;container-type:inline-size}.scene>img{display:block;width:100%;height:auto;border-radius:8px}.bag-picker{margin:0 0 14px}.bag-heading{display:flex;gap:12px;flex-wrap:wrap;align-items:baseline;margin-bottom:8px}.bag-heading strong{font-size:12px}.bag-heading span{font-size:11px;color:#877a84}.bag-options{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}.bag-choice{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:10px 6px;border:1px solid #dcd0df;border-radius:8px;background:#fffaf4;color:#514354;font-size:11px}.bag-choice[aria-pressed=true]{border:2px solid #77608c;background:#ede4f1;padding:9px 5px}.bag-art{display:block;background-image:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/images/bags-light-v2.webp");background-size:200% 200%;background-repeat:no-repeat;border-radius:10%}.bag-choice .bag-art{width:64px;height:64px}.night-bag{position:absolute;right:2%;bottom:4%;width:5.8%;aspect-ratio:1}.night-bag .bag-art{width:100%;height:100%}footer{margin-top:28px;padding-top:18px;border-top:1px solid #e1d8df;color:#877a84;font-size:11px}footer p{margin:0 0 8px}@media(max-width:600px){main{padding:22px 14px 30px}h1{font-size:21px}.character-bar{gap:10px}.character-options{gap:5px}.character-options button{padding:8px 10px;font-size:11px}.bag-choice{font-size:10px}.bag-choice .bag-art{width:52px;height:52px}.bag-heading{gap:5px}}
 
 .gallery-links{margin-bottom:12px}.gallery-links a{background:transparent;border-color:transparent;padding:4px 0;margin-right:14px}.gallery-links a:hover{background:transparent;text-decoration:underline}
+.project-scene[data-revision=concept] .project-overlay{font-family:Jua,sans-serif;font-weight:400;text-shadow:none;color:#263a2e;text-align:center;padding:0 1cqw}
+.project-scene{aspect-ratio:1672/941;background:#e8e1d6;border-radius:8px}
+.project-scene[data-ready=false]::after,.project-scene[data-ready=error]::after{position:absolute;inset:0;display:grid;place-items:center;background:#f4f0e9;color:#736b64;font-size:12px;content:'시안을 불러오는 중…'}
+.project-scene[data-ready=error]::after{content:'이미지를 불러오지 못했습니다. 다시 선택해 주세요.'}
+.project-scene[data-revision=concept] .project-overlay strong{font-family:Bagel,Jua,sans-serif;font-weight:400}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return]{left:25%;top:9%;width:50%;height:17%;gap:.35cqw;color:#315a38}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return] strong{font-size:2.4cqw}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return] span{font-size:1.35cqw}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return] span:last-child{font-size:1.03cqw;color:#4c5145}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return][data-state="1"]{color:#976420}
+.project-scene[data-revision=concept] .project-overlay[data-kind=return][data-state="2"]{color:#aa3932}
+.project-scene[data-revision=concept] .project-overlay[data-kind=loading]{left:28%;top:75%;width:44%;height:16%;font-size:2cqw;line-height:1.5}
+.project-scene[data-revision=concept] .project-overlay[data-kind=cue]{inset:0;font-size:8.2cqw;transform:translateY(-7%);color:#fbf6df;text-shadow:.25cqw .35cqw 0 #152b22,-.12cqw -.12cqw 0 #152b22}
+.project-scene[data-revision=concept] .project-overlay[data-kind=cue] strong{font-family:Coiny,Bagel,Jua,sans-serif;font-weight:400;-webkit-text-stroke:.22cqw #152b22;paint-order:stroke fill}
+.project-scene[data-revision=concept] .project-overlay[data-kind=cue][data-state="4"]{color:#c8ed93}
+.project-scene[data-revision=concept] .project-overlay[data-kind=cue][data-state="5"]{color:#ffc875}
+[hidden]{display:none!important}.gallery-mode{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.gallery-mode button,.group-picker button,.screen-picker button,.project-tools button,.state-picker button{border:1px solid #ddd1df;border-radius:6px;background:#fffaf4;color:#534757;padding:7px 11px;font-size:12px}.gallery-mode button[aria-pressed=true],.screen-picker button[aria-pressed=true],.project-tools button[aria-pressed=true],.state-picker button[aria-pressed=true]{background:#675176;color:white;border-color:#675176}.gallery-mode button{padding:9px 14px;font-weight:700}.project-intro{font-size:11px;line-height:1.8;color:#877a84;margin:12px 0 18px}.group-picker,.screen-picker,.project-tools,.state-picker{display:flex;flex-wrap:wrap;gap:6px}.group-picker{margin:12px 0}.group-picker button{font-size:11px;border-color:transparent;background:transparent}.group-picker button[aria-pressed=true]{border-color:#cfc0d3;background:#e9dfed}.screen-picker{padding-bottom:16px;border-bottom:1px solid #e4dbe2}.screen-picker button{font-size:11px;padding:6px 9px}.project-section{margin-top:18px}.project-tools{margin:0 0 12px}.state-picker{margin:0 0 12px}.project-note{font-size:12px;line-height:1.8;margin:12px 0 5px;color:#675d68}.source-note{font-size:10px;line-height:1.8;color:#92818c;margin:0}.image-actions{margin-top:8px}.image-actions a{font-size:11px}.project-overlay{position:absolute;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f6eedb;line-height:1.35;text-shadow:0 2px 3px #23172d}.project-overlay[data-kind=cue]{inset:0;font-size:7.8125cqw;font-weight:900;color:#ecf4d9}.project-overlay[data-kind=cue][data-state="4"]{color:#b3e881}.project-overlay[data-kind=cue][data-state="5"]{color:#f3cf88}.project-overlay[data-kind=loading]{left:30.2083%;top:40.7407%;width:39.5833%;height:18.5185%;font-size:1.77cqw}.project-overlay[data-kind=return]{left:29.1667%;top:11.1111%;width:41.6667%;height:13.8889%;gap:.35cqw;color:#b4e68e}.project-overlay[data-kind=return] strong{font-size:1.77cqw}.project-overlay[data-kind=return] span{font-size:1.25cqw}.project-overlay[data-kind=return] span:last-child{font-size:.84cqw;color:#e4dcc9}.project-overlay[data-kind=return][data-state="1"]{color:#efd38f}.project-overlay[data-kind=return][data-state="2"]{color:#f39185}
 
-</style>
+
+/* Bundled font licenses
+Copyright 2022 The Bagel Fat Project Authors (https://github.com/JAMO-TYPEFACE/BagelFat)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+
+Copyright 2015 Marcelo Magalhaes (marcelommp@gmail.com @marcelommp)
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+
+Copyright 2018 The Jua Project Authors
+
+This Font Software is licensed under the SIL Open Font License, Version 1.1.
+This license is copied below, and is also available with a FAQ at:
+http://scripts.sil.org/OFL
+
+
+-----------------------------------------------------------
+SIL OPEN FONT LICENSE Version 1.1 - 26 February 2007
+-----------------------------------------------------------
+
+PREAMBLE
+The goals of the Open Font License (OFL) are to stimulate worldwide
+development of collaborative font projects, to support the font creation
+efforts of academic and linguistic communities, and to provide a free and
+open framework in which fonts may be shared and improved in partnership
+with others.
+
+The OFL allows the licensed fonts to be used, studied, modified and
+redistributed freely as long as they are not sold by themselves. The
+fonts, including any derivative works, can be bundled, embedded, 
+redistributed and/or sold with any software provided that any reserved
+names are not used by derivative works. The fonts and derivatives,
+however, cannot be released under any other type of license. The
+requirement for fonts to remain under this license does not apply
+to any document created using the fonts or their derivatives.
+
+DEFINITIONS
+"Font Software" refers to the set of files released by the Copyright
+Holder(s) under this license and clearly marked as such. This may
+include source files, build scripts and documentation.
+
+"Reserved Font Name" refers to any names specified as such after the
+copyright statement(s).
+
+"Original Version" refers to the collection of Font Software components as
+distributed by the Copyright Holder(s).
+
+"Modified Version" refers to any derivative made by adding to, deleting,
+or substituting -- in part or in whole -- any of the components of the
+Original Version, by changing formats or by porting the Font Software to a
+new environment.
+
+"Author" refers to any designer, engineer, programmer, technical
+writer or other person who contributed to the Font Software.
+
+PERMISSION & CONDITIONS
+Permission is hereby granted, free of charge, to any person obtaining
+a copy of the Font Software, to use, study, copy, merge, embed, modify,
+redistribute, and sell modified and unmodified copies of the Font
+Software, subject to the following conditions:
+
+1) Neither the Font Software nor any of its individual components,
+in Original or Modified Versions, may be sold by itself.
+
+2) Original or Modified Versions of the Font Software may be bundled,
+redistributed and/or sold with any software, provided that each copy
+contains the above copyright notice and this license. These can be
+included either as stand-alone text files, human-readable headers or
+in the appropriate machine-readable metadata fields within text or
+binary files as long as those fields can be easily viewed by the user.
+
+3) No Modified Version of the Font Software may use the Reserved Font
+Name(s) unless explicit written permission is granted by the corresponding
+Copyright Holder. This restriction only applies to the primary font name as
+presented to the users.
+
+4) The name(s) of the Copyright Holder(s) or the Author(s) of the Font
+Software shall not be used to promote, endorse or advertise any
+Modified Version, except to acknowledge the contribution(s) of the
+Copyright Holder(s) and the Author(s) or with their explicit written
+permission.
+
+5) The Font Software, modified or unmodified, in part or in whole,
+must be distributed entirely under this license, and must not be
+distributed under any other license. The requirement for fonts to
+remain under this license does not apply to any document created
+using the Font Software.
+
+TERMINATION
+This license becomes null and void if any of the above conditions are
+not met.
+
+DISCLAIMER
+THE FONT SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO ANY WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT
+OF COPYRIGHT, PATENT, TRADEMARK, OR OTHER RIGHT. IN NO EVENT SHALL THE
+COPYRIGHT HOLDER BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+INCLUDING ANY GENERAL, SPECIAL, INDIRECT, INCIDENTAL, OR CONSEQUENTIAL
+DAMAGES, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
+OTHER DEALINGS IN THE FONT SOFTWARE.
+
+*/</style>
 </head>
 <body>
 <main>
   <header>
     <p class="eyebrow">BLOOD & BEANS · UI DESIGN</p>
-    <h1>루이지 맨션 · 캐릭터 교체 시안</h1>
-    <p class="intro">PC 화면에 맞춘 작은 HUD · 선택한 캐릭터가 모든 화면에 함께 반영됩니다.</p>
+    <h1>루이지 콘셉트 · Blood & Beans UI</h1>
+    <p class="intro">루이지 맨션의 개성을 더해 배치와 서체를 새로 구성한 PC 게임 시안입니다.</p>
+    <div class="gallery-mode" role="group" aria-label="갤러리 선택"><button type="button" data-mode="project" aria-pressed="true">Unity 전체 UI</button><button type="button" data-mode="legacy" aria-pressed="false">기존 캐릭터 시안</button></div>
+    <p class="project-intro">루이지 시안과 현재 구현의 샘플 화면을 각 UI에서 비교할 수 있습니다. 캐릭터·팀 선택에는 8인 팀 무대, 제조·완성 판정에는 구현 오브젝트를 반영한 추가 시안이 있습니다. 기존 시안과 프리팹 배치도 유지합니다.</p>
+    <div id="project-nav"></div>
+    <div id="legacy-nav" hidden>
     <nav aria-label="화면 바로가기" id="screen-nav"></nav>
+    </div>
   </header>
+  <div id="project-gallery"></div>
+  <div id="legacy-gallery" hidden>
   <div class="character-bar">
     <span class="picker-label">캐릭터</span>
     <div class="character-options" role="group" aria-label="플레이어 캐릭터 선택">
@@ -31,12 +344,14 @@
   </div>
   <p class="selection-note" id="selection-note" aria-live="polite">흡혈귀 · 손님은 유령</p>
   <div id="screens"></div>
+  </div>
   <footer>
     <p>추가 UI 시안도 이 갤러리에 이어서 정리합니다.</p>
     <a href="https://blood-beans-ui-gallery.free-earth-2790.chatgpt.site/" target="_blank" rel="noopener">기존 스타일 비교 갤러리 ↗</a>
   </footer>
 </main>
-<script>(() => {
+<script>window.imageSource=path=>"https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/"+path;(() => {
+  window.imageSource ||= path => path;
   const characters={vampire:{name:'흡혈귀',asset:'pcVampire'},zombie:{name:'좀비',asset:'pcZombie'},werewolf:{name:'늑대인간',asset:'pcWerewolf'},witch:{name:'마녀',asset:'pcWitch'}};
   // Add future screen definitions here, together with the four character images.
   const screens=[{id:'cafe',title:'낮 · 카페 운영',index:0},{id:'night',title:'밤 · 야간 탐색',index:1,bag:true},{id:'main-menu',title:'메인 메뉴',index:2},{id:'crew',title:'크루 선택',index:3}];
@@ -54,7 +369,7 @@
       bags.forEach((name,index)=>{const button=document.createElement('button');button.type='button';button.className='bag-choice';button.dataset.bag=index;button.setAttribute('aria-pressed',String(index===bag));button.setAttribute('aria-label',name+' 적용');button.append(art(index));const label=document.createElement('span');label.textContent=name;button.append(label);button.addEventListener('click',()=>{bag=index;renderBag();});options.append(button);});
       picker.append(options);section.append(picker);
     }
-    const scene=document.createElement('div');scene.className='scene';const image=document.createElement('img');image.width=1672;image.height=941;image.decoding='async';image.loading=screen.index===0?'eager':'lazy';scene.append(image);section.append(scene);container.append(section);
+    const scene=document.createElement('div');scene.className='scene';const image=document.createElement('img');image.width=1672;image.height=941;image.decoding='async';image.loading='lazy';scene.append(image);section.append(scene);container.append(section);
   });
   function renderBag(){
     const scene=document.querySelector('#night .scene');scene.querySelector('.night-bag')?.remove();
@@ -62,7 +377,7 @@
     document.querySelectorAll('button[data-bag]').forEach(button=>button.setAttribute('aria-pressed',String(Number(button.dataset.bag)===bag)));
   }
   function render(){
-    screens.forEach(screen=>{const image=document.querySelector('#'+screen.id+' .scene>img');image.src='https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/images/'+characters[character].asset+screen.index+'.webp';image.alt=characters[character].name+' · '+screen.title+' · 루이지 맨션 캐릭터 교체 시안';});
+    screens.forEach(screen=>{const image=document.querySelector('#'+screen.id+' .scene>img');image.src=window.imageSource('images/'+characters[character].asset+screen.index+'.webp');image.alt=characters[character].name+' · '+screen.title+' · 루이지 맨션 캐릭터 교체 시안';});
     document.querySelectorAll('[data-character]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.character===character)));
     document.getElementById('selection-note').textContent=characters[character].name+' · 손님은 유령 · 이름과 스킬 문구는 기존 시안 유지';renderBag();
   }
@@ -70,6 +385,104 @@
 })();
 
 
+</script>
+<script>(() => {
+  window.imageSource ||= path => path;
+  const catalog = [
+    {id:'title',group:'입장',name:'타이틀',prefab:'UITitleMenuScreen',note:'중앙 로고와 하단 가로 버튼 3개를 유지합니다.',states:['기본']},
+    {id:'rooms',group:'입장',name:'방 목록',prefab:'UIRoomListScreen',note:'방 목록·팀 수 2~4 조절·새로고침·생성·입장·뒤로. 행 개수는 실제 방 수에 따라 달라집니다.',states:['방 선택']},
+    {id:'crew',group:'입장',name:'캐릭터·팀 선택',prefab:'UICharacterSelectScreen',note:'좌측 정보 패널·8인 1열 무대·하단 클래스 카드. 모델 교체와 클래스·스킬 규칙은 구분합니다.',states:['선택·준비']},
+    {id:'room',group:'입장',name:'보조 대기실',prefab:'UIRoomScreen',note:'프로젝트에 남아 있는 대기실 프리팹입니다. 현재 기본 흐름은 방 입장 후 캐릭터 선택으로 바로 이동합니다.',states:['대기실']},
+    {id:'day',group:'낮',name:'낮 HUD · 카페',prefab:'UIMatchHudScreen-day',note:'상단 순위·시계·매출 목표, 좌하단 스킬, 좌측 보석, 우하단 F1. 낮에는 가방을 표시하지 않습니다.',states:['주문·서빙']},
+    {id:'recipe',group:'낮',name:'조합법 · F1',prefab:'UIMatchHudScreen-recipe',note:'현재 중앙 패널의 커피 7종·디저트 4종 구조. 재료 부족은 흐리게, 인기 재료는 강조합니다.',states:['조합법 펼침']},
+    {id:'orders',group:'낮',name:'주문·인내심',prefab:'UICustomerOrder',note:'부품 비교 시트입니다. 사용한 인내심이 말풍선 안에서 아래부터 차오릅니다. 코인 탭은 위쪽에 합계 하나만 표시합니다.',states:['상태 비교'],board:true,parts:['UICustomerOrder','UINamedItemIcon','UIBubbleFill']},
+    {id:'making',group:'낮',name:'제조·완성 판정',prefab:'UIMakingCard',note:'부품 비교 시트입니다. 제조 카드는 들고 있는 식기를 따라갑니다. 만드는 중·조리 가능·서빙 가능·쓰레기·탄 것, 침 게이지와 판정 피드백을 함께 정리했습니다.',states:['상태 비교'],board:true,parts:['UIMakingCard','UICompletionGauge','UICraftingJudgement','UIIngredientBadge','UIDayItemIcon','UISaleFeedback']},
+    {id:'night',group:'밤',name:'밤 HUD · 탐색',prefab:'UIMatchHudScreen-night',note:'좌상단 매출·가방 적재량, 중앙 시계, 좌하단 Q·SPACE, 우하단 작은 가방. 가방은 밤에만 표시합니다.',states:['탐색']},
+    {id:'loot',group:'밤',name:'상자·재료 루팅',prefab:'UIBoxLootPopup',note:'현재 작은 가로 5칸 창을 유지합니다. 슬롯은 1초 간격으로 공개되며 이동 시 닫힙니다. 낮의 재료함도 같은 부품을 쓰며 가방 표시는 생략합니다.',states:['순차 공개']},
+    {id:'night-parts',group:'밤',name:'가방·스킬·귀환 안내',prefab:'UIMatchHudScreen-night',note:'부품 비교 시트입니다. 가방 열림·닫힘·묻음, 적재 경고, 스킬 쿨타임, 개봉 진행, 귀환 방향을 정리했습니다. 현재 가방은 개인 아이템 목록 없이 무게로 표시합니다.',states:['상태 비교'],board:true,parts:['UIBagStatus','UISkillSlot','UIKeyHint']},
+    {id:'return',group:'정산',name:'귀환 결과',prefab:'UIReturnResultPopup',note:'현재 상단 중앙 토스트 위치입니다. 조작과 커서를 가져가지 않고 잠시 표시된 뒤 사라집니다. 소실률 숫자는 실제 설정에 따라 달라집니다.',states:['귀환 성공','일부 소실','가방 분실'],overlay:'return'},
+    {id:'settlement',group:'정산',name:'하루 정산·예보',prefab:'UIDaySettlementScreen',note:'하루 정산·누적 순위·자동 보석 적용·내일 손님 예보의 2×2 구조. 예보는 구성비만 보여주고 인원 수는 표시하지 않습니다.',states:['정산']},
+    {id:'final',group:'정산',name:'최종 결과',prefab:'UIMatchResultPopup',note:'매출 순위와 로비/재시작 버튼. 현재 집계하지 않는 일차별 매출과 별도 전적은 만들어 넣지 않습니다.',states:['최종 결과']},
+    {id:'settings',group:'공통',name:'설정 · ESC',prefab:'UISettingsPopup',note:'전체 음량·배경음·효과음·전체 화면. 마우스 감도는 회전 가능한 카메라가 있을 때만 표시합니다.',states:['매치 중']},
+    {id:'loading',group:'공통',name:'로딩·접속 대기',prefab:'UILoadingPopup',note:'현재 중앙 팝업입니다. 인원을 모를 때는 불러오는 중, 확인되면 접속 인원/정원을 표시합니다.',states:['불러오는 중','인원 대기'],overlay:'loading'},
+    {id:'cue',group:'공통',name:'페이즈 전환',prefab:'UIPhaseCuePopup',note:'중앙 큰 글자만 잠시 표시합니다. 밤 시작 카운트다운은 조작을 막고, 낮 READY/GO·마감 표시는 조작을 막지 않습니다.',states:['3','2','1','READY','GO!','마감!'],overlay:'cue'},
+    {id:'shared',group:'공통',name:'공통 부품',prefab:'UICharacterCard',note:'부품 비교 시트입니다. 선택/점유 카드·팀 선택·이름표·턴 표시·순위 행·버튼·슬라이더를 같은 시각 규칙으로 정리했습니다.',states:['상태 비교'],board:true,parts:['UICharacterCard','UICharacterNameplate','UIPlayerNameplate','UITeamSlot','UIStandingRow','UIStandingRowClock','UISettlementCard','UISettlementLine','UIGemRow','UIGemIcon','UIPanelTab','UIRecipeRow','UIVolumeSlider']}
+  ];
+  window.UNITY_SCREENS = catalog;
+  const redesignNotes={
+    title:'좌측 로고와 세로 메뉴, 우측 3D 캐릭터로 다시 구성했습니다. 통통한 제목 글자와 작은 선택 표시로 호텔의 분위기를 살렸습니다.',
+    rooms:'호텔 접수대처럼 방 목록과 입장 정보를 나눴습니다. 팀 수 조절·새로고침·방 만들기·입장·뒤로 기능은 그대로입니다.',
+    crew:'선택 캐릭터를 크게 보여주고, 스킬·팀·준비 인원을 나눴습니다. 5개 클래스와 캐릭터 외형은 서로 다른 선택 기준입니다.',
+    room:'팀별로 묶은 대기실 구성입니다. 현재 기본 입장 흐름 밖에 있는 보조 프리팹도 같은 콘셉트로 정리했습니다.',
+    day:'큰 상단 띠를 없애고 순위·시간·매출을 분리했습니다. 주문 인내심은 말풍선 안에서 차오르며, 낮에는 가방이 없습니다.',
+    recipe:'카페 메뉴판처럼 음료와 디저트를 나눴습니다. 부족한 재료는 흐리게, 인기 재료는 강조하며 조합 정보는 유지합니다.',
+    orders:'두꺼운 숫자와 둥근 말풍선을 사용하는 주문 부품입니다. 가격 탭은 하나, 사용한 인내심은 말풍선 내부를 아래부터 채웁니다.',
+    making:'들고 있는 식기 옆에 붙는 작은 제조 카드입니다. 제작·완성·실패 상태와 Good/Perfect 판정을 함께 비교합니다.',
+    night:'부유하는 숫자 HUD로 탐색 시야를 확보했습니다. 무게와 작은 무광 가방을 우하단에 묶었으며 가방은 밤에만 표시합니다.',
+    loot:'상자 옆에 나타나는 작은 5칸 루팅 창입니다. 순차 공개·재료 이동·이동 시 닫힘 규칙을 유지합니다.',
+    'night-parts':'작고 단순한 가방, 적재 경고, 쿨타임, 귀환 안내를 같은 형태와 글자 규칙으로 통일했습니다.',
+    return:'짧게 나타나는 호텔 영수증 형태의 귀환 안내입니다. 성공·일부 소실·가방 분실을 선택해 비교할 수 있습니다. 조작을 가져가지 않습니다.',
+    settlement:'중앙 매출 영수증과 주변 순위·보석·예보로 재구성했습니다. 보석은 자동 적용, 손님 예보는 구성비이며 자동으로 다음 날로 넘어갑니다.',
+    final:'우승 팀과 4팀의 누적 매출에 집중한 결과 화면입니다. 현재 집계하는 데이터만 표시합니다.',
+    settings:'호텔 장비 조작판을 연상시키는 작은 설정 화면입니다. 실제 음량·전체 화면·마우스 감도 항목으로 구성합니다.',
+    loading:'하단의 간결한 접속 안내와 3D 캐릭터로 대기 화면을 구성했습니다. 인원을 알 수 없을 때 임의의 진행률은 표시하지 않습니다.',
+    cue:'배경을 가리지 않는 두툼한 글자와 한 번의 강조로 페이즈를 알립니다. 카운트다운과 낮 시작·마감 문구를 선택해 비교합니다.',
+    shared:'화면 전체에 쓰는 버튼·팀·이름표·선택·음량·턴 부품을 한 규칙으로 정리했습니다.'
+  };
+  catalog.forEach(entry=>entry.redesign=redesignNotes[entry.id]);
+  const additionalViews={
+    crew:[{id:'multi',label:'추가 · 8인 팀 무대',file:'images/unity-variants/crew-multi.webp',note:'4팀의 캐릭터 8명을 함께 보여주는 추가 시안입니다. 두 명씩 팀으로 묶고, 선택·준비 상태를 같은 무대에서 비교합니다.'}],
+    making:[{id:'objects',label:'추가 · 구현 오브젝트',file:'images/unity-variants/making-objects.webp',note:'Unity에서 렌더링한 컵·우유병·원두·초콜릿·블러드 빈·탄 재질을 참고한 추가 콘셉트 시안입니다. 실제 프리팹 렌더링은 「실제 3D 오브젝트」에서 확인할 수 있습니다.'},{id:'object-reference',label:'실제 3D 오브젝트',file:'images/unity-current/implemented-objects.webp',note:'현재 ItemVisualConfig에 연결된 실제 음료·디저트·재료·식기 프리팹의 Unity 렌더링입니다. 원본 메시와 재질을 사용하고, 비교를 위해 크기와 카메라를 맞췄습니다.'}]
+  };
+  // Capture reference: Assets/ReturnZone.prefab, missedReturnLoss = 0.5.
+  const exampleReturn={lossPercent:50,kept:4,lost:4};
+  const container=document.getElementById('project-gallery');
+  const nav=document.getElementById('project-nav');
+  let selected='title',view='concept',state=0,mode='project';
+  const groups=['전체','입장','낮','밤','정산','공통'];
+  let group='전체';
+  function button(text,pressed,handler){const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-pressed',String(pressed));b.addEventListener('click',handler);return b;}
+  const filters=document.createElement('div');filters.className='group-picker';filters.setAttribute('role','group');filters.setAttribute('aria-label','UI 분류');nav.append(filters);
+  const screenPicker=document.createElement('div');screenPicker.className='screen-picker';screenPicker.setAttribute('role','group');screenPicker.setAttribute('aria-label','UI 화면 선택');nav.append(screenPicker);
+  const section=document.createElement('section');section.className='project-section';section.id='unity-project';
+  const heading=document.createElement('h2');const tools=document.createElement('div');tools.className='project-tools';
+  const statePicker=document.createElement('div');statePicker.className='state-picker';statePicker.setAttribute('role','group');statePicker.setAttribute('aria-label','UI 상태 선택');
+  const stage=document.createElement('div');stage.className='scene project-scene';
+  const image=document.createElement('img');image.width=1920;image.height=1080;image.decoding='async';stage.append(image);
+  image.addEventListener('load',()=>{stage.dataset.ready='true';});
+  image.addEventListener('error',()=>{stage.dataset.ready='error';});
+  const overlay=document.createElement('div');overlay.className='project-overlay';stage.append(overlay);
+  const note=document.createElement('p');note.className='project-note';const source=document.createElement('p');source.className='source-note';
+  const actions=document.createElement('div');actions.className='image-actions';const full=document.createElement('a');full.textContent='원본 크기로 열기 ↗';full.target='_blank';full.rel='noopener';actions.append(full);
+  full.addEventListener('click',event=>{if(!image.src.startsWith('data:'))return;event.preventDefault();const popup=window.open('about:blank','_blank');if(!popup)return;popup.opener=null;popup.document.title=image.alt;const preview=popup.document.createElement('img');preview.src=image.src;preview.alt=image.alt;preview.style.maxWidth='100%';popup.document.body.style.cssText='margin:0;background:#1d1725';popup.document.body.append(preview);});
+  section.append(heading,tools,statePicker,stage,note,source,actions);container.append(section);
+  function pick(id){selected=id;state=0;if(!['concept','current','previous','original'].includes(view))view='concept';history.replaceState(null,'','#ui-'+id);render();}
+  function renderPickers(){filters.replaceChildren();screenPicker.replaceChildren();groups.forEach(g=>filters.append(button(g,g===group,()=>{group=g;const first=catalog.find(x=>g==='전체'||x.group===g);if(g!=='전체'&&!catalog.some(x=>x.id===selected&&x.group===g))pick(first.id);else renderPickers();})));catalog.filter(x=>group==='전체'||x.group===group).forEach(x=>{const b=button(x.name,x.id===selected,()=>pick(x.id));b.dataset.ui=x.id;screenPicker.append(b);});}
+  function render(){
+    const entry=catalog.find(x=>x.id===selected);renderPickers();heading.textContent=entry.group+' · '+entry.name;
+    const options=[{id:'concept',label:'새 루이지 시안'},...(additionalViews[entry.id]||[]),{id:'current',label:'현재 구현 · 샘플 화면'},{id:'previous',label:'이전 시안'},{id:'original',label:'Unity 프리팹 배치'}];
+    tools.replaceChildren();options.forEach(option=>{const b=button(option.label,view===option.id,()=>{view=option.id;render();});b.dataset.view=option.id;tools.append(b);});
+    const extra=(additionalViews[entry.id]||[]).find(x=>x.id===view);
+    statePicker.replaceChildren();statePicker.hidden=view==='original'||Boolean(extra)||entry.states.length<2;
+    entry.states.forEach((s,i)=>{const b=button(s,i===state,()=>{state=i;render();});b.dataset.state=i;statePicker.append(b);});
+    const file=extra?extra.file:view==='current'?'images/unity-current/current-'+entry.id+(state&&entry.overlay?'-'+state:'')+'.webp':view==='original'?'images/unity-reference/'+entry.prefab+'.webp':view==='previous'?'images/unity-'+entry.id+'.webp':'images/unity-luigi-v2-'+entry.id+'.webp';
+    stage.dataset.ready='false';image.src=window.imageSource(file);image.alt=entry.name+' · '+options.find(x=>x.id===view).label;full.href=image.src;
+    if(image.complete&&image.naturalWidth>0&&image.currentSrc===image.src)stage.dataset.ready='true';
+    overlay.replaceChildren();overlay.dataset.kind='';
+    stage.dataset.revision=view;
+    if((view==='concept'||view==='previous')&&entry.overlay){overlay.dataset.kind=entry.overlay;overlay.dataset.state=state;
+      if(entry.overlay==='cue'){const label=document.createElement('strong');label.textContent=entry.states[state];overlay.append(label);}
+      if(entry.overlay==='loading'){const label=document.createElement('strong');label.textContent=state?'다른 플레이어를 기다리는 중… 6 / 8':'불러오는 중…';overlay.append(label);}
+      if(entry.overlay==='return'){const content=[['귀환 성공','소지한 아이템 100% 귀환','재료 8개를 팀 재고로 넘겼다'],['귀환 실패',`소지한 아이템 ${exampleReturn.lossPercent}% 소실 · 미회수 가방 전량 소실`,`소환 위치 밖에서 밤이 끝났다 · ${exampleReturn.lost}개 소실 / ${exampleReturn.kept}개 반입`],['가방 분실','획득 아이템 100% 소실','묻어 둔 가방을 회수하지 못했다']][state];content.forEach((text,i)=>{const line=document.createElement(i?'span':'strong');line.textContent=text;overlay.append(line);});}
+    }
+    note.textContent=extra?extra.note:view==='current'?'현재 Unity 프리팹에 샘플 데이터를 넣어 렌더링한 구현 비교 화면입니다. 실제 플레이 세션 캡처가 아니며, 3D 배경·모델 카메라는 갤러리용 미리보기입니다. '+(entry.id==='crew'?'현재 연결된 유령 모델을 보여주며, 배경 무대는 생략했습니다.':''):view==='concept'?(entry.redesign||entry.note):entry.note;
+    source.textContent='정보·표시 조건 기준: '+entry.prefab.replace(/-(day|night|recipe)$/,'')+'.prefab'+(entry.board?' · 부품 비교 배치':' · PC 16:9')+(view==='current'?' · 2026-10-10 구현 프리팹 렌더링':'');
+  }
+  function setMode(next){mode=next;document.getElementById('project-gallery').hidden=next!=='project';nav.hidden=next!=='project';document.querySelector('.project-intro').hidden=next!=='project';document.getElementById('legacy-gallery').hidden=next!=='legacy';document.getElementById('legacy-nav').hidden=next!=='legacy';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===next)));}
+  document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{setMode(b.dataset.mode);if(mode==='project')history.replaceState(null,'','#ui-'+selected);}));
+  const hash=location.hash.slice(1);if(hash.startsWith('ui-')&&catalog.some(x=>x.id===hash.slice(3)))selected=hash.slice(3);else if(['cafe','night','main-menu','crew'].includes(hash))mode='legacy';
+  render();setMode(mode);
+})();
 </script>
 </body>
 </html>
