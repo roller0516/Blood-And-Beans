@@ -1,10 +1,7 @@
 using UnityEngine;
 
-/// 플레이어는 자기 카페만 본다 (기획서 3.1: 상대의 재료·설비·캐릭터는 비공개이고
-/// 매출만 공개다).
-///
-/// 카메라 컬링은 표시용 2차 방어일 뿐이다. 실제 은닉은 카페 NetworkObject를 상대 팀에
-/// 복제하지 않는 것으로 이뤄진다 (`MatchDirector.ApplyTeamVisibilityServer`).
+/// 손에 든 것을 팀 밖에서 숨긴다 (기획서 5.4.1: 다른 팀에는 3단계로만 보인다).
+/// 카페는 모두에게 보이므로 이 레이어로 옮기지 않는다 (`Cafe.OnNetworkSpawn`).
 public class TeamVision : MonoBehaviour
 {
     public const string LayerPrefix = "CafeTeam";
@@ -25,10 +22,8 @@ public class TeamVision : MonoBehaviour
         cam.cullingMask = mask;
     }
 
-    /// 오브젝트 하나를 통째로 그 팀의 레이어로 옮긴다. 카페가 런타임 스폰이 되면서
-    /// 레이어를 프리팹에 구워 둘 수 없게 됐다 — 프리팹 하나를 모든 팀이 공유하기 때문이다.
-    /// 플레이어의 손 앵커도 같은 통로를 쓴다 (`ItemDisplay`): 손에 든 것 역시 팀 밖에서
-    /// 보이면 안 되는데(기획서 3.1) 플레이어 본체는 Default에 남아야 하기 때문이다.
+    /// 오브젝트 하나를 통째로 그 팀의 레이어로 옮긴다. 플레이어의 손 앵커가 쓴다
+    /// (`ItemDisplay`, `PlayerVisuals`) — 손에 든 것은 숨기되 플레이어 본체는 Default에 남아야 한다.
     public static void ApplyTeamLayer(GameObject root, int team)
     {
         var layer = LayerMask.NameToLayer(LayerPrefix + team);

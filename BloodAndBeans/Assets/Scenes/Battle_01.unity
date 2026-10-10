@@ -675,6 +675,10 @@ MonoBehaviour:
   sun: {fileID: 410087040}
   nightIntensity: 0.5
   dayIntensity: 3
+  nightSunColor: {r: 0.38, g: 0.46, b: 1, a: 1}
+  nightAmbientSky: {r: 0.12, g: 0.16, b: 0.35, a: 1}
+  nightAmbientEquator: {r: 0.075, g: 0.085, b: 0.18, a: 1}
+  nightAmbientGround: {r: 0.025, g: 0.027, b: 0.055, a: 1}
 --- !u!1 &500636056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1531,9 +1535,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IsGlobal: 0
   priority: 0
-  blendDistance: 150
+  blendDistance: 12
   weight: 1
-  sharedProfile: {fileID: 11400000, guid: b401909dc653636439bf3792ae199d25, type: 2}
+  sharedProfile: {fileID: 11400000, guid: 24a441c83ca423d47bde48cddbe7ee9b, type: 2}
 --- !u!4 &832575519
 Transform:
   m_ObjectHideFlags: 0
@@ -1568,8 +1572,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 170, y: 80, z: 170}
+  m_Center: {x: 0, y: 15, z: 0}
 --- !u!1 &1016968243
 GameObject:
   m_ObjectHideFlags: 0
@@ -2513,7 +2517,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_IsGlobal: 0
   priority: 0
-  blendDistance: 150
+  blendDistance: 12
   weight: 1
   sharedProfile: {fileID: 11400000, guid: b401909dc653636439bf3792ae199d25, type: 2}
 --- !u!4 &1713133243
@@ -2550,8 +2554,8 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 1, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 260, y: 80, z: 220}
+  m_Center: {x: 0, y: 15, z: 0}
 --- !u!1 &1720864808
 GameObject:
   m_ObjectHideFlags: 0

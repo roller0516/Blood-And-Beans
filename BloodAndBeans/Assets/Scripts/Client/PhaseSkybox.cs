@@ -1,6 +1,6 @@
 using UnityEngine;
 
-/// 밤과 낮에 하늘과 주 조명 강도를 바꾼다. 페이즈는 이미 복제되므로 각 클라이언트가 자기 화면에서 바꾼다.
+/// 밤과 낮에 하늘·주 조명·환경광을 바꾼다. 페이즈는 이미 복제되므로 각 클라이언트가 자기 화면에서 바꾼다.
 /// 전환 페이즈에는 건드리지 않아 직전 상태(밤)가 그대로 남는다.
 public class PhaseSkybox : MonoBehaviour
 {
@@ -9,8 +9,24 @@ public class PhaseSkybox : MonoBehaviour
     [SerializeField] Light sun;
     [SerializeField] float nightIntensity = 0.5f;
     [SerializeField] float dayIntensity = 3f;
+    [SerializeField] Color nightSunColor = new Color(0.38f, 0.46f, 1f);
+    [SerializeField] Color nightAmbientSky = new Color(0.12f, 0.16f, 0.35f);
+    [SerializeField] Color nightAmbientEquator = new Color(0.075f, 0.085f, 0.18f);
+    [SerializeField] Color nightAmbientGround = new Color(0.025f, 0.027f, 0.055f);
 
     GamePhase clock;
+    Color daySunColor;
+    Color dayAmbientSky;
+    Color dayAmbientEquator;
+    Color dayAmbientGround;
+
+    void Awake()
+    {
+        daySunColor = sun != null ? sun.color : Color.white;
+        dayAmbientSky = RenderSettings.ambientSkyColor;
+        dayAmbientEquator = RenderSettings.ambientEquatorColor;
+        dayAmbientGround = RenderSettings.ambientGroundColor;
+    }
 
     void OnEnable() => MatchDirector.Bind(OnDirectorReady);
 
@@ -40,6 +56,10 @@ public class PhaseSkybox : MonoBehaviour
         bool night = phase == Phase.Night;
 
         sun.intensity = night ? nightIntensity : dayIntensity;
+        sun.color = night ? nightSunColor : daySunColor;
+        RenderSettings.ambientSkyColor = night ? nightAmbientSky : dayAmbientSky;
+        RenderSettings.ambientEquatorColor = night ? nightAmbientEquator : dayAmbientEquator;
+        RenderSettings.ambientGroundColor = night ? nightAmbientGround : dayAmbientGround;
 
         var sky = night ? nightSky : daySky;
         if (sky == null || RenderSettings.skybox == sky) return;

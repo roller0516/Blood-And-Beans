@@ -26,6 +26,10 @@ public class PlayerTeam : NetworkBehaviour
 
         public bool Equals(NetName other) => other != null && other.Value == Value;
     }
+    /// 자기 팀 카페 울타리(`CafeGate`)를 통과시킬 몸.
+    [SerializeField] CharacterController body;
+    public Collider Body => body;
+
     [SerializeField, Min(0f)] float teleportWindupSeconds = 1.35f;
     readonly NetworkVariable<bool> teleporting = new();
     Vector3 teleportDestination;
@@ -102,7 +106,8 @@ public class PlayerTeam : NetworkBehaviour
         TeamChanged?.Invoke(team.Value);
         NicknameChanged?.Invoke(Nickname);
 
-        if (!IsServer) return;
+        // 서버는 아직 자리를 배정하기 전이라 값이 기본값 0이다. 배정 직후에 따로 부른다.
+        if (!IsServer) { EnterOwnCafe(team.Value); return; }
 
         // 팀 명단은 더 이상 이 컴포넌트의 일이 아니다. 여기서 카페 수를 세던 코드가
         // "팀이 몇 개인가"에 답하던 여섯 곳 중 하나였다 (아키텍처_v1.0.md §1.4).
@@ -129,6 +134,8 @@ public class PlayerTeam : NetworkBehaviour
             return;
         }
 
+        // 배정이 기본값 0과 같으면 값 변경 콜백이 오지 않는다. 그래서 여기서 직접 부른다.
+        EnterOwnCafe(team.Value);
         ApplyMatchSceneStateServer();
     }
 
@@ -212,7 +219,25 @@ public class PlayerTeam : NetworkBehaviour
         }
     }
 
-    void OnTeamValueChanged(int _, int now) => TeamChanged?.Invoke(now);
+    void OnTeamValueChanged(int _, int now)
+    {
+        TeamChanged?.Invoke(now);
+        EnterOwnCafe(now);
+    }
+
+    /// 카페가 플레이어보다 먼저 섰으면 여기서 들어간다 (반대 순서는 `Cafe.OnNetworkSpawn`).
+    /// 모든 피어에서 돈다 — 서버와 소유자가 이동을 같이 계산하기 때문이다 (`CafeGate`).
+    void EnterOwnCafe(int value)
+    {
+        if (value < 0) return;
+        if (body == null)
+        {
+            CDebug.LogError($"{name}: {nameof(body)}가 비어 있다. 자기 카페 울타리에 막힌다.", this);
+            return;
+        }
+        var cafe = MatchDirector.Instance != null ? MatchDirector.Instance.CafeOf(value) : null;
+        if (cafe != null && cafe.Gate != null) cafe.Gate.Admit(body);
+    }
 
     void OnNicknameValueChanged(NetName _, NetName now) => NicknameChanged?.Invoke(now != null ? now.Value : string.Empty);
 

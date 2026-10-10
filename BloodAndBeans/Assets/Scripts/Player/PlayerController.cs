@@ -391,6 +391,9 @@ public class PlayerController : NetworkBehaviour
     void OnTriggerEnter(Collider other)
     {
         if (!IsOwner) return;
+        // 남의 카페 설비는 넣지 않는다. 감지 구가 울타리를 넘어 닿아도 서버가 거절해 프롬프트만 헛돈다.
+        var cafe = Cafe.Of(other);
+        if (cafe != null && cafe.TeamId != PlayerTeam.Local()) return;
         foreach (var behaviour in other.GetComponentsInParent<MonoBehaviour>())
             if (behaviour is IInteractable candidate) AddCandidate(candidate);
     }

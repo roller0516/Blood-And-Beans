@@ -34,7 +34,7 @@ public class PlayerCameraRoot : MonoBehaviour
     /// 델타는 이미 프레임당 이동량이라 또 곱하면 프레임레이트에 따라 감도가 달라진다).
     /// 예전 값 (3, -1.5)는 `CinemachineInputAxisController`가 자체 가감속과 시간 보정을
     /// 하던 시절 것이라, 그대로 두면 지금 구조에서는 세 배로 빠르다.
-    [SerializeField] Vector2 lookGain = new(1f, -0.5f);
+    [SerializeField] Vector2 lookGain = new(0.07f, -0.035f);
 
     /// 이보다 작은 입력은 버린다 (Starter Assets의 `_threshold`).
     const float Threshold = 0.01f;

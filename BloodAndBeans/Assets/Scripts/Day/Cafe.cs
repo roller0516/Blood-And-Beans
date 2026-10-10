@@ -7,7 +7,7 @@ using UnityEngine;
 /// NetworkObject는 이 루트에만 있다. 설비들은 그 아래의 NetworkBehaviour일 뿐이다.
 /// NGO 2.13은 동적으로 스폰한 프리팹의 자식 NetworkObject를 복제하지 않기 때문이다
 /// (NetworkSpawnManager.cs: "Spawning NetworkObjects with nested NetworkObjects is only
-/// supported for scene objects"). 덕분에 팀 은닉도 이 NetworkObject 하나로 끝난다.
+/// supported for scene objects"). 카페는 모두에게 복제되고, 입장만 `CafeGate`가 가른다.
 [RequireComponent(typeof(NetworkObject))]
 public class Cafe : NetworkBehaviour
 {
@@ -22,6 +22,10 @@ public class Cafe : NetworkBehaviour
 
     [SerializeField] Collider floor;
     public Collider Floor => floor;
+
+    /// 같은 팀만 들어오게 하는 울타리.
+    [SerializeField] CafeGate gate;
+    public CafeGate Gate => gate;
     public int TeamId => team.Value;
     // 기획서 5.7.1: 누적 매출과 구분하며 청구액은 자기 팀에게만 복제한다.
     readonly NetworkVariable<int> dayRevenueStart = new();
@@ -40,7 +44,7 @@ public class Cafe : NetworkBehaviour
     public CustomerQueue Queue { get; private set; }
     public TeamStock Stock { get; private set; }
 
-    /// 보석별 남은 턴 (기획서 8.1). 카페는 자기 팀에만 복제되므로 팀 밖으로 새지 않는다.
+    /// 보석별 남은 턴 (기획서 8.1). 카페가 모두에게 복제되므로 다른 팀도 받는다.
     readonly NetworkList<int> gemTurns = new();
     /// 이번 귀환에서 이미 켜져 있던 보석을 다시 가져와 갱신한 것 (기획서 4.1 「3턴으로 갱신」).
     readonly NetworkVariable<int> refreshedGems = new();
@@ -82,8 +86,7 @@ public class Cafe : NetworkBehaviour
     public ReturnZone Zone => director != null ? director.ZoneOf(team.Value) : null;
 
     /// 매출판. 판에 하나뿐이고 카페가 소유하지 않는다 (기획서 3.1: 재료·설비·캐릭터는
-    /// 비공개지만 *매출은 공개*다). 카페는 상대 팀에 복제되지 않으므로, 매출판을 카페에
-    /// 매달면 남의 매출을 볼 방법이 영영 없다 — 순위표가 자기 팀만 보이고 나머지는 0이 된다.
+    /// 비공개지만 *매출은 공개*다). 매출판은 판 전체의 것이라 카페마다 두지 않는다.
     public Scoreboard Board => director != null ? director.Board : null;
 
     MatchDirector director;
@@ -100,6 +103,8 @@ public class Cafe : NetworkBehaviour
         Dishes = GetComponentInChildren<Dish>(true);
         Queue = GetComponentInChildren<CustomerQueue>(true);
         Stock = GetComponentInChildren<TeamStock>(true);
+        if (gate == null)
+            CDebug.LogError($"{name}: {nameof(gate)}가 비어 있다. 다른 팀이 카페에 들어온다.", this);
     }
 
     /// 서버가 Spawn 직전에 부른다. NetworkBehaviour가 준비되기 전 NetworkVariable을 쓰면
@@ -112,9 +117,14 @@ public class Cafe : NetworkBehaviour
         // 값은 나중에 NetworkShow되는 팀 클라이언트의 초기 동기화에 포함된다.
         if (IsServer && pendingServerTeam >= 0) team.Value = pendingServerTeam;
 
-        // 카메라 컬링이 레이어로 팀을 가른다. 프리팹 하나를 여러 팀이 쓰므로 레이어는
-        // 씬에 구워 둘 수 없고 스폰 시점에 정해야 한다.
-        TeamVision.ApplyTeamLayer(gameObject, team.Value);
+        // 카페는 팀 레이어로 옮기지 않는다 — 모두에게 보여야 한다. 팀 레이어 컬링은
+        // 손에 든 것을 숨기는 데만 쓴다 (`TeamVision`).
+
+        // 플레이어가 카페보다 먼저 섰다. 이미 있는 같은 팀을 여기서 들인다 (반대 순서는 `PlayerTeam`).
+        // 스폰 한 번에 도는 탐색이라 주기 실행이 아니다.
+        if (gate != null)
+            foreach (var player in FindObjectsByType<PlayerTeam>(FindObjectsSortMode.None))
+                if (player.Team == team.Value) gate.Admit(player.Body);
 
         // 색도 같은 이유로 스폰 시점이다. 서버·클라이언트 양쪽에서 실행되므로 보는 쪽에도 걸린다.
         TeamColors.Tint(gameObject, team.Value, teamTintStrength);

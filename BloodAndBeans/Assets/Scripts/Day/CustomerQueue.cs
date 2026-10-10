@@ -86,12 +86,10 @@ public class CustomerQueue : NetworkBehaviour
         if (customerPrefab == null) return;
 
         var c = Instantiate(customerPrefab, SlotPosition(waiting.Count), transform.rotation);
-        c.NetworkObject.SpawnWithObservers = false;
-        c.NetworkObject.Spawn();
+        c.NetworkObject.Spawn();   // 카페와 같이 모두에게 보인다
         // 소속 카페를 한 번 풀어서 팀 번호와 조립 루트를 같은 출처에서 받는다.
         var myCafe = Cafe.Of(this);
         var team = myCafe != null ? myCafe.TeamId : -1;
-        myCafe?.Director?.ShowToTeamServer(c.NetworkObject, team);
         waiting.Add(c);
         c.SetQueueIndexServer(waiting.Count - 1);
 

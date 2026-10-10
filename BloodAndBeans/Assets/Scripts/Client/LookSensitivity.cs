@@ -17,7 +17,7 @@ public class LookSensitivity : MonoBehaviour
     const string PrefsKey = "look.sensitivity";
 
     /// 슬라이더 범위. 1이 `lookGain`에 저장된 그대로다.
-    public const float Min = 0.25f;
+    public const float Min = 0.1f;
     public const float Max = 3f;
     public const float Default = 1f;
 

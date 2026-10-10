@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 9155099020389925502}
   - component: {fileID: 6930565554344663811}
   - component: {fileID: 6567904271454453720}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: PrepIsland
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -68,11 +68,11 @@ MonoBehaviour:
   highlightScale: 1
   highlightOffset: {x: 0, y: 0, z: 0}
   unlimited: 1
-  rowStart: {x: -1.2, y: 1.095, z: -0.25}
+  rowStart: {x: -0.25, y: 1.53, z: -0.4}
   rowStep: {x: 0.5, y: 0, z: 0}
-  rowWrap: 7
-  wrapStep: {x: 0, y: 0, z: 0.5}
-  stackStart: {x: -1.85, y: 1.095, z: 0}
+  rowWrap: 3
+  wrapStep: {x: 0, y: 0, z: 0.45}
+  stackStart: {x: -1.7, y: 1.48, z: 0}
   stackStep: {x: 0, y: 0.1, z: 0}
 --- !u!65 &6567904271454453720
 BoxCollider:
@@ -135,7 +135,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7927955631634773379}
-  m_Layer: 8
+  m_Layer: 0
   m_Name: Model
   m_TagString: Untagged
   m_Icon: {fileID: 0}

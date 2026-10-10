@@ -276,9 +276,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
             cafe.AssignTeamServer(team);
             cafe.BindDirectorServer(this);   // 카페 밑 설비들은 전역이 아니라 이 참조를 쓴다
 
-            var networkObject = cafe.GetComponent<NetworkObject>();
-            networkObject.SpawnWithObservers = false;   // 상대 팀에는 애초에 복제하지 않는다
-            networkObject.Spawn();
+            // 카페는 모두에게 복제한다. 입장은 `CafeGate`가 같은 팀만 받는다.
+            cafe.GetComponent<NetworkObject>().Spawn();
 
             SpawnZoneServer(team);
         }
@@ -624,27 +623,17 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         zones.Clear();
     }
 
-    /// 이 클라이언트에게 자기 팀 카페만 보여 준다. 카페는 관측자 없이 스폰되므로
-    /// 여기서 보여 주지 않은 카페는 그 클라이언트에 복제 자체가 되지 않는다.
+    /// 이 클라이언트에게 자기 팀 귀환 지점을 보여 준다. 귀환 지점은 관측자 없이 스폰된다.
+    /// 카페와 손님은 모두에게 스폰되므로 여기서 다루지 않는다.
     public void ApplyTeamVisibilityServer(ulong clientId, int team)
     {
         var manager = NetworkManager.Singleton;
         if (manager == null || !manager.IsServer) return;
 
-        var cafe = CafeOf(team);
-        if (cafe != null && cafe.NetworkObject.IsSpawned &&
-            !cafe.NetworkObject.IsNetworkVisibleTo(clientId))
-            cafe.NetworkObject.NetworkShow(clientId);
-
         var zone = ZoneOf(team);
         if (zone != null && zone.NetworkObject.IsSpawned &&
             !zone.NetworkObject.IsNetworkVisibleTo(clientId))
             zone.NetworkObject.NetworkShow(clientId);
-
-        foreach (var customer in FindObjectsByType<Customer>(FindObjectsSortMode.None))
-            if (customer.TeamId == team && customer.NetworkObject.IsSpawned &&
-                !customer.NetworkObject.IsNetworkVisibleTo(clientId))
-                customer.NetworkObject.NetworkShow(clientId);
     }
 
     public void ShowToTeamServer(NetworkObject networkObject, int team)

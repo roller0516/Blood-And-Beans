@@ -30,6 +30,10 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField] CharacterVisualConfig characterVisuals;
     [SerializeField] Transform modelRoot;
 
+    [Header("밤 주변 조명")]
+    [SerializeField] Light localNightLight;
+    GamePhase lightingPhase;
+
     [Header("전송 잔상")]
     [SerializeField] Material teleportAfterimageMaterial;
     [SerializeField, Min(0.01f)] float teleportAfterimageSeconds = 1.35f;
@@ -90,6 +94,7 @@ public class PlayerVisuals : NetworkBehaviour
 
     void Awake()
     {
+        if (localNightLight != null) localNightLight.enabled = false;
         playerTeam = GetComponent<PlayerTeam>();
         character = GetComponent<PlayerCharacter>();
         carry = GetComponent<PlayerCarry>();
@@ -130,6 +135,7 @@ public class PlayerVisuals : NetworkBehaviour
 
     public override void OnNetworkSpawn()
     {
+        if (IsClient && IsOwner) MatchDirector.Bind(OnLightingDirectorReady);
         playerTeam.TeamChanged += OnTeamChanged;
         playerTeam.Teleported += OnTeleported;
         playerTeam.TeleportStarted += OnTeleportStarted;
@@ -159,6 +165,10 @@ public class PlayerVisuals : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        MatchDirector.Unbind(OnLightingDirectorReady);
+        if (lightingPhase != null) lightingPhase.PhaseEntered -= RefreshNightLight;
+        lightingPhase = null;
+        if (localNightLight != null) localNightLight.enabled = false;
         flash?.Kill();
         flash = null;
 
@@ -194,6 +204,21 @@ public class PlayerVisuals : NetworkBehaviour
         DetachHand();
         modelSpawner.Clear();
         itemPresenter.Clear();
+    }
+
+    void OnLightingDirectorReady(MatchDirector ready)
+    {
+        if (lightingPhase != null) lightingPhase.PhaseEntered -= RefreshNightLight;
+        lightingPhase = ready != null ? ready.Phase : null;
+        if (lightingPhase == null) return;
+        lightingPhase.PhaseEntered += RefreshNightLight;
+        RefreshNightLight(lightingPhase.Current);
+    }
+
+    // 내 화면에서 내 주변만 밝힌다. 안개 걷힘과 다른 플레이어의 시야는 바꾸지 않는다.
+    void RefreshNightLight(Phase phase)
+    {
+        if (localNightLight != null) localNightLight.enabled = IsClient && IsOwner && phase == Phase.Night;
     }
 
     // --- 모델·팀 색 (예전 PlayerAppearance) ---
