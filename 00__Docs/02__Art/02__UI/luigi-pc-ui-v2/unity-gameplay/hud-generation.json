@@ -1,0 +1,22 @@
+{
+  "mode": "built-in image_gen",
+  "referenceOnly": [
+    "unity-concepts-v2/unity-luigi-v2-loot.png",
+    "unity-concepts-v2/unity-luigi-v2-recipe.png"
+  ],
+  "assets": [
+    {
+      "path": "unity-gameplay/loot-board.png",
+      "prompt": "Use case: ui-mockup. Generate one production-quality transparent-background UI panel asset, no scene, no text, no icons, no items. Style reference image: the existing Blood & Beans Luigi-inspired loot UI, reference ONLY the upper green-and-cream loot inventory board, NOT the forest or character. Recreate its distinctive dimensional haunted-hotel prop language: wide horizontal matte forest-green leather backing with softly irregular curved outer corners, gently curved upper edge, thin sculpted aged-brass edging, exactly two chunky brass binder clips protruding above the top edge. Upper one third is a clean uninterrupted blank dark green header for live title and weight. Lower two thirds is a raised warm ivory tray containing exactly FIVE equally sized empty recessed dark olive square compartments in one horizontal row. Wide readable square wells, thick smooth creamy separators, subtle warm edge highlights, actual 3D depth. Perspective strictly front-on orthographic, tiny physically rendered bevels and shadows only inside/under the object. Panel ratio 3.2:1, occupies canvas almost edge to edge with 3% padding, include clips fully. Preserve alpha outside contour. Do not put food or glyphs in wells. No patterns, foliage, filigree, stars, sparkles, glow, text, numbers, moons, logo or background. This is a single usable UI sprite rather than a mockup screenshot. Same characterful but clean, gently spooky, polished 3D quality as the reference."
+    },
+    {
+      "path": "unity-gameplay/hud-plaque.png",
+      "prompt": "Use case: ui-mockup. Generate a single reusable blank UI frame sprite with genuine transparent background. Style reference: the existing Blood & Beans Luigi-inspired recipe screenshot, use ONLY the small timer plaque at upper center as shape/material reference. Wide horizontal 3:1 symmetrical haunted-hotel sign with pronounced softly scalloped silhouette, tiny side lobes and slightly raised curved upper center, thick physically sculpted aged-brass perimeter, matte deep green leather inset center with very subtle surface texture. Front-on orthographic 3D render, warm upper-left lighting, deep clean rounded bevels, thin highlight and dark undershadow along metal rim. The inner dark green area takes at least 82% width and 70% height to leave room for readable live numeric HUD. Object fills canvas leaving at most 3% margin. NO lettering, numbers, icons, screws in center, hanging chains, leaves, floral motifs, stars, sparkles, glow, shadows outside silhouette except thin natural contact shadow. Single production game UI asset, not a screenshot or flat vector. Render with the strong tactile dimensionality of the reference and keep detail bold enough to read at 120 px high."
+    }
+  ],
+  "invariants": [
+    "day-base and night-base pixels unchanged",
+    "No current implementation views or new comparison variants",
+    "Live labels and numeric values are HTML, not baked into sprites"
+  ]
+}

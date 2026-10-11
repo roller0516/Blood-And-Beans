@@ -1,0 +1,51 @@
+{
+  "date": "2026-10-11",
+  "mode": "built-in image_gen",
+  "intent": "precise-object-edit",
+  "replacesExistingViews": true,
+  "affectedScreens": [
+    "night",
+    "loot",
+    "night-parts"
+  ],
+  "cameraSource": "unity-gameplay/night-base.png",
+  "cameraMetadata": "unity-gameplay/night-capture.json",
+  "compositionChecks": {
+    "playerHeadY": 0.63,
+    "playerCenterX": 0.44,
+    "playerBottom": "cropped",
+    "returnFarArcY": 0.73,
+    "tallRightTreeTopY": 0.19
+  },
+  "assets": [
+    {
+      "id": "night",
+      "prompt": "Use case: precise-object-edit, GAME CAMERA CORRECTION.\nImage 1 is the EDIT TARGET: actual Blood & Beans night camera capture with UI hidden. Image 2 is ONLY the approved Luigi-inspired UI material / character appearance reference. Scene and camera MUST come from image 1, never image 2.\nEdit image 1 by adding UI and replacing ONLY the central player skin. Preserve exact original world: identical tree silhouettes, tree positions, relative scale, horizon/eye height, purple return-circle perspective, ground arc and glowing particle streak locations. No camera rotation, zoom, elevation, lens change, world expansion, no invented tree, moon or house. Image 2 is known to have WRONG camera; do not copy its environment.\nComposition anchors normalized from image 1: player center x44%, head top y63%, rear-facing body continues to bottom edge; close to camera with lower feet/body cropped. Maintain player screen occupancy/height; NOT a small full-body character standing above bottom. Return-circle far arc crosses y73%, spans entire lower edge; tall background tree at x69% starts around y19%, foreground right tree at x76% starts around y31%. Keep exact relative depths and silhouettes. Same simple stylized3D forest and purple fog as image1, no cinematic detailed redraw.\nReplace ghost player at SAME location and size with cream vampire skin, pointed ears, dark cape/red collar and brown bag on back from image2. Same rear pose and footprint. Real3D model look.\nAdd ONLY compact PC HUD matching image2's sculpted cream typography, forest-green leather plaques, dimensional cream numerals, warm brass rims, physical3D icons. Top-left coin and \"0G\", small \"팀 매출\"; beneath \"가방 0 / 10 KG\". Top-center compact \"1일차 · 야간 탐색\" and \"00:13\". Bottom-left exactly TWO medallions: blue ghost-flame \"Q\", cream triple-arrow \"SPACE\". Bottom-right exactly ONE lightweight small sand satchel with \"0 / 10 KG\" green plaque. Small return label \"귀환 구역\" to right of player, NO interaction key. No other UI, no extra bars. Sharp legible Korean.\nExact16:9 target framing, ideally1920x1080. Preserve image1 camera/world without reimagining. Only player skin and floating HUD may change.",
+      "inputs": [
+        {
+          "path": "C:/Users/eatyourmeat/Desktop/Blood_And_Beans/Blood-And-Beans/00__Docs/02__Art/02__UI/luigi-pc-ui-v2/unity-gameplay/night-base.png",
+          "role": "edit target; camera/world authority"
+        },
+        {
+          "path": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-7c243877-a237-4647-b229-cff6ecdcdc35.png",
+          "role": "previous approved night image, UI/character style only"
+        }
+      ],
+      "generated": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-7dfa7a91-0ecd-49db-927b-3b76063385d5.png",
+      "final": "unity-concepts-v2/unity-luigi-v2-night.png"
+    },
+    {
+      "id": "restrained-night",
+      "prompt": "Precise-object edit of this corrected night gameplay screenshot. Preserve EXACT camera and all world/character pixels: tree outlines and positions, purple return-zone arc, glowing streaks, fog, player head at63% height and lower body cropped atbottom, pose, bag onback, dimensions and view. Do NOT zoom or shift player or reimagine scenery.\nMake ONLY the HUD finish slightly restrained. Keep same size/positions and ALL text: top-left0G/팀매출, 가방0/10KG, top-center1일차·야간탐색/00:13, exactly TWO Q/SPACE medallions bottom-left, exactly ONE tiny tanbag/0/10KG bottom-right, 귀환구역 tag. Keep dimensional chunky cream letters and numbers, dark forest-green leather plaques and little3D icons. Lower polished bronze/gold shine about25%, satin muted bronze edge reflections, remove external glow/ornamental glints. Return label change to green face with quiet short shadow instead of gold halo. Meaningful skill blue flame glow remains inside medallion. No geometry or camera change whatsoever. Same aspect and dimensions.",
+      "inputs": [
+        {
+          "path": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-7dfa7a91-0ecd-49db-927b-3b76063385d5.png",
+          "role": "corrected camera edit target"
+        }
+      ],
+      "generated": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-ef3b31d7-0602-4a8d-80e1-fee2c69d472a.png",
+      "final": "unity-gameplay/restrained-night.png"
+    }
+  ],
+  "referenceScreensPublished": 0
+}

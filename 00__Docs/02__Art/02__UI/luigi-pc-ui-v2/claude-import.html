@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Blood & Beans · 루이지 UI 시안</title>
-  <meta name="description" content="Blood & Beans Unity 프로젝트 기준 루이지 콘셉트 UI 시안. 입장·낮·밤·정산·공통 18개 항목과 원본 배치를 비교합니다.">
+  <meta name="description" content="Blood & Beans 루이지 콘셉트 UI 시안. 입장·낮·밤·정산·공통 18개 항목을 확인할 수 있습니다.">
   <style>:root{font-family:"Malgun Gothic","Apple SD Gothic Neo",sans-serif;color:#302a31;background:#f4f0e9;font-synthesis:none}
 .screen-implementation,.implementation-guide{border:1px solid #d6dcd3;border-radius:8px;background:#fcfaf5;padding:12px 14px;margin:14px 0;font-size:12px;line-height:1.8}.screen-implementation summary,.implementation-guide summary{cursor:pointer;font-weight:700;color:#345448}.guide-body{margin-top:16px}.guide-body h3{font-size:16px;margin:24px 0 10px}.guide-body p{margin:10px 0}.guide-body code{font-size:11px;background:#edf0e9;padding:1px 3px;overflow-wrap:anywhere}.guide-body li{margin:7px 0}.guide-table{overflow-x:auto}.guide-table table{border-collapse:collapse;width:100%;min-width:440px;font-size:12px}.guide-table td,.guide-table th{border:1px solid #d7dfd3;padding:8px;text-align:left;vertical-align:top}.guide-table th{background:#edf0e9}.screen-implementation p{margin:10px 0}.project-scene[data-revision=restrained] .project-overlay{font-family:Jua,sans-serif;color:#263a2e;text-shadow:none}.project-scene[data-revision=restrained] .project-overlay strong{font-family:Bagel,Jua,sans-serif}.project-scene[data-revision=restrained] .project-overlay[data-kind=return]{left:25%;top:10%;width:50%;height:15%;padding:0;gap:.4cqw;background:none;box-shadow:none;border:0;display:flex;flex-direction:column;align-items:center;justify-content:center}.project-scene[data-revision=restrained] .project-overlay[data-kind=return] strong{font-size:2cqw}.project-scene[data-revision=restrained] .project-overlay[data-kind=return] span{font-size:1.2cqw}.project-scene[data-revision=restrained] .project-overlay[data-kind=return] span:last-child{font-size:1.05cqw}.project-scene[data-revision=restrained] .project-overlay[data-kind=loading]{left:28%;top:76%;width:44%;height:14%;padding:0;display:flex;align-items:center;justify-content:center;background:none;border:0;box-shadow:none;font-size:1.8cqw}.project-scene[data-revision=restrained] .project-overlay[data-kind=cue]{inset:0;transform:translateY(-7%);display:flex;align-items:center;justify-content:center;background:none;color:#e9dfca;font-size:5.8cqw;text-shadow:0 2px 2px #10271e;-webkit-text-stroke:0}
 @font-face{font-family:Bagel;src:url("https://blood-beans-luigi-ui.free-earth-2790.chatgpt.site/fonts/BagelFatOne-Regular.ttf") format("truetype");font-weight:400;font-display:swap}
@@ -33,51 +33,18 @@
 [hidden]{display:none!important}.gallery-mode{display:flex;gap:8px;flex-wrap:wrap;margin:16px 0}.gallery-mode button,.group-picker button,.screen-picker button,.project-tools button,.state-picker button{border:1px solid #ddd1df;border-radius:6px;background:#fffaf4;color:#534757;padding:7px 11px;font-size:12px}.gallery-mode button[aria-pressed=true],.screen-picker button[aria-pressed=true],.project-tools button[aria-pressed=true],.state-picker button[aria-pressed=true]{background:#675176;color:white;border-color:#675176}.gallery-mode button{padding:9px 14px;font-weight:700}.project-intro{font-size:11px;line-height:1.8;color:#877a84;margin:12px 0 18px}.group-picker,.screen-picker,.project-tools,.state-picker{display:flex;flex-wrap:wrap;gap:6px}.group-picker{margin:12px 0}.group-picker button{font-size:11px;border-color:transparent;background:transparent}.group-picker button[aria-pressed=true]{border-color:#cfc0d3;background:#e9dfed}.screen-picker{padding-bottom:16px;border-bottom:1px solid #e4dbe2}.screen-picker button{font-size:11px;padding:6px 9px}.project-section{margin-top:18px}.project-tools{margin:0 0 12px}.state-picker{margin:0 0 12px}.project-note{font-size:12px;line-height:1.8;margin:12px 0 5px;color:#675d68}.source-note{font-size:10px;line-height:1.8;color:#92818c;margin:0}.image-actions{margin-top:8px}.image-actions a{font-size:11px}.project-overlay{position:absolute;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;color:#f6eedb;line-height:1.35;text-shadow:0 2px 3px #23172d}.project-overlay[data-kind=cue]{inset:0;font-size:7.8125cqw;font-weight:900;color:#ecf4d9}.project-overlay[data-kind=cue][data-state="4"]{color:#b3e881}.project-overlay[data-kind=cue][data-state="5"]{color:#f3cf88}.project-overlay[data-kind=loading]{left:30.2083%;top:40.7407%;width:39.5833%;height:18.5185%;font-size:1.77cqw}.project-overlay[data-kind=return]{left:29.1667%;top:11.1111%;width:41.6667%;height:13.8889%;gap:.35cqw;color:#b4e68e}.project-overlay[data-kind=return] strong{font-size:1.77cqw}.project-overlay[data-kind=return] span{font-size:1.25cqw}.project-overlay[data-kind=return] span:last-child{font-size:.84cqw;color:#e4dcc9}.project-overlay[data-kind=return][data-state="1"]{color:#efd38f}.project-overlay[data-kind=return][data-state="2"]{color:#f39185}
 
 
-/* Only interface layers. The underlying gameplay image is never filtered. */
-.project-overlay[data-kind=gameplay]{inset:0;display:block;padding:0;overflow:hidden;border-radius:8px;pointer-events:none;text-shadow:none;font-family:Jua,sans-serif;color:#f0ead5;font-size:1.05cqw;line-height:1.25;text-align:left}
-.game-ui .game-panel{background:#233c35ed;border:1px solid #c3c2a0;border-radius:.8cqw;box-shadow:0 .14cqw .4cqw #15251d38}
-.game-ui .game-number{font-family:Coiny,Jua,sans-serif;font-weight:400;font-variant-numeric:tabular-nums}
-.game-ui svg{display:block;width:1.5cqw;height:1.5cqw;flex-shrink:0}
-.game-ui .game-rank{position:absolute;left:2.1%;top:3.6%;height:3.2cqw;display:flex;align-items:center;gap:1.2cqw;padding:0 .9cqw;border-radius:2cqw}
-.game-ui .game-standing{display:flex;align-items:center;gap:.38cqw;opacity:.85;font-size:1.05cqw}
-.game-ui .game-standing.own{opacity:1}.game-ui .game-standing strong{font-size:1.22cqw;min-width:1.5cqw}
-.game-ui .game-team{display:grid;place-items:center;width:1.55cqw;height:1.55cqw;background:var(--team);color:#1b3128;border-radius:50%;font-family:Coiny,sans-serif;font-size:1.05cqw}
-.game-ui .game-timer{position:absolute;left:50%;top:2.9%;transform:translateX(-50%);display:flex;align-items:center;gap:.65cqw;padding:.6cqw 1cqw;border-radius:2.5cqw}
-.game-ui .game-timer svg{color:#bad493;width:1.9cqw;height:1.9cqw}.game-ui .game-timer strong{font-size:2.05cqw;line-height:1}
-.game-ui .game-day{font-size:.83cqw;white-space:nowrap;opacity:.8;border-left:1px solid #a1b29e66;padding-left:.7cqw}
-.game-ui .game-revenue{position:absolute;right:2.1%;top:3.6%;height:3.2cqw;display:flex;gap:.6cqw;align-items:center;padding:0 1cqw;border-radius:2cqw}
-.game-ui .game-revenue strong{font-size:1.85cqw;line-height:1}.game-ui .game-goal{color:#cdd9b7;font-size:1.1cqw}.game-ui .game-revenue-label{font-size:.95cqw;opacity:.85}
-.game-ui .game-coin{display:inline-flex;color:#edc578;flex-shrink:0;align-items:center}.game-ui .game-coin svg{width:1.25cqw;height:1.25cqw}
-.game-ui .game-skill{position:absolute;left:2.2%;bottom:3.7%;display:grid;grid-template-columns:auto auto;align-items:center;gap:.3cqw .6cqw;font-size:1cqw}
-.game-ui .game-skill-icon{grid-row:span 2;width:3.5cqw;height:3.5cqw;border:1px solid #b6c69c;border-radius:50%;background:#233c35ee;display:grid;place-items:center;color:#cae5a8}.game-ui .game-skill-icon svg{width:2.1cqw;height:2.1cqw}
-.game-ui .game-key{display:inline-grid;place-items:center;width:max-content;min-width:1.45cqw;height:1.5cqw;padding:0 .35cqw;border:1px solid #849887;background:#172c25;color:#ebe7d2;border-radius:.3cqw;font-family:Coiny,Jua,sans-serif;font-size:.86cqw;font-weight:400;line-height:1}
-.game-ui .game-recipe-hint{position:absolute;right:2.1%;bottom:3.7%;display:flex;gap:.6cqw;align-items:center;padding:.55cqw .8cqw;font-size:1.12cqw}
-.game-ui .game-recipe-hint svg{color:#b9cda3}
-.game-ui .game-order{position:absolute;transform:translate(-50%,-50%);width:3.25cqw;display:flex;flex-direction:column;align-items:center;gap:.2cqw}
-.game-ui .game-order-price{display:flex;align-items:center;justify-content:center;gap:.2cqw;background:#233c35f5;border:1px solid #d2c59d;border-radius:2cqw;padding:.12cqw .35cqw;font-size:1.02cqw;line-height:1.15}
-.game-ui .game-order-price .game-coin svg{width:.9cqw;height:.9cqw}
-.game-ui .game-order-body{position:relative;width:3.25cqw;height:3.4cqw;border:1px solid #d3c9aa;border-radius:.65cqw;background:#f1ebd9;isolation:isolate;box-shadow:0 .12cqw .2cqw #15251d33}
-.game-ui .game-order-body::after{position:absolute;content:'';width:.6cqw;height:.6cqw;left:calc(50% - .3cqw);bottom:-.29cqw;transform:rotate(45deg);background:#233c35;border-right:1px solid #d3c9aa;border-bottom:1px solid #d3c9aa;z-index:-1}
-.game-ui .game-order-fill{position:absolute;inset:auto 0 0;border-radius:0 0 .6cqw .6cqw;z-index:-1}
-.game-ui .game-order-art{display:block;position:relative;width:100%;height:100%;object-fit:contain;padding:.15cqw;filter:none}
-.game-ui .game-copies{position:absolute;right:.15cqw;bottom:.15cqw;color:#203b2c;font-size:.9cqw}
-.game-ui .game-shelf{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;gap:.05cqw;padding:.15cqw .3cqw .15cqw .05cqw;border:1px solid #a1b29188;border-radius:.6cqw;background:#233c35d9;color:#e7e5cf}
-.game-ui .game-shelf.empty{background:#233c359c;color:#d2d0bb;border-color:#a1b29155}.game-ui .game-shelf.empty img{opacity:.7}
-.game-ui .game-shelf-art{width:1.9cqw;height:1.9cqw;object-fit:contain}.game-ui .game-shelf-count{font-family:Coiny,Jua,sans-serif;font-size:.83cqw}
-.game-ui .game-held{position:absolute;left:51.7%;top:38.5%;width:13.9%;padding:.55cqw .65cqw;border-radius:.7cqw}
-.game-ui .game-held-main{display:flex;gap:.45cqw;align-items:center}.game-ui .game-held-art{width:2.8cqw;height:2.8cqw;object-fit:contain;flex-shrink:0}
-.game-ui .game-held-copy{display:flex;flex-direction:column;gap:.3cqw;min-width:0}.game-ui .game-held-copy strong{font-family:Bagel,Jua,sans-serif;font-weight:400;font-size:1.13cqw;white-space:nowrap}.game-ui .game-held-copy span{font-size:.8cqw;color:#c8cfb6;white-space:nowrap}
-.game-ui .game-held-check{color:#b8d498;margin-left:auto}.game-ui .game-held-check svg{width:1.1cqw;height:1.1cqw}
-.game-ui .game-held-parts{display:flex;align-items:center;justify-content:center;gap:.25cqw;border-top:1px solid #899c7d55;margin-top:.2cqw;padding-top:.25cqw;min-height:1.5cqw}.game-ui .game-held-parts img{width:1.7cqw;height:1.7cqw;object-fit:contain}
-.game-ui .game-making-gauge{position:absolute;left:43%;top:47.3%;width:10.5%;text-align:center;color:#20362b;font-size:.9cqw}.game-ui .game-gauge-label{display:inline-block;background:#f1ebdce8;border-radius:.4cqw;padding:.3cqw .5cqw;margin-bottom:.35cqw}
-.game-ui .game-gauge-track{height:.9cqw;position:relative;background:#294439;border:1px solid #e7dbc1;border-radius:1cqw;overflow:visible;box-shadow:0 .12cqw .3cqw #20392b33}
-.game-ui .game-gauge-good{position:absolute;left:25%;width:50%;height:100%;background:#b3c98b}.game-ui .game-gauge-perfect{position:absolute;left:43%;width:14%;height:100%;background:#e6ca78}.game-ui .game-gauge-needle{position:absolute;left:48%;top:-.25cqw;width:.2cqw;height:1.25cqw;background:#fff8df;box-shadow:0 0 .12cqw #21382b}
-.game-ui .game-menu{position:absolute;left:20%;top:15%;width:60%;padding:1.2cqw 1.6cqw 1cqw;background:#223c35f7;border-radius:1cqw;border-color:#beb998;box-shadow:0 .6cqw 2cqw #142c2338}
-.game-ui .game-menu-header{display:flex;align-items:center;gap:.55cqw;border-bottom:1px solid #9eae8755;padding-bottom:.7cqw;margin-bottom:.7cqw}.game-ui .game-menu-header>div:first-child{display:flex;align-items:baseline;gap:.8cqw;margin-right:auto}.game-ui .game-menu-eyebrow{font-size:.68cqw;letter-spacing:.1em;color:#b0c099}.game-ui .game-menu-header strong{font-family:Bagel,Jua,sans-serif;font-size:2cqw;font-weight:400;color:#f0e5c9}.game-ui .game-menu-close{font-size:.9cqw;color:#cbd3b9}
-.game-ui .game-menu-columns{display:grid;grid-template-columns:1fr 1fr;gap:2cqw}.game-ui .game-menu-column h3{font-family:Bagel,Jua,sans-serif;font-size:1.2cqw;font-weight:400;color:#bed59c;margin:.3cqw 0 .4cqw}.game-ui .game-menu-row{display:flex;align-items:center;gap:.6cqw;padding:.38cqw 0;border-bottom:1px solid #b2ba9055;min-height:3.55cqw}.game-ui .game-menu-column:first-child .game-menu-row:last-child{border-bottom:0}
-.game-ui .game-menu-art{width:3.1cqw;height:3.1cqw;object-fit:contain;flex-shrink:0}.game-ui .game-menu-info{display:flex;flex-direction:column;gap:.33cqw;flex:1;min-width:0}.game-ui .game-menu-info strong{font-weight:400;font-size:1.03cqw;white-space:nowrap}.game-ui .game-menu-info span{font-size:.71cqw;color:#c9ceb1;white-space:nowrap}.game-ui .game-menu-price{display:flex;align-items:center;gap:.22cqw;font-size:1.15cqw}.game-ui .game-menu-price .game-coin svg{width:.9cqw;height:.9cqw}
-.game-ui .game-menu-footer{border-top:1px solid #9eae8755;margin-top:.8cqw;padding-top:.6cqw;font-size:.82cqw;color:#c9ceb1}
-.gameplay-fullscreen{background:#14231d}.gameplay-fullscreen main{max-width:none;padding:0}.gameplay-fullscreen header,.gameplay-fullscreen footer,.gameplay-fullscreen .implementation-guide,.gameplay-fullscreen .project-section>h2,.gameplay-fullscreen .project-tools,.gameplay-fullscreen .state-picker,.gameplay-fullscreen .project-note,.gameplay-fullscreen .source-note,.gameplay-fullscreen .screen-implementation,.gameplay-fullscreen .image-actions{display:none!important}.gameplay-fullscreen .project-section{margin:0}.gameplay-fullscreen .project-scene,.gameplay-fullscreen .scene>img,.gameplay-fullscreen .project-overlay{border-radius:0}
+/* Concept components use the same illustrated game artwork; no generic HTML HUD replacement. */
+.project-scene .project-overlay[data-kind=coherent]{inset:0;display:block;padding:0;pointer-events:none;text-shadow:none}
+.coherent-panel{position:absolute;display:block;object-fit:contain;filter:none;max-width:none}
+.project-overlay[data-screen=recipe] .coherent-panel{left:1%;top:18%;width:40%;height:80%;object-position:left bottom}
+.project-overlay[data-screen=orders] .coherent-panel{left:2%;top:28%;width:42%;height:69%;object-position:left bottom}
+.project-overlay[data-screen=loot] .coherent-panel{left:51%;top:29%;width:47%;height:39%;object-position:right center}
+.project-overlay[data-screen=night-parts] .coherent-panel{left:55%;top:21%;width:43%;height:47%;object-position:right top}
+.gameplay-fullscreen{background:#14231d}
+.gameplay-fullscreen main{max-width:none;padding:0}
+.gameplay-fullscreen header,.gameplay-fullscreen footer,.gameplay-fullscreen .implementation-guide,.gameplay-fullscreen .project-section>h2,.gameplay-fullscreen .project-tools,.gameplay-fullscreen .state-picker,.gameplay-fullscreen .project-note,.gameplay-fullscreen .source-note,.gameplay-fullscreen .screen-implementation,.gameplay-fullscreen .image-actions{display:none!important}
+.gameplay-fullscreen .project-section{margin:0}
+.gameplay-fullscreen .project-scene,.gameplay-fullscreen .scene>img,.gameplay-fullscreen .project-overlay{border-radius:0}
 
 /* Bundled font licenses
 Copyright 2022 The Bagel Fat Project Authors (https://github.com/JAMO-TYPEFACE/BagelFat)
@@ -374,7 +341,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     <h1>루이지 콘셉트 · Blood & Beans UI</h1>
     <p class="intro">루이지 맨션의 개성을 더해 배치와 서체를 새로 구성한 PC 게임 시안입니다.</p>
     <div class="gallery-mode" role="group" aria-label="갤러리 선택"><button type="button" data-mode="project" aria-pressed="true">Unity 전체 UI</button><button type="button" data-mode="legacy" aria-pressed="false">기존 캐릭터 시안</button></div>
-    <p class="project-intro">낮 UI의 「실제 인게임 · 루이지 UI」는 현재 Battle_01 플레이 화면을 그대로 사용하고 UI만 바꿉니다. 「실제 인게임 원본」과 같은 카메라 구도를 비교할 수 있습니다. 기존 콘셉트·절제형·8인 팀 선택·구현 오브젝트 시안도 유지합니다.</p>
+    <p class="project-intro">낮·밤 화면에서 「현재 시안 / 절제형」을 선택해 비교하실 수 있습니다. 낮·밤은 인게임 카메라 구도를 기준으로, 로비·제조 시안과 같은 입체 글자와 UI 재질로 맞췄습니다.</p>
     <div id="project-nav"></div>
     <div id="legacy-nav" hidden>
     <nav aria-label="화면 바로가기" id="screen-nav"></nav>
@@ -383,23 +350,25 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   <div id="project-gallery"></div>
   <details id="implementation-guide" class="implementation-guide"><summary>Unity 구현 가이드 펼치기 · 부품 분리 / PC 크기 / TMP / 화면별 연결 / 적용 순서</summary><div class="guide-body"><p>2026-10-11 · 현재 프로젝트 소스 기준. 이번 결과는 시안과 구현 계획이며 Unity 게임 에셋을 수정한 결과가 아닙니다.</p>
 <h3>1. 시각 방향</h3>
-<p>루이지의 분위기는 귀여운 3D 유령·몬스터, 둥근 글자, 짙은 초록, 크림색, 따뜻한 조명으로 유지합니다. 금속 장식과 양피지 무늬, 반복 문양, 두꺼운 입체 테두리, 상시 네온과 반짝이는 장식은 줄입니다. 상태를 알리는 색과 표시에는 의미를 부여합니다.</p>
-<div class="guide-table"><table><tr><th>역할</th><th>제안 색</th><th>사용 원칙</th></tr><tr><td>패널</td><td>#233C35</td><td>무광 짙은 초록, 패널 하나당 얇은 테두리 하나</td></tr><tr><td>밝은 면·글자</td><td>#E9DFCA</td><td>크림색, 종이 질감은 거의 보이지 않을 정도</td></tr><tr><td>작은 구분선</td><td>#9D8B64</td><td>낮은 채도의 황동색, 장식 프레임 금지</td></tr><tr><td>선택·준비·성공</td><td>#8DBA8A</td><td>전체 발광 대신 색 면 + 체크/선택선</td></tr><tr><td>주의</td><td>#D1AF68</td><td>상태 라벨과 게이지에 제한</td></tr><tr><td>위험·손실</td><td>#A64E45</td><td>색 외에 글자·아이콘도 함께 표시</td></tr></table></div>
+<p><strong>루이지 시안:</strong> 기존 제조·로비·루팅의 디자인을 기준으로 패널·입체 글자·아이콘·그림자를 한 세트로 다시 그렸습니다. 카메라는 실제 낮·밤 구도를 참고하고 장면의 조명·재질은 콘셉트로 표현했습니다. 조합법·주문 비교는 같은 낮 이미지, 상자·밤 부품은 같은 밤 이미지 위에 투명 패널만 겹치므로 선택할 때 카메라가 바뀌지 않습니다. 현재 구현 캡처는 갤러리에 포함하지 않습니다.</p>
+<p>루이지의 분위기는 귀여운 3D 유령·몬스터, 둥근 글자, 짙은 초록, 크림색, 따뜻한 조명으로 유지합니다. 곡선 간판의 실루엣, 실제로 깎아 만든 듯한 황동 테두리, 초록 가죽과 크림 슬롯으로 이전 시안의 입체감을 살립니다. 문양을 반복하거나 상시 네온을 넣지 않고, 상태를 알리는 색은 말풍선 채움·선택선·판정에 사용합니다.</p>
+<div class="guide-table"><table><tr><th>역할</th><th>제안 색</th><th>사용 원칙</th></tr><tr><td>패널</td><td>#233C35</td><td>무광 초록 가죽, 주요 간판은 곡선 황동 테두리</td></tr><tr><td>밝은 면·글자</td><td>#E9DFCA</td><td>크림색, 종이 질감은 거의 보이지 않을 정도</td></tr><tr><td>작은 구분선</td><td>#9D8B64</td><td>황동색, 테두리의 입체 모서리와 클립에 사용</td></tr><tr><td>선택·준비·성공</td><td>#8DBA8A</td><td>전체 발광 대신 색 면 + 체크/선택선</td></tr><tr><td>주의</td><td>#D1AF68</td><td>상태 라벨과 게이지에 제한</td></tr><tr><td>위험·손실</td><td>#A64E45</td><td>색 외에 글자·아이콘도 함께 표시</td></tr></table></div>
 <p>이는 아트 작업 시작값입니다. 실제 게임 배경에서 대비를 확인해 조정합니다. 팀 색은 기존 <code>TeamColors</code> 원본을 따르고, UI 전체를 팀 색으로 칠하지 않고 이름표·팀 번호 등으로 제한합니다.</p>
+<p><strong>절제형:</strong> 승인된 현재 시안을 유지하면서 금속 테두리의 반사, 선택 주변 발광, 판정과 스킬의 장식 효과를 줄였습니다. 입체 서체·클립보드·초록 가죽·크림 슬롯과 게임 카메라 구도는 유지합니다. 낮·조합법·주문·제조·밤·루팅·밤 부품의 7개 화면에서 선택할 수 있습니다.</p>
 <h3>2. 시안 이미지를 실제 UI로 나누는 방법</h3>
-<p>시안 PNG 전체를 화면 배경처럼 붙이지 않습니다. 장면, UI 패널, 아이콘, 글자, 선택 상태, 수치를 분리합니다. 생성 시안의 문자·숫자는 모양 참고이며 실제 값과 문구는 기존 데이터에서 가져옵니다.</p>
-<div class="guide-table"><table><tr><th>시안 요소</th><th>Unity 구현</th><th>준비할 것</th></tr><tr><td>카페·숲·선택 무대</td><td>기존 3D 씬/프리팹 + 카메라</td><td>기존 조명·재질 조정, 시안 배경은 구도 참고</td></tr><tr><td>패널·행·버튼</td><td>uGUI Image + 기존 <code>UIRoundImage</code></td><td>단색 면, 반지름, 얇은 가장자리</td></tr><tr><td>특수 모양의 말풍선</td><td>스프라이트 + 기존 <code>UIBubbleFill</code></td><td>문자 없는 말풍선 알파와 채움 영역</td></tr><tr><td>이름·매출·타이머</td><td>TextMeshProUGUI</td><td>실제 문자열, 폰트 애셋, 머티리얼 프리셋</td></tr><tr><td>클래스·스킬·보석·가방</td><td>Sprite + Image</td><td>투명 배경 아이콘, 기본/선택/비활성 상태</td></tr><tr><td>플레이어·음료·재료</td><td>기존 실제 3D 모델</td><td><code>CharacterVisualConfig</code> / <code>ItemVisualConfig</code> 참조</td></tr><tr><td>UI 안의 제품 미리보기</td><td>실제 프리팹을 렌더링한 정적 Sprite</td><td>같은 카메라·조명으로 찍은 제품 썸네일</td></tr><tr><td>체크·선택선·상태</td><td>별도 Image/문자 + 상태별 색</td><td>기본 패널을 복제하지 않고 표시 전환</td></tr></table></div>
+<p>시안 PNG 전체를 화면 배경처럼 붙이지 않습니다. 이번 갤러리의 입체 글자·UI는 콘셉트 이미지입니다. 구현할 때는 장면, 문자 없는 UI 패널, 아이콘, 글자, 선택 상태, 수치를 분리합니다. 제공된 메뉴·주문·루팅 비교판에도 문자가 포함되어 있으므로 그대로 동적 UI 에셋으로 사용하지 않습니다. 패널 외곽·클립은 Sprite로, 글자는 TMP Outline/Underlay로, 아이콘은 현재 모델을 동일한 조명에서 렌더링해 재현합니다. 수치와 문구는 기존 데이터에서 가져옵니다.</p>
+<div class="guide-table"><table><tr><th>시안 요소</th><th>Unity 구현</th><th>준비할 것</th></tr><tr><td>카페·숲·선택 무대</td><td>기존 3D 씬/프리팹 + 카메라</td><td>기존 조명·재질 조정, 시안 배경은 구도 참고</td></tr><tr><td>패널·행·버튼</td><td>uGUI Image + 기존 <code>UIRoundImage</code></td><td>일반 행은 단색 면, 주요 간판과 상자는 문자 없는 입체 Sprite</td></tr><tr><td>특수 모양의 말풍선</td><td>스프라이트 + 기존 <code>UIBubbleFill</code></td><td>문자 없는 말풍선 알파와 채움 영역</td></tr><tr><td>이름·매출·타이머</td><td>TextMeshProUGUI</td><td>실제 문자열, 폰트 애셋, 머티리얼 프리셋</td></tr><tr><td>클래스·스킬·보석·가방</td><td>Sprite + Image</td><td>투명 배경 아이콘, 기본/선택/비활성 상태</td></tr><tr><td>플레이어·음료·재료</td><td>기존 실제 3D 모델</td><td><code>CharacterVisualConfig</code> / <code>ItemVisualConfig</code> 참조</td></tr><tr><td>UI 안의 제품 미리보기</td><td>실제 프리팹을 렌더링한 정적 Sprite</td><td>같은 카메라·조명으로 찍은 제품 썸네일</td></tr><tr><td>체크·선택선·상태</td><td>별도 Image/문자 + 상태별 색</td><td>기본 패널을 복제하지 않고 표시 전환</td></tr></table></div>
 <p>프로젝트는 이미 <code>UIRoundImage</code>와 <code>BB/UI Rounded Rect</code>를 사용합니다. 단순 패널은 이를 먼저 재사용합니다. 외곽 그림이 꼭 필요한 부품만 9-slice Sprite를 사용합니다. 초상이나 아이콘의 <code>Image.sprite</code>를 라운드용 스프라이트로 덮지 않습니다. uGUI Image는 Sprite를 사용합니다. <a href="https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/script-Image.html" target="_blank" rel="noopener">Unity Image 공식 문서</a></p>
 <h3>3. PC 크기·레이아웃</h3>
 <p>아래 수치는 1920×1080 기준 최종 화면 크기의 시작값입니다. 시안에 보이는 큰 비교용 표 제목을 게임 HUD에 그대로 사용하지 않습니다.</p>
-<div class="guide-table"><table><tr><th>요소</th><th>제안 최종 크기</th></tr><tr><td>메뉴 제목</td><td>48–64</td></tr><tr><td>메뉴 버튼 글자 / 버튼 높이</td><td>26–30 / 48–56</td></tr><tr><td>본문·설명</td><td>22–24</td></tr><tr><td>보조 라벨·키 힌트</td><td>18–20</td></tr><tr><td>HUD 타이머</td><td>36–44</td></tr><tr><td>작은 아이콘 / 밤 가방</td><td>32–40 / 48–56</td></tr><tr><td>화면 가장자리 여백</td><td>24–32</td></tr><tr><td>라운드 반지름 / 그림자 이동</td><td>8–12 / 1–2</td></tr></table></div>
+<div class="guide-table"><table><tr><th>요소</th><th>제안 최종 크기</th></tr><tr><td>메뉴 제목</td><td>48–64</td></tr><tr><td>메뉴 버튼 글자 / 버튼 높이</td><td>26–30 / 48–56</td></tr><tr><td>본문·설명</td><td>22–24</td></tr><tr><td>보조 라벨·키 힌트</td><td>18–20</td></tr><tr><td>HUD 타이머</td><td>60–68, 숫자 외곽선과 짧은 그림자 포함</td></tr><tr><td>작은 아이콘 / 밤 가방</td><td>32–40 / 48–56</td></tr><tr><td>화면 가장자리 여백</td><td>24–32</td></tr><tr><td>라운드 반지름 / 그림자 이동</td><td>8–12 / 1–2</td></tr></table></div>
 <p>현재 <code>UIThemeConfig.FontScale</code>과 <code>UIFontScale</code>이 프리팹 기본 글자 크기에 배율을 곱합니다. 위 수치를 그대로 기본 크기에 넣고 배율까지 다시 곱하면 UI가 커집니다. 기본 크기 = 목표 최종 크기 ÷ 실제 테마 배율로 맞추거나, 기존 배율 정책을 명시적으로 정리한 뒤 적용합니다. 제목·본문·HUD를 일괄 축소하는 방식은 피합니다.</p>
 <p>CanvasScaler는 기존 설정을 먼저 확인하고 <code>Scale With Screen Size</code>, 기준 1920×1080, Match 0.5를 초기 후보로 사용합니다. 각 HUD는 화면 모서리·상단 중앙 앵커에 연결하고 중앙 메뉴는 가용 폭에 맞춥니다. 화면 크기와 앵커 조합이 해상도 대응의 기본입니다. <a href="https://docs.unity3d.com/Packages/com.unity.ugui@2.0/manual/HOWTO-UIMultiResolution.html" target="_blank" rel="noopener">Unity 다중 해상도 공식 문서</a></p>
 <p>21:9에서는 HUD만 가장자리로 이동하고 메뉴 폭은 제한합니다. 4:3에서 8명이 겹치면 캐릭터 배치를 4명씩 두 줄로 바꾸는 후보를 검토합니다. 전체 UI를 가로로 찌그러뜨리지 않습니다. 현재 시안은 16:9이며 이 두 해상도의 실제 Unity 적용 검증은 후속 작업입니다.</p>
 <h3>4. 서체</h3>
-<ul><li>제목·주요 행동: 갤러리에 포함된 <strong>Bagel Fat One</strong>. 글자의 통통한 형태로 개성을 주고 과한 입체 효과는 줄입니다.</li><li>본문·설명·버튼: <strong>Jua</strong>. 설명문은 한 화면에서 필요한 길이만 표시합니다.</li><li>타이머·매출·판정 영문: <strong>Coiny</strong>는 숫자·영문 전용 후보입니다. 한글은 Bagel/Jua 폴백으로 표시합니다.</li></ul>
+<ul><li>제목·주요 행동: 갤러리에 포함된 <strong>Bagel Fat One</strong>. 통통한 글자와 짙은 외곽선·짧은 Underlay로 이전 시안의 입체감을 재현합니다.</li><li>본문·설명·버튼: <strong>Jua</strong>. 설명문은 한 화면에서 필요한 길이만 표시합니다.</li><li>타이머·매출·판정 영문: <strong>Coiny</strong>는 숫자·영문 전용 후보입니다. 한글은 Bagel/Jua 폴백으로 표시합니다.</li></ul>
 <p>세 폰트는 갤러리 <code>fonts/</code>의 TTF와 OFL 고지를 같이 전달합니다. 브라우저 글꼴을 지정했다고 Unity TMP에 자동 적용되지는 않습니다. 프로젝트 폰트 폴더에 넣고 TMP Font Asset을 생성·배선해야 합니다.</p>
-<p>고정 UI 문구·숫자·키 힌트는 Static SDF 애셋, 사용자 이름 등 예측 불가능한 한글은 Dynamic fallback으로 분리하는 후보를 사용합니다. 한글 전체를 무작정 작은 Static atlas 하나에 넣지 말고, 실제 표시 문자 집합으로 용량과 누락을 확인합니다. Dynamic fallback은 1024 atlas를 시작값으로 잡고 Clear Dynamic Data On Build를 켭니다. Font Asset Scale=1, Outline/Underlay는 공용 Material Preset, 상시 Glow는 끕니다. 타이머 AutoSize는 끄고 고정 크기로 맞춥니다. 설치된 uGUI 2.5.0의 TMP 소스에서 atlasPopulationMode, fallbackFontAssetTable, isMultiAtlasTexturesEnabled와 clearDynamicDataOnBuild를 확인했습니다.</p>
+<p>고정 UI 문구·숫자·키 힌트는 Static SDF 애셋, 사용자 이름 등 예측 불가능한 한글은 Dynamic fallback으로 분리하는 후보를 사용합니다. 한글 전체를 무작정 작은 Static atlas 하나에 넣지 말고, 실제 표시 문자 집합으로 용량과 누락을 확인합니다. Dynamic fallback은 1024 atlas를 시작값으로 잡고 Clear Dynamic Data On Build를 켭니다. Font Asset Scale=1, Outline/Underlay는 제목·숫자·본문별 공용 Material Preset으로 분리합니다. 숫자는 짙은 외곽선과 아래쪽 짧은 그림자를 적용하고 상시 Glow는 끕니다. 타이머 AutoSize는 끄고 고정 크기로 맞춥니다. 설치된 uGUI 2.5.0의 TMP 소스에서 atlasPopulationMode, fallbackFontAssetTable, isMultiAtlasTexturesEnabled와 clearDynamicDataOnBuild를 확인했습니다.</p>
 <h3>5. 기존 코드에서 재사용할 연결</h3>
 <p><code>BB.Client → BB.Game → BB.Rules</code>의 방향을 유지합니다. 화면은 프리팹의 배치와 표시만 소유하고 매출·인내심·판정·중복 선택 규칙을 다시 계산하지 않습니다. UI 리스킨 때문에 새로운 RPC나 서버 수치를 만들 필요는 없습니다.</p>
 <div class="guide-table"><table><tr><th>화면/부품</th><th>현재 연결</th><th>적용할 내용</th></tr><tr><td>타이틀</td><td>UITitleMenuScreen</td><td>세로 메뉴, 로고·배경 분리, 선택 표시</td></tr><tr><td>방 목록</td><td>UIRoomListScreen</td><td>방 행·선택 상세·2–4팀 조절·입장 버튼</td></tr><tr><td>캐릭터·팀 선택</td><td>UICharacterSelectScreen / CharacterStage</td><td>8인 무대·팀 라벨·하단 클래스·준비 표시</td></tr><tr><td>보조 대기실</td><td>UIRoomScreen</td><td>팀별 2인 카드, 현재 보조 흐름 유지</td></tr><tr><td>낮 HUD</td><td>UIMatchHudScreen / MatchHudPresenter</td><td>순위·시계·매출·스킬·보석, 낮 가방 숨김</td></tr><tr><td>조합법</td><td>UIMatchHudScreen / UIRecipeRow</td><td>커피·디저트 열, 행 재사용, F1 열기/닫기</td></tr><tr><td>주문·인내심</td><td>UICustomerOrder / UIBubbleFill</td><td>말풍선 내부 채움·가격 탭·경고 상태</td></tr><tr><td>제조·완성 판정</td><td>UIMakingCard / UICompletionGauge / UICraftingJudgement</td><td>식기 추적 카드·판정 구간·판정 피드백</td></tr><tr><td>밤 HUD</td><td>UIMatchHudScreen / MatchHudPresenter</td><td>무게·적재 경고·밤 가방·스킬·상호작용</td></tr><tr><td>상자 루팅</td><td>UIBoxLootPopup / UIBoxLootSlot</td><td>기존 공개 순서와 다섯 칸, 툴팁</td></tr><tr><td>가방·스킬·귀환 부품</td><td>UIBagStatus / UISkillSlot / UIKeyHint</td><td>상태별 아이콘·쿨타임·키 표시</td></tr><tr><td>귀환 결과</td><td>UIReturnResultPopup</td><td>성공·일부 소실·분실 토스트</td></tr><tr><td>하루 정산·예보</td><td>UIDaySettlementScreen</td><td>정산·순위·자동 보석·손님 예보</td></tr><tr><td>최종 결과</td><td>UIMatchResultPopup</td><td>현재 집계하는 순위·매출·버튼</td></tr><tr><td>설정</td><td>UISettingsPopup / UIVolumeSlider</td><td>음량·전체 화면·조건부 감도·닫기</td></tr><tr><td>로딩</td><td>UILoadingPopup</td><td>불러오는 중 / 확인된 접속 인원</td></tr><tr><td>페이즈 전환</td><td>UIPhaseCuePopup</td><td>3·2·1 / READY / GO / 마감</td></tr><tr><td>공통 부품</td><td>UICharacterCard / UITeamSlot / UIStandingRow 등</td><td>공통 색·서체·선택·비활성 규칙</td></tr></table></div>
@@ -411,7 +380,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 <h3>7. 주문·제조 오브젝트</h3>
 <p><code>UICustomerOrder</code>는 <code>patience.Show(1 - PatienceRatio, color)</code>로 이미 사용한 인내심을 말풍선 안에 아래부터 채웁니다. <code>UIBubbleFill</code>의 공용 머티리얼과 정점 데이터를 재사용합니다. 별도 인내심 게이지를 새로 만들지 않습니다. 말풍선 Sprite가 바뀌면 투명 여백과 채움 range도 다시 맞춥니다. 가격은 기존 합계 탭 하나를 사용합니다.</p>
 <p>실제 음료·컵·재료는 <code>ItemVisualConfig</code>와 <code>ItemSlotPresenter</code>의 기존 메시/재질을 사용합니다. UI 아이콘도 같은 프리팹을 일정한 카메라와 조명으로 오프라인 렌더링해 만들면 장면 오브젝트와 같은 형태가 됩니다. 각 주문·아이콘에 상시 Camera/RenderTexture를 붙이는 방식은 초기안에서 피합니다. 상세 회전 미리보기가 실제 요구된 곳에만 제한적으로 사용합니다.</p>
-<p><code>UIMakingCard.Render(CarryView)</code>는 현재 상태와 아이콘을 표시합니다. <code>glowAlpha</code>는 절제형에서 낮추되 블러드 빈의 공개 정보와 준비/실패 구분은 작은 상태 면·라벨로 유지합니다. 제조 시안의 다섯 카드는 상태 비교표이며 실제 게임에 다섯 장을 동시에 띄우는 제안이 아닙니다. <code>UICompletionGauge</code>의 Good/Perfect 폭과 침 위치는 기존 CompletionGauge 값을 그대로 받아야 합니다. 그림의 녹색 영역 비율로 판정 수치를 새로 정하지 않습니다.</p>
+<p><code>UIMakingCard.Render(CarryView)</code>는 현재 상태와 아이콘을 표시합니다. <code>glowAlpha</code>는 절제형에서 낮추되 블러드 빈의 공개 정보와 준비/실패 구분은 작은 상태 면·라벨로 유지합니다. 현재 제조 시안은 들고 있는 식기에 연결하는 카드 한 장과 옆의 판정 게이지를 보여줍니다. <code>UICompletionGauge</code>의 Good/Perfect 폭과 침 위치는 기존 CompletionGauge 값을 그대로 받아야 합니다. 그림의 녹색 영역 비율로 판정 수치를 새로 정하지 않습니다.</p>
 <h3>8. 공통 에셋 제작 목록</h3>
 <p>먼저 공용 기본 면·버튼·선택선·말풍선·상태 라벨·키 힌트·클래스 카드·행을 확정합니다. 기본/선택/호버/눌림/비활성은 색·작은 위치/스케일 변화로 만들고 상태마다 큰 PNG를 별도로 복제하지 않습니다. 반복 조각은 기존 Parts 프리팹과 해당 컴포넌트를 사용합니다.</p>
 <div class="guide-table"><table><tr><th>산출물</th><th>분리 조건</th></tr><tr><td>로고</td><td>투명 PNG, 글자/배경 분리, 메뉴 문구 제외</td></tr><tr><td>말풍선</td><td>문자·컵 없는 알파 Sprite, 가격 탭 별도</td></tr><tr><td>가방</td><td>닫힘/열림 2종, 묻음은 기존 상태 표시, 그림자 과장 없음</td></tr><tr><td>클래스·스킬·보석</td><td>같은 실루엣/명암 규칙, 투명 배경</td></tr><tr><td>제품 썸네일</td><td>실제 모델 동일 형태, 동일 앵글·크기·조명</td></tr><tr><td>폰트</td><td>TTF + OFL + TMP main/fallback + 공용 Material Preset</td></tr><tr><td>프리팹</td><td>기존 참조를 보존한 Parts/Screen/Popup 리스킨</td></tr></table></div>
@@ -421,7 +390,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 <p>성능 목표 숫자는 측정 전 확정하지 않습니다. 동적 텍스트/표식은 갱신 범위를 좁히고 변화가 없으면 재설정하지 않습니다. 장식 Image의 Raycast Target은 끄고 실제 입력 요소만 켭니다. 많은 개별 Material, 중첩 Mask와 상시 UI 파티클을 줄입니다.</p>
 <h3>10. 확인한 근거와 남은 작업</h3>
 <p>현재 Unity 6000.5.9f1, uGUI 2.5.0, URP 17.5.0, Input System 1.20.0, NGO 2.13.1입니다. <code>UIThemeConfig</code>, <code>UITheme</code>, <code>UIFontScale</code>, <code>UIRoundImage</code>, <code>UIBubbleFill</code>, <code>UICustomerOrder</code>, <code>UIMakingCard</code>, <code>UICompletionGauge</code>, <code>UIMatchHudScreen</code>, <code>MatchHudPresenter</code>, <code>CharacterStage</code>, <code>UICharacterSelectScreen</code>, <code>CharacterVisualConfig</code>, <code>ItemVisualConfig</code>와 설치 패키지 소스를 확인했습니다.</p>
-<p>새 시안은 이미지 기반 콘셉트입니다. 제품/캐릭터는 3D 표현을 유지하지만 실제 프로젝트 모델과 완전히 동일한 픽셀은 아닙니다. 실제 프리팹 비교는 갤러리의 「현재 구현 · 샘플 화면」과 「실제 3D 오브젝트」를 기준으로 삼습니다. 이번에 Unity 에셋 적용·빌드·게임 QA·다중 해상도 검증은 수행하지 않았습니다. 실제 적용 시 위 순서와 확인 항목으로 진행합니다.</p></div></details>
+<p>「현재 시안 / 절제형」은 실제 게임의 후방 카메라 구도와 모델 형태를 참고해 생성한 콘셉트입니다. UI 부품은 같은 재질의 투명 패널로 겹칩니다.  제조 판정 게이지와 루팅 슬롯 공개는 상태 표현 예시입니다. Unity 프리팹 적용·빌드·게임 QA·다중 해상도 검증은 후속 작업입니다.</p></div></details>
   <div id="legacy-gallery" hidden>
   <div class="character-bar">
     <span class="picker-label">캐릭터</span>
@@ -477,81 +446,6 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
 
 </script>
 <script>(() => {
-  const data={"capturedAt":"2026-10-10T21:05:58.3111921+00:00","source":"Actual Battle_01 Play Mode, existing Main Camera, UI canvases temporarily disabled for base capture","width":1920,"height":1080,"scene":"Assets/Scenes/Battle_01.unity","camera":{"name":"Main Camera","position":[225.6363,4.370466,16.2171249],"rotation":[25.9353981,305.660156,9.49388664e-07],"fov":60.0,"aspect":1.77734375},"team":0,"totalDays":7,"day":1,"remaining":38.8465652,"sales":5,"bill":50,"revenues":[5,0,0,0],"orders":[{"kind":"Zombie","menu":"CreamCake","name":"크림 케이크","price":17,"fill":0.487804234,"copies":1,"x":0.4480284,"y":0.14564842,"depth":21.13189},{"kind":"Witch","menu":"IcedLatte","name":"아이스라떼","price":35,"fill":0.6028494,"copies":1,"x":0.41410315,"y":0.1452533,"depth":21.2576389},{"kind":"Witch","menu":"IcedLatte","name":"아이스라떼","price":35,"fill":0.250437975,"copies":1,"x":0.380576849,"y":0.144862354,"depth":21.3833866}],"shelves":[{"item":"Ice","name":"얼음","count":0,"x":0.13045612,"y":0.194501162,"depth":18.0683613},{"item":"Cream","name":"크림","count":0,"x":-0.0559350252,"y":0.245806217,"depth":12.5170546},{"item":"Chocolate","name":"초콜렛","count":0,"x":0.0541757941,"y":0.215497732,"depth":15.2927074},{"item":"Milk","name":"우유","count":0,"x":-0.228793919,"y":0.293386877,"depth":9.7414},{"item":"Almond","name":"아몬드","count":0,"x":0.65683794,"y":0.2963432,"depth":9.609002},{"item":"Berry","name":"베리","count":0,"x":0.6330568,"y":0.247592211,"depth":12.384655},{"item":"BloodBean","name":"블러드 빈","count":0,"x":0.617984,"y":0.2166915,"depth":15.1603088}],"menus":[{"id":"HotAmericano","name":"핫 아메리카노","price":5,"parts":["Bean"],"partNames":["원두"]},{"id":"IcedAmericano","name":"아이스 아메리카노","price":10,"parts":["Bean","Ice"],"partNames":["원두","얼음"]},{"id":"CafeLatte","name":"카페라떼","price":11,"parts":["Bean","Milk"],"partNames":["원두","우유"]},{"id":"Einspanner","name":"아인슈페너","price":16,"parts":["Bean","Cream"],"partNames":["원두","크림"]},{"id":"CafeMocha","name":"카페모카","price":28,"parts":["Bean","Milk","Chocolate"],"partNames":["원두","우유","초콜렛"]},{"id":"IcedLatte","name":"아이스라떼","price":24,"parts":["Bean","Milk","Ice"],"partNames":["원두","우유","얼음"]},{"id":"IcedMocha","name":"아이스모카","price":38,"parts":["Bean","Milk","Chocolate","Ice"],"partNames":["원두","우유","초콜렛","얼음"]},{"id":"ChocoBrownie","name":"초코 브라우니","price":19,"parts":["BreadBase","Chocolate"],"partNames":["빵 베이스","초콜렛"]},{"id":"AlmondCookie","name":"아몬드 쿠키","price":17,"parts":["BreadBase","Almond"],"partNames":["빵 베이스","아몬드"]},{"id":"CreamCake","name":"크림 케이크","price":21,"parts":["BreadBase","Cream"],"partNames":["빵 베이스","크림"]},{"id":"BerryTart","name":"베리 타르트","price":23,"parts":["BreadBase","Berry"],"partNames":["빵 베이스","베리"]}],"held":{"menu":"None","name":"—","parts":["Bean"],"product":false,"burnt":false}};
-  window.GAMEPLAY_CAPTURE=data;
-  const iconBase='images/unity-gameplay/icons/';
-  const teamColors=['#7cbf78','#cf7770','#e3bb71','#a599cf'];
-  const icons={clock:'<circle cx="12" cy="13" r="8"/><path d="M12 9v5l3 2M9 2h6M12 2v3M18 5l2 2"/>',coin:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6"/><path d="M12 8v8"/>',skill:'<path d="M8 20c-4 0-6-4-4-7 2-3 3-3 3-7 3 2 3 3 3 5 4-2 6-5 6-8 3 4 4 9 3 12-1 4-5 5-11 5Z"/><circle cx="10" cy="15" r=".7"/><circle cx="15" cy="15" r=".7"/>',book:'<path d="M12 5c-4-3-9-2-9-2v15s5-1 9 2c4-3 9-2 9-2V3s-5-1-9 2Zm0 0v15"/>',check:'<path d="m5 12 4 4L19 6"/>',dash:'<path d="m5 6 6 6-6 6M12 6l6 6-6 6"/>'};
-  function svg(name){return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+icons[name]+'</svg>';}
-  function el(tag,cls,text){const node=document.createElement(tag);if(cls)node.className=cls;if(text!==undefined)node.textContent=text;return node;}
-  function art(id,cls){const img=el('img',cls);img.src=window.imageSource(iconBase+id+'.webp');img.alt='';img.decoding='async';return img;}
-  function key(text){return el('kbd','game-key',text);}
-  function coin(){const node=el('span','game-coin');node.innerHTML=svg('coin');return node;}
-  function chip(cls,text,icon){const n=el('div',cls);if(icon)n.innerHTML=svg(icon);if(text)n.append(el('span','',text));return n;}
-  function menuForHeld(){return data.menus.find(m=>m.id===data.held.menu)||data.menus.find(m=>m.parts.length===data.held.parts.length&&m.parts.every(p=>data.held.parts.includes(p)));}
-  function header(root){
-    const rank=el('div','game-rank game-panel');
-    [...data.revenues.map((value,index)=>({value,index}))].sort((a,b)=>b.value-a.value).forEach((r,i)=>{
-      const item=el('div','game-standing'+(r.index===data.team?' own':''));
-      const dot=el('span','game-team',String(i+1));dot.style.setProperty('--team',teamColors[r.index]);
-      item.append(dot,el('span','team-name',r.index===data.team?'우리':String.fromCharCode(65+r.index)),el('strong','game-number',r.value.toLocaleString()));rank.append(item);
-    });root.append(rank);
-    const timer=el('div','game-timer game-panel');timer.innerHTML=svg('clock');
-    const seconds=Math.max(0,Math.floor(data.remaining));
-    timer.append(el('strong','game-number',Math.floor(seconds/60)+':'+String(seconds%60).padStart(2,'0')),el('span','game-day','DAY '+data.day+' / '+data.totalDays));root.append(timer);
-    const revenue=el('div','game-revenue game-panel');revenue.append(coin(),el('span','game-revenue-label','오늘 매출'),el('strong','game-number',String(data.sales)),el('span','game-goal','/ '+data.bill));root.append(revenue);
-    const skill=el('div','game-skill');skill.append(chip('game-skill-icon',null,'skill'),key('Q'),el('span','', '스킬'));root.append(skill);
-    const recipe=el('div','game-recipe-hint game-panel');recipe.innerHTML=svg('book');recipe.append(key('F1'),el('span','','조합법'));root.append(recipe);
-  }
-  function orders(root){
-    data.orders.forEach((order,i)=>{
-      const bubble=el('div','game-order');bubble.dataset.order=i;
-      bubble.style.left=(order.x*100)+'%';bubble.style.top=(order.y*100)+'%';
-      const price=el('div','game-order-price');price.append(coin(),el('strong','game-number',String(order.price)));
-      const body=el('div','game-order-body');
-      const fill=el('div','game-order-fill');fill.style.height=(order.fill*100)+'%';fill.style.background=order.fill>.8?'#bf655c':order.fill>.5?'#d4b96c':'#a9cb82';
-      body.append(fill,art(order.menu,'game-order-art'));if(order.copies>1)body.append(el('span','game-copies','×'+order.copies));
-      bubble.append(price,body);root.append(bubble);
-    });
-  }
-  function shelves(root){
-    data.shelves.filter(s=>s.depth>0&&s.x>.025&&s.x<.975&&s.y>.12&&s.y<.8).forEach(s=>{
-      const badge=el('div','game-shelf'+(s.count===0?' empty':''));badge.style.left=(s.x*100)+'%';badge.style.top=(s.y*100)+'%';
-      badge.append(art(s.item,'game-shelf-art'),el('span','game-shelf-count',s.count<0?'∞':String(s.count)));root.append(badge);
-    });
-  }
-  function held(root,variant){
-    if(!data.held.parts.length)return;
-    const menu=menuForHeld();const card=el('div','game-held game-panel');
-    const main=el('div','game-held-main');if(menu)main.append(art(menu.id,'game-held-art'));
-    const copy=el('div','game-held-copy');copy.append(el('strong','',menu?menu.name:'만드는 중'),el('span','',data.held.product?'서빙 가능':menu?'조리하면 완성':'재료를 더 넣으세요'));main.append(copy);
-    if(menu){const check=el('span','game-held-check');check.innerHTML=svg('check');main.append(check);}
-    const parts=el('div','game-held-parts');data.held.parts.forEach((p,i)=>{if(i)parts.append(el('span','','+'));parts.append(art(p,''));});card.append(main,parts);root.append(card);
-    if(variant==='making'){
-      const gauge=el('div','game-making-gauge');gauge.append(el('span','game-gauge-label','F · 완성 판정'));
-      const track=el('div','game-gauge-track');track.append(el('div','game-gauge-good'),el('div','game-gauge-perfect'),el('div','game-gauge-needle'));gauge.append(track);root.append(gauge);
-    }
-  }
-  function recipe(root){
-    const menu=el('div','game-menu game-panel');const header=el('div','game-menu-header');
-    const title=el('div','');title.append(el('span','game-menu-eyebrow','BLOOD & BEANS'),el('strong','','조합법'));header.append(title,chip('game-menu-close','닫기'),key('F1'));menu.append(header);
-    const columns=el('div','game-menu-columns');
-    for(const dessert of [false,true]){
-      const column=el('div','game-menu-column');column.append(el('h3','',dessert?'디저트':'커피'));
-      data.menus.filter(m=>m.parts.includes('BreadBase')===dessert).forEach(m=>{
-        const row=el('div','game-menu-row');row.append(art(m.id,'game-menu-art'));
-        const info=el('div','game-menu-info');info.append(el('strong','',m.name),el('span','',m.partNames.join(' + ')));row.append(info);
-        const price=el('div','game-menu-price');price.append(coin(),el('span','game-number',String(m.price)));row.append(price);column.append(row);
-      });columns.append(column);
-    }
-    menu.append(columns,el('div','game-menu-footer','블러드 빈은 원두 대신 넣을 수 있습니다.'));root.append(menu);
-  }
-  window.renderGameplay=(root,variant)=>{
-    root.dataset.kind='gameplay';root.classList.add('game-ui');header(root);shelves(root);orders(root);held(root,variant);if(variant==='recipe')recipe(root);
-  };
-})();
-</script>
-<script>(() => {
   window.imageSource ||= path => path;
   const catalog = [
     {id:'title',group:'입장',name:'타이틀',prefab:'UITitleMenuScreen',note:'중앙 로고와 하단 가로 버튼 3개를 유지합니다.',states:['기본']},
@@ -603,7 +497,7 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     day:'UIMatchHudScreen / MatchHudPresenter를 재사용합니다. 모서리 HUD 앵커를 나누고 낮 가방은 숨깁니다. 수치·타이머는 TMP, 캐릭터와 장면은 실제 3D입니다.',
     recipe:'UIRecipeRow를 반복 사용하고 F1 토글을 유지합니다. 실제 재료 값으로 부족/인기 상태를 표시하고 제품 Sprite는 기존 모델의 렌더 썸네일로 준비합니다.',
     orders:'UICustomerOrder → UIBubbleFill의 1 - PatienceRatio를 유지합니다. 인내심은 말풍선 내부 아래부터 채우고 가격 탭은 합계 하나만 표시합니다.',
-    making:'UIMakingCard.Render(CarryView)와 UICompletionGauge 값을 그대로 연결합니다. 실제 컵·재료 메시를 사용하고 카드 아이콘도 같은 모델로 렌더합니다. 다섯 카드는 상태 비교입니다.',
+    making:'UIMakingCard.Render(CarryView)와 UICompletionGauge 값을 그대로 연결합니다. 클립보드·게이지 프레임은 문자 없는 Sprite, 상태·판정은 TMP로 나눕니다. 컵·재료 아이콘은 실제 모델을 같은 조명에서 렌더합니다.',
     night:'MatchHudPresenter의 밤 가방 조건을 유지합니다. 무게·적재 경고는 기존 데이터, 작은 가방은 상태별 Sprite, 키 힌트는 별도 TMP입니다.',
     loot:'UIBoxLootPopup / UIBoxLootSlot의 다섯 칸과 공개 타이밍을 유지합니다. 패널·선택선만 리스킨하고 아이콘을 실제 프리팹 썸네일로 교체합니다.',
     'night-parts':'UIBagStatus / UISkillSlot / UIKeyHint를 재사용합니다. 가방 열림·닫힘·묻음, 무게·쿨타임 상태를 연결하며 현재 없는 개인 아이템 목록을 추가하지 않습니다.',
@@ -615,29 +509,24 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
     cue:'UIPhaseCuePopup을 유지합니다. 3·2·1, READY, GO, 마감은 TMP 문구이며 기존 페이즈별 입력 차단 조건을 유지합니다.',
     shared:'UIThemeConfig·UIRoundImage와 기존 Parts를 먼저 정리합니다. 단순 면은 공용 라운드 재질, 특수 외곽만 9-slice를 쓰고 TMP 폰트·머티리얼을 공용화합니다.'
   };
-  const additionalViews={
-    day:[{id:'ingame',label:'추가 · 인게임 구도',file:'images/unity-ingame/day.webp',note:'처음 첨부하신 실제 낮 플레이 화면의 카메라·카운터·손님·플레이어 구도를 기준으로 만든 루이지 UI 시안입니다. 최신 Unity 플레이 캡처는 아니며, 원본과 배치·비율을 비교할 수 있습니다.'},{id:'ingame-reference',label:'첨부 인게임 원본',file:'images/unity-ingame/reference-cafe.webp',note:'사용자께서 처음 첨부하신 실제 낮 플레이 화면입니다. 원본 크기 694×447이며 내용 변경 없이 보관했습니다.'}],
-    recipe:[{id:'ingame',label:'추가 · 인게임 구도',file:'images/unity-ingame/recipe.webp',note:'첨부된 낮 인게임 구도를 유지하고 조합법 팝업을 연 상태의 추가 시안입니다. 배경을 메뉴판용 연출 공간으로 재구성하지 않았습니다.'},{id:'ingame-reference',label:'첨부 인게임 원본',file:'images/unity-ingame/reference-cafe.webp',note:'구도 기준인 사용자 첨부 낮 플레이 화면입니다. 조합법을 열기 전 원본이며 694×447입니다.'}],
-    orders:[{id:'ingame',label:'추가 · 인게임 구도',file:'images/unity-ingame/orders.webp',note:'말풍선을 실제 손님 위에 붙인 플레이 화면 시안입니다. 사용한 인내심은 말풍선 내부에서 아래부터 차오르며, 별도 막대는 추가하지 않았습니다.'},{id:'ingame-reference',label:'첨부 인게임 원본',file:'images/unity-ingame/reference-cafe.webp',note:'주문 위치와 손님 크기의 기준인 첨부 낮 플레이 화면입니다. 내용 변경 없이 보관했습니다.'}],
-    crew:[{id:'multi',label:'추가 · 8인 팀 무대',file:'images/unity-variants/crew-multi.webp',note:'4팀의 캐릭터 8명을 함께 보여주는 추가 시안입니다. 두 명씩 팀으로 묶고, 선택·준비 상태를 같은 무대에서 비교합니다.'}],
-    making:[{id:'ingame',label:'추가 · 인게임 구도',file:'images/unity-ingame/making.webp',note:'첨부된 실제 낮 구도에서 컵 옆 제조 카드와 완성 판정 게이지를 보여주는 추가 시안입니다. 비교용 5개 카드 표와 실제 플레이 배치를 구분했습니다.'},{id:'ingame-reference',label:'첨부 인게임 원본',file:'images/unity-ingame/reference-cafe.webp',note:'제조 카드와 컵의 위치 기준인 첨부 낮 플레이 화면입니다. 내용 변경 없이 보관했습니다.'},{id:'objects',label:'추가 · 구현 오브젝트',file:'images/unity-variants/making-objects.webp',note:'Unity에서 렌더링한 컵·우유병·원두·초콜릿·블러드 빈·탄 재질을 참고한 추가 콘셉트 시안입니다. 실제 프리팹 렌더링은 「실제 3D 오브젝트」에서 확인할 수 있습니다.'},{id:'object-reference',label:'실제 3D 오브젝트',file:'images/unity-current/implemented-objects.webp',note:'현재 ItemVisualConfig에 연결된 실제 음료·디저트·재료·식기 프리팹의 Unity 렌더링입니다. 원본 메시와 재질을 사용하고, 비교를 위해 크기와 카메라를 맞췄습니다.'}]
-  };
-  // These views use an unedited render from the actual Play Mode camera.
-  for(const id of ['day','recipe','orders','making']){
-    const existing=additionalViews[id];
-    existing.filter(x=>x.id==='ingame'||x.id==='ingame-reference').forEach(x=>{
-      x.id=x.id==='ingame'?'ingame-sketch':'ingame-sketch-reference';
-      x.label=x.id==='ingame-sketch'?'이전 · 생성 구도 시안':'이전 · 첨부 화면';
-    });
-    existing.unshift({id:'ingame',label:'실제 인게임 · 루이지 UI',file:'images/unity-gameplay/day-base.webp',note:'현재 Battle_01 플레이 세션의 Main Camera로 렌더링한 화면입니다. 카메라·배경·캐릭터·설비는 그대로 두고 루이지 UI만 별도 레이어로 적용했습니다.'+(id==='making'?' 완성 게이지는 같은 화면 위에 놓은 판정 UI 표현 예시입니다.':'')},{id:'ingame-reference',label:'실제 인게임 원본',file:'images/unity-gameplay/day-original.webp',note:'같은 플레이 세션·같은 카메라에서 캡처한 현재 게임 UI입니다. 시안과 원본을 전환해 구도를 비교할 수 있습니다.'});
+  const gameplayIds=['day','recipe','orders','making','night','loot','night-parts'];
+  const additionalViews={crew:[{id:'multi',label:'8인 팀 무대',file:'images/unity-variants/crew-multi.webp',note:'기존 4팀×2명 무대 시안입니다. 팀별 준비 상태와 선택을 함께 보여줍니다.'}]};
+  function gameplayFile(id,tone='concept'){return (tone==='restrained'?'images/unity-gameplay/restrained-':'images/unity-luigi-v2-')+(id==='making'?'making':['night','loot','night-parts'].includes(id)?'night':'day')+'.webp';}
+  gameplayIds.forEach(id=>additionalViews[id]=[{id:'restrained',label:'절제형',file:gameplayFile(id,'restrained'),note:'입체 서체·초록 가죽·크림 패널은 유지하고 금속 반사와 주변 발광을 줄인 절제형입니다. '}]);
+  const componentPanels={recipe:{file:'menu-board',label:'조합법 · 커피 7종 / 디저트 4종'},orders:{file:'orders-board',label:'주문·인내심 상태 비교'},loot:{file:'loot-board',label:'재료 상자 · 5칸 / 우유 선택'},'night-parts':{file:'night-components',label:'가방·스킬·귀환 상태 비교'}};
+  function renderCoherentGameplay(node,id,tone='concept'){
+    const panel=componentPanels[id];if(!panel)return;
+    node.dataset.kind='coherent';node.dataset.screen=id;
+    const art=document.createElement('img');art.className='coherent-panel';art.src=window.imageSource('images/unity-gameplay/'+(tone==='restrained'?'restrained-':'')+panel.file+'.webp');art.alt=panel.label;art.decoding='async';node.append(art);
   }
+  const gameplayNotes={day:'기존 제조·캐릭터 시안과 같은 입체 글자, 클립보드, 초록 패널, 3D 아이콘으로 다시 맞췄습니다. 게임의 후방 카메라 구도를 바탕으로 조명·재질도 함께 표현한 콘셉트입니다. 낮에는 가방이 없습니다.',recipe:'낮 HUD와 같은 화면 위에 메뉴판만 겹칩니다. 조합법을 열어도 카메라와 플레이어 위치가 바뀌지 않습니다. 7종 커피와 4종 디저트의 가격은 현재 목록을 기준으로 표시했습니다.',orders:'낮 HUD 위에서 말풍선 상태를 비교합니다. 사용한 인내심은 말풍선 내부 아래부터 채우고, 가격 탭은 하나만 표시합니다. 비교판의 크기는 게임 HUD 크기가 아닙니다.',making:'기존 제조 시안의 클립보드·색 구간 게이지·입체 PERFECT 글자를 플레이 화면에 맞췄습니다. 컵은 현재 모델의 손잡이 없는 형태를 참고했습니다. 표시 문구와 판정은 시안 예시입니다.',night:'실제 밤의 후방 시점, 숲과 귀환 원의 구도를 기준으로 다시 그렸습니다. 입체 크림 숫자·초록 HUD·푸른 스킬과 작은 모래색 가방으로 낮·로비와 같은 시각 규칙을 적용했습니다.',loot:'밤 HUD와 같은 화면 위에 초록 가죽 덮개·크림 슬롯·황동 클립의 상자창만 겹칩니다. 5칸과 공개 대기, 우유 선택 상태는 표현 예시입니다.','night-parts':'밤 HUD 위에서 작은 가방·쿨타임·귀환 안내의 상태를 비교합니다. 비교판을 그대로 실제 플레이 화면에 올리는 구성은 아닙니다.'};
   // Capture reference: Assets/ReturnZone.prefab, missedReturnLoss = 0.5.
   const exampleReturn={lossPercent:50,kept:4,lost:4};
   const container=document.getElementById('project-gallery');
   const nav=document.getElementById('project-nav');
-  const commonViews=['concept','restrained','current','previous','original'];
+  const commonViews=['concept'];
   const requestedView=new URLSearchParams(location.search).get('view');
-  let selected='title',view=commonViews.includes(requestedView)||Object.values(additionalViews).some(items=>items.some(x=>x.id===requestedView))?requestedView:'concept',state=0,mode='project';
+  let selected='title',view=['multi','restrained'].includes(requestedView)?requestedView:'concept',state=0,mode='project';
   const groups=['전체','입장','낮','밤','정산','공통'];
   let group='전체';
   function button(text,pressed,handler){const b=document.createElement('button');b.type='button';b.textContent=text;b.setAttribute('aria-pressed',String(pressed));b.addEventListener('click',handler);return b;}
@@ -656,44 +545,47 @@ OTHER DEALINGS IN THE FONT SOFTWARE.
   const implTitle=document.createElement('summary');implTitle.textContent='이 화면의 Unity 구현 메모';
   const implText=document.createElement('p');const implLink=document.createElement('a');implLink.href='#implementation-guide';implLink.textContent='전체 구현 가이드 보기 ↓';implLink.addEventListener('click',()=>{document.getElementById('implementation-guide').open=true;});implementation.append(implTitle,implText,implLink);
   const actions=document.createElement('div');actions.className='image-actions';const full=document.createElement('a');full.textContent='원본 크기로 열기 ↗';full.target='_blank';full.rel='noopener';actions.append(full);
-  full.addEventListener('click',event=>{if(view==='ingame'||!image.src.startsWith('data:'))return;event.preventDefault();const popup=window.open('about:blank','_blank');if(!popup)return;popup.opener=null;popup.document.title=image.alt;const preview=popup.document.createElement('img');preview.src=image.src;preview.alt=image.alt;preview.style.maxWidth='100%';popup.document.body.style.cssText='margin:0;background:#1d1725';popup.document.body.append(preview);});
+  full.addEventListener('click',event=>{if((['concept','restrained'].includes(view)&&gameplayIds.includes(selected))||!image.src.startsWith('data:'))return;event.preventDefault();const popup=window.open('about:blank','_blank');if(!popup)return;popup.opener=null;popup.document.title=image.alt;const preview=popup.document.createElement('img');preview.src=image.src;preview.alt=image.alt;preview.style.maxWidth='100%';popup.document.body.style.cssText='margin:0;background:#1d1725';popup.document.body.append(preview);});
   section.append(heading,tools,statePicker,stage,note,source,implementation,actions);container.append(section);
   function updateLocation(){const url=new URL(location.href);if(view==='concept')url.searchParams.delete('view');else url.searchParams.set('view',view);url.hash='ui-'+selected;history.replaceState(null,'',url);}
-  function pick(id){selected=id;state=0;if(!commonViews.includes(view)&&!(additionalViews[id]||[]).some(x=>x.id===view))view='concept';updateLocation();render();}
+  function pick(id){selected=id;state=0;if(view!=='concept'&&!(additionalViews[id]||[]).some(x=>x.id===view))view='concept';updateLocation();render();}
   function renderPickers(){filters.replaceChildren();screenPicker.replaceChildren();groups.forEach(g=>filters.append(button(g,g===group,()=>{group=g;const first=catalog.find(x=>g==='전체'||x.group===g);if(g!=='전체'&&!catalog.some(x=>x.id===selected&&x.group===g))pick(first.id);else renderPickers();})));catalog.filter(x=>group==='전체'||x.group===group).forEach(x=>{const b=button(x.name,x.id===selected,()=>pick(x.id));b.dataset.ui=x.id;screenPicker.append(b);});}
   function render(){
     const entry=catalog.find(x=>x.id===selected);renderPickers();heading.textContent=entry.group+' · '+entry.name;
-    const options=[{id:'concept',label:'새 루이지 시안'},{id:'restrained',label:'루이지 · 절제형'},...(additionalViews[entry.id]||[]),{id:'current',label:'현재 구현 · 샘플 화면'},{id:'previous',label:'이전 시안'},{id:'original',label:'Unity 프리팹 배치'}];
-    tools.replaceChildren();options.forEach(option=>{const b=button(option.label,view===option.id,()=>{view=option.id;updateLocation();render();});b.dataset.view=option.id;tools.append(b);});
+    const options=[{id:'concept',label:gameplayIds.includes(entry.id)?'현재 시안':'루이지 시안'},...(additionalViews[entry.id]||[])];
+    tools.replaceChildren();tools.hidden=options.length<2;if(options.length>1)options.forEach(option=>{const b=button(option.label,view===option.id,()=>{view=option.id;updateLocation();render();});b.dataset.view=option.id;tools.append(b);});
     const extra=(additionalViews[entry.id]||[]).find(x=>x.id===view);
     statePicker.replaceChildren();statePicker.hidden=view==='original'||Boolean(extra)||entry.states.length<2;
     entry.states.forEach((s,i)=>{const b=button(s,i===state,()=>{state=i;render();});b.dataset.state=i;statePicker.append(b);});
-    const file=extra?extra.file:view==='restrained'?'images/unity-restrained/'+entry.id+'.webp':view==='current'?'images/unity-current/current-'+entry.id+(state&&entry.overlay?'-'+state:'')+'.webp':view==='original'?'images/unity-reference/'+entry.prefab+'.webp':view==='previous'?'images/unity-'+entry.id+'.webp':'images/unity-luigi-v2-'+entry.id+'.webp';
+    const file=extra?extra.file:gameplayIds.includes(entry.id)?gameplayFile(entry.id):'images/unity-luigi-v2-'+entry.id+'.webp';
     stage.dataset.ready='false';image.src=window.imageSource(file);image.alt=entry.name+' · '+options.find(x=>x.id===view).label;full.href=image.src;
     if(image.complete&&image.naturalWidth>0&&image.currentSrc===image.src)stage.dataset.ready='true';
-    overlay.replaceChildren();overlay.dataset.kind='';overlay.classList.remove('game-ui');
+    overlay.replaceChildren();overlay.dataset.kind='';delete overlay.dataset.tone;overlay.classList.remove('game-ui');
     stage.dataset.revision=view;
-    if(view==='ingame')window.renderGameplay(overlay,entry.id);
-    if(view==='ingame'){const url=new URL(location.href);url.searchParams.set('fullscreen','1');full.href=url;full.textContent='UI 포함 크게 보기 ↗';}else full.textContent='원본 크기로 열기 ↗';
-    if(['concept','restrained','previous'].includes(view)&&entry.overlay){overlay.dataset.kind=entry.overlay;overlay.dataset.state=state;
+    if(['concept','restrained'].includes(view)&&gameplayIds.includes(entry.id))renderCoherentGameplay(overlay,entry.id,view);
+    if((['concept','restrained'].includes(view)&&gameplayIds.includes(selected))){const url=new URL(location.href);url.searchParams.set('fullscreen','1');full.href=url;full.textContent='UI 포함 크게 보기 ↗';}else full.textContent='원본 크기로 열기 ↗';
+    if(view==='concept'&&entry.overlay){overlay.dataset.kind=entry.overlay;overlay.dataset.state=state;
       if(entry.overlay==='cue'){const label=document.createElement('strong');label.textContent=entry.states[state];overlay.append(label);}
       if(entry.overlay==='loading'){const label=document.createElement('strong');label.textContent=state?'다른 플레이어를 기다리는 중… 6 / 8':'불러오는 중…';overlay.append(label);}
       if(entry.overlay==='return'){const content=[['귀환 성공','소지한 아이템 100% 귀환','재료 8개를 팀 재고로 넘겼다'],['귀환 실패',`소지한 아이템 ${exampleReturn.lossPercent}% 소실 · 미회수 가방 전량 소실`,`소환 위치 밖에서 밤이 끝났다 · ${exampleReturn.lost}개 소실 / ${exampleReturn.kept}개 반입`],['가방 분실','획득 아이템 100% 소실','묻어 둔 가방을 회수하지 못했다']][state];content.forEach((text,i)=>{const line=document.createElement(i?'span':'strong');line.textContent=text;overlay.append(line);});}
     }
-    note.textContent=extra?extra.note:view==='restrained'?'장식 프레임·반복 무늬·상시 발광을 줄인 추가 버전입니다. 짙은 초록과 크림색, 둥근 글자, 3D 캐릭터를 유지합니다. '+(entry.id==='crew'?'8인 팀 무대를 기준으로 정리했습니다.':entry.id==='making'?'현재 구현 오브젝트를 참고한 제조 시안을 기준으로 정리했습니다.':entry.note):view==='current'?'현재 Unity 프리팹에 샘플 데이터를 넣어 렌더링한 구현 비교 화면입니다. 실제 플레이 세션 캡처가 아니며, 3D 배경·모델 카메라는 갤러리용 미리보기입니다. '+(entry.id==='crew'?'현재 연결된 유령 모델을 보여주며, 배경 무대는 생략했습니다.':''):view==='concept'?(entry.redesign||entry.note):entry.note;
+    note.textContent=extra?extra.note+(view==='restrained'?gameplayNotes[entry.id]:''):gameplayIds.includes(entry.id)?gameplayNotes[entry.id]:entry.redesign||entry.note;
     implText.textContent=implementationNotes[entry.id];
-    source.textContent='정보·표시 조건 기준: '+entry.prefab.replace(/-(day|night|recipe)$/,'')+'.prefab'+(entry.board?' · 부품 비교 배치':' · PC 16:9')+(view==='current'?' · 2026-10-10 구현 프리팹 렌더링':'');
-    if(view==='ingame'||view==='ingame-reference')source.textContent='Battle_01 · 실제 Play Mode · Main Camera · 1920×1080 · '+(view==='ingame'?'원본 3D 화면 + 별도 UI 레이어':'현재 게임 UI 포함 캡처');
+    source.textContent='정보·표시 조건 기준: '+entry.prefab.replace(/-(day|night|recipe)$/,'')+'.prefab'+(entry.board?' · 부품 비교 배치':' · PC 16:9');
+    if(gameplayIds.includes(entry.id))source.textContent='PC 16:9 · 인게임 카메라 구도를 기준으로 만든 루이지 콘셉트';
   }
   function setMode(next){mode=next;document.getElementById('project-gallery').hidden=next!=='project';nav.hidden=next!=='project';document.querySelector('.project-intro').hidden=next!=='project';document.getElementById('legacy-gallery').hidden=next!=='legacy';document.getElementById('legacy-nav').hidden=next!=='legacy';document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===next)));}
   document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{setMode(b.dataset.mode);if(mode==='project')history.replaceState(null,'','#ui-'+selected);}));
   const hash=location.hash.slice(1);if(hash.startsWith('ui-')&&catalog.some(x=>x.id===hash.slice(3)))selected=hash.slice(3);else if(['cafe','night','main-menu','crew'].includes(hash))mode='legacy';
   if(!commonViews.includes(view)&&!(additionalViews[selected]||[]).some(x=>x.id===view))view='concept';
+  if(mode==='project')updateLocation();
   render();setMode(mode);
   if(new URLSearchParams(location.search).get('fullscreen')==='1')document.body.classList.add('gameplay-fullscreen');
 })();
 
+
 </script>
 </body>
 </html>
+
 

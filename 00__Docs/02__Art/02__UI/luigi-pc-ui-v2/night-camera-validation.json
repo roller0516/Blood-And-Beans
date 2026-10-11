@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-11",
+  "checks": [
+    {
+      "screen": "night",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        }
+      ],
+      "view": "concept"
+    },
+    {
+      "screen": "night",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        }
+      ],
+      "view": "restrained"
+    },
+    {
+      "screen": "loot",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/loot-board.webp",
+          "width": 1900
+        }
+      ],
+      "view": "concept"
+    },
+    {
+      "screen": "loot",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-loot-board.webp",
+          "width": 1899
+        }
+      ],
+      "view": "restrained"
+    },
+    {
+      "screen": "night-parts",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/night-components.webp",
+          "width": 1448
+        }
+      ],
+      "view": "concept"
+    },
+    {
+      "screen": "night-parts",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night-components.webp",
+          "width": 1448
+        }
+      ],
+      "view": "restrained"
+    }
+  ],
+  "compositionReference": "unity-gameplay/night-base.png",
+  "cameraComparison": "Visual comparison: same player head height/bottom crop, tree scale/positions and return-zone far arc",
+  "newGalleryItems": 0,
+  "referenceScreensPublished": 0
+}
