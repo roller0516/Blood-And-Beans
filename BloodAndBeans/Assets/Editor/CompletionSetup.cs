@@ -40,7 +40,7 @@ public static class CompletionSetup
             entry.FindPropertyRelative("id").enumValueIndex = (int)CharacterCatalog.All[i].Id;
             entry.FindPropertyRelative("model").FindPropertyRelative("m_AssetGUID").stringValue =
                 AssetDatabase.AssetPathToGUID(path);
-            EnsureAddressable(path, "Character_" + CharacterCatalog.All[i].Id);
+            EnsureAddressable(path, AddressableGroups.CharacterAddress + CharacterCatalog.All[i].Id);
         }
         data.ApplyModifiedPropertiesWithoutUndo();
         var playerPath = CharacterFolder + "Player.prefab";
@@ -72,7 +72,7 @@ public static class CompletionSetup
         if (settings == null) return;
         var guid = AssetDatabase.AssetPathToGUID(path);
         if (string.IsNullOrEmpty(guid)) return;
-        var group = settings.FindGroup("Default Local Group") ?? settings.DefaultGroup;
+        var group = AddressableGroups.Find(settings, AddressableGroups.Characters);
         var entry = settings.CreateOrMoveEntry(guid, group, false, false);
         entry.address = address;
         EditorUtility.SetDirty(settings);
