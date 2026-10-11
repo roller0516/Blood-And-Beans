@@ -38,11 +38,15 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 39bdf14e407836647af4b7f1c48508ef, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0948e1a5411fc5a4f956bac419b0b0be, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: b65a85cbe7fd4c847b92fbe2c3e55f46, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -67,12 +71,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.45
-    - _DiffuseWrap: 0.14
+    - _AOStrength: 1
+    - _DiffuseWrap: 0.409
     - _EmissionIntensity: 0
+    - _EmissionMaskSource: 0
     - _EmissionStrength: 0
-    - _Metallic: 0
-    - _NormalStrength: 0
+    - _FillStrength: 0.16
+    - _Metallic: 0.228
+    - _NormalStrength: 2
     - _PulseAmount: 0
     - _PulseSpeed: 3.87
     - _QueueControl: 0
@@ -80,18 +86,19 @@ Material:
     - _RimPower: 3
     - _RimStrength: 0.41
     - _Roughness: 0.72
-    - _RoughnessScale: 1.1
-    - _ShadowStrength: 0.85
+    - _RoughnessScale: 1
+    - _ShadowStrength: 0.976
     - _SmoothnessMax: 0.34
     - _SmoothnessMin: 0.22
-    - _SpecularStrength: 0.65
-    - _SurfaceLayout: 0
+    - _SpecularStrength: 1.09
+    - _SurfaceLayout: 1
     - _TeamStrength: 0
-    - _TextureContrast: 0.9
-    - _TextureSaturation: 0.96
+    - _TextureContrast: 0.837
+    - _TextureSaturation: 0.683
     m_Colors:
     - _BaseColor: {r: 1, g: 0.9103774, b: 0.9103774, a: 1}
     - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FillColor: {r: 0.6, g: 0.7, b: 0.85, a: 1}
     - _RimColor: {r: 0.837453, g: 0.7607843, b: 1, a: 1}
     - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []

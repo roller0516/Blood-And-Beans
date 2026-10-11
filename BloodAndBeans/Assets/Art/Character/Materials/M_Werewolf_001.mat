@@ -20,7 +20,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: M_Zombie
+  m_Name: M_Werewolf_001
   m_Shader: {fileID: 4800000, guid: bb817d9ead51527429ee00ddfd3a1c86, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -38,23 +38,23 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _BaseMap:
-        m_Texture: {fileID: 2800000, guid: 0718b7b8d309c1c4191245c4eff94559, type: 3}
+        m_Texture: {fileID: 2800000, guid: 475884b9082186843ba0ea4af793fe4c, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _EmissionMap:
-        m_Texture: {fileID: 2800000, guid: 2062cb7a5a05da643ae3a2a9f1f6ad8f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 4b389fe9d3069eb4e902a5e16ff7be89, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _NormalMap:
-        m_Texture: {fileID: 2800000, guid: cbc87aa6ec7a44b4986b078dcd7b38e3, type: 3}
+        m_Texture: {fileID: 2800000, guid: 0917cece05b8e024387caaf01d461fca, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
-        m_Texture: {fileID: 2800000, guid: 6876afd661f7ca3418f75ce5cbfef7b7, type: 3}
+        m_Texture: {fileID: 2800000, guid: a90c29412264f4046ae64359d8aae41d, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _SurfaceMap:
-        m_Texture: {fileID: 2800000, guid: 32e77d59c7af05640b1efec2d0dc8ecb, type: 3}
+        m_Texture: {fileID: 2800000, guid: 3697631d6b7a6c046b2358ad80157675, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
@@ -97,7 +97,7 @@ Material:
     - _TextureSaturation: 1
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
-    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _EmissionColor: {r: 1, g: 0.929255, b: 0.9009434, a: 1}
     - _FillColor: {r: 0.6, g: 0.7, b: 0.85, a: 1}
     - _RimColor: {r: 1, g: 0.88, b: 0.7, a: 1}
     - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
