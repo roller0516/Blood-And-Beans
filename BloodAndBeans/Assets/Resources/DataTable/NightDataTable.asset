@@ -13,7 +13,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Rules::NightDataTable
   category: "\uBC24 \uB370\uC774\uD130"
-  sheetNames: []
+  sheetNames:
+  - loadband
+  - lootslot
+  - gemchance
+  - forestzone
+  - foresttier
+  - regen
+  - regenmap
   loadBands:
   - Band: 0
     Max: 0.5

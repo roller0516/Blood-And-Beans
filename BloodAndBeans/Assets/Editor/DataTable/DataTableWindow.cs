@@ -102,6 +102,11 @@ public sealed class DataTableWindow : EditorWindow
             GUIUtility.ExitGUI();
         }
 
+        // 지우는 대상은 지금 고른 탭이다.
+        var current = SelectedTable;
+        using (new EditorGUI.DisabledScope(current == null))
+            if (GUILayout.Button("탭 삭제", EditorStyles.toolbarButton, GUILayout.Width(56f))) Delete(current);
+
         // `DataTableAsset`을 상속한 클래스를 새로 쓰면 이걸 눌러 탭으로 끌어온다.
         // 기존 탭의 순서와 내용은 건드리지 않는다.
         if (GUILayout.Button("탭 새로 고침", EditorStyles.toolbarButton, GUILayout.Width(84f)))
@@ -110,7 +115,7 @@ public sealed class DataTableWindow : EditorWindow
             GUIUtility.ExitGUI();
         }
 
-        if (GUILayout.Button("전체 임포트", EditorStyles.toolbarButton, GUILayout.Width(80f)))
+        if (ImportButton("전체 임포트", EditorStyles.toolbarButton, 80f))
             Run(null);
 
         EditorGUILayout.EndHorizontal();
@@ -168,6 +173,23 @@ public sealed class DataTableWindow : EditorWindow
     static Color DragColor => EditorGUIUtility.isProSkin
         ? new Color(0.35f, 0.55f, 0.85f) : new Color(0.25f, 0.45f, 0.80f);
 
+    /// 임포트 버튼 바탕. `backgroundColor`는 원래 색에 곱해진다.
+    static readonly Color ImportTint = Color.green;
+
+    /// 임포트 색을 입힌 버튼. 그린 뒤 색을 되돌려 다음 버튼에 번지지 않게 한다.
+    static bool ImportButton(string label, GUIStyle style, float width)
+    {
+        var previous = GUI.backgroundColor;
+        GUI.backgroundColor = ImportTint;
+        var pressed = GUILayout.Button(label, style, GUILayout.Width(width));
+        GUI.backgroundColor = previous;
+        return pressed;
+    }
+
+    /// 지금 고른 탭. 매니저가 없거나 칸이 비었으면 null.
+    DataTableAsset SelectedTable =>
+        manager != null && selected >= 0 && selected < manager.Tables.Length ? manager.Tables[selected] : null;
+
     void DrawCategories()
     {
         EditorGUILayout.BeginVertical(GUILayout.Width(sideWidth));
@@ -213,7 +235,7 @@ public sealed class DataTableWindow : EditorWindow
         GUILayout.FlexibleSpace();
         EditorGUILayout.LabelField("시트 : " + string.Join(", ", table.SheetNames), EditorStyles.boldLabel);
         GUILayout.FlexibleSpace();
-        if (GUILayout.Button("이 표 임포트", GUILayout.Width(96f))) Run(table);
+        if (ImportButton("이 표 임포트", GUI.skin.button, 96f)) Run(table);
         EditorGUILayout.EndHorizontal();
 
         bodyScroll = EditorGUILayout.BeginScrollView(bodyScroll);
@@ -263,6 +285,18 @@ public sealed class DataTableWindow : EditorWindow
         report = DataTableImporter.Import(manager, only);
         LogReport(report);
         Repaint();
+    }
+
+    void Delete(DataTableAsset table)
+    {
+        if (!DataTableImporter.DeleteTable(manager, table)) GUIUtility.ExitGUI();
+
+        if (inspectors.TryGetValue(table, out var editor) && editor != null) DestroyImmediate(editor);
+        inspectors.Remove(table);
+        selected = Mathf.Max(0, selected - 1);
+
+        // 이번 프레임의 레이아웃은 지운 탭 기준으로 짜였다. 남은 그리기를 끊는다.
+        GUIUtility.ExitGUI();
     }
 
     static void LogReport(DataTableImporter.Report result)

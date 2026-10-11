@@ -6,8 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/보석", fileName = nameof(GemDataTable))]
 public sealed class GemDataTable : DataTableAsset
 {
-    public const string SheetGem = "gem";
-
     [System.Serializable]
     public struct Row
     {
@@ -39,7 +37,7 @@ public sealed class GemDataTable : DataTableAsset
 
     public IReadOnlyList<Row> Rows => rows;
     protected override string DefaultCategory => "보석";
-    protected override string[] DefaultSheetNames => new[] { SheetGem };
+    public override string[] SheetSlots => new[] { "보석" };
 
     public override void ReadSheet(int index, SheetTable sheet) => sheet.Fill(rows, "gem");
 
@@ -70,5 +68,13 @@ public sealed class GemDataTable : DataTableAsset
         Items = items;
         Names = names;
         Effects = effects;
+    }
+
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        d.GemScale = Scale;
+        d.GemNames = Names;
+        d.GemEffects = Effects;
+        d.GemItems = Items;
     }
 }

@@ -11,6 +11,14 @@ public sealed class UIDaySkillSlot : MonoBehaviour
     [SerializeField] Sprite glideIcon;
     [SerializeField] Sprite wispIcon;
     [SerializeField] Sprite echoIcon;
+    [SerializeField] Sprite coffinIcon;
+    [SerializeField] Sprite biteIcon;
+    [SerializeField] Sprite howlIcon;
+    [SerializeField] Sprite frogIcon;
+    [SerializeField] Sprite batSwarmIcon;
+    [SerializeField] Sprite armThrowIcon;
+    [SerializeField] Sprite trackIcon;
+    [SerializeField] Sprite potionIcon;
     [SerializeField] AudioSource readySound;
     PlayerCharacter character;
     PlayerAbilities abilities;
@@ -48,12 +56,20 @@ public sealed class UIDaySkillSlot : MonoBehaviour
         {
             DaySkill.Ignite => igniteIcon,
             DaySkill.Glide => glideIcon,
+            DaySkill.CoffinDrop => coffinIcon,
+            DaySkill.Bite => biteIcon,
+            DaySkill.Howl => howlIcon,
+            DaySkill.FrogCurse => frogIcon,
             _ => null,
         },
         Phase.Night => night switch
         {
             NightSkill.WillOWisp => wispIcon,
             NightSkill.Echo => echoIcon,
+            NightSkill.BatSwarm => batSwarmIcon,
+            NightSkill.ArmThrow => armThrowIcon,
+            NightSkill.Track => trackIcon,
+            NightSkill.SlipperyPotion => potionIcon,
             _ => null,
         },
         _ => null,

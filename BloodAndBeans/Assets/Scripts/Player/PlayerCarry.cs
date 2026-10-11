@@ -125,7 +125,9 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     }
 
     readonly NetworkVariable<bool> reserved = new();
-    public bool Reserved => reserved.Value;
+    /// 개구리 저주 중에도 손이 잠긴다 (기획서 9.1.2). 모든 상호작용이 이 값을 보므로 여기 한 곳에서 막는다.
+    public bool Reserved => reserved.Value || (status != null && status.Frog);
+    PlayerStatus status;
     public void ReserveServer(bool value) { if (IsServer) reserved.Value = value; }
     public void SetDishServer(bool value, bool plate = false)
     {
@@ -154,6 +156,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     public override void OnNetworkSpawn()
     {
         playerTeam = GetComponent<PlayerTeam>();
+        status = GetComponent<PlayerStatus>();
         if (playerTeam != null) { playerTeam.TeamChanged += OnTeamChanged; OnTeamChanged(playerTeam.Team); }
         view.OnValueChanged += OnViewChanged;
         publicState.OnValueChanged += OnPublicState;

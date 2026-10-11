@@ -18,6 +18,9 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     ulong user;
     PlayerCarry washing;
     double completesAt;
+
+    /// 이번 세척을 처음부터 끝까지 했을 때의 시간. 중간에 튕겨 나가면 진행도를 남기는 데 쓴다.
+    float fullWashSeconds;
     Collider surface;
     Station station;                             // 커피 머신·오븐에만 있다
     MatchDirector director;
@@ -131,8 +134,8 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         washing = carry;
         carry.ReserveServer(true);
         var scale = cafe.HasGem(Gem.Foam) ? Gems.WashTimeScale : 1f;
-        completesAt = NetworkManager.ServerTime.Time + DayBalance.WashSeconds *
-            (1f - Mathf.Clamp01(carry.Held.WashProgress)) * scale;
+        fullWashSeconds = DayBalance.WashSeconds * scale;
+        completesAt = NetworkManager.ServerTime.Time + fullWashSeconds * (1f - Mathf.Clamp01(carry.Held.WashProgress));
     }
 
     void StartCookServer(ulong id, Cafe cafe, PlayerCarry carry)
@@ -166,6 +169,24 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public void OverheatServer(float seconds)
     {
         if (IsServer) hotUntil.Value = NetworkManager.ServerTime.Time + seconds;
+    }
+
+    /// 이 플레이어가 쓰던 설비에서 튕겨 낸다 (기획서 9.1.2 개구리 저주). 세척 진행도는 식기에 남는다.
+    /// 저주가 걸릴 때 한 번만 불리므로 전수 조사로 찾는다.
+    public static void KickServer(ulong clientId)
+    {
+        foreach (var f in FindObjectsByType<SharedFacility>())
+        {
+            if (!f.IsServer || !f.busy.Value) continue;
+            if (f.station != null) { f.station.KickServer(clientId); continue; }
+            if (f.user != clientId || f.washing == null) continue;
+
+            var remaining = (float)(f.completesAt - f.NetworkManager.ServerTime.Time);
+            var item = f.washing.Held;
+            item.WashProgress = Mathf.Clamp01(1f - remaining / Mathf.Max(0.0001f, f.fullWashSeconds));
+            f.washing.SetServer(item);
+            f.ReleaseServer();
+        }
     }
 
     public void ReleaseServer()

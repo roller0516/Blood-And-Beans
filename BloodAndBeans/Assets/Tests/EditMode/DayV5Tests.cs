@@ -67,9 +67,17 @@ public class DayV5Tests
         Assert.AreEqual(DaySkill.Ignite, DaySkills.Of(NightSkill.WillOWisp));
         Assert.AreEqual(DaySkill.Glide, DaySkills.Of(NightSkill.Echo));
         Assert.AreEqual(DaySkill.Refine, DaySkills.Of(NightSkill.Appraise));
-        Assert.AreEqual(DaySkill.Shortcut, DaySkills.Of(NightSkill.Track));
+        Assert.AreEqual(DaySkill.Howl, DaySkills.Of(NightSkill.Track));
         Assert.AreEqual(DaySkill.Swallow, DaySkills.Of(NightSkill.Illusion));
         Assert.AreEqual(DaySkill.None, DaySkills.Of(NightSkill.None));
+        Assert.AreEqual(DaySkill.CoffinDrop, DaySkills.Of(NightSkill.BatSwarm));
+        Assert.AreEqual(DaySkill.Bite, DaySkills.Of(NightSkill.ArmThrow));
+        Assert.AreEqual(DaySkill.FrogCurse, DaySkills.Of(NightSkill.SlipperyPotion));
+
+        Assert.AreEqual(16f, DaySkills.CooldownOf(DaySkill.CoffinDrop));
+        Assert.AreEqual(18f, DaySkills.CooldownOf(DaySkill.Bite));
+        Assert.AreEqual(20f, DaySkills.CooldownOf(DaySkill.Howl));
+        Assert.AreEqual(18f, DaySkills.CooldownOf(DaySkill.FrogCurse));
 
         Assert.AreEqual(14f, DaySkills.CooldownOf(DaySkill.Shortcut));
         Assert.AreEqual(15f, DaySkills.CooldownOf(DaySkill.Ignite));

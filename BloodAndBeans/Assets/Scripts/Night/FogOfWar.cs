@@ -47,6 +47,7 @@ public class FogOfWar : NetworkBehaviour
 
     float nextSample;
     PlayerTeam playerTeam;
+    PlayerStatus status;
     MatchDirector director;
 
     /// 시야 공개 규칙이 바뀔 때마다 올린다. 낡은 스냅샷을 덮어쓰지 않기 위한 값이다.
@@ -78,6 +79,7 @@ public class FogOfWar : NetworkBehaviour
     void Awake()
     {
         playerTeam = GetComponent<PlayerTeam>();
+        status = GetComponent<PlayerStatus>();
         sharedCellSize = cellSize;
 
         // 이미 정해진 격자를 물려받는다. 자기 초깃값을 공용 규격에 심으면 나중에 스폰한
@@ -207,7 +209,11 @@ public class FogOfWar : NetworkBehaviour
     {
         // 임대료 미납 페널티에 따라 시야 범위 축소 적용.
         var ledger = director != null ? director.LedgerOf(TeamId) : null;
-        RevealCircle(centre, revealRadius * (ledger != null ? ledger.VisionScale : 1f));
+        var radius = revealRadius * (ledger != null ? ledger.VisionScale : 1f);
+
+        // 박쥐 떼에 맞으면 코앞만 걷힌다 (기획서 9.2).
+        if (status != null && status.Blind) radius = Mathf.Min(radius, NightSkills.BatSwarmVision);
+        RevealCircle(centre, radius);
     }
 
     /// 한 점 둘레의 칸을 걷는다. 평소 샘플링과 「메아리」가 같은 코드를 쓴다 — 두 벌이면

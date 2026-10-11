@@ -5,9 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/재료·종족", fileName = nameof(NameDataTable))]
 public sealed class NameDataTable : DataTableAsset
 {
-    public const string SheetIngredient = "ingredient";
-    public const string SheetRace = "race";
-
     [System.Serializable]
     public struct IngredientRow
     {
@@ -59,7 +56,7 @@ public sealed class NameDataTable : DataTableAsset
     [System.NonSerialized] public string[] RaceNames = System.Array.Empty<string>();
 
     protected override string DefaultCategory => "재료·종족";
-    protected override string[] DefaultSheetNames => new[] { SheetIngredient, SheetRace };
+    public override string[] SheetSlots => new[] { "재료", "종족" };
 
     public override void ReadSheet(int index, SheetTable sheet)
     {
@@ -109,5 +106,13 @@ public sealed class NameDataTable : DataTableAsset
             RaceBagOrder = bag.ToArray();
             RaceNames = names;
         }
+    }
+
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        d.IngredientWeight = ItemWeight;
+        d.IngredientNames = ItemNames;
+        d.RaceBagOrder = RaceBagOrder;
+        d.RaceNames = RaceNames;
     }
 }

@@ -5,6 +5,7 @@
 /// 오고 채널이 다르다 — `PlayerController.PushScaleServer`가 이 결과와 곱해 최종 배수를 낸다.
 public static class MoveSpeed
 {
-    public static float Combine(bool windGem, float ledgerScale, float abilityScale) =>
-        (windGem ? Gems.MoveSpeedScale : 1f) * ledgerScale * abilityScale;
+    /// `statusScale`은 남이 건 스킬(좀비걸음·개구리·발 묶임·하울링 가속)이다 (`PlayerStatus`).
+    public static float Combine(bool windGem, float ledgerScale, float abilityScale, float statusScale = 1f) =>
+        (windGem ? Gems.MoveSpeedScale : 1f) * ledgerScale * abilityScale * statusScale;
 }

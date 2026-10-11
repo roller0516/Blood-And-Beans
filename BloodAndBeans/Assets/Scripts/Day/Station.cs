@@ -92,6 +92,14 @@ public class Station : NetworkBehaviour, IItemHolder
             PlayerController.ReportSoundServer(operatorCarry.OwnerClientId, this, SfxCue.GaugeDing);
         }
     }
+    /// 개구리 저주로 조리 중이던 사람이 튕겨 나간다 (기획서 9.1.2).
+    // ponytail: 기획서는 「진행도는 남는다」인데 조리에 일시정지 상태가 없어 투입물을 손에 돌려준다.
+    // 조리 일시정지가 생기면 그쪽으로 옮긴다.
+    public void KickServer(ulong clientId)
+    {
+        if (IsServer && state.Value != StationState.Idle && operatorId.Value == clientId) CancelServer(true);
+    }
+
     void CancelServer(bool returnInput)
     {
         var cafe = Cafe;

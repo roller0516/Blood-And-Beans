@@ -69,6 +69,7 @@ public class PlayerVisuals : NetworkBehaviour
     PlayerCharacter character;
     PlayerCarry carry;
     PlayerAbilities abilities;
+    PlayerStatus status;
     PlayerController interaction;
     DashHarass dash;
     PlayerInventory inventory;
@@ -99,6 +100,7 @@ public class PlayerVisuals : NetworkBehaviour
         character = GetComponent<PlayerCharacter>();
         carry = GetComponent<PlayerCarry>();
         abilities = GetComponent<PlayerAbilities>();
+        status = GetComponent<PlayerStatus>();
         interaction = GetComponent<PlayerController>();
         dash = GetComponent<DashHarass>();
         inventory = GetComponent<PlayerInventory>();
@@ -142,6 +144,7 @@ public class PlayerVisuals : NetworkBehaviour
         character.CharacterChanged += SetCharacter;
         abilities.EffectPlayed += OnEffect;
         abilities.AttachedChanged += OnAttached;
+        if (status != null) status.Applied += OnStatusApplied;
         interaction.InteractionSucceeded += OnInteractionSucceeded;
         interaction.SoundPlayed += OnSound;
         dash.DashStarted += OnDashSound;
@@ -177,6 +180,7 @@ public class PlayerVisuals : NetworkBehaviour
         if (playerTeam != null) playerTeam.TeleportStarted -= OnTeleportStarted;
         if (character != null) character.CharacterChanged -= SetCharacter;
         if (abilities != null) { abilities.EffectPlayed -= OnEffect; abilities.AttachedChanged -= OnAttached; }
+        if (status != null) status.Applied -= OnStatusApplied;
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
         if (interaction != null) interaction.SoundPlayed -= OnSound;
         if (dash != null)
@@ -287,7 +291,11 @@ public class PlayerVisuals : NetworkBehaviour
 
     // --- 액티브 연출 (예전 PlayerEffects) ---
 
-    void OnEffect(EffectId id, Vector3 position, float scale) => EffectManager.Play(id, position, scale);
+    void OnEffect(EffectId id, Vector3 position, float scale, float seconds) =>
+        EffectManager.Play(id, position, scale, seconds);
+
+    /// 남이 건 스킬의 연출. 둘 이상 겹칠 수 있어 각자 시간이 다 되면 스스로 멈춘다.
+    void OnStatusApplied(EffectId id, float seconds) => EffectManager.PlayAttached(id, transform, seconds);
 
     void OnTeleportStarted(Vector3 origin)
     {

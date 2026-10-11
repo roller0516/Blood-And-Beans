@@ -31,6 +31,9 @@ public class PlayerController : NetworkBehaviour
 
     [SerializeField] float speed = 5f;
 
+    /// 배수를 곱하기 전의 걷는 속도. 하울링 도망 거리가 이것으로 정해진다 (`PlayerStatus.FleeServer`).
+    public float WalkSpeed => speed;
+
     /// 캐릭터가 가는 쪽으로 도는 속도(초당 도). 3인칭 카메라가 되면서 캐릭터의 앞이
     /// 화면에서 읽히게 됐다 - 예전 고정 탑다운에서는 아무도 회전을 보지 않았다.
     [SerializeField] float turnDegreesPerSecond = 720f;

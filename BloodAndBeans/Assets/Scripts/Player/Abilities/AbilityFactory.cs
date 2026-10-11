@@ -14,6 +14,10 @@ public static class AbilityFactory
         DaySkill.Refine => new RefineAbility(),
         DaySkill.Shortcut => new ShortcutAbility(),
         DaySkill.Swallow => new SwallowAbility(),
+        DaySkill.CoffinDrop => new CoffinAbility(),
+        DaySkill.Bite => new BiteAbility(),
+        DaySkill.Howl => new HowlAbility(),
+        DaySkill.FrogCurse => new FrogAbility(),
         _ => null,
     };
 
@@ -24,6 +28,9 @@ public static class AbilityFactory
         NightSkill.Appraise => new AppraiseAbility(),
         NightSkill.Track => new TrackAbility(),
         NightSkill.Illusion => new IllusionAbility(),
+        NightSkill.BatSwarm => new BatSwarmAbility(),
+        NightSkill.ArmThrow => new ArmThrowAbility(),
+        NightSkill.SlipperyPotion => new PotionAbility(),
         _ => null,
     };
 }

@@ -230,7 +230,8 @@ public class DashHarass : NetworkBehaviour
     }
 
     /// 서버가 플레이어를 밀어내는 단 하나의 경로. 미끄러지는 동안 조작은 죽는다.
-    void PushServer(Vector3 push, float lockSeconds, float slideSeconds, bool topple)
+    /// 스킬의 도망·엉덩방아·관에 밀려남도 여기를 거친다 (`PlayerStatus`·`Coffin`).
+    public void PushServer(Vector3 push, float lockSeconds, float slideSeconds, bool topple)
     {
         if (!IsServer) return;
 

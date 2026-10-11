@@ -584,6 +584,7 @@ GameObject:
   - component: {fileID: 3221928316169824223}
   - component: {fileID: 6693623989727940868}
   - component: {fileID: 965033098571953602}
+  - component: {fileID: 2629966937670053458}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -944,6 +945,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Game::PlayerAbilities
   ShowTopMostFoldoutHeaderGroup: 1
+  coffinPrefab: {fileID: 9067107201078218054, guid: cee064da4a7eefa4db0608f04e940eef, type: 3}
 --- !u!114 &965033098571953602
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -976,6 +978,19 @@ MonoBehaviour:
   publicHeldColor: {r: 1, g: 1, b: 1, a: 1}
   publicDirtyColor: {r: 0.35, g: 0.2, b: 0.1, a: 1}
   publicBloodColor: {r: 1, g: 0, b: 0, a: 1}
+--- !u!114 &2629966937670053458
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8382456007198119544}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 201c9111aa7c4de438a2bcf70a3a6591, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Game::PlayerStatus
+  ShowTopMostFoldoutHeaderGroup: 1
 --- !u!1001 &2232991408545247902
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -584,6 +584,19 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     public Cafe CafeOf(int team) => cafes.TryGetValue(team, out var cafe) ? cafe : null;
 
+    /// 어느 카페든 바닥 위인가. 카페 안은 스킬이 걸리지 않는 안전지대다 (기획서 9.1).
+    /// `exceptTeam`의 카페는 빼고 본다 — 남의 카페 입구 너머로만 쓸 수 없다.
+    public bool InsideAnyCafe(Vector3 point, int exceptTeam = -1)
+    {
+        foreach (var cafe in cafes.Values)
+        {
+            if (cafe == null || cafe.Floor == null || cafe.TeamId == exceptTeam) continue;
+            var b = cafe.Floor.bounds;
+            if (point.x >= b.min.x && point.x <= b.max.x && point.z >= b.min.z && point.z <= b.max.z) return true;
+        }
+        return false;
+    }
+
     public void RegisterZone(ReturnZone zone)
     {
         if (zone != null) zones[zone.TeamId] = zone;

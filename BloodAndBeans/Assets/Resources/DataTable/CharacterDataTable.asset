@@ -13,43 +13,39 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Rules::CharacterDataTable
   category: "\uCE90\uB9AD\uD130 \uB370\uC774\uD130"
-  sheetNames: []
+  sheetNames:
+  - character
+  - dayskill
+  - nightskill
   characters:
   - Index: 0
-    Name: "\uB3C4\uAE68\uBE44"
-    VisualId: 0
-    Night: 1
-    NightName: "\uB3C4\uAE68\uBE44\uBD88"
-    NightEffect: "\uAC00\uC9DC \uC544\uC774\uD15C \uBC15\uC2A4\uB97C \uC124\uCE58\uD55C\uB2E4
-      (\uCFE8 18\uCD08)"
+    Name: "\uBC40\uD30C\uC774\uC5B4"
+    VisualId: 5
+    Night: 6
+    NightName: "\uBC15\uC950 \uB5BC"
+    NightEffect: "\uB9DE\uC740 \uC801\uC758 \uC2DC\uC57C\uAC00 3\uCD08 \uB3D9\uC548
+      \uCF54\uC55E\uC73C\uB85C \uC881\uC544\uC9C4\uB2E4 (\uCFE8 18\uCD08)"
   - Index: 1
-    Name: "\uBC15\uC950"
-    VisualId: 1
-    Night: 2
-    NightName: "\uBA54\uC544\uB9AC"
-    NightEffect: "\uC8FC\uBCC0\uC758 \uC548\uAC1C\uB97C \uC989\uC2DC \uAC77\uC5B4\uB0B8\uB2E4
-      (\uCFE8 18\uCD08)"
+    Name: "\uC880\uBE44"
+    VisualId: 6
+    Night: 7
+    NightName: "\uD314 \uB358\uC9C0\uAE30"
+    NightEffect: "\uB9DE\uC740 \uC801\uC740 1.5\uCD08 \uB3D9\uC548 \uC6C0\uC9C1\uC77C
+      \uC218 \uC5C6\uB2E4 (\uCFE8 16\uCD08)"
   - Index: 2
-    Name: "\uC5F0\uAE08\uC220\uC0AC"
-    VisualId: 2
-    Night: 3
-    NightName: "\uAC10\uBCC4"
-    NightEffect: "\uBC15\uC2A4\uC758 \uAC00\uB824\uC9C4 \uC2AC\uB86F\uC774 \uC989\uC2DC
-      \uACF5\uAC1C\uB41C\uB2E4 (\uCFE8 16\uCD08)"
-  - Index: 3
-    Name: "\uD558\uC6B4\uB4DC"
-    VisualId: 3
+    Name: "\uB291\uB300\uC778\uAC04"
+    VisualId: 7
     Night: 4
     NightName: "\uCD94\uC801"
-    NightEffect: "\uC8FC\uBCC0\uC758 \uC228\uACA8\uC9C4 \uAC00\uBC29\uC744 \uCC3E\uC544\uB0B8\uB2E4
-      (\uCFE8 14\uCD08)"
-  - Index: 4
-    Name: "\uBBF8\uBBF9"
-    VisualId: 4
-    Night: 5
-    NightName: "\uD658\uAC01"
-    NightEffect: "\uAC00\uC9DC\uB85C \uC228\uACA8\uC9C4 \uAC00\uBC29\uC744 \uC2EC\uB294\uB2E4
-      (\uCFE8 20\uCD08)"
+    NightEffect: "\uC8FC\uBCC0\uC758 \uC228\uACA8\uC9C4 \uAC00\uBC29 \uCABD\uC73C\uB85C
+      \uB0C4\uC0C8 \uC904\uAE30\uAC00 \uD750\uB978\uB2E4 (\uCFE8 14\uCD08)"
+  - Index: 3
+    Name: "\uB9C8\uB140"
+    VisualId: 8
+    Night: 8
+    NightName: "\uBBF8\uB044\uB7EC\uC6B4 \uBB3C\uC57D"
+    NightEffect: "\uC6C5\uB369\uC774\uC5D0 \uB4E4\uC5B4\uC628 \uC801\uC774 \uBBF8\uB044\uB7EC\uC838
+      \uB118\uC5B4\uC9C4\uB2E4 (\uCFE8 20\uCD08)"
   daySkills:
   - Skill: 0
     Cooldown: 0
@@ -81,6 +77,27 @@ MonoBehaviour:
     Name: "\uC0BC\uD0A4\uAE30"
     Effect: "\uB4E4\uACE0 \uC788\uB294 \uB354\uB7EC\uC6B4 \uC2DD\uAE30\uC758 \uC138\uCC99\uC744
       70% \uC9C4\uD589\uC2DC\uD0A8\uB2E4 (\uCFE8 22\uCD08)"
+  - Skill: 6
+    Cooldown: 16
+    Name: "\uAD00 \uB5A8\uC5B4\uB728\uB9AC\uAE30"
+    Effect: "\uC9C0\uC815\uD55C \uC790\uB9AC\uC5D0 \uAD00\uC774 \uB5A8\uC5B4\uC838
+      4\uCD08 \uB3D9\uC548 \uAE38\uC744 \uB9C9\uB294\uB2E4 (\uCFE8 16\uCD08)"
+  - Skill: 7
+    Cooldown: 18
+    Name: "\uBB3C\uAE30"
+    Effect: "\uBD99\uC5B4 \uC788\uB294 \uC801\uC744 \uBB3C\uC5B4 \uC880\uBE44\uAC78\uC74C\uC73C\uB85C
+      \uB9CC\uB4E0\uB2E4. \uBD80\uB52A\uD78C \uC0AC\uB78C\uC5D0\uAC8C \uC62E\uB294\uB2E4
+      (\uCFE8 18\uCD08)"
+  - Skill: 8
+    Cooldown: 20
+    Name: "\uD558\uC6B8\uB9C1"
+    Effect: "\uC8FC\uBCC0\uC758 \uB2E4\uB978 \uD300\uC740 \uB3C4\uB9DD\uCE58\uACE0
+      \uAC19\uC740 \uD300\uC740 \uBE68\uB77C\uC9C4\uB2E4 (\uCFE8 20\uCD08)"
+  - Skill: 9
+    Cooldown: 18
+    Name: "\uAC1C\uAD6C\uB9AC \uC800\uC8FC"
+    Effect: "\uB9DE\uC740 \uC801\uC740 2.5\uCD08 \uB3D9\uC548 \uC544\uBB34\uAC83\uB3C4
+      \uC9D1\uAC70\uB098 \uC4F8 \uC218 \uC5C6\uB2E4 (\uCFE8 18\uCD08)"
   nightSkills:
   - Skill: 0
     Cooldown: 0
@@ -96,7 +113,16 @@ MonoBehaviour:
     PairedDay: 3
   - Skill: 4
     Cooldown: 14
-    PairedDay: 4
+    PairedDay: 8
   - Skill: 5
     Cooldown: 20
     PairedDay: 5
+  - Skill: 6
+    Cooldown: 18
+    PairedDay: 6
+  - Skill: 7
+    Cooldown: 16
+    PairedDay: 7
+  - Skill: 8
+    Cooldown: 20
+    PairedDay: 9

@@ -246,10 +246,10 @@ public sealed class BalanceData
     // --- skills.csv (기획서 9.1.2 · 9.1.3 · 9.2) ---
 
     /// 낮 액티브 쿨타임 (9.1.3 표). 순서는 `DaySkill` 열거자와 같고 [0]은 None이다.
-    public float[] DaySkillCooldown = { 0f, 15f, 22f, 18f, 14f, 22f };
+    public float[] DaySkillCooldown = { 0f, 15f, 22f, 18f, 14f, 22f, 16f, 18f, 20f, 18f };
 
     /// 밤 액티브 쿨타임 (9.2 표). 순서는 `NightSkill` 열거자와 같고 [0]은 None이다.
-    public float[] NightSkillCooldown = { 0f, 18f, 18f, 16f, 14f, 20f };
+    public float[] NightSkillCooldown = { 0f, 18f, 18f, 16f, 14f, 20f, 18f, 16f, 20f };
 
     /// 9.1.3 표의 지속.
     public float GlideSeconds = 3f;
@@ -270,10 +270,37 @@ public sealed class BalanceData
     /// 기획 반경이 정리되면 확정 수치로 바꾼다.
     public float EchoRadius = 20f;
     public float AppraiseRadius = 8f;
-    public float TrackRadius = 18f;
-    public float TrackRevealSeconds = 6f;
+    public float TrackRadius = 20f;
+    public float TrackRevealSeconds = 8f;
 
-    public string[] DaySkillNames = { "없음", "불붙이기", "활공", "정제", "지름길", "삼키기" };
+    // 캐릭터 4종의 스킬 수치 (9.1.2 · 9.2 표). 이속은 배수다 (-40% → 0.6).
+    public float CoffinRange = 6f;
+    public float CoffinWidth = 2f;
+    public float CoffinDepth = 0.8f;
+    public float CoffinSeconds = 4f;
+    public float BiteRange = 1.2f;
+    public float BiteSeconds = 3f;
+    public float BiteSpeed = 0.6f;
+    public float BiteImmuneSeconds = 5f;
+    public float HowlRadius = 5f;
+    public float HowlFleeSeconds = 1f;
+    public float HowlAllySpeed = 1.3f;
+    public float HowlAllySeconds = 2f;
+    public float FrogRange = 8f;
+    public float FrogSeconds = 2.5f;
+    public float FrogSpeed = 1.2f;
+    public float BatSwarmRange = 10f;
+    public float BatSwarmSeconds = 3f;
+    public float BatSwarmVision = 2f;
+    public float ArmThrowRange = 8f;
+    public float ArmThrowSeconds = 1.5f;
+    public float PotionRange = 8f;
+    public float PotionRadius = 4f;
+    public float PotionSeconds = 6f;
+    public float PotionFallSeconds = 0.8f;
+    public float PotionImmuneSeconds = 2f;
+
+    public string[] DaySkillNames = { "없음", "불붙이기", "활공", "정제", "지름길", "삼키기", "관 떨어뜨리기", "물기", "하울링", "개구리 저주" };
     public string[] DaySkillEffects =
     {
         "",
@@ -282,6 +309,10 @@ public sealed class BalanceData
         "다음 한 잔의 완성 게이지가 Perfect로 확정된다 (쿨 18초)",
         "2.5초 동안 다른 캐릭터를 통과한다 (쿨 14초)",
         "들고 있는 더러운 식기의 세척을 70% 진행시킨다 (쿨 22초)",
+        "지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)",
+        "붙어 있는 적을 물어 좀비걸음으로 만든다. 부딪힌 사람에게 옮는다 (쿨 18초)",
+        "주변의 다른 팀은 도망치고 같은 팀은 빨라진다 (쿨 20초)",
+        "맞은 적은 2.5초 동안 아무것도 집거나 쓸 수 없다 (쿨 18초)",
     };
 
     // --- characters.csv (기획서 9.1.1) ---
@@ -290,18 +321,18 @@ public sealed class BalanceData
     /// 여기 적지 않는다.
     public (string Name, CharacterId Id, NightSkill Night, string NightName, string NightEffect)[] Characters =
     {
-        ("도깨비",   CharacterId.Dokkaebi,  NightSkill.WillOWisp, "도깨비불", "가짜 아이템 박스를 설치한다 (쿨 18초)"),
-        ("박쥐",     CharacterId.Bat,       NightSkill.Echo,      "메아리",   "주변의 안개를 즉시 걷어낸다 (쿨 18초)"),
-        ("연금술사", CharacterId.Alchemist, NightSkill.Appraise,  "감별",     "박스의 가려진 슬롯이 즉시 공개된다 (쿨 16초)"),
-        ("하운드",   CharacterId.Hound,     NightSkill.Track,     "추적",     "주변의 숨겨진 가방을 찾아낸다 (쿨 14초)"),
-        ("미믹",     CharacterId.Mimic,     NightSkill.Illusion,  "환각",     "가짜로 숨겨진 가방을 심는다 (쿨 20초)"),
+        ("뱀파이어", CharacterId.Vampire,  NightSkill.BatSwarm,       "박쥐 떼",       "맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)"),
+        ("좀비",     CharacterId.Zombie,   NightSkill.ArmThrow,       "팔 던지기",     "맞은 적은 1.5초 동안 움직일 수 없다 (쿨 16초)"),
+        ("늑대인간", CharacterId.Werewolf, NightSkill.Track,          "추적",          "주변의 숨겨진 가방 쪽으로 냄새 줄기가 흐른다 (쿨 14초)"),
+        ("마녀",     CharacterId.Witch,    NightSkill.SlipperyPotion, "미끄러운 물약", "웅덩이에 들어온 적이 미끄러져 넘어진다 (쿨 20초)"),
     };
 
     /// 9.1.1: 낮 액티브는 밤 액티브의 짝이다. 순서는 `NightSkill` 열거자와 같다.
     public DaySkill[] DaySkillOfNight =
     {
         DaySkill.None, DaySkill.Ignite, DaySkill.Glide,
-        DaySkill.Refine, DaySkill.Shortcut, DaySkill.Swallow,
+        DaySkill.Refine, DaySkill.Howl, DaySkill.Swallow,
+        DaySkill.CoffinDrop, DaySkill.Bite, DaySkill.FrogCurse,
     };
 }
 

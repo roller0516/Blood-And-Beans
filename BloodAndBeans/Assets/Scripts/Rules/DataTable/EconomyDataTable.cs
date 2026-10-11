@@ -5,11 +5,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/경제", fileName = nameof(EconomyDataTable))]
 public sealed class EconomyDataTable : DataTableAsset
 {
-    public const string SheetRent = "rent";
-    public const string SheetPenalty = "penalty";
-    public const string SheetMenu = "menu";
-    public const string SheetGauge = "gauge";
-
     [System.Serializable]
     public struct RentRow
     {
@@ -80,11 +75,10 @@ public sealed class EconomyDataTable : DataTableAsset
     [System.NonSerialized] public float[] GaugeMultiplier = System.Array.Empty<float>();
 
     protected override string DefaultCategory => "경제";
-    protected override string[] DefaultSheetNames => new[] { SheetRent, SheetPenalty, SheetMenu, SheetGauge };
+    public override string[] SheetSlots => new[] { "임대료", "페널티", "메뉴", "게이지" };
 
     public override void ReadSheet(int index, SheetTable sheet)
     {
-        // 번호는 `DefaultSheetNames`의 자리다: 0 임대료 · 1 페널티 · 2 메뉴 · 3 게이지.
         switch (index)
         {
             case 0: sheet.Fill(rent, "day"); break;
@@ -175,5 +169,17 @@ public sealed class EconomyDataTable : DataTableAsset
             if (v > best) best = v;
         }
         return best;
+    }
+
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        d.RentByDay = RentByDay;
+        d.PenaltyCraftLoss = PenaltyCraftLoss;
+        d.PenaltyMoveLoss = PenaltyMoveLoss;
+        d.PenaltyVisionLoss = PenaltyVisionLoss;
+        d.PenaltyOpenLoss = PenaltyOpenLoss;
+        d.Menus = MenuTable;
+        d.MenuNames = MenuNames;
+        d.GaugeMultiplier = GaugeMultiplier;
     }
 }

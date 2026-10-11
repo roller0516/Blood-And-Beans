@@ -54,5 +54,17 @@ public enum EffectId
     OvenHeat = 18,
     WashFoam = 19,
     WashComplete = 20,
+
+    /// 캐릭터 4종의 스킬 연출 (9.1.2 · 9.2). 붙는 것(Attached)은 지속 시간 동안 방출한다.
+    CoffinImpact = 21,
+    ZombieWalk = 22,
+    Howl = 23,
+    FrogCurse = 24,
+    BatSwarm = 25,
+    ArmGrab = 26,
+    TrackSniff = 27,
+    TrackScent = 28,
+    PotionPuddle = 29,
+    Dizzy = 30,
 }
 

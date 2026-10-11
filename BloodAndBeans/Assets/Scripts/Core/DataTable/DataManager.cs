@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reflection;
 using UnityEngine;
 
 /// 데이터 표 애셋들을 들고 있다가 부팅 때 규칙 표에 한 번 밀어 넣는다.
@@ -56,98 +57,37 @@ public sealed class DataManager : ScriptableObject
         ContentHash = HashRows();
     }
 
-    /// 애셋 필드를 `BalanceData`에 옮긴다. 빠진 카테고리는 문제로 남겨 폴백으로 성공하지 않게 한다.
+    /// 표마다 자기 칸을 `BalanceData`에 옮기게 한다. 어느 칸이 어느 표에서 오는지는 표가 안다.
+    ///
+    /// 빠진 표는 문제로 남겨 폴백으로 성공하지 않게 한다. 표 타입을 이름으로 찾지 않고,
+    /// 다 옮긴 뒤에도 **폴백 배열 그대로인 칸**을 잡는다 — 그 칸을 채울 표가 이어져 있지 않은 것이다.
+    /// 수치 칸(값 타입)은 공통 수치 표가 스스로 검사한다.
     BalanceData Compose(List<string> problems)
     {
         var d = new BalanceData();
 
-        // 단일 수치는 `CommonDataTable`의 필드 이름이 곧 `BalanceData`의 필드 이름이다 (시트 `key` 계약).
-        if (Find<CommonDataTable>(problems) is { } common)
-        {
-            var sourced = new HashSet<string>();
-            foreach (var (key, _) in CommonDataTable.ScalarFields(common))
-            {
-                var target = typeof(BalanceData).GetField(key);
-                if (target == null) { problems.Add($"공통 수치 '{key}'에 대응하는 {nameof(BalanceData)} 필드가 없다."); continue; }
-                target.SetValue(d, typeof(CommonDataTable).GetField(key).GetValue(common));
-                sourced.Add(key);
-            }
-            foreach (var f in typeof(BalanceData).GetFields())
-                if ((f.FieldType == typeof(int) || f.FieldType == typeof(float) || f.FieldType == typeof(double)) &&
-                    !sourced.Contains(f.Name))
-                    problems.Add($"{nameof(BalanceData)}.{f.Name}의 원본이 공통 수치 표에 없다.");
-        }
+        var fallback = new List<(FieldInfo Field, object Value)>();
+        foreach (var f in typeof(BalanceData).GetFields(BindingFlags.Public | BindingFlags.Instance))
+            if (!f.FieldType.IsValueType) fallback.Add((f, f.GetValue(d)));
 
-        if (Find<EconomyDataTable>(problems) is { } economy)
-        {
-            d.RentByDay = economy.RentByDay;
-            d.PenaltyCraftLoss = economy.PenaltyCraftLoss;
-            d.PenaltyMoveLoss = economy.PenaltyMoveLoss;
-            d.PenaltyVisionLoss = economy.PenaltyVisionLoss;
-            d.PenaltyOpenLoss = economy.PenaltyOpenLoss;
-            d.Menus = economy.MenuTable;
-            d.MenuNames = economy.MenuNames;
-            d.GaugeMultiplier = economy.GaugeMultiplier;
-        }
-
-        if (Find<NightDataTable>(problems) is { } night)
-        {
-            d.LoadBandSpeed = night.LoadBandSpeed;
-            d.LoadBandMax = night.LoadBandMax;
-            d.LootSlotMin = night.LootSlotMin;
-            d.LootSlotMax = night.LootSlotMax;
-            d.Tier2GemChance = night.Tier2GemChance;
-            d.Tier3BloodBeanChance = night.Tier3BloodBeanChance;
-            d.ZoneShares = night.ZoneSharePercent;
-            d.TierTable = night.TierTable;
-            d.RegenWeights = night.RegenWeights;
-            d.RegenMaps = night.RegenMapPools;
-        }
-
-        if (Find<GemDataTable>(problems) is { } gem)
-        {
-            d.GemScale = gem.Scale;
-            d.GemNames = gem.Names;
-            d.GemEffects = gem.Effects;
-            d.GemItems = gem.Items;
-        }
-
-        if (Find<NameDataTable>(problems) is { } names)
-        {
-            d.IngredientWeight = names.ItemWeight;
-            d.IngredientNames = names.ItemNames;
-            d.RaceBagOrder = names.RaceBagOrder;
-            d.RaceNames = names.RaceNames;
-        }
-
-        if (Find<CharacterDataTable>(problems) is { } characters)
-        {
-            d.Characters = characters.CharacterTable;
-            d.DaySkillCooldown = characters.DaySkillCooldown;
-            d.DaySkillNames = characters.DaySkillNames;
-            d.DaySkillEffects = characters.DaySkillEffects;
-            d.NightSkillCooldown = characters.NightSkillCooldown;
-            d.DaySkillOfNight = characters.DaySkillOfNight;
-        }
-
-        if (d.RaceBagOrder.Length == 0) problems.Add($"{nameof(d.RaceBagOrder)}: 비어 있다. race 시트를 임포트한다.");
-        if (d.RegenWeights.Length == 0) problems.Add($"{nameof(d.RegenWeights)}: 비어 있다. regen 시트를 임포트한다.");
-        if (d.RegenMaps.Length == 0) problems.Add($"{nameof(d.RegenMaps)}: 비어 있다. regenmap 시트를 임포트한다.");
-        if (d.Menus.Length == 0) problems.Add($"{nameof(d.Menus)}: 비어 있다. menu 시트를 임포트한다.");
-        return d;
-    }
-
-    T Find<T>(List<string> problems) where T : DataTableAsset
-    {
-        T found = null;
+        var seen = new HashSet<System.Type>();
         foreach (var table in tables)
         {
-            if (table is not T t) continue;
-            if (found != null) { problems.Add($"{typeof(T).Name} 애셋이 둘 이상 이어져 있다."); continue; }
-            found = t;
+            if (table == null) continue;
+            if (!seen.Add(table.GetType())) { problems.Add($"{table.GetType().Name} 애셋이 둘 이상 이어져 있다."); continue; }
+            table.WriteTo(d, problems);
         }
-        if (found == null) problems.Add($"{typeof(T).Name} 애셋이 이어져 있지 않다.");
-        return found;
+
+        // 빈 배열은 표는 있는데 그 시트를 임포트하지 않은 것이다. 길이 검사가 없는 표도 여기서 잡힌다.
+        foreach (var (field, value) in fallback)
+        {
+            var now = field.GetValue(d);
+            if (ReferenceEquals(now, value))
+                problems.Add($"{nameof(BalanceData)}.{field.Name}을(를) 채울 표가 이어져 있지 않다.");
+            else if (now is System.Array { Length: 0 })
+                problems.Add($"{nameof(BalanceData)}.{field.Name}이(가) 비어 있다. 이 칸을 채우는 표를 임포트한다.");
+        }
+        return d;
     }
 
     /// 직렬화된 행(엑셀에서 온 값)을 FNV-1a로 접는다. `string.GetHashCode`는 플랫폼·실행마다 달라 쓰지 않는다.
