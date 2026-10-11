@@ -30,7 +30,6 @@ public partial class ResourceManager : ScriptableObject
     void ForgetPlayModeState(UnityEditor.PlayModeStateChange change)
     {
         if (change != UnityEditor.PlayModeStateChange.EnteredEditMode) return;
-        sprites = new();
         ingredients = new();
         crews = new();
         menus = new();
