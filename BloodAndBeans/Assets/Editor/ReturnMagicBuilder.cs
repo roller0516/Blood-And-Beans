@@ -364,8 +364,8 @@ public static class ReturnMagicBuilder
             foreach (var id in new[] { EffectId.TeleportDeparture, EffectId.TeleportArrival })
             {
                 var guid = AssetDatabase.AssetPathToGUID(PrefabFolder + id + ".prefab");
-                var entry = settings.CreateOrMoveEntry(guid, settings.DefaultGroup);
-                entry.address = id.ToString();
+                var entry = settings.CreateOrMoveEntry(guid, AddressableGroups.Find(settings, AddressableGroups.Vfx));
+                entry.address = AddressableGroups.VfxAddress + id;
                 SerializedProperty row = null;
                 for (var i = 0; i < entries.arraySize; i++)
                     if (entries.GetArrayElementAtIndex(i).FindPropertyRelative("id").intValue == (int)id)

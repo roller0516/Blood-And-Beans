@@ -11,8 +11,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/공통 수치", fileName = nameof(CommonDataTable))]
 public sealed class CommonDataTable : DataTableAsset
 {
-    public const string SheetScalars = "scalars";
-
     // --- penalty (기획서 3.3) ---
 
     /// 감소를 다 먹여도 남는 최솟값.
@@ -130,10 +128,37 @@ public sealed class CommonDataTable : DataTableAsset
     public float TrackRadius;
     public float TrackRevealSeconds;
 
+    // 캐릭터 4종의 스킬 수치 (9.1.2 · 9.2 표). 이속은 배수다 (-40% → 0.6).
+    public float CoffinRange;
+    public float CoffinWidth;
+    public float CoffinDepth;
+    public float CoffinSeconds;
+    public float BiteRange;
+    public float BiteSeconds;
+    public float BiteSpeed;
+    public float BiteImmuneSeconds;
+    public float HowlRadius;
+    public float HowlFleeSeconds;
+    public float HowlAllySpeed;
+    public float HowlAllySeconds;
+    public float FrogRange;
+    public float FrogSeconds;
+    public float FrogSpeed;
+    public float BatSwarmRange;
+    public float BatSwarmSeconds;
+    public float BatSwarmVision;
+    public float ArmThrowRange;
+    public float ArmThrowSeconds;
+    public float PotionRange;
+    public float PotionRadius;
+    public float PotionSeconds;
+    public float PotionFallSeconds;
+    public float PotionImmuneSeconds;
+
     // --- 임포트 ---
 
     protected override string DefaultCategory => "공통 수치";
-    protected override string[] DefaultSheetNames => new[] { SheetScalars };
+    public override string[] SheetSlots => new[] { "스칼라" };
 
     /// 시트에 있는 키를 읽어 같은 이름의 필드에 넣는다. 빠진 키는 0으로 남는다.
     public override void ReadSheet(int index, SheetTable sheet)
@@ -154,6 +179,24 @@ public sealed class CommonDataTable : DataTableAsset
     /// 펼 것이 없다. 스칼라는 `ReadSheet`가 필드에 곧장 넣고 그대로 직렬화되므로,
     /// 다른 표처럼 행을 배열로 펴는 단계가 필요 없다.
     public override void Rebuild() { }
+
+    /// 필드 이름이 곧 `BalanceData`의 필드 이름이다 (시트 `key` 계약).
+    /// 짝이 없는 이름과, 이 표에 원본이 없는 수치 칸을 문제로 남긴다.
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        var sourced = new HashSet<string>();
+        foreach (var (key, _) in ScalarFields(this))
+        {
+            var target = typeof(BalanceData).GetField(key);
+            if (target == null) { problems.Add($"공통 수치 '{key}'에 대응하는 {nameof(BalanceData)} 필드가 없다."); continue; }
+            target.SetValue(d, typeof(CommonDataTable).GetField(key).GetValue(this));
+            sourced.Add(key);
+        }
+        foreach (var f in typeof(BalanceData).GetFields())
+            if ((f.FieldType == typeof(int) || f.FieldType == typeof(float) || f.FieldType == typeof(double)) &&
+                !sourced.Contains(f.Name))
+                problems.Add($"{nameof(BalanceData)}.{f.Name}의 원본이 공통 수치 표에 없다.");
+    }
 
     /// 이름이 맞으면 값을 넣고 true. `float`·`int`·`double` 셋만 받는다.
     public static bool Assign(CommonDataTable target, string key, double value)

@@ -32,6 +32,8 @@ public class PlayerVisuals : NetworkBehaviour
 
     [Header("밤 주변 조명")]
     [SerializeField] Light localNightLight;
+    [SerializeField] TrackSenseFeature trackSense;
+    Camera localCamera;
     GamePhase lightingPhase;
 
     [Header("전송 잔상")]
@@ -69,6 +71,7 @@ public class PlayerVisuals : NetworkBehaviour
     PlayerCharacter character;
     PlayerCarry carry;
     PlayerAbilities abilities;
+    PlayerStatus status;
     PlayerController interaction;
     DashHarass dash;
     PlayerInventory inventory;
@@ -99,6 +102,7 @@ public class PlayerVisuals : NetworkBehaviour
         character = GetComponent<PlayerCharacter>();
         carry = GetComponent<PlayerCarry>();
         abilities = GetComponent<PlayerAbilities>();
+        status = GetComponent<PlayerStatus>();
         interaction = GetComponent<PlayerController>();
         dash = GetComponent<DashHarass>();
         inventory = GetComponent<PlayerInventory>();
@@ -142,6 +146,7 @@ public class PlayerVisuals : NetworkBehaviour
         character.CharacterChanged += SetCharacter;
         abilities.EffectPlayed += OnEffect;
         abilities.AttachedChanged += OnAttached;
+        if (status != null) status.Applied += OnStatusApplied;
         interaction.InteractionSucceeded += OnInteractionSucceeded;
         interaction.SoundPlayed += OnSound;
         dash.DashStarted += OnDashSound;
@@ -165,6 +170,8 @@ public class PlayerVisuals : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
+        if (IsOwner && trackSense != null) trackSense.Clear(localCamera);
+        localCamera = null;
         MatchDirector.Unbind(OnLightingDirectorReady);
         if (lightingPhase != null) lightingPhase.PhaseEntered -= RefreshNightLight;
         lightingPhase = null;
@@ -177,6 +184,7 @@ public class PlayerVisuals : NetworkBehaviour
         if (playerTeam != null) playerTeam.TeleportStarted -= OnTeleportStarted;
         if (character != null) character.CharacterChanged -= SetCharacter;
         if (abilities != null) { abilities.EffectPlayed -= OnEffect; abilities.AttachedChanged -= OnAttached; }
+        if (status != null) status.Applied -= OnStatusApplied;
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
         if (interaction != null) interaction.SoundPlayed -= OnSound;
         if (dash != null)
@@ -219,6 +227,7 @@ public class PlayerVisuals : NetworkBehaviour
     void RefreshNightLight(Phase phase)
     {
         if (localNightLight != null) localNightLight.enabled = IsClient && IsOwner && phase == Phase.Night;
+        if (phase != Phase.Night && trackSense != null) trackSense.Clear(localCamera);
     }
 
     // --- 모델·팀 색 (예전 PlayerAppearance) ---
@@ -287,7 +296,23 @@ public class PlayerVisuals : NetworkBehaviour
 
     // --- 액티브 연출 (예전 PlayerEffects) ---
 
-    void OnEffect(EffectId id, Vector3 position, float scale) => EffectManager.Play(id, position, scale);
+    void OnEffect(EffectId id, Vector3 position, float scale, float seconds)
+    {
+        if (id == EffectId.TrackSniff)
+        {
+            if (IsClient && IsOwner && trackSense != null)
+            {
+                // 플레이어 스폰 뒤 매치 씬의 카메라가 생길 수 있어 발동 사건에서 잡는다.
+                localCamera = Camera.main;
+                trackSense.Pulse(localCamera);
+            }
+            return;
+        }
+        EffectManager.Play(id, position, scale, seconds);
+    }
+
+    /// 남이 건 스킬의 연출. 둘 이상 겹칠 수 있어 각자 시간이 다 되면 스스로 멈춘다.
+    void OnStatusApplied(EffectId id, float seconds) => EffectManager.PlayAttached(id, transform, seconds);
 
     void OnTeleportStarted(Vector3 origin)
     {

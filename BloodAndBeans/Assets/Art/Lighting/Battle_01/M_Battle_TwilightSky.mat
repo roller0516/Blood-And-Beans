@@ -25,11 +25,14 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
+    - _Cull: 0
+    - _Dome: 0
     - _Exposure: 0.55
     - _Gradient: 0.65
     - _Halo: 0.12
     - _MoonSize: 0.023
     - _Stars: 0.15
+    - _ZWrite: 0
     m_Colors:
     - _Ground: {r: 0.095, g: 0.13, b: 0.2, a: 1}
     - _Horizon: {r: 0.3, g: 0.34, b: 0.47, a: 1}

@@ -1,0 +1,112 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bbb281ee3bf0b054c82ac2347e9e782c, type: 3}
+  m_Name: UI
+  m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
+  m_GroupName: UI
+  m_GUID: 76fcbe5df03a6d942ac1f2c33579ad6b
+  m_SerializeEntries:
+  - m_GUID: 0db625a503f93d34d9c48ee506bd2b8b
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIRoomScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 13cf7b2086cbf924c895d34870ade506
+    m_Address: Assets/Art/UI/Atlases/Skills.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 1ce141e4aa30db148835a87100715e67
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 2dc2e45187e778b418a6bda008af756e
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIBoxLootPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4bc1f8a30773ce5439da457f0b4c6ef4
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIMatchResultPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 4eeb29d62e43b9f43902d1a0c9e7090f
+    m_Address: Assets/Art/UI/Prefabs/Screen/UICharacterSelectScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 6ae7f9171df1e394d9ef87a65cc928d4
+    m_Address: Assets/Art/UI/Prefabs/Popup/UISettingsPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: 78eda180869e4fd4b89f628f4f68fa10
+    m_Address: Assets/Art/UI/Atlases/Title.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: c4299716988a97f469548a40bc070cce
+    m_Address: Assets/Art/UI/Prefabs/Screen/UITitleMenuScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d783505837252ef47ad2fc093d31bca0
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIReturnResultPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d80aae68bd4dd6f4da9e67e5c9e7748e
+    m_Address: Assets/Art/UI/Prefabs/Popup/UIPhaseCuePopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: d8cbae517917bd24e9eae7ec5c1e948f
+    m_Address: Assets/Art/UI/Atlases/Ingame.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: dc59c0fb28eec314c9703bc60281029c
+    m_Address: Assets/Art/UI/Prefabs/Popup/UILoadingPopup.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: e2ff9e42860840943b53b9d2a7e1d608
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIDaySettlementScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: ed40ca0ded62d9e4e97c9cc91cd843d8
+    m_Address: Assets/Art/UI/Prefabs/Screen/UIRoomListScreen.prefab
+    m_ReadOnly: 0
+    m_SerializedLabels: []
+    FlaggedDuringContentUpdateRestriction: 0
+  - m_GUID: fcc18e15bebfc4a49a12807b2d62a07b
+    m_Address: Assets/Art/UI/Atlases/CharacterSelect.spriteatlasv2
+    m_ReadOnly: 0
+    m_SerializedLabels:
+    - UIAtlas
+    FlaggedDuringContentUpdateRestriction: 0
+  m_ReadOnly: 0
+  m_Settings: {fileID: 11400000, guid: 8c9770d6b40a7124bba692cb7c953e3b, type: 2}
+  m_SchemaSet:
+    m_Schemas:
+    - {fileID: 11400000, guid: c5fbb820a32f16646a143337512ed811, type: 2}
+    - {fileID: 11400000, guid: cc41b288d01c84544b8eed173b4dacba, type: 2}
+    m_SchemaDisplayOrder:
+    - UI_BundledAssetGroupSchema
+    - UI_ContentUpdateGroupSchema
+  m_IncludeInBuild: 1
+  m_IncludeInBuildMigrated: 1

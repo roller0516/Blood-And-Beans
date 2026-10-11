@@ -27,6 +27,10 @@ Material:
         m_Texture: {fileID: 2800000, guid: 1664d5cacbcf09b41af5cc3a35a75aa8, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - _NormalMap:
         m_Texture: {fileID: 2800000, guid: 759d7dc23744a184fbe9ae3d50f861be, type: 3}
         m_Scale: {x: 1, y: 1}
@@ -43,20 +47,23 @@ Material:
     m_Floats:
     - _AOStrength: 0.45
     - _DiffuseWrap: 0.14
+    - _EmissionMaskSource: 0
     - _EmissionStrength: 0
+    - _FillStrength: 0.16
     - _Metallic: 0
-    - _NormalStrength: 0.3
+    - _NormalStrength: 2
     - _Roughness: 0.72
     - _RoughnessScale: 1.1
     - _ShadowStrength: 0.85
-    - _SpecularStrength: 0.65
+    - _SpecularStrength: 0.53
     - _SurfaceLayout: 1
     - _TeamStrength: 0
-    - _TextureContrast: 0.9
-    - _TextureSaturation: 0.96
+    - _TextureContrast: 1.098
+    - _TextureSaturation: 0.719
     m_Colors:
     - _BaseColor: {r: 0.78, g: 0.65, b: 0.49, a: 1}
     - _EmissionColor: {r: 1, g: 0.66, b: 0.2, a: 1}
+    - _FillColor: {r: 0.6, g: 0.7, b: 0.85, a: 1}
     - _TeamColor: {r: 1, g: 0.65, b: 0.19999993, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

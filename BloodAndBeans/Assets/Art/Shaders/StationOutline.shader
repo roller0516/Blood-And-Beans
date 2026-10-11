@@ -27,6 +27,7 @@ Shader "BB/StationOutline"
         [Enum(UnityEngine.Rendering.CompareFunction)] _StencilComp("스텐실 비교", Float) = 6   // NotEqual
         [Enum(UnityEngine.Rendering.StencilOp)] _StencilOp("스텐실 연산", Float) = 0           // Keep
         _ColorWrite("색 기록 마스크", Float) = 15                                              // RGBA
+        [Enum(UnityEngine.Rendering.CompareFunction)] _ZTest("깊이 비교", Float) = 4
     }
 
     SubShader
@@ -54,7 +55,7 @@ Shader "BB/StationOutline"
 
             ColorMask [_ColorWrite]
             ZWrite Off
-            ZTest LEqual
+            ZTest [_ZTest]
             Cull Back
             Blend SrcAlpha OneMinusSrcAlpha
 

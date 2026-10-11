@@ -8,17 +8,6 @@ using UnityEngine;
 /// 이 애셋을 읽어도 스프라이트는 <see cref="PreloadSpritesAsync"/> 전까지 올라오지 않는다.
 public partial class ResourceManager
 {
-    /// 이름으로 꺼내는 스프라이트의 id. `namedSprites` 표의 id와 같아야 한다.
-    public const string BagClosed = "BagIcon";
-    public const string BagOpen = "BagIcon_Open";
-
-    [Serializable]
-    public struct NamedSpriteEntry
-    {
-        public string id;
-        public AtlasSpriteRef sprite;
-    }
-
     [Serializable]
     public struct IngredientSpriteEntry
     {
@@ -42,7 +31,6 @@ public partial class ResourceManager
     }
 
     [Header("스프라이트")]
-    [SerializeField] NamedSpriteEntry[] namedSprites = Array.Empty<NamedSpriteEntry>();
     [Tooltip("재료·보석 아이콘.")]
     [SerializeField] IngredientSpriteEntry[] ingredientSprites = Array.Empty<IngredientSpriteEntry>();
     [Tooltip("완성품 아이콘. 주문과 조합법이 함께 쓴다.")]
@@ -55,11 +43,10 @@ public partial class ResourceManager
     public enum SpriteTables
     {
         None = 0,
-        Named = 1,
-        Ingredients = 2,
-        Crews = 4,
-        Menus = 8,
-        All = Named | Ingredients | Crews | Menus,
+        Ingredients = 1,
+        Crews = 2,
+        Menus = 4,
+        All = Ingredients | Crews | Menus,
     }
 
     // 표 하나의 상태. 쓰는 곳이 몇인지 세고, 0이 되면 스프라이트를 놓는다.
@@ -70,7 +57,6 @@ public partial class ResourceManager
         public AsyncLazy Loading;   // 끝나기 전에 여러 흐름이 기다릴 수 있어야 해서 AsyncLazy다
     }
 
-    [NonSerialized] SpriteTable<string> sprites = new();
     [NonSerialized] SpriteTable<Ingredient> ingredients = new();
     [NonSerialized] SpriteTable<CharacterId> crews = new();
     [NonSerialized] SpriteTable<MenuId> menus = new();
@@ -80,7 +66,6 @@ public partial class ResourceManager
     public UniTask PreloadSpritesAsync(SpriteTables tables, CancellationToken ct = default)
     {
         var loads = new List<UniTask>(4);
-        if ((tables & SpriteTables.Named) != 0) loads.Add(Acquire(sprites, NamedEntries()));
         if ((tables & SpriteTables.Ingredients) != 0) loads.Add(Acquire(ingredients, IngredientEntries()));
         if ((tables & SpriteTables.Crews) != 0) loads.Add(Acquire(crews, CrewEntries()));
         if ((tables & SpriteTables.Menus) != 0) loads.Add(Acquire(menus, MenuEntries()));
@@ -89,19 +74,9 @@ public partial class ResourceManager
 
     public void ReleaseSprites(SpriteTables tables)
     {
-        if ((tables & SpriteTables.Named) != 0) ReleaseTable(sprites, NamedEntries());
         if ((tables & SpriteTables.Ingredients) != 0) ReleaseTable(ingredients, IngredientEntries());
         if ((tables & SpriteTables.Crews) != 0) ReleaseTable(crews, CrewEntries());
         if ((tables & SpriteTables.Menus) != 0) ReleaseTable(menus, MenuEntries());
-    }
-
-    /// id로 찾는다. 없으면 오류를 남기고 null이다.
-    public Sprite GetSprite(string id)
-    {
-        var sprite = Lookup(sprites, id);
-        if (sprite == null && sprites.Sprites != null)
-            CDebug.LogError($"{AssetName}: '{id}' 스프라이트가 {nameof(namedSprites)} 표에 없다.", this);
-        return sprite;
     }
 
     /// 재료·보석 아이콘. 표에 없으면 null이다.
@@ -127,7 +102,6 @@ public partial class ResourceManager
         return table.Sprites.TryGetValue(id, out var sprite) ? sprite : null;
     }
 
-    IEnumerable<(string, AtlasSpriteRef)> NamedEntries() { foreach (var e in namedSprites) yield return (e.id, e.sprite); }
     IEnumerable<(Ingredient, AtlasSpriteRef)> IngredientEntries() { foreach (var e in ingredientSprites) yield return (e.id, e.sprite); }
     IEnumerable<(MenuId, AtlasSpriteRef)> MenuEntries() { foreach (var e in menuSprites) yield return (e.id, e.sprite); }
     IEnumerable<(CharacterId, AtlasSpriteRef)> CrewEntries() { foreach (var e in crewSprites) yield return (e.id, e.sprite); }
@@ -201,7 +175,6 @@ public partial class ResourceManager
 #if UNITY_EDITOR
     void LoadAllBlockingForEditor()
     {
-        FillBlocking(sprites, NamedEntries());
         FillBlocking(ingredients, IngredientEntries());
         FillBlocking(crews, CrewEntries());
         FillBlocking(menus, MenuEntries());

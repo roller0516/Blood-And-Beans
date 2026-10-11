@@ -201,11 +201,19 @@ public class EffectManager : MonoBehaviour
         {
             case NightSkill.WillOWisp: yield return EffectId.Wisp; break;
             case NightSkill.Echo: yield return EffectId.Echo; break;
+            case NightSkill.BatSwarm: yield return EffectId.BatSwarm; break;
+            case NightSkill.ArmThrow: yield return EffectId.ArmGrab; break;
+            case NightSkill.Track: yield return EffectId.TrackScent; break;
+            case NightSkill.SlipperyPotion: yield return EffectId.PotionPuddle; yield return EffectId.Dizzy; break;
         }
         switch (def.Day)
         {
             case DaySkill.Ignite: yield return EffectId.Ignite; break;
             case DaySkill.Glide: yield return EffectId.Glide; break;
+            case DaySkill.CoffinDrop: yield return EffectId.CoffinImpact; break;
+            case DaySkill.Bite: yield return EffectId.ZombieWalk; break;
+            case DaySkill.Howl: yield return EffectId.Howl; break;
+            case DaySkill.FrogCurse: yield return EffectId.FrogCurse; break;
         }
     }
 
@@ -329,7 +337,8 @@ public class EffectManager : MonoBehaviour
     /// 한 번 터지는 연출. 끝나면 스스로 돌아온다. 아직 준비되지 않았으면(불러오는 중이거나
     /// 요청된 적이 없으면) 그냥 넘어가지 않고 알린다 — 조용히 무시하면 연출이 빠진 원인을
     /// 찾을 수 없다.
-    public static void Play(EffectId id, Vector3 position, float scale = 1f)
+    /// `seconds`가 0보다 크면 그 시간 동안 방출한 뒤 멈춘다 (자리에 남는 웅덩이 같은 것).
+    public static void Play(EffectId id, Vector3 position, float scale = 1f, float seconds = 0f)
     {
         var manager = Instance;
         if (manager == null) return;
@@ -340,6 +349,7 @@ public class EffectManager : MonoBehaviour
         effect.transform.SetPositionAndRotation(
             position + manager.table[id].offset, Quaternion.identity);
         effect.Play(true);
+        if (seconds > 0f) manager.StopAfterAsync(effect, seconds, manager.generation[effect]).Forget();
     }
 
     /// 대상에 붙어 지속되는 연출. `seconds`가 지나면 방출을 멈추고, 남은 입자가 수명을

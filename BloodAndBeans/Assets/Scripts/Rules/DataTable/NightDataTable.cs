@@ -6,14 +6,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/밤", fileName = nameof(NightDataTable))]
 public sealed class NightDataTable : DataTableAsset
 {
-    public const string SheetLoadBand = "loadband";
-    public const string SheetLootSlot = "lootslot";
-    public const string SheetGemChance = "gemchance";
-    public const string SheetForestZone = "forestzone";
-    public const string SheetForestTier = "foresttier";
-    public const string SheetRegen = "regen";
-    public const string SheetRegenMap = "regenmap";
-
     [System.Serializable]
     public struct LoadBandRow
     {
@@ -128,16 +120,13 @@ public sealed class NightDataTable : DataTableAsset
     public (string MapId, Ingredient[] Pool)[] RegenMapPools = System.Array.Empty<(string, Ingredient[])>();
 
     protected override string DefaultCategory => "밤";
-    protected override string[] DefaultSheetNames => new[]
+    public override string[] SheetSlots => new[]
     {
-        SheetLoadBand, SheetLootSlot, SheetGemChance,
-        SheetForestZone, SheetForestTier, SheetRegen, SheetRegenMap,
+        "적재", "상자칸", "보석확률", "구역배분", "등급표", "리젠", "맵별 풀",
     };
 
     public override void ReadSheet(int index, SheetTable sheet)
     {
-        // 번호는 `DefaultSheetNames`의 자리다: 0 적재 · 1 상자칸 · 2 보석확률 ·
-        // 3 구역배분 · 4 등급표 · 5 리젠 · 6 맵별 풀.
         switch (index)
         {
             case 0: sheet.Fill(loadBands, "band"); break;
@@ -288,5 +277,19 @@ public sealed class NightDataTable : DataTableAsset
             if (v > best) best = v;
         }
         return best;
+    }
+
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        d.LoadBandSpeed = LoadBandSpeed;
+        d.LoadBandMax = LoadBandMax;
+        d.LootSlotMin = LootSlotMin;
+        d.LootSlotMax = LootSlotMax;
+        d.Tier2GemChance = Tier2GemChance;
+        d.Tier3BloodBeanChance = Tier3BloodBeanChance;
+        d.ZoneShares = ZoneSharePercent;
+        d.TierTable = TierTable;
+        d.RegenWeights = RegenWeights;
+        d.RegenMaps = RegenMapPools;
     }
 }

@@ -192,38 +192,38 @@ public abstract class DataTableAsset : ScriptableObject
     /// 비워 두면 클래스가 정한 기본값을 쓴다. 채우면 그쪽이 이긴다.
     [SerializeField] string category;
 
-    /// 엑셀 시트 이름. **칸 수는 클래스가 정한다** — 몇 장을 읽는지는 `ReadSheet`의
-    /// 구조라서, 칸을 늘리거나 줄이면 기본값으로 되돌린다. 이름만 바꿀 수 있다.
+    /// 엑셀 시트 이름. 코드에는 없고 인스펙터에서 적는다. 칸 수와 순서는 `SheetSlots`가 정한다.
     [SerializeField] string[] sheetNames;
+
+    /// 임포터가 `SerializedObject`로 옮길 때 찾는 필드 이름.
+    public const string SheetNamesField = nameof(sheetNames);
 
     /// 애셋이 비어 있을 때 쓸 이름. 클래스가 정한다.
     protected abstract string DefaultCategory { get; }
-    protected abstract string[] DefaultSheetNames { get; }
 
     /// 임포터 창 왼쪽 버튼에 뜨는 이름.
     public string Category =>
         string.IsNullOrWhiteSpace(category) ? DefaultCategory : category.Trim();
 
-    /// 이 애셋이 읽는 엑셀 시트 이름들. 임포터가 이 이름으로 시트를 찾는다.
+    /// 칸마다 무슨 표인지. 길이가 읽을 시트 수이고 `ReadSheet`의 `index`가 이 배열의 자리다.
+    /// 칸 수가 틀렸을 때 임포터가 순서를 알려 주는 데 쓴다.
+    public abstract string[] SheetSlots { get; }
+
+    /// 인스펙터에서 적은 시트 이름. 칸 수·빈 칸 검사는 임포터가 한다.
     public string[] SheetNames
     {
         get
         {
-            var defaults = DefaultSheetNames;
-            if (sheetNames == null || sheetNames.Length != defaults.Length) return defaults;
+            if (sheetNames == null) return System.Array.Empty<string>();
 
-            var names = new string[defaults.Length];
-            for (var i = 0; i < names.Length; i++)
-                names[i] = string.IsNullOrWhiteSpace(sheetNames[i]) ? defaults[i] : sheetNames[i].Trim();
+            var names = new string[sheetNames.Length];
+            for (var i = 0; i < names.Length; i++) names[i] = sheetNames[i]?.Trim() ?? string.Empty;
             return names;
         }
     }
 
     /// 시트 한 장을 읽어 담는다. 임포터가 `SheetNames`마다 한 번씩 부른다.
-    ///
-    /// **가르는 기준은 시트 이름이 아니라 `SheetNames`에서의 자리 번호다.** 이름으로
-    /// 갈랐더니 엑셀 시트를 다른 이름으로 바꾼 순간 어느 `case`에도 안 걸려 그 표가
-    /// 조용히 비었다 — 이름은 이제 애셋에서 고칠 수 있는 값이다.
+    /// 이름은 사람이 바꾸는 값이라 이름이 아니라 `SheetSlots`의 자리 번호로 가른다.
     public abstract void ReadSheet(int index, SheetTable sheet);
 
     /// 담아 둔 행을 규칙이 읽을 배열로 편다. 부팅 때 `DataManager`가 부른다.
@@ -234,4 +234,8 @@ public abstract class DataTableAsset : ScriptableObject
     /// **비어 있는 시트는 건드리지 않는다.** 행이 없는 표까지 덮어쓰면, 한 시트를 빠뜨린
     /// 상태가 다른 시트까지 0으로 만드는 상태가 된다.
     public abstract void Rebuild();
+
+    /// 편 값을 규칙 스냅샷의 자기 칸에 옮긴다. `DataManager`가 표마다 한 번 부른다 —
+    /// 어느 칸이 어느 표에서 오는지는 표가 안다. 옮기지 못한 것은 `problems`에 남긴다.
+    public abstract void WriteTo(BalanceData d, List<string> problems);
 }

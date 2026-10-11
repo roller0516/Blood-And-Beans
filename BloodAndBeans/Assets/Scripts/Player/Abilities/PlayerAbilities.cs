@@ -69,7 +69,8 @@ public class PlayerAbilities : NetworkBehaviour
     /// 픽과 무관하므로 `Rebuild`가 건드리지 않는다. 한 번 만들고 끝이다.
     readonly ICommonAbility common = new DashAbility();
 
-    public event System.Action<EffectId, Vector3, float> EffectPlayed;
+    /// 위치·크기·지속. 지속이 0이면 한 번 터지고, 아니면 그 시간 동안 방출한다 (웅덩이).
+    public event System.Action<EffectId, Vector3, float, float> EffectPlayed;
 
     /// 캐릭터에 붙는 지속 연출이 바뀌었다. `EffectId.None`이면 끄라는 뜻이다.
     /// 화면은 이 값만 본다 — 어떤 능력인지 클라이언트가 알 필요가 없다.
@@ -116,6 +117,13 @@ public class PlayerAbilities : NetworkBehaviour
     /// 공통 액티브가 미는 몸. 돌진·넉백의 실제 처리는 전부 저쪽에 있다.
     public DashHarass Dash { get; private set; }
 
+    public PlayerController Move { get; private set; }
+    public PlayerStatus Status { get; private set; }
+
+    /// 관 떨어뜨리기가 세우는 벽 (기획서 9.1.2). 네트워크 프리팹 목록에 올라 있어야 한다.
+    [SerializeField] Coffin coffinPrefab;
+    public Coffin CoffinPrefab => coffinPrefab;
+
     public float DurationRemaining => IsSpawned
         ? Mathf.Max(0f, (float)(durationUntil.Value - ServerTime)) : 0f;
 
@@ -151,6 +159,8 @@ public class PlayerAbilities : NetworkBehaviour
         Fog = GetComponent<FogOfWar>();
         Controller = GetComponent<CharacterController>();
         Dash = GetComponent<DashHarass>();
+        Move = GetComponent<PlayerController>();
+        Status = GetComponent<PlayerStatus>();
     }
 
     public override void OnNetworkSpawn()
@@ -276,6 +286,9 @@ public class PlayerAbilities : NetworkBehaviour
 
         var now = ServerTime;
         if (now < commonNextAt.Value) return;
+
+        // 발이 묶이면 대시도 못 한다 (기획서 9.2 팔 던지기 — 움직일 수 없다).
+        if (Status != null && Status.Rooted) return;
         if (!common.TryCastServer(this)) return;
 
         // 「각인」은 낮·밤 액티브만 줄인다 (기획서 8.2). 대시는 9장의 액티브가 아니다.
@@ -298,9 +311,15 @@ public class PlayerAbilities : NetworkBehaviour
     // --- 연출 통지. 판정은 이미 끝났고, 아래는 그리기 위한 통지뿐이다 ---
 
     /// 전원에게 보이는 연출. 서버에서 부른다.
-    public void CueServer(EffectId id, Vector3 position, float scale = 1f)
+    public void CueServer(EffectId id, Vector3 position, float scale = 1f, float seconds = 0f)
     {
-        if (IsServer) CueRpc(id, position, scale);
+        if (IsServer) CueRpc(id, position, scale, seconds);
+    }
+
+    /// 쓴 사람에게만 보이는 연출 (기획서 9.2 추적 — 냄새 줄기는 본인에게만).
+    public void CueToOwnerServer(EffectId id, Vector3 position, float seconds = 0f)
+    {
+        if (IsServer) CueToRpc(id, position, 1f, seconds, RpcTarget.Single(OwnerClientId, RpcTargetUse.Temp));
     }
 
     /// 자기 팀에게만 보이는 연출. 가짜 상자의 설치 연출이 그렇다 (기획서 9.2) —
@@ -312,15 +331,49 @@ public class PlayerAbilities : NetworkBehaviour
         var teamId = TeamId;
         foreach (var client in NetworkManager.ConnectedClientsList)
             if (client.ClientId == OwnerClientId || (teamId >= 0 && PlayerTeam.Of(client.ClientId) == teamId))
-                CueToRpc(id, position, scale, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
+                CueToRpc(id, position, scale, 0f, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
     }
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
-    void CueRpc(EffectId id, Vector3 position, float scale) => EffectPlayed?.Invoke(id, position, scale);
+    void CueRpc(EffectId id, Vector3 position, float scale, float seconds) =>
+        EffectPlayed?.Invoke(id, position, scale, seconds);
 
     [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
-    void CueToRpc(EffectId id, Vector3 position, float scale, RpcParams p = default) =>
-        EffectPlayed?.Invoke(id, position, scale);
+    void CueToRpc(EffectId id, Vector3 position, float scale, float seconds, RpcParams p = default) =>
+        EffectPlayed?.Invoke(id, position, scale, seconds);
+
+    /// 앞쪽 반원 안에서 가장 가까운 적 (기획서 9.1.2 · 9.2의 던지는 스킬).
+    // ponytail: 조준 입력이 없어 바라보는 방향으로 자동 조준한다. 조준점 입력이 생기면 그 방향을 쓴다.
+    public PlayerStatus NearestEnemy(float range, bool aheadOnly)
+    {
+        PlayerStatus best = null;
+        var bestDist = range;
+        var facing = Move != null ? Move.FacingServer : transform.forward;
+        foreach (var client in NetworkManager.ConnectedClientsList)
+        {
+            var player = client.PlayerObject;
+            if (player == null || player == NetworkObject || PlayerTeam.Of(client.ClientId) == TeamId) continue;
+            var to = player.transform.position - transform.position;
+            to.y = 0f;
+            var dist = to.magnitude;
+            if (dist > bestDist || (aheadOnly && Vector3.Dot(to, facing) < 0f)) continue;
+            var status = player.GetComponent<PlayerStatus>();
+            if (status == null || status.InSafeZone) continue;
+            best = status;
+            bestDist = dist;
+        }
+        return best;
+    }
+
+    /// 바라보는 쪽으로 `range`만큼 떨어진 바닥 자리. 남의 카페 안이면 쓸 수 없다 (9.1).
+    // ponytail: 조준 입력이 없어 사거리 끝에 놓는다. 조준점 입력이 생기면 그 자리를 사거리로 자른다.
+    public bool TryGroundAhead(float range, out Vector3 at)
+    {
+        var facing = Move != null ? Move.FacingServer : transform.forward;
+        at = transform.position + facing * range;
+        if (Controller != null) at.y = transform.position.y + Controller.center.y - Controller.height * 0.5f;
+        return director != null && !director.InsideAnyCafe(at, TeamId);
+    }
 
     /// 완성 게이지가 판정 순간에 찾는다.
     public static PlayerAbilities Of(ulong clientId)

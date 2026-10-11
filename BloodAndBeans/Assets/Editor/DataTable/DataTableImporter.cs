@@ -81,9 +81,23 @@ public static class DataTableImporter
         // 시트 이름은 애셋이 들고 있다. 자리 번호를 그대로 넘겨야 이름을 바꿔도
         // `ReadSheet`가 같은 표를 읽는다.
         var names = target.SheetNames;
+        var slots = target.SheetSlots;
+        if (names.Length != slots.Length)
+        {
+            report.Errors.Add($"[{target.Category}] Sheet Names는 {slots.Length}칸이어야 한다. 순서: {string.Join(", ", slots)}");
+            Object.DestroyImmediate(scratch);
+            return false;
+        }
+
         for (var index = 0; index < names.Length; index++)
         {
             var sheetName = names[index];
+            if (sheetName.Length == 0)
+            {
+                errors.Add($"[{target.Category}] Sheet Names {index}번('{slots[index]}') 칸이 비어 있다.");
+                continue;
+            }
+
             if (!book.TryGetValue(sheetName, out var raw))
             {
                 errors.Add($"[{target.Category}] 시트 '{sheetName}'이(가) 엑셀에 없다.");
@@ -127,7 +141,7 @@ public static class DataTableImporter
         var source = new SerializedObject(from);
         var destination = new SerializedObject(to);
 
-        foreach (var name in new[] { "category", "sheetNames" })
+        foreach (var name in new[] { "category", DataTableAsset.SheetNamesField })
         {
             var a = source.FindProperty(name);
             var b = destination.FindProperty(name);
@@ -217,6 +231,64 @@ public static class DataTableImporter
             tables.Add(asset);
         }
 
+        SetTables(manager, tables);
+        AssetDatabase.Refresh();
+        return manager;
+    }
+
+    /// 탭 하나를 지운다. 매니저에서 빼고 애셋과 클래스 `.cs`를 휴지통으로 보낸다 —
+    /// `.cs`가 남으면 「탭 새로 고침」이 타입을 다시 찾아 탭을 되살린다.
+    ///
+    /// 다른 스크립트가 그 클래스를 쓰고 있으면 지우지 않는다. 기본 6개 탭은
+    /// `DataManager`가 타입으로 읽어서 지우는 순간 컴파일이 깨진다.
+    /// 지웠으면 true.
+    public static bool DeleteTable(DataManager manager, DataTableAsset table)
+    {
+        var typeName = table.GetType().Name;
+        var assetPath = AssetDatabase.GetAssetPath(table);
+        var scriptPath = AssetDatabase.GetAssetPath(MonoScript.FromScriptableObject(table));
+
+        var users = ScriptsUsing(typeName, scriptPath);
+        if (users.Count > 0)
+        {
+            EditorUtility.DisplayDialog("탭 삭제",
+                $"'{table.Category}' 탭은 지울 수 없다. 이 스크립트가 {typeName}을(를) 쓰고 있다:\n\n" +
+                string.Join("\n", users), "확인");
+            return false;
+        }
+
+        if (!EditorUtility.DisplayDialog("탭 삭제",
+                $"'{table.Category}' 탭을 정말 삭제하시겠습니까?\n\n휴지통으로 보낼 파일:\n{assetPath}\n{scriptPath}\n\n엑셀 시트는 건드리지 않는다.",
+                "삭제", "취소"))
+            return false;
+
+        var tables = new List<DataTableAsset>(manager.Tables);
+        tables.Remove(table);
+        SetTables(manager, tables);
+
+        AssetDatabase.MoveAssetToTrash(assetPath);
+        AssetDatabase.MoveAssetToTrash(scriptPath);
+        return true;
+    }
+
+    /// `typeName`을 단어로 쓰는 `.cs` 파일들. 자기 파일은 뺀다. 버튼을 눌렀을 때 한 번만 돈다.
+    static List<string> ScriptsUsing(string typeName, string selfPath)
+    {
+        var word = new System.Text.RegularExpressions.Regex($@"\b{typeName}\b");
+        var self = Path.GetFullPath(selfPath);
+        var users = new List<string>();
+
+        foreach (var file in Directory.GetFiles("Assets", "*.cs", SearchOption.AllDirectories))
+        {
+            if (Path.GetFullPath(file) == self) continue;
+            if (word.IsMatch(File.ReadAllText(file))) users.Add(file.Replace('\\', '/'));
+        }
+        return users;
+    }
+
+    /// 매니저의 탭 목록을 통째로 바꾼다. 필드가 private이라 `SerializedObject`로 쓴다.
+    static void SetTables(DataManager manager, List<DataTableAsset> tables)
+    {
         var serialized = new SerializedObject(manager);
         var list = serialized.FindProperty("tables");
         list.arraySize = tables.Count;
@@ -225,8 +297,6 @@ public static class DataTableImporter
 
         EditorUtility.SetDirty(manager);
         AssetDatabase.SaveAssets();
-        AssetDatabase.Refresh();
-        return manager;
     }
 
     /// 애셋을 다른 폴더로 옮겨 뒀을 수도 있다. 이름이 아니라 타입으로 찾는다.

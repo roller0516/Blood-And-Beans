@@ -35,7 +35,7 @@ public static class CharacterSelectSetup
         {
             var entry = entries.GetArrayElementAtIndex(i);
             var prefab = ResolveEditorAsset(entry.FindPropertyRelative("model"));
-            if (prefab == null || !prefab.name.StartsWith("Ghost_")) continue;
+            if (prefab == null || !prefab.name.StartsWith(CompletionSetup.ModelPrefix)) continue;
             var path = AssetDatabase.GetAssetPath(prefab);
             Edit(path, root =>
             {

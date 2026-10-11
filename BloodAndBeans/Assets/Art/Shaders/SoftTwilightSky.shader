@@ -12,11 +12,15 @@ Shader "BloodAndBeans/Sky/Soft Twilight"
         _Stars ("Star Brightness", Range(0,1)) = 0.15
         _Exposure ("Exposure", Range(0,4)) = 1
         _Gradient ("Gradient Softness", Range(0.2,3)) = 0.65
+        // 경계 돔 메시에 입힐 때만 켠다. 방향을 카메라 기준으로 잡고 깊이를 써서 돔 바깥을 가린다.
+        [Toggle] _Dome ("Dome Mesh", Float) = 0
+        [Enum(UnityEngine.Rendering.CullMode)] _Cull ("Cull", Float) = 0
+        [Enum(Off,0,On,1)] _ZWrite ("ZWrite", Float) = 0
     }
     SubShader
     {
         Tags { "Queue"="Background" "RenderType"="Background" "PreviewType"="Skybox" }
-        Cull Off ZWrite Off
+        Cull [_Cull] ZWrite [_ZWrite]
         Pass
         {
             HLSLPROGRAM
@@ -27,14 +31,14 @@ Shader "BloodAndBeans/Sky/Soft Twilight"
             struct Attributes { float4 vertex : POSITION; UNITY_VERTEX_INPUT_INSTANCE_ID };
             struct Varyings { float4 position : SV_POSITION; float3 direction : TEXCOORD0; UNITY_VERTEX_OUTPUT_STEREO };
             float4 _Zenith, _Horizon, _Ground, _MoonColor, _MoonDirection;
-            float _MoonSize, _Halo, _Stars, _Exposure, _Gradient;
+            float _MoonSize, _Halo, _Stars, _Exposure, _Gradient, _Dome;
             Varyings vert(Attributes v)
             {
                 Varyings o;
                 UNITY_SETUP_INSTANCE_ID(v);
                 UNITY_INITIALIZE_VERTEX_OUTPUT_STEREO(o);
                 o.position = UnityObjectToClipPos(v.vertex);
-                o.direction = v.vertex.xyz;
+                o.direction = _Dome > 0.5 ? mul(unity_ObjectToWorld, v.vertex).xyz - _WorldSpaceCameraPos : v.vertex.xyz;
                 return o;
             }
             half4 frag(Varyings i) : SV_Target

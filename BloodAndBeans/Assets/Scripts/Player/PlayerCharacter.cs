@@ -22,6 +22,7 @@ public class PlayerCharacter : NetworkBehaviour
     PlayerTeam team;
     PlayerController move;
     PlayerAbilities abilities;
+    PlayerStatus status;
     MatchDirector director;
 
     /// 마지막으로 이동에 밀어 넣은 캐릭터 배수. 같은 값을 매번 다시 밀지 않는다.
@@ -44,6 +45,7 @@ public class PlayerCharacter : NetworkBehaviour
         team = GetComponent<PlayerTeam>();
         move = GetComponent<PlayerController>();
         abilities = GetComponent<PlayerAbilities>();
+        status = GetComponent<PlayerStatus>();
     }
 
     public override void OnNetworkSpawn()
@@ -182,7 +184,8 @@ public class PlayerCharacter : NetworkBehaviour
         var scale = MoveSpeed.Combine(
             windGem: day && cafe != null && cafe.HasGem(Gem.Wind),
             ledgerScale: ledger != null ? ledger.MoveSpeedScale : 1f,
-            abilityScale: day && abilities != null ? abilities.DurationMoveSpeedScale : 1f);
+            abilityScale: day && abilities != null ? abilities.DurationMoveSpeedScale : 1f,
+            statusScale: status != null ? status.MoveSpeedScale : 1f);
 
         if (Mathf.Approximately(scale, pushedPassiveScale)) return;
         pushedPassiveScale = scale;

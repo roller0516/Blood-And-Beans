@@ -21,8 +21,8 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] UIBagStatus bagStatus;
 
     /// 가방 아이콘의 두 얼굴. 비어 있거나 꽉 찼으면 닫힌 쪽, 그 사이에는 열린 쪽이다.
-    Sprite bagClosedSprite;
-    Sprite bagOpenSprite;
+    [SerializeField] Sprite bagClosedSprite;
+    [SerializeField] Sprite bagOpenSprite;
 
     /// 가방이 열려 보이는 적재 구간의 위쪽 끝. 이 값을 넘으면 더 들어가지 않으므로 닫는다.
     ///
@@ -194,10 +194,6 @@ public sealed class UIMatchHudScreen : UIScreen
         // 매번 덮인다.
         if (bagFill != null) bagFillImage = bagFill.GetComponent<Image>();
         if (bagIcon != null) bagIconImage = bagIcon.GetComponent<Image>();
-
-        var resources = ResourceManager.Instance;
-        bagClosedSprite = resources.GetSprite(ResourceManager.BagClosed);
-        bagOpenSprite = resources.GetSprite(ResourceManager.BagOpen);
 
         // 메뉴표는 판 중에 바뀌지 않는다. 화면이 재사용되므로 한 번만 만든다.
         recipeRows = new UIRecipeRow[Menus.All.Length];

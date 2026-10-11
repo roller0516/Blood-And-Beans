@@ -19,6 +19,10 @@ public class OutlineFeature : ScriptableRendererFeature
     [SerializeField] Material nextMaskMaterial;
     [SerializeField] Material nextOutlineMaterial;
 
+    [Header("추적으로 드러난 가방 (BagScentVisuals.RenderingLayerBit)")]
+    [SerializeField] Material scentMaskMaterial;
+    [SerializeField] Material scentOutlineMaterial;
+
     [SerializeField] RenderPassEvent passEvent = RenderPassEvent.AfterRenderingTransparents;
 
     OutlinePass pass;
@@ -30,7 +34,7 @@ public class OutlineFeature : ScriptableRendererFeature
         if (maskMaterial == null || outlineMaterial == null) return;
         if (renderingData.cameraData.cameraType is CameraType.Preview or CameraType.Reflection) return;
 
-        pass.Setup(maskMaterial, outlineMaterial, nextMaskMaterial, nextOutlineMaterial);
+        pass.Setup(maskMaterial, outlineMaterial, nextMaskMaterial, nextOutlineMaterial, scentMaskMaterial, scentOutlineMaterial);
         renderer.EnqueuePass(pass);
     }
 
@@ -47,6 +51,8 @@ public class OutlineFeature : ScriptableRendererFeature
         Material outline;
         Material nextMask;
         Material nextOutline;
+        Material scentMask;
+        Material scentOutline;
 
         class PassData
         {
@@ -55,14 +61,20 @@ public class OutlineFeature : ScriptableRendererFeature
             public bool HasNext;
             public RendererListHandle NextMask;
             public RendererListHandle NextOutline;
+            public bool HasScent;
+            public RendererListHandle ScentMask;
+            public RendererListHandle ScentOutline;
         }
 
-        public void Setup(Material maskMaterial, Material outlineMaterial, Material nextMaskMaterial, Material nextOutlineMaterial)
+        public void Setup(Material maskMaterial, Material outlineMaterial, Material nextMaskMaterial, Material nextOutlineMaterial,
+            Material scentMaskMaterial, Material scentOutlineMaterial)
         {
             mask = maskMaterial;
             outline = outlineMaterial;
             nextMask = nextMaskMaterial;
             nextOutline = nextOutlineMaterial;
+            scentMask = scentMaskMaterial;
+            scentOutline = scentOutlineMaterial;
         }
 
         public override void RecordRenderGraph(RenderGraph renderGraph, ContextContainer frameData)
@@ -88,6 +100,15 @@ public class OutlineFeature : ScriptableRendererFeature
                 builder.UseRendererList(data.NextOutline);
             }
 
+            data.HasScent = scentMask != null && scentOutline != null;
+            if (data.HasScent)
+            {
+                data.ScentMask = RendererList(renderGraph, rendering, camera, light, scentMask, BagScentVisuals.RenderingLayerBit);
+                data.ScentOutline = RendererList(renderGraph, rendering, camera, light, scentOutline, BagScentVisuals.RenderingLayerBit);
+                builder.UseRendererList(data.ScentMask);
+                builder.UseRendererList(data.ScentOutline);
+            }
+
             // 스텐실을 쓰고 읽으므로 깊이·스텐실 버퍼를 같이 묶는다.
             builder.SetRenderAttachment(resources.activeColorTexture, 0);
             builder.SetRenderAttachmentDepth(resources.activeDepthTexture, AccessFlags.ReadWrite);
@@ -97,9 +118,16 @@ public class OutlineFeature : ScriptableRendererFeature
             {
                 context.cmd.DrawRendererList(d.Mask);
                 context.cmd.DrawRendererList(d.Outline);
-                if (!d.HasNext) return;
-                context.cmd.DrawRendererList(d.NextMask);
-                context.cmd.DrawRendererList(d.NextOutline);
+                if (d.HasNext)
+                {
+                    context.cmd.DrawRendererList(d.NextMask);
+                    context.cmd.DrawRendererList(d.NextOutline);
+                }
+                if (d.HasScent)
+                {
+                    context.cmd.DrawRendererList(d.ScentMask);
+                    context.cmd.DrawRendererList(d.ScentOutline);
+                }
             });
         }
 

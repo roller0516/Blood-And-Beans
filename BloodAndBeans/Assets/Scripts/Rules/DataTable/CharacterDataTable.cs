@@ -8,10 +8,6 @@ using UnityEngine;
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/캐릭터", fileName = nameof(CharacterDataTable))]
 public sealed class CharacterDataTable : DataTableAsset
 {
-    public const string SheetCharacter = "character";
-    public const string SheetDaySkill = "dayskill";
-    public const string SheetNightSkill = "nightskill";
-
     [System.Serializable]
     public struct CharacterRow
     {
@@ -76,7 +72,7 @@ public sealed class CharacterDataTable : DataTableAsset
     [System.NonSerialized] public DaySkill[] DaySkillOfNight = System.Array.Empty<DaySkill>();
 
     protected override string DefaultCategory => "캐릭터";
-    protected override string[] DefaultSheetNames => new[] { SheetCharacter, SheetDaySkill, SheetNightSkill };
+    public override string[] SheetSlots => new[] { "캐릭터", "낮 스킬", "밤 스킬" };
 
     public override void ReadSheet(int index, SheetTable sheet)
     {
@@ -143,5 +139,15 @@ public sealed class CharacterDataTable : DataTableAsset
             NightSkillCooldown = cooldown;
             DaySkillOfNight = paired;
         }
+    }
+
+    public override void WriteTo(BalanceData d, List<string> problems)
+    {
+        d.Characters = CharacterTable;
+        d.DaySkillCooldown = DaySkillCooldown;
+        d.DaySkillNames = DaySkillNames;
+        d.DaySkillEffects = DaySkillEffects;
+        d.NightSkillCooldown = NightSkillCooldown;
+        d.DaySkillOfNight = DaySkillOfNight;
     }
 }

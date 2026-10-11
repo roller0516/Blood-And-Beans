@@ -13,7 +13,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Rules::CommonDataTable
   category: "\uACF5\uD1B5 \uB370\uC774\uD130 "
-  sheetNames: []
+  sheetNames:
+  - scalars
   PenaltyMinScale: 0.1
   NightSeconds: 120
   DaySeconds: 120
@@ -57,5 +58,30 @@ MonoBehaviour:
   OverheatSeconds: 3
   EchoRadius: 20
   AppraiseRadius: 8
-  TrackRadius: 18
-  TrackRevealSeconds: 6
+  TrackRadius: 20
+  TrackRevealSeconds: 8
+  CoffinRange: 6
+  CoffinWidth: 2
+  CoffinDepth: 0.8
+  CoffinSeconds: 4
+  BiteRange: 1.2
+  BiteSeconds: 3
+  BiteSpeed: 0.6
+  BiteImmuneSeconds: 5
+  HowlRadius: 5
+  HowlFleeSeconds: 1
+  HowlAllySpeed: 1.3
+  HowlAllySeconds: 2
+  FrogRange: 8
+  FrogSeconds: 2.5
+  FrogSpeed: 1.2
+  BatSwarmRange: 10
+  BatSwarmSeconds: 3
+  BatSwarmVision: 2
+  ArmThrowRange: 8
+  ArmThrowSeconds: 1.5
+  PotionRange: 8
+  PotionRadius: 4
+  PotionSeconds: 6
+  PotionFallSeconds: 0.8
+  PotionImmuneSeconds: 2

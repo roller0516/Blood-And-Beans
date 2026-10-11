@@ -4,7 +4,7 @@ using UnityEngine;
 /// HUD 오버레이에서 로컬 플레이어가 다루는 광장 설비의 완성 게이지를 표시한다 (기획서 5.2·5.4.1).
 public sealed class UICompletionGauge : MonoBehaviour
 {
-    [SerializeField] Canvas canvas;
+    [SerializeField] CanvasGroup group;
     [SerializeField] RectTransform bar;
     [SerializeField] RectTransform good;
     [SerializeField] RectTransform perfect;
@@ -16,7 +16,7 @@ public sealed class UICompletionGauge : MonoBehaviour
     bool lastTarget;
     CompletionGauge soundingGauge;
     int soundingSweep = -1;
-    void Awake() => canvas.enabled = false;
+    void Awake() => group.alpha = 0f;
     void OnEnable() => Station.JudgementShown += OnJudgement;
     void OnDisable()
     {
@@ -36,7 +36,7 @@ public sealed class UICompletionGauge : MonoBehaviour
         var day = MatchDirector.Instance != null && MatchDirector.Instance.Phase.Current == Phase.Day;
         if (!day) judgement?.Clear();
         judgement?.RefreshPosition();
-        canvas.enabled = gauge != null || (judgement != null && judgement.IsPlaying);
+        group.alpha = gauge != null || (judgement != null && judgement.IsPlaying) ? 1f : 0f;
         bar.gameObject.SetActive(gauge != null);
         if (gauge == null) { soundingGauge = null; soundingSweep = -1; lastTenths = -1; return; }
         var cooking = gauge.Station.State == StationState.Cooking;

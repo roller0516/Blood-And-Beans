@@ -264,7 +264,7 @@ public static class ItemVisualBuilder
             entry.FindPropertyRelative("id").intValue = (int)item.id;
             entry.FindPropertyRelative("prefab").FindPropertyRelative("m_AssetGUID").stringValue =
                 AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
-            EnsureAddressable(prefab, "Item" + item.id);
+            EnsureAddressable(prefab, AddressableGroups.ItemAddress + item.id);
         }
 
         var menus = so.FindProperty("menus");
@@ -280,13 +280,13 @@ public static class ItemVisualBuilder
             entry.FindPropertyRelative("id").intValue = (int)item.id;
             entry.FindPropertyRelative("prefab").FindPropertyRelative("m_AssetGUID").stringValue =
                 AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(prefab));
-            EnsureAddressable(prefab, "Menu" + item.id);
+            EnsureAddressable(prefab, AddressableGroups.ItemAddress + "Menu" + item.id);
         }
 
         var unknown = EnsureItem("ItemUnknown", null, PrimitiveType.Cube, Hex(UnknownColour), new(1f, 0.8f, 1f));
         so.FindProperty("unknownProduct").FindPropertyRelative("m_AssetGUID").stringValue =
             AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(unknown));
-        EnsureAddressable(unknown, "ItemUnknown");
+        EnsureAddressable(unknown, AddressableGroups.ItemAddress + "Unknown");
 
         so.ApplyModifiedPropertiesWithoutUndo();
         EditorUtility.SetDirty(config);
@@ -522,7 +522,7 @@ public static class ItemVisualBuilder
         if (settings == null || asset == null) return;
         var guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(asset));
         if (string.IsNullOrEmpty(guid)) return;
-        var group = settings.FindGroup("Default Local Group") ?? settings.DefaultGroup;
+        var group = AddressableGroups.Find(settings, AddressableGroups.Items);
         var entry = settings.CreateOrMoveEntry(guid, group, false, false);
         entry.address = address;
         EditorUtility.SetDirty(settings);

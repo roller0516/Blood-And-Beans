@@ -4,13 +4,13 @@ using System.Text;
 using UnityEditor;
 using UnityEngine;
 
-/// 새 카테고리(왼쪽 탭) 하나를 만드는 폼. 탭 이름·시트 이름·열을 받아 `.cs` 파일을 쓴다.
+/// 새 카테고리(왼쪽 탭) 하나를 만드는 폼. 탭 이름·열을 받아 `.cs` 파일을 쓴다.
 ///
-/// **엑셀 시트는 만들지 않는다.** 사람이 직접 추가한다 — 시트가 없으면 임포트할 때
-/// 「시트 'customer'이(가) 엑셀에 없다」로 알려 주므로 빠뜨려도 조용히 넘어가지 않는다.
+/// **엑셀 시트는 만들지 않는다.** 사람이 직접 추가하고 시트 이름은 인스펙터의 Sheet Names에 적는다 —
+/// 이름이 비었거나 엑셀에 없으면 임포트할 때 알려 주므로 빠뜨려도 조용히 넘어가지 않는다.
 ///
-/// `Rebuild()`는 비워 둔 채로 남긴다. 읽은 행을 규칙이 어떤 모양으로 볼지는 표마다
-/// 다르고, 그 판단은 사람이 한다.
+/// `Rebuild()`·`WriteTo()`는 비워 둔 채로 남긴다. 읽은 행을 규칙이 어떤 모양으로 볼지는
+/// 표마다 다르고, 그 판단은 사람이 한다.
 public sealed class NewDataTableWindow : EditorWindow
 {
     const string FallbackScriptFolder = "Assets/Scripts/Rules/DataTable";
@@ -25,7 +25,6 @@ public sealed class NewDataTableWindow : EditorWindow
 
     string className = "Customer" + Suffix;
     string category = "손님";
-    string sheetName = "customer";
     string summary = "손님 관련 수치 (기획서 5.5).";
 
     [SerializeField] List<Column> columns = new()
@@ -51,7 +50,6 @@ public sealed class NewDataTableWindow : EditorWindow
         EditorGUILayout.LabelField("새 카테고리", EditorStyles.boldLabel);
         className = EditorGUILayout.TextField("클래스 이름", className);
         category = EditorGUILayout.TextField("탭 이름", category);
-        sheetName = EditorGUILayout.TextField("엑셀 시트 이름", sheetName);
         summary = EditorGUILayout.TextField("한 줄 설명", summary);
 
         EditorGUILayout.Space();
@@ -88,7 +86,7 @@ public sealed class NewDataTableWindow : EditorWindow
 
         if (problems.Count == 0)
             EditorGUILayout.HelpBox($"{ScriptFolder}/{className}.cs 를 만든다.\n" +
-                                    "컴파일이 끝나면 임포터 창에서 「탭 새로 고침」을 누른다.", MessageType.Info);
+                                    "컴파일이 끝나면 임포터 창에서 「탭 새로 고침」을 누르고 인스펙터의 Sheet Names를 적는다.", MessageType.Info);
 
         using (new EditorGUI.DisabledScope(problems.Count > 0))
             if (GUILayout.Button("만들기", GUILayout.Height(30f))) Create();
@@ -102,7 +100,7 @@ public sealed class NewDataTableWindow : EditorWindow
     /// 타입 순회를 그대로 두면 창이 떠 있는 내내 디스크를 두드린다.
     void Validate()
     {
-        var signature = $"{className}|{category}|{sheetName}|{columns.Count}";
+        var signature = $"{className}|{category}|{columns.Count}";
         foreach (var column in columns) signature += $"|{column.Header}:{column.Type}";
         if (signature == validated) return;
 
@@ -115,7 +113,6 @@ public sealed class NewDataTableWindow : EditorWindow
         else if (TypeExists(className)) problems.Add("같은 이름의 타입이 이미 있다.");
 
         if (string.IsNullOrWhiteSpace(category)) problems.Add("탭 이름이 비어 있다.");
-        if (string.IsNullOrWhiteSpace(sheetName)) problems.Add("시트 이름이 비어 있다.");
 
         var seen = new HashSet<string>();
         foreach (var column in columns)
@@ -135,7 +132,7 @@ public sealed class NewDataTableWindow : EditorWindow
         File.WriteAllText(path, Build(), new UTF8Encoding(true));
 
         AssetDatabase.ImportAsset(path);
-        CDebug.Log($"데이터 표: {path} 를 만들었다. 컴파일 뒤 「탭 새로 고침」을 누른다.");
+        CDebug.Log($"데이터 표: {path} 를 만들었다. 컴파일 뒤 「탭 새로 고침」을 누르고 인스펙터의 Sheet Names를 적는다.");
 
         Close();
         AssetDatabase.Refresh();
@@ -153,8 +150,6 @@ public sealed class NewDataTableWindow : EditorWindow
         text.AppendLine($"[CreateAssetMenu(menuName = \"Blood & Beans/데이터 표/{category}\", fileName = nameof({className}))]");
         text.AppendLine($"public sealed class {className} : DataTableAsset");
         text.AppendLine("{");
-        text.AppendLine($"    public const string Sheet = \"{sheetName}\";");
-        text.AppendLine();
         text.AppendLine("    [System.Serializable]");
         text.AppendLine("    public struct Row");
         text.AppendLine("    {");
@@ -173,15 +168,22 @@ public sealed class NewDataTableWindow : EditorWindow
         text.AppendLine("    public IReadOnlyList<Row> Rows => rows;");
         text.AppendLine();
         text.AppendLine($"    protected override string DefaultCategory => \"{category}\";");
-        text.AppendLine("    protected override string[] DefaultSheetNames => new[] { Sheet };");
+        text.AppendLine($"    public override string[] SheetSlots => new[] {{ \"{category}\" }};");
         text.AppendLine();
         text.AppendLine($"    public override void ReadSheet(int index, SheetTable sheet) => sheet.Fill(rows, \"{keyField}\");");
         text.AppendLine();
         text.AppendLine("    /// 읽은 행을 규칙이 읽을 모양으로 편다.");
         text.AppendLine("    ///");
         text.AppendLine("    /// ponytail: 아직 비어 있다. 무엇을 어떤 배열로 펼지는 표마다 달라 생성기가");
-        text.AppendLine("    /// 정하지 못한다. `NameDataTable.Rebuild`가 열거자 인덱스 배열의 예다.");
+        text.AppendLine("    /// 정하지 못한다. 재료·종족 표의 `Rebuild`가 열거자 인덱스 배열의 예다.");
         text.AppendLine("    public override void Rebuild()");
+        text.AppendLine("    {");
+        text.AppendLine("    }");
+        text.AppendLine();
+        text.AppendLine("    /// 편 값을 `BalanceData`의 칸에 옮긴다.");
+        text.AppendLine("    ///");
+        text.AppendLine("    /// ponytail: 아직 비어 있다. 규칙이 읽을 칸을 `BalanceData`에 만든 뒤 여기서 채운다.");
+        text.AppendLine("    public override void WriteTo(BalanceData d, List<string> problems)");
         text.AppendLine("    {");
         text.AppendLine("    }");
         text.AppendLine("}");

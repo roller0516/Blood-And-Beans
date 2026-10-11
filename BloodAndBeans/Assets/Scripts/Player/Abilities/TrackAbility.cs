@@ -12,18 +12,19 @@ public sealed class TrackAbility : INightAbility
         var radius = NightSkills.TrackRadius;
         var revealSeconds = NightSkills.TrackRevealSeconds;
         var at = host.transform.position;
-        var hit = false;
 
         // ponytail: 가방 목록을 들고 있는 곳이 없어 전수 조사로 둔다. 상자처럼
         // `MatchDirector`가 모으게 되면 여기도 그 목록을 읽는다.
-        foreach (var bag in Object.FindObjectsByType<BuriedBag>(FindObjectsSortMode.None))
+        foreach (var bag in Object.FindObjectsByType<BuriedBag>())
         {
             if (bag == null || !bag.NetworkObject.IsSpawned) continue;
             if (Vector3.Distance(bag.transform.position, at) > radius) continue;
 
             bag.RevealToServer(host.OwnerClientId, revealSeconds);
-            hit = true;
         }
-        return hit;
+
+        // 찾은 가방이 없어도 본인 화면의 발동 파동은 재생한다.
+        host.CueToOwnerServer(EffectId.TrackSniff, at);
+        return true;
     }
 }
