@@ -1,0 +1,2879 @@
+{
+  "images/unity-luigi-v2-title.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-title.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-title-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-title-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "게임 시작",
+        "x": 21,
+        "y": 57,
+        "size": 4,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "설정",
+        "x": 16.2,
+        "y": 67.7,
+        "size": 3.9,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "게임 종료",
+        "x": 19.8,
+        "y": 77.1,
+        "size": 3.9,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Enter",
+        "x": 5.9,
+        "y": 91.7,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "선택",
+        "x": 10,
+        "y": 91.7,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "ESC",
+        "x": 15.2,
+        "y": 91.7,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "뒤로",
+        "x": 18.8,
+        "y": 91.7,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-rooms.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-rooms.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-rooms-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-rooms-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "방 목록",
+        "x": 18,
+        "y": 21,
+        "size": 6,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "달빛 카페",
+        "x": 25.4,
+        "y": 35.4,
+        "size": 2.4,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "6/8",
+        "x": 39.4,
+        "y": 35.5,
+        "size": 2.4,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "유령의 찻잔",
+        "x": 25.4,
+        "y": 46.599999999999994,
+        "size": 2.4,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "3/8",
+        "x": 39.4,
+        "y": 46.7,
+        "size": 2.4,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "밤의 원두",
+        "x": 25.4,
+        "y": 57.8,
+        "size": 2.4,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "4/8",
+        "x": 39.4,
+        "y": 57.9,
+        "size": 2.4,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "안개 등대",
+        "x": 25.4,
+        "y": 69,
+        "size": 2.4,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "2/8",
+        "x": 39.4,
+        "y": 69.1,
+        "size": 2.4,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "달빛 카페",
+        "x": 53.8,
+        "y": 53,
+        "size": 3.3,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "6/8",
+        "x": 67,
+        "y": 53,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 수",
+        "x": 49.7,
+        "y": 61.1,
+        "size": 1.9,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "4팀",
+        "x": 59,
+        "y": 67,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "2 - 4팀 선택 가능",
+        "x": 59,
+        "y": 73,
+        "size": 1.45,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "새로고침",
+        "x": 12.3,
+        "y": 89,
+        "size": 1.8,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "방 만들기",
+        "x": 27.1,
+        "y": 89,
+        "size": 1.8,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "뒤로",
+        "x": 40.4,
+        "y": 89,
+        "size": 1.8,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "들어가기",
+        "x": 86.2,
+        "y": 87.6,
+        "size": 3.3,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-crew.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-crew.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-crew-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-crew-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "오늘의 크루",
+        "x": 18,
+        "y": 12.2,
+        "size": 6.3,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "커피는 함께, 밤은 대담하게.",
+        "x": 18.3,
+        "y": 20.6,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "준비한 크루",
+        "x": 87.1,
+        "y": 6,
+        "size": 1.6,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "6/8",
+        "x": 94.2,
+        "y": 6,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "선택한 크루",
+        "x": 16.5,
+        "y": 51.6,
+        "size": 1.3,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 18.2,
+        "y": 58.6,
+        "size": 4.1,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "JinKyu",
+        "x": 68.5,
+        "y": 23.3,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Mina",
+        "x": 76.5,
+        "y": 23.3,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Noah",
+        "x": 84.5,
+        "y": 23.3,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Yuna",
+        "x": 92.5,
+        "y": 23.3,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Haru",
+        "x": 68.5,
+        "y": 40.400000000000006,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Sora",
+        "x": 76.5,
+        "y": 40.400000000000006,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Leon",
+        "x": 84.5,
+        "y": 40.400000000000006,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Nari",
+        "x": 92.5,
+        "y": 40.400000000000006,
+        "size": 1.18,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "CREW REGISTRATION",
+        "x": 72.3,
+        "y": 47.8,
+        "size": 0.85,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 70,
+        "y": 53,
+        "size": 2.6,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "커피와 함께, 밤은 대담하게.",
+        "x": 79.8,
+        "y": 54.3,
+        "size": 0.9,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "낮 | 불붙이기",
+        "x": 75.2,
+        "y": 58.4,
+        "size": 1.6,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "조리 시간 단축",
+        "x": 77.2,
+        "y": 61,
+        "size": 1.1,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "밤 | 도깨비불",
+        "x": 75.2,
+        "y": 65,
+        "size": 1.6,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "가짜 아이템 박스 설치",
+        "x": 78.4,
+        "y": 67.7,
+        "size": 1.1,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "팀 1",
+        "x": 68.3,
+        "y": 74.9,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 75.85,
+        "y": 74.9,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 83.39999999999999,
+        "y": 74.9,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 90.94999999999999,
+        "y": 74.9,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 34.2,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "박쥐",
+        "x": 42.050000000000004,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "연금술사",
+        "x": 49.900000000000006,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "하운드",
+        "x": 57.75,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "미믹",
+        "x": 65.6,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "ESC",
+        "x": 5.3,
+        "y": 94,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "뒤로",
+        "x": 9.4,
+        "y": 94,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "F1",
+        "x": 73.5,
+        "y": 94,
+        "size": 1,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "정보",
+        "x": 77.3,
+        "y": 94,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "준비 완료",
+        "x": 91.7,
+        "y": 92,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-room.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-room.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-room-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-room-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "크루 대기실",
+        "x": 24,
+        "y": 19.2,
+        "size": 6,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "준비",
+        "x": 40.3,
+        "y": 22.8,
+        "size": 1.6,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "6/8",
+        "x": 44,
+        "y": 23,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 1",
+        "x": 11.2,
+        "y": 32.5,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 32.4,
+        "y": 32.5,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 11.2,
+        "y": 57,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 32.4,
+        "y": 57,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "JinKyu",
+        "x": 10.6,
+        "y": 49.9,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Mina",
+        "x": 20.4,
+        "y": 49.9,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Noah",
+        "x": 32.5,
+        "y": 49.9,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Yuna",
+        "x": 40.4,
+        "y": 49.9,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Sora",
+        "x": 10.6,
+        "y": 73.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Haru",
+        "x": 20.4,
+        "y": 73.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Minji",
+        "x": 32.5,
+        "y": 73.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Taehyun",
+        "x": 40.4,
+        "y": 73.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "게임 시작",
+        "x": 28.7,
+        "y": 85.7,
+        "size": 3.4,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "나가기",
+        "x": 47.9,
+        "y": 85.8,
+        "size": 1.9,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-day.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-day.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-day-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-day-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "팀 1",
+        "x": 7.2,
+        "y": 6.8,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "5G",
+        "x": 12.3,
+        "y": 6.8,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 7.2,
+        "y": 11.7,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 11.7,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 7.2,
+        "y": 16.6,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 16.6,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 7.2,
+        "y": 21.5,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 21.5,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "00:38",
+        "x": 48.7,
+        "y": 5.3,
+        "size": 3.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1일차 / 7",
+        "x": 56.1,
+        "y": 5.4,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "17",
+        "x": 37.1,
+        "y": 13,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "35",
+        "x": 46.4,
+        "y": 13.7,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "35",
+        "x": 55.8,
+        "y": 13.7,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "5 / 50G",
+        "x": 93.2,
+        "y": 6.7,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "매출 목표",
+        "x": 91.4,
+        "y": 11.5,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Q",
+        "x": 4.9,
+        "y": 94,
+        "size": 1.4,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "F1",
+        "x": 90.2,
+        "y": 93.3,
+        "size": 1.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "조합법",
+        "x": 95,
+        "y": 93.3,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "조리 가능",
+        "x": 58.9,
+        "y": 43.2,
+        "size": 1.2,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "아메리카노",
+        "x": 58.9,
+        "y": 46,
+        "size": 1.05,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "1 / 1",
+        "x": 58.7,
+        "y": 57.8,
+        "size": 0.9,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "F",
+        "x": 61.2,
+        "y": 57.7,
+        "size": 1.2,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-making.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-making.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-making-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-making-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "팀 1",
+        "x": 7.2,
+        "y": 6.8,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "5G",
+        "x": 12.3,
+        "y": 6.8,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 7.2,
+        "y": 11.7,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 11.7,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 7.2,
+        "y": 16.6,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 16.6,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 7.2,
+        "y": 21.5,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "0G",
+        "x": 12.3,
+        "y": 21.5,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "00:38",
+        "x": 48.7,
+        "y": 5.3,
+        "size": 3.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1일차 / 7",
+        "x": 56.1,
+        "y": 5.4,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "17",
+        "x": 37.1,
+        "y": 13,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "35",
+        "x": 46.4,
+        "y": 13.7,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "35",
+        "x": 55.8,
+        "y": 13.7,
+        "size": 1.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "5 / 50G",
+        "x": 93.2,
+        "y": 6.7,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "매출 목표",
+        "x": 91.4,
+        "y": 11.5,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Q",
+        "x": 4.9,
+        "y": 94,
+        "size": 1.4,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "F1",
+        "x": 90.2,
+        "y": 93.3,
+        "size": 1.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "조합법",
+        "x": 95,
+        "y": 93.3,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "조리 가능",
+        "x": 69.3,
+        "y": 36.4,
+        "size": 1.8,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "아메리카노",
+        "x": 69.3,
+        "y": 40.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "1 / 1",
+        "x": 69.1,
+        "y": 59.9,
+        "size": 1.1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "F",
+        "x": 73.2,
+        "y": 59.9,
+        "size": 1.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "완성 타이밍",
+        "x": 69.7,
+        "y": 67.9,
+        "size": 1.65,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "MISS",
+        "x": 58.8,
+        "y": 79.4,
+        "size": 0.95,
+        "font": "number",
+        "style": "red",
+        "align": "center"
+      },
+      {
+        "text": "GOOD",
+        "x": 64.1,
+        "y": 79.4,
+        "size": 0.95,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "PERFECT",
+        "x": 69.39999999999999,
+        "y": 79.4,
+        "size": 0.95,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "GOOD",
+        "x": 74.69999999999999,
+        "y": 79.4,
+        "size": 0.95,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "MISS",
+        "x": 80,
+        "y": 79.4,
+        "size": 0.95,
+        "font": "number",
+        "style": "red",
+        "align": "center"
+      },
+      {
+        "text": "PERFECT!",
+        "x": 90.2,
+        "y": 76.5,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-return.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-return.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-return-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-return-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": []
+  },
+  "images/unity-luigi-v2-loading.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-loading.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-loading-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-loading-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": []
+  },
+  "images/unity-luigi-v2-cue.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-cue.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-cue-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-cue-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": []
+  },
+  "images/unity-luigi-v2-settlement.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-settlement.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-settlement-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-settlement-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "DAY 03",
+        "x": 40.1,
+        "y": 17.2,
+        "size": 1.6,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "하루 정산",
+        "x": 39.3,
+        "y": 24.1,
+        "size": 4.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "오늘 매출",
+        "x": 33,
+        "y": 36.4,
+        "size": 1.55,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "340",
+        "x": 45.3,
+        "y": 36.3,
+        "size": 4.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "오늘 임대료",
+        "x": 33.2,
+        "y": 46.7,
+        "size": 1.55,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "120",
+        "x": 46.8,
+        "y": 46.2,
+        "size": 2.9,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "납부",
+        "x": 31.6,
+        "y": 55.7,
+        "size": 1.55,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "완납",
+        "x": 44.9,
+        "y": 55.3,
+        "size": 3,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "연속 미납",
+        "x": 32.5,
+        "y": 64.9,
+        "size": 1.6,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "0일",
+        "x": 47,
+        "y": 65,
+        "size": 2.65,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "순위 - 누적 매출",
+        "x": 68,
+        "y": 12.2,
+        "size": 2.3,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "우리",
+        "x": 70.7,
+        "y": 20.7,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1,240",
+        "x": 88.8,
+        "y": 19.9,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "B",
+        "x": 70.7,
+        "y": 28.1,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1,180",
+        "x": 88.8,
+        "y": 27.599999999999998,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "C",
+        "x": 70.7,
+        "y": 35.5,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "980",
+        "x": 88.8,
+        "y": 35.3,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "D",
+        "x": 70.7,
+        "y": 42.900000000000006,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "720",
+        "x": 88.8,
+        "y": 43,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "자동 진행",
+        "x": 95.7,
+        "y": 3.5,
+        "size": 1.3,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "10초",
+        "x": 95.7,
+        "y": 7.3,
+        "size": 2.2,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "내일의 손님 예보",
+        "x": 72.3,
+        "y": 54,
+        "size": 2.4,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "인기 재료",
+        "x": 67.9,
+        "y": 67.5,
+        "size": 1.45,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "자동 적용",
+        "x": 15.7,
+        "y": 79,
+        "size": 2,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "불씨",
+        "x": 16,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "조리시간 -30%",
+        "x": 16,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 16.5,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "저울",
+        "x": 29.4,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "Perfect구간 +40%",
+        "x": 29.4,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 30.1,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "바람",
+        "x": 42.8,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "이동속도 +12%",
+        "x": 42.8,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 43.7,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "거품",
+        "x": 56.2,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "세척시간 -35%",
+        "x": 56.2,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 57.3,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "각인",
+        "x": 69.6,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "쿨타임 -25%",
+        "x": 69.6,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 70.9,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "찻잎",
+        "x": 83,
+        "y": 84.8,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "손님인내심 +20%",
+        "x": 83,
+        "y": 88,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "left"
+      },
+      {
+        "text": "3턴",
+        "x": 84.5,
+        "y": 91.1,
+        "size": 1,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "1",
+        "x": 61.2,
+        "y": 21.1,
+        "size": 2.3,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "2",
+        "x": 61.2,
+        "y": 28.5,
+        "size": 2.3,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "3",
+        "x": 61.2,
+        "y": 35.900000000000006,
+        "size": 2.3,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "4",
+        "x": 61.2,
+        "y": 43.300000000000004,
+        "size": 2.3,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-final.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-final.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-final-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-final-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "최종 결과",
+        "x": 46.8,
+        "y": 18.5,
+        "size": 6.2,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1팀 승리",
+        "x": 46.8,
+        "y": 30,
+        "size": 5.9,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "최종 순위",
+        "x": 77.6,
+        "y": 21.5,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1팀",
+        "x": 67.3,
+        "y": 35.5,
+        "size": 1.9,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "18,420G",
+        "x": 89.2,
+        "y": 34.4,
+        "size": 2.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "100%",
+        "x": 85.1,
+        "y": 38.6,
+        "size": 0.95,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "2팀",
+        "x": 67.3,
+        "y": 47.2,
+        "size": 1.9,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "16,750G",
+        "x": 89.2,
+        "y": 46.8,
+        "size": 2.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "90.93%",
+        "x": 83.6,
+        "y": 50.900000000000006,
+        "size": 0.95,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "3팀",
+        "x": 67.3,
+        "y": 58.9,
+        "size": 1.9,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "15,200G",
+        "x": 89.2,
+        "y": 59.2,
+        "size": 2.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "82.52%",
+        "x": 82.1,
+        "y": 63.2,
+        "size": 0.95,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "4팀",
+        "x": 67.3,
+        "y": 70.6,
+        "size": 1.9,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "12,800G",
+        "x": 89.2,
+        "y": 71.6,
+        "size": 2.7,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "69.49%",
+        "x": 80.6,
+        "y": 75.5,
+        "size": 0.95,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "로비로",
+        "x": 71.4,
+        "y": 86.7,
+        "size": 2.1,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "한 판 더",
+        "x": 86.9,
+        "y": 87,
+        "size": 2.1,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "1",
+        "x": 62.9,
+        "y": 37.5,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "2",
+        "x": 62.9,
+        "y": 49,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "3",
+        "x": 62.9,
+        "y": 60.5,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "4",
+        "x": 62.9,
+        "y": 72,
+        "size": 3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-settings.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-settings.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-settings-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-settings-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "게임 시작",
+        "x": 11.1,
+        "y": 51,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "설정",
+        "x": 10.1,
+        "y": 60,
+        "size": 2.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "게임 종료",
+        "x": 12.2,
+        "y": 68.3,
+        "size": 2.65,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "설\n정",
+        "x": 34.5,
+        "y": 42.8,
+        "size": 5.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "전체 음량",
+        "x": 41.6,
+        "y": 34.1,
+        "size": 1.75,
+        "font": "body",
+        "style": "ink",
+        "align": "left"
+      },
+      {
+        "text": "배경음",
+        "x": 41.6,
+        "y": 40.45,
+        "size": 1.75,
+        "font": "body",
+        "style": "ink",
+        "align": "left"
+      },
+      {
+        "text": "효과음",
+        "x": 41.6,
+        "y": 46.8,
+        "size": 1.75,
+        "font": "body",
+        "style": "ink",
+        "align": "left"
+      },
+      {
+        "text": "마우스 감도",
+        "x": 41.6,
+        "y": 53.15,
+        "size": 1.75,
+        "font": "body",
+        "style": "ink",
+        "align": "left"
+      },
+      {
+        "text": "전체 화면",
+        "x": 41.6,
+        "y": 59.5,
+        "size": 1.75,
+        "font": "body",
+        "style": "ink",
+        "align": "left"
+      },
+      {
+        "text": "80",
+        "x": 71.3,
+        "y": 34.1,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "65",
+        "x": 71.3,
+        "y": 40.5,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "85",
+        "x": 71.3,
+        "y": 46.9,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1.0",
+        "x": 71.3,
+        "y": 53.3,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "감도는 카메라 회전 시 표시.",
+        "x": 68.1,
+        "y": 60.8,
+        "size": 1.05,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "적용하고 닫기",
+        "x": 57,
+        "y": 69.2,
+        "size": 2.2,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-variants/crew-multi.webp": {
+    "source": "unity-variants/crew-multi.png",
+    "blankSource": "unity-variants/crew-multi-font-template.png",
+    "blankUrl": "images/unity-variants/crew-multi-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "오늘의 크루",
+        "x": 18.3,
+        "y": 12.3,
+        "size": 6.2,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "커피는 함께, 밤은 대담하게.",
+        "x": 18.3,
+        "y": 20.5,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "준비한 크루",
+        "x": 86.3,
+        "y": 10,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "6/8",
+        "x": 93.2,
+        "y": 10,
+        "size": 2.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 1",
+        "x": 16,
+        "y": 29.9,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 38.6,
+        "y": 29.9,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 61.2,
+        "y": 29.9,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 83.80000000000001,
+        "y": 29.9,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "JinKyu",
+        "x": 11.2,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Mina",
+        "x": 21.3,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Noah",
+        "x": 33.8,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Yuna",
+        "x": 43.5,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Haru",
+        "x": 56.8,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Sora",
+        "x": 66.7,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Leon",
+        "x": 79.3,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "Nari",
+        "x": 89.5,
+        "y": 59.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "선택한 크루",
+        "x": 30.8,
+        "y": 68.6,
+        "size": 1.1,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 30.8,
+        "y": 73.3,
+        "size": 2.7,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "낮 | 불붙이기",
+        "x": 48.5,
+        "y": 70.3,
+        "size": 1.65,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "조리 시간 단축",
+        "x": 51,
+        "y": 73.3,
+        "size": 1.1,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "밤 | 도깨비불",
+        "x": 68,
+        "y": 70.3,
+        "size": 1.65,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "가짜 아이템 박스 설치",
+        "x": 71,
+        "y": 73.3,
+        "size": 1.1,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 34.2,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "박쥐",
+        "x": 42,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "연금술사",
+        "x": 49.800000000000004,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "하운드",
+        "x": 57.6,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "미믹",
+        "x": 65.4,
+        "y": 91.8,
+        "size": 0.95,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "ESC",
+        "x": 5.3,
+        "y": 94,
+        "size": 1.05,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "뒤로",
+        "x": 9.4,
+        "y": 94,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "F1",
+        "x": 73.5,
+        "y": 94,
+        "size": 1,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "정보",
+        "x": 77.3,
+        "y": 94,
+        "size": 1.15,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "준비 완료",
+        "x": 91.7,
+        "y": 92,
+        "size": 2.7,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  },
+  "images/unity-luigi-v2-shared.webp": {
+    "source": "unity-concepts-v2/unity-luigi-v2-shared.png",
+    "blankSource": "unity-concepts-v2/unity-luigi-v2-shared-font-template.png",
+    "blankUrl": "images/unity-luigi-v2-shared-font-template.webp",
+    "width": 1672,
+    "height": 941,
+    "labels": [
+      {
+        "text": "공통 UI · 선택과 표시",
+        "x": 29.1,
+        "y": 8.3,
+        "size": 5,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "캐릭터 클래스 카드",
+        "x": 14.8,
+        "y": 17.1,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "도깨비",
+        "x": 12.9,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 12.9,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "박쥐",
+        "x": 27.6,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 27.6,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "연금술사",
+        "x": 42.3,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 42.3,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "하운드",
+        "x": 56.99999999999999,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 56.99999999999999,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "미믹",
+        "x": 71.7,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 71.7,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "박쥐",
+        "x": 86.4,
+        "y": 38.5,
+        "size": 1.85,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "점유 상태",
+        "x": 86.4,
+        "y": 42.7,
+        "size": 1.35,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 선택 버튼",
+        "x": 11,
+        "y": 49.3,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 1",
+        "x": 8.9,
+        "y": 56.8,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 2",
+        "x": 17.35,
+        "y": 56.8,
+        "size": 1.8,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "팀 3",
+        "x": 25.799999999999997,
+        "y": 56.8,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 4",
+        "x": 34.25,
+        "y": 56.8,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "플레이어 명패",
+        "x": 45.6,
+        "y": 49,
+        "size": 1.8,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "진규",
+        "x": 49.9,
+        "y": 57,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "YOU",
+        "x": 53.2,
+        "y": 56.7,
+        "size": 1.2,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "미나",
+        "x": 64.5,
+        "y": 57,
+        "size": 1.7,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "보석 아이콘 (남은 턴 수 표시)",
+        "x": 15.5,
+        "y": 65.4,
+        "size": 1.65,
+        "font": "title",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "불씨",
+        "x": 9.9,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "3",
+        "x": 13.1,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "저울",
+        "x": 20.6,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "3",
+        "x": 23.799999999999997,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "바람",
+        "x": 31.299999999999997,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "2",
+        "x": 34.5,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "거품",
+        "x": 41.99999999999999,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "2",
+        "x": 45.199999999999996,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "각인",
+        "x": 52.699999999999996,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1",
+        "x": 55.9,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "찻잎",
+        "x": 63.4,
+        "y": 80.1,
+        "size": 1.2,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1",
+        "x": 66.6,
+        "y": 70.9,
+        "size": 2.1,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "팀 순위 표시",
+        "x": 78.5,
+        "y": 50.6,
+        "size": 1.8,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "우리",
+        "x": 82.7,
+        "y": 55.9,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "640G",
+        "x": 93.4,
+        "y": 55.9,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "B",
+        "x": 82.7,
+        "y": 61.8,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "520G",
+        "x": 93.4,
+        "y": 61.8,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "C",
+        "x": 82.7,
+        "y": 67.7,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "380G",
+        "x": 93.4,
+        "y": 67.7,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "D",
+        "x": 82.7,
+        "y": 73.6,
+        "size": 1.5,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "310G",
+        "x": 93.4,
+        "y": 73.6,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "기본 UI 버튼",
+        "x": 9,
+        "y": 86.5,
+        "size": 1.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "기본 상태",
+        "x": 8.1,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "선택 상태",
+        "x": 16.6,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "사용 불가",
+        "x": 25.1,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "볼륨 슬라이더",
+        "x": 35.8,
+        "y": 86.5,
+        "size": 1.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "70%",
+        "x": 48.4,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "number",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "패널 탭",
+        "x": 54.7,
+        "y": 86.5,
+        "size": 1.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "커피",
+        "x": 57.5,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "디저트",
+        "x": 66.7,
+        "y": 91.8,
+        "size": 1.4,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "레시피 예시",
+        "x": 77,
+        "y": 81.4,
+        "size": 1.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "카페라떼",
+        "x": 75.1,
+        "y": 86.1,
+        "size": 1.25,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "30G",
+        "x": 94.8,
+        "y": 86.1,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "정산 표시 예시",
+        "x": 77,
+        "y": 93.1,
+        "size": 1.5,
+        "font": "title",
+        "style": "ink",
+        "align": "center"
+      },
+      {
+        "text": "임대료",
+        "x": 84,
+        "y": 92.9,
+        "size": 1.25,
+        "font": "body",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "120G",
+        "x": 94.7,
+        "y": 92.9,
+        "size": 1.5,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "1",
+        "x": 74.2,
+        "y": 55.9,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "2",
+        "x": 74.2,
+        "y": 61.8,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "3",
+        "x": 74.2,
+        "y": 67.7,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      },
+      {
+        "text": "4",
+        "x": 74.2,
+        "y": 73.6,
+        "size": 2.3,
+        "font": "number",
+        "style": "cream",
+        "align": "center"
+      }
+    ]
+  }
+}

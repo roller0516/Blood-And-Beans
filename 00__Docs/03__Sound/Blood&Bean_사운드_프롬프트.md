@@ -161,7 +161,7 @@ Stylized cartoon sound effect for a cute-spooky 3D party game, night scene in a 
 
 ## 2. BGM
 
-**지금 들어 있는 트랙(`BGM/`)은 그대로 두고, 같은 자리에 새로 뽑아 비교할 때 쓴다.** 낮 · 밤은 2분 페이즈라 **60초를 뽑아 Loop로 이어** 쓴다.
+**쓰는 곡은 정해졌다 — 로비 `BGM_Lobby` (Friendly Anticipation) · 낮 `BGM_Day` (Halloween Groove) · 밤 `BGM_Night` (Spooky Party Swing)** (`BGM/CLAUDE.md`). 아래는 다시 뽑거나 타이틀 · 메인 메뉴를 뽑을 때 쓴다. 낮 · 밤은 2분 페이즈라 **60초를 뽑아 Loop로 이어** 쓴다.
 
 ### 공통 톤 — BGM 앞에 붙인다
 ```
@@ -183,3 +183,25 @@ same theme as the reference, faster and more urgent, added ticking percussion an
 
 - **효과음 자리를 비워 둔다** — 낮은 판정 · 판매 · 경고 소리가 계속 울리고, 밤은 소리가 정보다 (리스트 0.1). 프롬프트의 `leaves space` · `sparse`를 빼지 않는다
 - 공포 쪽으로 기울면 `never truly scary`를 앞으로 옮기거나 피드백으로 「더 코믹하게」를 준다
+
+### 2.1 단독 프롬프트 — 로비 · 낮 · 밤
+
+**공통 톤까지 한 덩어리로 들어 있다 — 앞에 아무것도 붙이지 않고 그대로 넣는다.** 낮 · 밤은 BGM을 하나씩만 쓴다.
+
+**1. 로비 (BGM_Lobby)** — 방 고르고 캐릭터 고르며 기다리는 곡. 들뜨지만 편안하게
+```
+Background music loop for the lobby of a cute-spooky 3D party game where little monsters (vampire, zombie, werewolf, witch) run a café by day and scavenge a foggy forest by night. Friendly, bouncy anticipation before a match. Medium swing groove, 108 BPM, major key with playful spooky chromatic turns. Instruments: pizzicato strings, upright bass, brushed drums, harpsichord, glockenspiel, a light theremin melody. Catchy whistle-able main motif, warm and cozy, never scary. Instrumental, no vocals. 60 seconds, seamless loop, ends where it begins.
+```
+
+**2. 낮 — 카페 영업 (BGM_Day)** — 4팀이 광장에서 설비를 다투며 만드는 2분. 효과음이 계속 울리므로 멜로디를 높고 빽빽하게 쓰지 않는다
+```
+Background music loop for the daytime café rush of a cute-spooky 3D party game, four teams of little monsters racing to brew coffee in a busy town square. Fast, cheerful, comedic, 132 BPM, upbeat swing jazz with Halloween flavor. Instruments: accordion, pizzicato strings, bouncy tuba bassline, xylophone, hand claps, short muted brass stabs. Constant energy for two minutes without getting tiring. Keep the melody in the mid-low range and the arrangement uncluttered so frequent sound effects stay clear. Instrumental, no vocals. 60 seconds, seamless loop.
+```
+
+**3. 밤 — 안개 숲 (BGM_Night)** — 몰래 캐고 들이받고 묻는 2분. 소리가 정보라서 발소리 · 상자 소리 자리를 비운다
+```
+Background music loop for nighttime scavenging in a foggy haunted forest, from a cute-spooky 3D party game. Sneaky, mischievous, comedic stealth with light tension, 96 BPM, minor key. Instruments: plucked pizzicato bass, bass clarinet, celesta, muted trumpet, woodblocks, soft timpani hits, faint eerie choir pad. Tiptoeing rhythm, playful not horror. Sparse arrangement with lots of space so footsteps and sound cues stay audible. Instrumental, no vocals. 60 seconds, seamless loop.
+```
+
+- **로비를 먼저 뽑고**, 고른 결과를 낮 · 밤의 레퍼런스 오디오로 넣는다 — 세 곡의 악기 질감이 맞는다
+- 밤이 공포 쪽으로 기울면 「더 코믹하게」 「덜 무섭게」 피드백

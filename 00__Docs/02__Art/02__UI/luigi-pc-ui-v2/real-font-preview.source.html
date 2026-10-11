@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Blood & Beans · 실제 폰트 미리보기</title>
+<style>
+@font-face{font-family:BBBagel;src:url('@@BAGEL@@') format('truetype');font-weight:400;font-style:normal;font-display:block}
+@font-face{font-family:BBJua;src:url('@@JUA@@') format('truetype');font-weight:400;font-style:normal;font-display:block}
+@font-face{font-family:BBCoiny;src:url('@@COINY@@') format('truetype');font-weight:400;font-style:normal;font-display:block}
+*{box-sizing:border-box}body{margin:0;background:#f2eee5;color:#243c31;font-family:BBJua,sans-serif;font-synthesis:none}main{max-width:1200px;margin:auto;padding:25px 24px 50px}h1{font:400 30px BBBagel;margin:4px 0 10px}p{margin:8px 0;color:#65746b;font-size:15px;line-height:1.5}.eyebrow{font:400 12px BBCoiny;letter-spacing:2px;color:#797052}.controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;background:#fffaf0;border:1px solid #d1c8b2;border-radius:10px;padding:12px 14px;margin:18px 0 12px}.control{display:flex;gap:8px;align-items:center;font-size:14px}select,input,button{font:inherit;color:inherit;border:1px solid #c9c1ab;border-radius:5px;background:#fff;padding:6px 9px}input[type=text]{width:78px}button{cursor:pointer}button[aria-pressed=true]{background:#274c39;color:#fff7dd;border-color:#274c39}.status{font-size:12px;color:#65746b;margin:10px 0}.stage{position:relative;aspect-ratio:1672/941;width:100%;container-type:inline-size;background:#121f1a;border-radius:8px;overflow:hidden;--title:BBBagel;--number:BBCoiny}.layer-img{width:100%;height:100%;display:block}.source-original{display:none}.text{position:absolute;transform:translate(-50%,-50%);font:400 var(--size,2cqw)/1.05 var(--title);white-space:nowrap;color:#fff3cf;paint-order:stroke fill;-webkit-text-stroke:.065cqw #182c1d;text-shadow:0 .09cqw 0 #927246,0 .17cqw .04cqw #060e09;letter-spacing:.01em}.number{font-family:var(--number);letter-spacing:-.035em}.body-text{font-family:BBJua}.ink{color:#29412c;-webkit-text-stroke:.07cqw #ffebbc;text-shadow:0 .10cqw 0 #95754b,0 .17cqw .06cqw #523d2a}.red{color:#ff8377}.parts{position:absolute;left:56%;top:22%;width:40%;aspect-ratio:1448/1086;container-type:inline-size}.parts .text{--size:2.8cqw;-webkit-text-stroke:.13cqw #172b1c;text-shadow:0 .18cqw 0 #927246,0 .35cqw .08cqw #07170d}.parts .ink{-webkit-text-stroke:.14cqw #ffe9b5;text-shadow:0 .18cqw 0 #a78857,0 .32cqw .08cqw #81663c}.parts .panel-title{--size:6.2cqw;letter-spacing:-.025em}.parts .panel-caption{--size:3.0cqw}.parts .state{--size:3.0cqw}.parts .weight{--size:2.8cqw}.parts .key{--size:2.7cqw}.parts .cooldown{--size:6.5cqw}.parts .return-title{--size:3.8cqw}.parts .return-body{--size:2.3cqw}.plain .text{-webkit-text-stroke:0;text-shadow:none}.original .source-original{display:block}.original .source-blank,.original .text{display:none}.detail .stage{aspect-ratio:1448/1086;max-width:920px;margin:auto;background:#14271f}.detail .night-layer{display:none}.detail .parts{inset:0;width:100%;height:100%}.hud-only .parts{display:none}.notes{font-size:14px;line-height:1.65;margin-top:14px}details{margin-top:16px;border-top:1px solid #ccc6b7;padding-top:12px}summary{cursor:pointer}pre{font:12px/1.45 monospace;white-space:pre-wrap;color:#555;max-height:250px;overflow:auto}.license-links a{color:#306148}body[data-fonts=loading] .stage{visibility:hidden}@media(max-width:700px){main{padding:18px 12px}h1{font-size:24px}.controls{gap:10px}.control{font-size:12px}}
+#focus{float:right;font-size:13px}.focus-mode main{padding:14px 12px}.focus-mode main>.eyebrow,.focus-mode h1,.focus-mode main>p,.focus-mode .controls,.focus-mode details{display:none}.focus-mode .stage{width:min(100%,calc((100dvh - 80px) * 1.77683));margin:0 auto}.focus-mode.detail .stage{width:min(100%,calc((100dvh - 80px) * 1.33333))}.focus-mode #focus{position:fixed;bottom:12px;right:20px;z-index:3}.focus-mode #status{position:fixed;bottom:12px;left:24px;max-width:calc(100% - 180px);font-size:12px}
+</style>
+<body data-fonts="loading"><main>
+<div class="eyebrow">BLOOD & BEANS · REAL FONT PREVIEW</div>
+<button type="button" id="focus">화면만 보기</button>
+<h1>루이지 컨셉 · 실제 폰트 적용</h1>
+<p>밤 UI의 글자를 실제 서체로 적용했습니다. 한글과 숫자를 바꿔 보시면서 기존 시안과 비교하실 수 있습니다.</p>
+<div class="controls">
+ <div class="control"><span>보기</span><button type="button" data-view="combined" aria-pressed="true">밤 + 부품</button><button type="button" data-view="hud" aria-pressed="false">밤 HUD</button><button type="button" data-view="detail" aria-pressed="false">부품 크게</button></div>
+ <label class="control">글자 <select id="source"><option value="real">실제 폰트 적용</option><option value="original">기존 이미지 글자</option></select></label>
+ <label class="control">한글 <select id="korean"><option value="BBBagel">Bagel Fat One</option><option value="BBJua">Jua · 주아</option></select></label>
+ <label class="control">숫자 <select id="numbers"><option value="BBCoiny">Coiny</option><option value="BBBagel">Bagel Fat One</option></select></label>
+ <label class="control"><input id="effect" type="checkbox" checked>외곽선·그림자</label>
+ <label class="control">시간 <input id="clock" type="text" value="00:13" maxlength="5" aria-label="시간 값"></label>
+</div>
+<div id="status" class="status" role="status">폰트 파일을 불러오는 중…</div>
+<div class="stage" id="stage" aria-label="실제 폰트가 적용된 밤 UI">
+ <div class="night-layer">
+  <img class="layer-img source-blank" src="@@NIGHT@@" alt="밤 UI의 빈 글자 패널">
+  <img class="layer-img source-original" src="@@ORIGINAL_NIGHT@@" alt="기존 밤 UI 시안">
+  <span class="text number" style="left:8.25%;top:5.25%;--size:2.5cqw">0G</span>
+  <span class="text body-text" style="left:8.25%;top:9%;--size:1.1cqw">팀 매출</span>
+  <span class="text body-text" style="left:8.65%;top:14.05%;--size:1.22cqw">가방 <span class="number">0 <span class="body-text">/</span> 10 KG</span></span>
+  <span class="text" style="left:50.75%;top:3.72%;--size:1.32cqw">1일차 · 야간 탐색</span>
+  <span class="text number clock-value" style="left:49.9%;top:9.08%;--size:2.4cqw">00:13</span>
+  <span class="text number" style="left:4.08%;top:95.52%;--size:1.5cqw">Q</span>
+  <span class="text number" style="left:10.4%;top:95.52%;--size:1.2cqw">SPACE</span>
+  <span class="text" style="left:59.24%;top:75.22%;--size:1.37cqw">귀환 구역</span>
+  <span class="text number" style="left:92.95%;top:92.6%;--size:1.65cqw">0 <span class="body-text">/</span> 10 KG</span>
+ </div>
+ <div class="parts" aria-label="가방 스킬 귀환 부품">
+  <img class="layer-img source-blank" src="@@PARTS@@" alt="가방 스킬 귀환의 빈 글자 패널">
+  <img class="layer-img source-original" src="@@ORIGINAL_PARTS@@" alt="기존 가방 스킬 귀환 시안">
+  <span class="text ink panel-title" style="left:50%;top:13.1%">가방 · 스킬 · 귀환</span>
+  <span class="text ink panel-caption body-text" style="left:50%;top:22.9%">상태 예시</span>
+  <span class="text ink state" style="left:26%;top:29.25%">빈 가방</span>
+  <span class="text ink state" style="left:49.9%;top:29.25%">적재 중</span>
+  <span class="text ink state" style="left:73.9%;top:29.25%">가방 분실</span>
+  <span class="text number weight" style="left:25.9%;top:51.7%">0 <span class="body-text">/</span> 10 KG</span>
+  <span class="text number weight" style="left:49.8%;top:53.45%">5 <span class="body-text">/</span> 10 KG</span>
+  <span class="text red weight" style="left:74%;top:51.7%">회수 필요</span>
+  <span class="text number cooldown" style="left:49.9%;top:68.5%">6</span>
+  <span class="text key body-text" style="left:26.2%;top:78.5%"><span class="number">Q</span> 준비</span>
+  <span class="text key body-text" style="left:49.9%;top:78.5%"><span class="number">Q</span> 대기</span>
+  <span class="text number key" style="left:74%;top:78.5%">SPACE</span>
+  <span class="text ink return-title" style="left:34.5%;top:89%">귀환 구역</span>
+  <span class="text body-text return-body" style="left:64.3%;top:89%">밤이 끝나기 전에 돌아오세요</span>
+ </div>
+</div>
+<p class="notes">권장 조합: <b>Bagel Fat One</b> 제목·상태 / <b>Jua</b> 작은 안내 / <b>Coiny</b> 시간·무게·키.<br>그림 속 글자는 제거한 뒤 실제 TTF로 렌더링했습니다. Unity에 적용할 때는 같은 폰트로 TMP 폰트 에셋을 만들고 외곽선과 그림자를 조정하시면 됩니다.</p>
+<details><summary>상업적 이용과 폰트 라이선스</summary><p>세 폰트 모두 SIL Open Font License 1.1입니다. 상업용 게임에 포함할 수 있으며 별도 이용료나 허가가 필요하지 않습니다. 폰트를 배포할 때 저작권 고지와 OFL을 함께 제공해야 합니다. 폰트 자체만 단독 판매할 수는 없습니다. 게임 소스를 공개할 의무는 없습니다.</p><p class="license-links"><a href="https://openfontlicense.org/ofl-faq/" target="_blank" rel="noopener">공식 OFL FAQ</a> · 확인일 2026-10-11</p>@@LICENSES@@</details>
+<script>
+const stage=document.getElementById('stage');
+document.getElementById('focus').addEventListener('click',e=>{const active=document.body.classList.toggle('focus-mode');e.target.textContent=active?'설정으로 돌아가기':'화면만 보기';});
+document.querySelectorAll('[data-view]').forEach(b=>b.addEventListener('click',()=>{document.body.classList.toggle('detail',b.dataset.view==='detail');document.body.classList.toggle('hud-only',b.dataset.view==='hud');document.querySelectorAll('[data-view]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));}));
+document.getElementById('source').addEventListener('change',e=>document.body.classList.toggle('original',e.target.value==='original'));
+document.getElementById('korean').addEventListener('change',e=>stage.style.setProperty('--title',e.target.value));
+document.getElementById('numbers').addEventListener('change',e=>stage.style.setProperty('--number',e.target.value));
+document.getElementById('effect').addEventListener('change',e=>document.body.classList.toggle('plain',!e.target.checked));
+document.getElementById('clock').addEventListener('input',e=>document.querySelector('.clock-value').textContent=e.target.value);
+Promise.all([document.fonts.load('24px BBBagel','가방 스킬 귀환'),document.fonts.load('24px BBJua','밤이 끝나기 전에 돌아오세요'),document.fonts.load('24px BBCoiny','0123456789 KG SPACE')]).then(()=>document.fonts.ready).then(()=>{document.body.dataset.fonts='ready';document.getElementById('status').textContent='실제 TTF 로딩 완료 · Bagel Fat One / Jua / Coiny · 상업적 이용 가능 (OFL 1.1)';}).catch(()=>{document.body.dataset.fonts='error';document.getElementById('status').textContent='폰트 로딩에 실패했습니다.';});
+</script></main></body></html>

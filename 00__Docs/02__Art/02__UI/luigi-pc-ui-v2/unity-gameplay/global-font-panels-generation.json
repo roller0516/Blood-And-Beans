@@ -1,0 +1,116 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "mode": "edit",
+  "generatedAt": "2026-10-12",
+  "map": "../global-font-map-panels.json",
+  "notes": [
+    "All 10 originals were inspected with view_image before editing; every selected output was visually inspected.",
+    "Only built-in image generation was used for image edits; original files were left unchanged.",
+    "Final templates contain no visually detected UI typography. Coin engravings, arithmetic and directional pictograms were retained.",
+    "Transparent panels retain alpha output. Some generated canvases differ by one pixel; the map records actual selected-template dimensions.",
+    "Generative edits preserve visible composition and artwork but cannot establish pixel-identical original textures or exact alpha silhouettes."
+  ],
+  "assets": [
+    {
+      "source": "menu-board.png",
+      "output": "menu-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-2d7fd6b2-bedc-463a-a024-b77c4bcf0a76.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing menu-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Retain transparent background and exact existing alpha around the panel.",
+      "width": 1214,
+      "height": 1295,
+      "transparentBackground": true,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "orders-board.png",
+      "output": "orders-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-cd908869-f188-44df-97f3-d97c8e4b3733.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing orders-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Preserve opaque full-scene background exactly.",
+      "width": 1536,
+      "height": 1024,
+      "transparentBackground": false,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "loot-board.png",
+      "output": "loot-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-cfbf390d-7e21-4445-af36-c64407f6e9b6.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing loot-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Retain transparent background and exact existing alpha around the panel.\nCritical: the small black rounded square count-badge housings at bottom right of milk and chocolate slots and the three wide dark bottom countdown strips MUST REMAIN EXACTLY original; remove ONLY 1 and 1초 후 glyphs, never the black shapes beneath.",
+      "width": 1899,
+      "height": 828,
+      "transparentBackground": true,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-day.png",
+      "output": "restrained-day-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-a8594d7c-a3e0-456d-939a-8ab162c0a223.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-day game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Preserve opaque full-scene background exactly.\nCritical correction: In the top-left four team rows, 5G/0G are pure text. Erase those completely to blank colored row backgrounds. Never replace text with a new coin icon: there are NO coin icons at the right end of these four team rows in the original. Keep the existing three coins in the customer order badges, top-right large coin and all ghost icons. Keep ALL original raised square key-button housings, including F on the crafting card, F1 bottom-right and Q bottom-left, erase ONLY the glyph inside them.",
+      "additionalPrompt": "Use case: precise-object-edit. Image 1 is edit target. Remove ONLY the tiny black forward-slash / glyph at approximately x=58.7%, y=57.7% of the image, between the coffee bean ingredient icon and the square blank key button in the small crafting card. Repair its few pixels to the adjacent cream paper surface. This is an extremely local glyph removal. Keep absolutely all other pixels/artwork unchanged: no changes to background, camera, icons, frames, objects, character, lighting, canvas, no new objects. Do not remove or redraw any button housing. No UI text should remain. Preserve opaque background.",
+      "width": 1671,
+      "height": 941,
+      "transparentBackground": false,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-making.png",
+      "output": "restrained-making-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-5dd2b33d-f8dc-4b7b-beb0-0c286fd5114d.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-making game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Preserve opaque full-scene background exactly.\nCritical correction: In the top-left four team rows, 5G/0G are pure text. Erase those completely to blank colored row backgrounds. Never replace text with a new coin icon: there are NO coin icons at the right end of these four team rows in the original. Keep the existing three coins in the customer order badges, top-right large coin and all ghost icons. Keep ALL original raised square key-button housings, including F on the crafting card, F1 bottom-right and Q bottom-left, erase ONLY the glyph inside them.",
+      "width": 1672,
+      "height": 941,
+      "transparentBackground": false,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-night.png",
+      "output": "restrained-night-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-006e7910-4f36-488d-b929-730492501643.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-night game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Preserve opaque full-scene background exactly.\nCritical: preserve the little green rounded physical plaque currently behind 팀 매출 under the 0G value, and all Q and SPACE key physical housings; only remove their glyphs.",
+      "width": 1672,
+      "height": 941,
+      "transparentBackground": false,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-menu-board.png",
+      "output": "restrained-menu-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-9f862012-1342-4a1b-b3fd-71aeecd04758.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-menu-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Retain transparent background and exact existing alpha around the panel.",
+      "width": 1215,
+      "height": 1295,
+      "transparentBackground": true,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-orders-board.png",
+      "output": "restrained-orders-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-d08f21ab-a3fb-4bbd-9d3c-0534c2516c25.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-orders-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Preserve opaque full-scene background exactly.",
+      "width": 1536,
+      "height": 1024,
+      "transparentBackground": false,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-loot-board.png",
+      "output": "restrained-loot-board-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-262114ee-f99b-49e4-8f5e-ac8aa40f5f09.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-loot-board game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Retain transparent background and exact existing alpha around the panel.",
+      "width": 1899,
+      "height": 828,
+      "transparentBackground": true,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    },
+    {
+      "source": "restrained-night-components.png",
+      "output": "restrained-night-components-font-template.png",
+      "generatedSource": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-f2db-7090-8a77-45bd56ad4c9d\\exec-8e8d8586-da1b-4a37-96cd-4f32e558be33.png",
+      "prompt": "Use case: text-localization. Input image 1 is the edit target, the existing restrained-night-components game UI image. Remove ONLY all baked UI typography, letters, words, text numerals, keyboard glyphs and textual punctuation. Leave the exact physical original surfaces blank by repairing locally with the same nearby material. Remove raised typography and its shadow as well. Preserve EXACTLY all original icons, 3D cups, food, bottles, bags, coins including decorative coin engravings, characters, selection brackets, arrows, PLUS arithmetic pictograms between ingredients, panel frames, button shapes, progress bars and meter tick marks, camera, composition, textures, lighting, canvas size and alpha silhouette. Do not remove brand or logo lettering if any. UI question mark unknown-item glyphs are text and should be removed. No redesign, no changes to art, no new objects, no text remaining in UI. Retain transparent background and exact existing alpha around the panel.",
+      "width": 1448,
+      "height": 1086,
+      "transparentBackground": true,
+      "inspection": "no baked UI text visually detected; icons, frames, object composition retained"
+    }
+  ]
+}
