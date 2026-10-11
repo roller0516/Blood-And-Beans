@@ -149,6 +149,9 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     /// 「추적」이 드러낸 시각. 이 시각까지 적에게도 보인다.
     float trackedUntil;
 
+    /// 추적을 받은 클라이언트의 표현 계층에만 알린다 (기획서 9.2).
+    public event System.Action<float> TrackRevealed;
+
     bool TrackedNow => Time.time < trackedUntil;
 
     /// 「추적」이 이 가방을 찾아냈다 (기획서 9.2). 찾은 사람에게만 보여 준다 — 스킬을
@@ -169,6 +172,7 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     {
         trackedUntil = Mathf.Max(trackedUntil, Time.time + seconds);
         ApplyVisibility();
+        TrackRevealed?.Invoke(seconds);
     }
 
     void SetShown(bool value)

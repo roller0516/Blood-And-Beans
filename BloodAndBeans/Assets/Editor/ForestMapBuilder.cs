@@ -66,29 +66,26 @@ public static class ForestMapBuilder
     const float BoundaryHeight = 4f;
     const float BoundaryThickness = 1f;
 
-    /// 벽 너머를 가리는 안개 원통과 구름 띠. 안개는 소프트 파티클 깊이 페이드라 뒤가 허공이면
-    /// 꽉 찬 색이 되고, 구름은 그 앞에서 모양을 낸다. 플레이어는 숲에 밤에만, 광장에 낮에만 있으므로
+    /// 벽 너머를 가리는 하늘 구와 구름 띠. 구 머티리얼(`BoundaryFog_*`)은 밤·낮 스카이박스 머티리얼의 변형으로
+    /// 하늘을 그리면서 깊이를 써 구 바깥을 가리고, 구름은 그 앞에서 모양을 낸다. 플레이어는 숲에 밤에만, 광장에 낮에만 있으므로
     /// 색은 장소마다 고정이다 — 페이즈 따라 바꾸는 코드가 필요 없다.
     const string BoundaryVfxFolder = "Assets/Art/VFX/Shared/";
     const string BoundaryCloudPrefabPath = BoundaryVfxFolder + "Prefabs/BoundaryClouds.prefab";
     static string BoundaryFogPath(bool night) => BoundaryVfxFolder + $"Materials/BoundaryFog_{(night ? "Night" : "Day")}.mat";
     static string BoundaryCloudPath(bool night) => BoundaryVfxFolder + $"Materials/BoundaryCloud_{(night ? "Night" : "Day")}.mat";
 
-    /// 안개는 경계를 한 바퀴 두르는 타원 원통 하나다. 변마다 상자를 두면 모서리에서 따로 놀아 보인다.
-    /// 안쪽을 향한 면만 있고 뚜껑이 없다 — 뚜껑이 있으면 올려다볼 때 하늘이 막힌다.
-    /// 반지름은 직사각형 네 모서리를 지나는 타원(반축 × √2)에 벽 두께를 더한 값이다.
-    /// 아래로 깊게, 위로 높게 둬서 윗선·아랫선이 화면에 들어오지 않게 한다.
-    const string BoundaryRingMeshPath = BoundaryVfxFolder + "Meshes/BoundaryRing.asset";
-    const int BoundaryRingSegments = 64;
-    const float BoundaryFogBottom = -30f;
-    const float BoundaryFogHeight = 400f;
+    /// 안개는 경계 전체를 감싸는 타원체 하나다. 안쪽을 향한 면만 있고 이음선이 없다.
+    /// 중심을 지면에 둬서 지면 단면이 직사각형 네 모서리를 지나는 타원(반축 × √2)에 벽 두께를 더한 값이 된다.
+    /// 세로 반축은 가로 반축 중 큰 쪽이다 — 위가 닫혀 올려다보면 하늘 대신 안개가 보인다.
+    const string BoundarySphereMeshPath = BoundaryVfxFolder + "Meshes/BoundarySphere.asset";
+    const int BoundarySphereSegments = 64;          // 경도 분할. 위도는 절반이다
 
-    /// 구름 띠는 안개 원통과 같은 타원을 따라 원통 면 바로 안쪽에 한 바퀴 두른다. 면 뒤로 가면
+    /// 구름 띠는 안개 구의 지면 단면과 같은 타원을 따라 구 면 바로 안쪽에 한 바퀴 두른다. 면 뒤로 가면
     /// 불투명한 안개에 가려진다. 프리팹(`BoundaryClouds`)의 밀도는 길이 `BoundaryCloudReferenceLength`
     /// 기준이라 둘레에 비례해 늘린다.
     const float BoundaryCloudHeight = 2.5f;
     const float BoundaryCloudReferenceLength = 100f;
-    const float BoundaryCloudInset = 3f;          // 원통 면에서 안쪽으로 물린 거리
+    const float BoundaryCloudInset = 3f;          // 구 면에서 안쪽으로 물린 거리
     const float BoundaryCloudTube = 2f;           // 띠의 두께(높이·깊이) 반경
 
     /// 연결성 검사 격자. 플레이어가 지나갈 틈보다 촘촘해야 통로를 놓치지 않는다.
@@ -1117,7 +1114,7 @@ public static class ForestMapBuilder
         return props.Count;
     }
 
-    /// `center`(부모 로컬) 둘레 `size` 직사각형의 네 변에 벽을, 그 바깥에 안개 원통·구름 띠를 세운다. 벽 안쪽 면이
+    /// `center`(부모 로컬) 둘레 `size` 직사각형의 네 변에 벽을, 그 바깥에 안개 구·구름 띠를 세운다. 벽 안쪽 면이
     /// 경계에 맞닿는다. 다시 부르면 이전 것을 지우고 새로 세운다. 광장(`DayV5Setup`)도 같은 것을 쓴다.
     internal static void BuildBoundary(Transform parent, Vector3 center, Vector2 size, bool night)
     {
@@ -1154,63 +1151,66 @@ public static class ForestMapBuilder
         if (cloud != null && clouds != null) AddCloudRing(holder.transform, center, size, clouds, cloud);
     }
 
-    /// 안개 원통의 타원 반축(x, z). 원통과 구름 띠가 같은 타원을 쓴다.
+    /// 안개 구의 지면 단면 타원 반축(x, z). 구와 구름 띠가 같은 타원을 쓴다.
     static Vector2 RingRadii(Vector2 size) =>
         size * (0.5f * Mathf.Sqrt(2f)) + Vector2.one * BoundaryThickness;
 
     static Vector3 Abs(Vector3 v) => new(Mathf.Abs(v.x), Mathf.Abs(v.y), Mathf.Abs(v.z));
 
-    /// 경계를 두르는 안개 원통. 단위 원통 메시를 타원 반축·높이로 늘린다.
+    /// 경계를 감싸는 안개 구. 단위 구 메시를 타원 반축으로 늘린다.
     static void AddFogRing(Transform holder, Vector3 center, Vector2 size, Material material)
     {
-        var ring = new GameObject("Fog", typeof(MeshFilter), typeof(MeshRenderer));
-        ring.layer = holder.gameObject.layer;
-        ring.transform.SetParent(holder, false);
-        ring.transform.localPosition = center + Vector3.up * BoundaryFogBottom;
+        var sphere = new GameObject("Fog", typeof(MeshFilter), typeof(MeshRenderer));
+        sphere.layer = holder.gameObject.layer;
+        sphere.transform.SetParent(holder, false);
+        sphere.transform.localPosition = center;
         var radii = RingRadii(size);
-        ring.transform.localScale = new Vector3(radii.x, BoundaryFogHeight, radii.y);
-        ring.GetComponent<MeshFilter>().sharedMesh = RingMesh();
+        sphere.transform.localScale = new Vector3(radii.x, Mathf.Max(radii.x, radii.y), radii.y);
+        sphere.GetComponent<MeshFilter>().sharedMesh = SphereMesh();
 
-        var renderer = ring.GetComponent<MeshRenderer>();
+        var renderer = sphere.GetComponent<MeshRenderer>();
         renderer.sharedMaterial = material;
         renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
         renderer.receiveShadows = false;
     }
 
-    /// 반지름 1, 높이 0~1의 뚜껑 없는 원통. 면은 안쪽을 본다. 한 번 만들어 에셋으로 둔다.
-    static Mesh RingMesh()
+    /// 반지름 1, 중심 원점의 구. 면은 안쪽을 본다. 한 번 만들어 에셋으로 둔다.
+    static Mesh SphereMesh()
     {
-        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(BoundaryRingMeshPath);
+        var mesh = AssetDatabase.LoadAssetAtPath<Mesh>(BoundarySphereMeshPath);
         if (mesh != null) return mesh;
 
-        var vertices = new Vector3[(BoundaryRingSegments + 1) * 2];
+        const int around = BoundarySphereSegments, rows = BoundarySphereSegments / 2;
+        var vertices = new Vector3[(around + 1) * (rows + 1)];
         var normals = new Vector3[vertices.Length];
         var uv = new Vector2[vertices.Length];
-        var triangles = new int[BoundaryRingSegments * 6];
-        for (var i = 0; i <= BoundaryRingSegments; i++)
+        var triangles = new int[around * rows * 6];
+        for (var j = 0; j <= rows; j++)
         {
-            var angle = i * Mathf.PI * 2f / BoundaryRingSegments;
-            var around = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle));
-            vertices[i * 2] = around;
-            vertices[i * 2 + 1] = around + Vector3.up;
-            normals[i * 2] = normals[i * 2 + 1] = -around;
-            uv[i * 2] = new Vector2((float)i / BoundaryRingSegments, 0f);
-            uv[i * 2 + 1] = new Vector2((float)i / BoundaryRingSegments, 1f);
-            if (i == BoundaryRingSegments) break;
+            var polar = j * Mathf.PI / rows;   // 0이 꼭대기
+            for (var i = 0; i <= around; i++)
+            {
+                var angle = i * Mathf.PI * 2f / around;
+                var v = j * (around + 1) + i;
+                vertices[v] = new Vector3(Mathf.Sin(polar) * Mathf.Cos(angle), Mathf.Cos(polar), Mathf.Sin(polar) * Mathf.Sin(angle));
+                normals[v] = -vertices[v];
+                uv[v] = new Vector2((float)i / around, 1f - (float)j / rows);
+                if (i == around || j == rows) continue;
 
-            // 안에서 볼 때 시계 방향이 되게 감는다.
-            int a = i * 2, b = a + 1, c = a + 2, d = a + 3, t = i * 6;
-            triangles[t] = a; triangles[t + 1] = c; triangles[t + 2] = d;
-            triangles[t + 3] = a; triangles[t + 4] = d; triangles[t + 5] = b;
+                // 안에서 볼 때 시계 방향이 되게 감는다. a·c는 아랫줄, b·d는 윗줄이다.
+                int b = v, d = v + 1, a = v + around + 1, c = a + 1, t = (j * around + i) * 6;
+                triangles[t] = a; triangles[t + 1] = c; triangles[t + 2] = d;
+                triangles[t + 3] = a; triangles[t + 4] = d; triangles[t + 5] = b;
+            }
         }
 
-        mesh = new Mesh { name = "BoundaryRing", vertices = vertices, normals = normals, uv = uv, triangles = triangles };
+        mesh = new Mesh { name = "BoundarySphere", vertices = vertices, normals = normals, uv = uv, triangles = triangles };
         mesh.RecalculateBounds();
-        AssetDatabase.CreateAsset(mesh, BoundaryRingMeshPath);
+        AssetDatabase.CreateAsset(mesh, BoundarySphereMeshPath);
         return mesh;
     }
 
-    /// 구름 띠 프리팹을 안개 원통 안쪽의 타원 도넛으로 편다. 밀도는 프리팹 값을 둘레 비례로 유지한다.
+    /// 구름 띠 프리팹을 안개 구 안쪽의 타원 도넛으로 편다. 밀도는 프리팹 값을 둘레 비례로 유지한다.
     static void AddCloudRing(Transform holder, Vector3 center, Vector2 size, ParticleSystem prefab, Material material)
     {
         var clouds = (ParticleSystem)PrefabUtility.InstantiatePrefab(prefab, holder);

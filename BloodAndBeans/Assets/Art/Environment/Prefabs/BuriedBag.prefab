@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 859470695569410581}
   - component: {fileID: 7905508700017762229}
   - component: {fileID: 7637260236126393840}
+  - component: {fileID: 6394109016280951363}
   m_Layer: 0
   m_Name: BuriedBag
   m_TagString: Untagged
@@ -159,6 +160,21 @@ MonoBehaviour:
   cancelDistance: 0.35
   teamMarker: {fileID: 6556708334938327968}
   burnEffect: {fileID: 4889587140601605769}
+--- !u!114 &6394109016280951363
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3030608180649604676}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9f5a4e831bfd46745b0f4a535393a08e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::BagScentVisuals
+  bag: {fileID: 7637260236126393840}
+  body:
+  - {fileID: 859470695569410581}
 --- !u!1 &6556708334938327968
 GameObject:
   m_ObjectHideFlags: 0

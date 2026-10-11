@@ -48,13 +48,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::CharacterModel
   teamTintRoots:
   - {fileID: 1171704768796210401}
-  animator: {fileID: 0}
+  animator: {fileID: 2120302369951002188}
   fullBlendSpeed: 5
   blendDampSeconds: 0.1
   crossFadeSeconds: 0.08
-  coffeeSocket: {fileID: 0}
-  plateSocket: {fileID: 0}
-  bag: {fileID: 0}
+  coffeeSocket: {fileID: 2845192101398002945}
+  plateSocket: {fileID: 6655104614721950665}
+  bag: {fileID: 833219492965436800}
 --- !u!1 &5430053109932351162
 GameObject:
   m_ObjectHideFlags: 0
@@ -202,8 +202,28 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af301ce485dde9448a41155b69710329, type: 3}
+--- !u!1 &833219492965436800 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 921183327845550089, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 529318014426662281}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &2120302369951002188 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 529318014426662281}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2845192101398002945 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2316157294633482376, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 529318014426662281}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &5444006498267362358 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5536187267799396799, guid: af301ce485dde9448a41155b69710329, type: 3}
+  m_PrefabInstance: {fileID: 529318014426662281}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6655104614721950665 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6558135574460192320, guid: af301ce485dde9448a41155b69710329, type: 3}
   m_PrefabInstance: {fileID: 529318014426662281}
   m_PrefabAsset: {fileID: 0}

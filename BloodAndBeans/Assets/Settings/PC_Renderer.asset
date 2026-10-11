@@ -1,5 +1,26 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-2866885768884918059
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bdf7b2cb78a0a91418531e930085fd74, type: 3}
+  m_Name: TrackSense
+  m_EditorClassIdentifier: BB.Client::TrackSenseFeature
+  m_Active: 1
+  injectionPoint: 550
+  fetchColorBuffer: 1
+  requirements: 0
+  passMaterial: {fileID: 2100000, guid: d03887557d664284f8ad75d954a3074a, type: 2}
+  passIndex: 0
+  bindDepthStencilAttachment: 0
+  m_Version: 1
+  pulseSeconds: 1.3
 --- !u!114 &-60032301405974998
 MonoBehaviour:
   m_ObjectHideFlags: 1
@@ -17,6 +38,8 @@ MonoBehaviour:
   outlineMaterial: {fileID: 2100000, guid: 074b881f32e6ad24abeed20ecba17043, type: 2}
   nextMaskMaterial: {fileID: 2100000, guid: d8cf96c6fff88e84fa7f9910e39a1901, type: 2}
   nextOutlineMaterial: {fileID: 2100000, guid: d78e06ed2ddee4d479ce711d144b082f, type: 2}
+  scentMaskMaterial: {fileID: 2100000, guid: 13133d4be4fff834e9ae2d7e9361564b, type: 2}
+  scentOutlineMaterial: {fileID: 2100000, guid: a8a7b788d4a993a48ad638fa8bed50d0, type: 2}
   passEvent: 600
 --- !u!114 &11400000
 MonoBehaviour:
@@ -46,7 +69,8 @@ MonoBehaviour:
   - {fileID: 7833122117494664109}
   - {fileID: 7282109198944180144}
   - {fileID: -60032301405974998}
-  m_RendererFeatureMap: ad6b866f10d7b46cb017acf2bb3f0f652acea59ff0b82aff
+  - {fileID: -2866885768884918059}
+  m_RendererFeatureMap: ad6b866f10d7b46cb017acf2bb3f0f652acea59ff0b82affd5e8fd2595c636d8
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3

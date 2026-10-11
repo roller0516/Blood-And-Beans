@@ -21,14 +21,10 @@ public sealed class TrackAbility : INightAbility
             if (Vector3.Distance(bag.transform.position, at) > radius) continue;
 
             bag.RevealToServer(host.OwnerClientId, revealSeconds);
-
-            // 냄새 줄기는 본인에게만 보인다 (기획서 9.2).
-            host.CueToOwnerServer(EffectId.TrackScent, bag.transform.position);
         }
 
-        // 남에게는 코 아이콘과 「킁킁」만 보인다 (9.2). 냄새를 맡는 것 자체가 스킬이라
-        // 가방이 없어도 쓴 것이다 — 「주변에 없다」도 정보다.
-        host.CueServer(EffectId.TrackSniff, at);
+        // 찾은 가방이 없어도 본인 화면의 발동 파동은 재생한다.
+        host.CueToOwnerServer(EffectId.TrackSniff, at);
         return true;
     }
 }

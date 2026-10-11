@@ -15,11 +15,14 @@ public static class CharacterSkillVfxBuilder
     const string PrefabFolder = Root + "Prefabs/";
     const string ManagerPath = "Assets/Art/VFX/Shared/Prefabs/EffectManager.prefab";
     const string ShaderName = "Universal Render Pipeline/Particles/Unlit";
+    const string RendererPath = "Assets/Settings/PC_Renderer.asset";
+    const string PlayerPath = "Assets/Art/Character/Prefabs/Player.prefab";
+    const string BagPath = "Assets/Art/Environment/Prefabs/BuriedBag.prefab";
 
     static readonly string[] TextureNames =
     {
         "SkillDust", "SkillGreenStink", "SkillShockRing", "SkillPoofSheet", "SkillBatSheet",
-        "SkillGrabDust", "SkillNoseIcon", "SkillScentWisp", "SkillPuddle", "SkillDizzyStar"
+        "SkillGrabDust", "SkillScentWisp", "SkillPuddle", "SkillDizzyStar"
     };
 
     static readonly string[] GlowTextures = { "SkillShockRing", "SkillScentWisp" };
@@ -32,7 +35,6 @@ public static class CharacterSkillVfxBuilder
         new(EffectId.FrogCurse, new Vector3(0f, 0.8f, 0f)),
         new(EffectId.BatSwarm, new Vector3(0f, 1.5f, 0f)),
         new(EffectId.ArmGrab, new Vector3(0f, 0.05f, 0f)),
-        new(EffectId.TrackSniff, new Vector3(0f, 2f, 0f)),
         new(EffectId.TrackScent, new Vector3(0f, 0.5f, 0f)),
         new(EffectId.PotionPuddle, new Vector3(0f, 0.03f, 0f)),
         new(EffectId.Dizzy, new Vector3(0f, 1.7f, 0f))
@@ -57,7 +59,6 @@ public static class CharacterSkillVfxBuilder
         BuildFrogCurse(materials["SkillPoofSheet"]);
         BuildBatSwarm(materials["SkillBatSheet"]);
         BuildArmGrab(materials["SkillGrabDust"]);
-        BuildTrackSniff(materials["SkillNoseIcon"]);
         BuildTrackScent(materials["SkillScentWisp"]);
         BuildPotionPuddle(materials["SkillPuddle"]);
         BuildDizzy(materials["SkillDizzyStar"]);
@@ -277,39 +278,187 @@ public static class CharacterSkillVfxBuilder
         });
     }
 
-    static void BuildTrackSniff(Material material)
-    {
-        BuildPrefab(EffectId.TrackSniff, false, 0.5f, root =>
-        {
-            var icon = Particles(root, "NoseIcon", material, false, 0.5f, 0.5f, 0.9f, 0.9f);
-            var emission = icon.emission;
-            emission.SetBursts(new[] { new ParticleSystem.Burst(0f, 1) });
-            Size(icon, new AnimationCurve(
-                new Keyframe(0f, 0f), new Keyframe(0.18f, 1.15f), new Keyframe(0.72f, 1f), new Keyframe(1f, 0.65f)));
-            Fade(icon);
-        });
-    }
-
     static void BuildTrackScent(Material material)
     {
-        BuildPrefab(EffectId.TrackScent, false, 1.5f, root =>
+        BuildPrefab(EffectId.TrackScent, true, 1f, root =>
         {
-            var scent = Particles(root, "ForwardScent", material, false, 0.85f, 0.6f, 0.36f, 0.52f,
-                ParticleSystemRenderMode.Stretch);
+            var scent = Particles(root, "ForwardScent", material, true, 1f, 0.8f, 0.22f, 0.38f);
             var main = scent.main;
-            main.startSpeed = new ParticleSystem.MinMaxCurve(1.8f, 2.3f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(1.4f, 2f);
+            main.startColor = new Color(1f, 0.78f, 0.32f, 0.8f);
             var emission = scent.emission;
             emission.rateOverTime = 10f;
             var shape = scent.shape;
             shape.enabled = true;
             shape.shapeType = ParticleSystemShapeType.Cone;
-            shape.radius = 0.12f;
-            shape.angle = 5f;
-            var renderer = scent.GetComponent<ParticleSystemRenderer>();
-            renderer.lengthScale = 2.2f;
-            renderer.velocityScale = 0.55f;
+            shape.radius = 0.3f;
+            shape.angle = 16f;
             Fade(scent);
+
+            var rising = Particles(root, "RisingScent", material, true, 1f, 1.1f, 0.18f, 0.3f);
+            main = rising.main;
+            main.startColor = new Color(1f, 0.85f, 0.4f, 0.65f);
+            emission = rising.emission;
+            emission.rateOverTime = 4f;
+            shape = rising.shape;
+            shape.enabled = true;
+            shape.shapeType = ParticleSystemShapeType.Circle;
+            shape.radius = 0.35f;
+            shape.rotation = new Vector3(90f, 0f, 0f);
+            var velocity = rising.velocityOverLifetime;
+            velocity.enabled = true;
+            velocity.space = ParticleSystemSimulationSpace.World;
+            velocity.y = new ParticleSystem.MinMaxCurve(0.5f, 0.85f);
+            Fade(rising);
         });
+    }
+
+    /// 후각 연출만 갱신한다. 다른 스킬 프리팹의 아트 조정은 유지한다.
+    [MenuItem("Blood & Beans/후각 연출 적용")]
+    public static void BuildTrackSense()
+    {
+        if (EditorApplication.isPlaying) throw new InvalidOperationException("플레이를 멈춘 뒤 적용하세요.");
+        var material = AssetDatabase.LoadAssetAtPath<Material>(MaterialFolder + "SkillScentWisp.mat");
+        if (material == null) throw new InvalidOperationException("냄새 머티리얼이 없다.");
+        BuildTrackScent(material);
+        var manager = PrefabUtility.LoadPrefabContents(ManagerPath);
+        try
+        {
+            var so = new SerializedObject(manager.GetComponent<EffectManager>());
+            var entries = so.FindProperty("effects");
+            for (var i = entries.arraySize - 1; i >= 0; i--)
+                if (entries.GetArrayElementAtIndex(i).FindPropertyRelative("id").intValue == (int)EffectId.TrackSniff)
+                    entries.DeleteArrayElementAtIndex(i);
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(manager, ManagerPath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(manager); }
+        var feature = ConfigureTrackRenderer();
+        ConfigureTrackPrefabs(feature);
+    }
+
+    static ScriptableObject ConfigureTrackRenderer()
+    {
+        // BB.Editor는 URP를 참조하지 않는다. 기존 Inspector 직렬화 API로 배선한다.
+        var renderer = AssetDatabase.LoadAssetAtPath<ScriptableObject>(RendererPath);
+        if (renderer == null) throw new InvalidOperationException("PC 렌더러가 없다.");
+        var rendererSo = new SerializedObject(renderer);
+        var features = rendererSo.FindProperty("m_RendererFeatures");
+        UnityEngine.Object outline = null;
+        ScriptableObject feature = null;
+        for (var i = 0; i < features.arraySize; i++)
+        {
+            var f = features.GetArrayElementAtIndex(i).objectReferenceValue;
+            if (f == null) continue;
+            if (f.GetType().Name == nameof(OutlineFeature)) outline = f;
+            if (f.GetType().Name == nameof(TrackSenseFeature)) feature = f as ScriptableObject;
+        }
+        if (outline == null) throw new InvalidOperationException("기존 OutlineFeature가 없다.");
+        var mask = TrackOutlineMaterial("TrackScentMask", true);
+        var edge = TrackOutlineMaterial("TrackScentOutline", false);
+        var so = new SerializedObject(outline);
+        so.FindProperty("scentMaskMaterial").objectReferenceValue = mask;
+        so.FindProperty("scentOutlineMaterial").objectReferenceValue = edge;
+        so.ApplyModifiedPropertiesWithoutUndo();
+
+        var path = MaterialFolder + "TrackSense.mat";
+        var wave = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (wave == null)
+        {
+            var shader = Shader.Find("BB/TrackSense");
+            if (shader == null) throw new InvalidOperationException("후각 화면 셰이더가 없다.");
+            wave = new Material(shader) { name = "TrackSense" };
+            AssetDatabase.CreateAsset(wave, path);
+        }
+        if (feature == null)
+        {
+            feature = ScriptableObject.CreateInstance(nameof(TrackSenseFeature));
+            feature.name = "TrackSense";
+            feature.hideFlags = HideFlags.HideInHierarchy;
+            AssetDatabase.AddObjectToAsset(feature, renderer);
+            features.arraySize++;
+            features.GetArrayElementAtIndex(features.arraySize - 1).objectReferenceValue = feature;
+        }
+        var featureSo = new SerializedObject(feature);
+        featureSo.FindProperty("passMaterial").objectReferenceValue = wave;
+        var injection = featureSo.FindProperty("injectionPoint");
+        injection.enumValueIndex = Array.IndexOf(injection.enumNames, "BeforeRenderingPostProcessing");
+        featureSo.FindProperty("fetchColorBuffer").boolValue = true;
+        featureSo.FindProperty("requirements").intValue = 0;
+        featureSo.FindProperty("bindDepthStencilAttachment").boolValue = false;
+        featureSo.FindProperty("m_Active").boolValue = true;
+        featureSo.ApplyModifiedPropertiesWithoutUndo();
+        var map = rendererSo.FindProperty("m_RendererFeatureMap");
+        map.arraySize = features.arraySize;
+        for (var i = 0; i < features.arraySize; i++)
+        {
+            var f = features.GetArrayElementAtIndex(i).objectReferenceValue;
+            if (f != null && AssetDatabase.TryGetGUIDAndLocalFileIdentifier(f, out string _, out long localId))
+                map.GetArrayElementAtIndex(i).longValue = localId;
+        }
+        rendererSo.ApplyModifiedPropertiesWithoutUndo();
+        renderer.GetType().GetMethod("SetDirty").Invoke(renderer, null);
+        EditorUtility.SetDirty(feature);
+        EditorUtility.SetDirty(renderer);
+        AssetDatabase.SaveAssetIfDirty(renderer);
+        return feature;
+    }
+
+    static Material TrackOutlineMaterial(string name, bool mask)
+    {
+        var path = MaterialFolder + name + ".mat";
+        var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (material == null)
+        {
+            var shader = Shader.Find("BB/StationOutline");
+            if (shader == null) throw new InvalidOperationException("스텐실 외곽선 셰이더가 없다.");
+            material = new Material(shader) { name = name };
+            material.SetColor("_OutlineColor", new Color(1.65f, 1.05f, 0.22f, 0.9f));
+            material.SetFloat("_OutlineScale", mask ? 1f : 1.12f);
+            AssetDatabase.CreateAsset(material, path);
+        }
+        // 설비(32), 다음 아이템(64)과 다른 스텐실 비트를 쓴다.
+        material.SetFloat("_StencilRef", 128f);
+        material.SetFloat("_StencilComp", (float)(mask ? CompareFunction.Always : CompareFunction.NotEqual));
+        material.SetFloat("_StencilOp", (float)(mask ? StencilOp.Replace : StencilOp.Keep));
+        material.SetFloat("_ColorWrite", mask ? 0f : 15f);
+        material.SetFloat("_ZTest", (float)CompareFunction.Always);
+        EditorUtility.SetDirty(material);
+        AssetDatabase.SaveAssetIfDirty(material);
+        return material;
+    }
+
+    static void ConfigureTrackPrefabs(ScriptableObject feature)
+    {
+        var player = PrefabUtility.LoadPrefabContents(PlayerPath);
+        try
+        {
+            var visuals = player.GetComponent<PlayerVisuals>();
+            if (visuals == null) throw new InvalidOperationException("플레이어 표현 컴포넌트가 없다.");
+            var so = new SerializedObject(visuals);
+            so.FindProperty("trackSense").objectReferenceValue = feature;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(player, PlayerPath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(player); }
+
+        var bagRoot = PrefabUtility.LoadPrefabContents(BagPath);
+        try
+        {
+            var bag = bagRoot.GetComponent<BuriedBag>();
+            var body = bagRoot.GetComponent<Renderer>();
+            if (bag == null || body == null) throw new InvalidOperationException("가방 본체 참조가 없다.");
+            var visuals = bagRoot.GetComponent<BagScentVisuals>();
+            if (visuals == null) visuals = bagRoot.AddComponent<BagScentVisuals>();
+            var so = new SerializedObject(visuals);
+            so.FindProperty("bag").objectReferenceValue = bag;
+            var bodies = so.FindProperty("body");
+            bodies.arraySize = 1;
+            bodies.GetArrayElementAtIndex(0).objectReferenceValue = body;
+            so.ApplyModifiedPropertiesWithoutUndo();
+            PrefabUtility.SaveAsPrefabAsset(bagRoot, BagPath);
+        }
+        finally { PrefabUtility.UnloadPrefabContents(bagRoot); }
     }
 
     static void BuildPotionPuddle(Material material)

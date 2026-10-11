@@ -203,7 +203,7 @@ public class EffectManager : MonoBehaviour
             case NightSkill.Echo: yield return EffectId.Echo; break;
             case NightSkill.BatSwarm: yield return EffectId.BatSwarm; break;
             case NightSkill.ArmThrow: yield return EffectId.ArmGrab; break;
-            case NightSkill.Track: yield return EffectId.TrackSniff; yield return EffectId.TrackScent; break;
+            case NightSkill.Track: yield return EffectId.TrackScent; break;
             case NightSkill.SlipperyPotion: yield return EffectId.PotionPuddle; yield return EffectId.Dizzy; break;
         }
         switch (def.Day)

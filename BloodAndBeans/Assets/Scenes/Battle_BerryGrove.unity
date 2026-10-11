@@ -763,6 +763,10 @@ MonoBehaviour:
   sun: {fileID: 410087040}
   nightIntensity: 0.5
   dayIntensity: 3
+  nightSunColor: {r: 0.38, g: 0.46, b: 1, a: 1}
+  nightAmbientSky: {r: 0.12, g: 0.16, b: 0.35, a: 1}
+  nightAmbientEquator: {r: 0.075, g: 0.085, b: 0.18, a: 1}
+  nightAmbientGround: {r: 0.025, g: 0.027, b: 0.055, a: 1}
 --- !u!1 &500636056
 GameObject:
   m_ObjectHideFlags: 0
@@ -1568,8 +1572,8 @@ Transform:
   m_GameObject: {fileID: 1059711383}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: -30, z: 0}
-  m_LocalScale: {x: 60.39697, y: 400, z: 51.911686}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 60.39697, y: 60.39697, z: 51.911686}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 746200909}
@@ -1630,7 +1634,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1059711383}
-  m_Mesh: {fileID: 4300000, guid: 12ddc5cd008baa14489f95353c212e09, type: 2}
+  m_Mesh: {fileID: 4300000, guid: b34b5a5bb377700499e70fca4fb0545d, type: 2}
 --- !u!1 &1211504694
 GameObject:
   m_ObjectHideFlags: 0
@@ -1658,8 +1662,8 @@ Transform:
   m_GameObject: {fileID: 1211504694}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 85, y: -30, z: 85}
-  m_LocalScale: {x: 71.71068, y: 400, z: 71.71068}
+  m_LocalPosition: {x: 85, y: 0, z: 85}
+  m_LocalScale: {x: 71.71068, y: 71.71068, z: 71.71068}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1286276141}
@@ -1720,7 +1724,7 @@ MeshFilter:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1211504694}
-  m_Mesh: {fileID: 4300000, guid: 12ddc5cd008baa14489f95353c212e09, type: 2}
+  m_Mesh: {fileID: 4300000, guid: b34b5a5bb377700499e70fca4fb0545d, type: 2}
 --- !u!1 &1286276140
 GameObject:
   m_ObjectHideFlags: 0
