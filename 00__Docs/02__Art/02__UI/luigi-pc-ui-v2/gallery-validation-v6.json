@@ -1,0 +1,198 @@
+{
+  "date": "2026-10-11",
+  "screens": [
+    {
+      "id": "title",
+      "memo": "로고·배경·세로 메뉴를 분리합니다. UITitleMenuScreen의 버튼 이벤트는 유지하고 제목은 Bagel, 버튼은 Jua TMP로 연결합니다.",
+      "src": "images/unity-restrained/title.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "rooms",
+      "memo": "UIRoomListScreen의 방 행과 선택 데이터를 재사용합니다. 목록만 ScrollRect로 두고 상세·입장 버튼은 고정합니다. 팀 수와 정원은 실제 로비 값입니다.",
+      "src": "images/unity-restrained/rooms.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "crew",
+      "memo": "CharacterStage의 최대 8인 모델을 사용합니다. 현재 내 자리 중심 배치에서 4팀×2명 표시 순서와 카메라를 추가 조정해야 합니다. 4종 외형과 5개 클래스는 구분합니다.",
+      "src": "images/unity-restrained/crew.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "room",
+      "memo": "UIRoomScreen의 기존 준비 상태를 팀별 카드에 연결합니다. 현재 기본 입장 흐름에는 포함되지 않는 보조 화면입니다.",
+      "src": "images/unity-restrained/room.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "day",
+      "memo": "UIMatchHudScreen / MatchHudPresenter를 재사용합니다. 모서리 HUD 앵커를 나누고 낮 가방은 숨깁니다. 수치·타이머는 TMP, 캐릭터와 장면은 실제 3D입니다.",
+      "src": "images/unity-restrained/day.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "recipe",
+      "memo": "UIRecipeRow를 반복 사용하고 F1 토글을 유지합니다. 실제 재료 값으로 부족/인기 상태를 표시하고 제품 Sprite는 기존 모델의 렌더 썸네일로 준비합니다.",
+      "src": "images/unity-restrained/recipe.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "orders",
+      "memo": "UICustomerOrder → UIBubbleFill의 1 - PatienceRatio를 유지합니다. 인내심은 말풍선 내부 아래부터 채우고 가격 탭은 합계 하나만 표시합니다.",
+      "src": "images/unity-restrained/orders.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "making",
+      "memo": "UIMakingCard.Render(CarryView)와 UICompletionGauge 값을 그대로 연결합니다. 실제 컵·재료 메시를 사용하고 카드 아이콘도 같은 모델로 렌더합니다. 다섯 카드는 상태 비교입니다.",
+      "src": "images/unity-restrained/making.webp",
+      "view": "restrained",
+      "width": 1671
+    },
+    {
+      "id": "night",
+      "memo": "MatchHudPresenter의 밤 가방 조건을 유지합니다. 무게·적재 경고는 기존 데이터, 작은 가방은 상태별 Sprite, 키 힌트는 별도 TMP입니다.",
+      "src": "images/unity-restrained/night.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "loot",
+      "memo": "UIBoxLootPopup / UIBoxLootSlot의 다섯 칸과 공개 타이밍을 유지합니다. 패널·선택선만 리스킨하고 아이콘을 실제 프리팹 썸네일로 교체합니다.",
+      "src": "images/unity-restrained/loot.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "night-parts",
+      "memo": "UIBagStatus / UISkillSlot / UIKeyHint를 재사용합니다. 가방 열림·닫힘·묻음, 무게·쿨타임 상태를 연결하며 현재 없는 개인 아이템 목록을 추가하지 않습니다.",
+      "src": "images/unity-restrained/night-parts.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "return",
+      "memo": "UIReturnResultPopup의 자동 닫힘·입력 비점유를 유지합니다. 문구와 손실 수치는 실제 결과를 받으며 성공/손실을 글자와 색으로 함께 구분합니다.",
+      "src": "images/unity-restrained/return.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "settlement",
+      "memo": "UIDaySettlementScreen의 정산·누적 순위·자동 보석·예보 데이터를 재사용합니다. 영수증·행·보석은 별도 부품이고 자동 다음 날 전환을 유지합니다.",
+      "src": "images/unity-restrained/settlement.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "final",
+      "memo": "UIMatchResultPopup의 현재 집계 값과 버튼을 연결합니다. 생성 이미지의 예시 매출·비율을 고정 값으로 굽지 않습니다.",
+      "src": "images/unity-restrained/final.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "settings",
+      "memo": "UISettingsPopup / UIVolumeSlider를 재사용합니다. 실제 설정 값을 TMP로 표시하고 회전 가능한 카메라가 있을 때만 감도를 노출합니다.",
+      "src": "images/unity-restrained/settings.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "loading",
+      "memo": "UILoadingPopup의 불러오는 중/실제 접속 인원 상태를 연결합니다. 임의의 퍼센트 진행률은 만들지 않습니다.",
+      "src": "images/unity-restrained/loading.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "cue",
+      "memo": "UIPhaseCuePopup을 유지합니다. 3·2·1, READY, GO, 마감은 TMP 문구이며 기존 페이즈별 입력 차단 조건을 유지합니다.",
+      "src": "images/unity-restrained/cue.webp",
+      "view": "restrained",
+      "width": 1672
+    },
+    {
+      "id": "shared",
+      "memo": "UIThemeConfig·UIRoundImage와 기존 Parts를 먼저 정리합니다. 단순 면은 공용 라운드 재질, 특수 외곽만 9-slice를 쓰고 TMP 폰트·머티리얼을 공용화합니다.",
+      "src": "images/unity-restrained/shared.webp",
+      "view": "restrained",
+      "width": 1672
+    }
+  ],
+  "states": [
+    {
+      "id": "return",
+      "state": 0,
+      "text": "귀환 성공\n소지한 아이템 100% 귀환\n재료 8개를 팀 재고로 넘겼다"
+    },
+    {
+      "id": "return",
+      "state": 1,
+      "text": "귀환 실패\n소지한 아이템 50% 소실 · 미회수 가방 전량 소실\n소환 위치 밖에서 밤이 끝났다 · 4개 소실 / 4개 반입"
+    },
+    {
+      "id": "return",
+      "state": 2,
+      "text": "가방 분실\n획득 아이템 100% 소실\n묻어 둔 가방을 회수하지 못했다"
+    },
+    {
+      "id": "loading",
+      "state": 0,
+      "text": "불러오는 중…"
+    },
+    {
+      "id": "loading",
+      "state": 1,
+      "text": "다른 플레이어를 기다리는 중… 6 / 8"
+    },
+    {
+      "id": "cue",
+      "state": 0,
+      "text": "3"
+    },
+    {
+      "id": "cue",
+      "state": 1,
+      "text": "2"
+    },
+    {
+      "id": "cue",
+      "state": 2,
+      "text": "1"
+    },
+    {
+      "id": "cue",
+      "state": 3,
+      "text": "READY"
+    },
+    {
+      "id": "cue",
+      "state": 4,
+      "text": "GO!"
+    },
+    {
+      "id": "cue",
+      "state": 5,
+      "text": "마감!"
+    }
+  ],
+  "legacyViewsChecked": [
+    "multi",
+    "concept",
+    "current",
+    "previous",
+    "original"
+  ],
+  "guideSections": 10,
+  "consoleErrors": [],
+  "scope": "Local HTTP gallery functional checks; Unity implementation and game QA not run"
+}
