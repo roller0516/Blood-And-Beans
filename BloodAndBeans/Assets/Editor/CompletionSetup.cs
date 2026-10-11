@@ -8,6 +8,8 @@ using UnityEngine;
 public static class CompletionSetup
 {
     const string CharacterFolder = "Assets/Art/Character/Prefabs/";
+    /// 캐릭터 모델 래퍼 프리팹의 이름 접두사. 표시 설정과 외형 연결 도구가 같이 쓴다.
+    public const string ModelPrefix = "Character_";
     const string GroveScene = "Assets/Scenes/Battle_BerryGrove.unity";
 
     public static void Characters()
@@ -19,11 +21,11 @@ public static class CompletionSetup
         entries.arraySize = CharacterCatalog.All.Length;
         for (var i = 0; i < entries.arraySize; i++)
         {
-            var path = CharacterFolder + "Ghost_" + CharacterCatalog.All[i].Id + ".prefab";
+            var path = CharacterFolder + ModelPrefix + CharacterCatalog.All[i].Id + ".prefab";
             var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(path);
             if (prefab == null)
             {
-                var root = new GameObject("Ghost_" + CharacterCatalog.All[i].Id);
+                var root = new GameObject(ModelPrefix + CharacterCatalog.All[i].Id);
                 PrefabUtility.InstantiatePrefab(source, root.transform);
                 // 임시 몬스터 실루엣. 최종 모델이 오면 표시 설정의 프리팹만 교체한다 (#37).
                 var crown = GameObject.CreatePrimitive(i % 2 == 0 ? PrimitiveType.Capsule : PrimitiveType.Cube);
@@ -37,7 +39,8 @@ public static class CompletionSetup
                 Object.DestroyImmediate(root);
             }
             var entry = entries.GetArrayElementAtIndex(i);
-            entry.FindPropertyRelative("id").enumValueIndex = (int)CharacterCatalog.All[i].Id;
+            // enumValueIndex는 이름 순번이라 값이 5부터인 CharacterId에는 맞지 않는다.
+            entry.FindPropertyRelative("id").intValue = (int)CharacterCatalog.All[i].Id;
             entry.FindPropertyRelative("model").FindPropertyRelative("m_AssetGUID").stringValue =
                 AssetDatabase.AssetPathToGUID(path);
             EnsureAddressable(path, AddressableGroups.CharacterAddress + CharacterCatalog.All[i].Id);

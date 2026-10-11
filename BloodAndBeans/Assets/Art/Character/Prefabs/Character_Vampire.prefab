@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &1484065152994879347
+--- !u!1 &1355261643861141592
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,9 +8,9 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 1512750579143116906}
-  - component: {fileID: 5797239556148640747}
-  - component: {fileID: 2375788218539271777}
+  - component: {fileID: 8691771922676061495}
+  - component: {fileID: 6566983960826684106}
+  - component: {fileID: 8456581328619378648}
   m_Layer: 0
   m_Name: MonsterCrest
   m_TagString: Untagged
@@ -18,36 +18,36 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &1512750579143116906
+--- !u!4 &8691771922676061495
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1484065152994879347}
+  m_GameObject: {fileID: 1355261643861141592}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.2079117, w: 0.9781476}
+  m_LocalRotation: {x: 0, y: 0, z: -0.309017, w: 0.95105654}
   m_LocalPosition: {x: 0, y: 1.65, z: 0}
-  m_LocalScale: {x: 0.6, y: 0.65, z: 0.25}
+  m_LocalScale: {x: 0.3, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 3479793470501555871}
+  m_Father: {fileID: 9085111770743502328}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &5797239556148640747
+--- !u!33 &6566983960826684106
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1484065152994879347}
-  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &2375788218539271777
+  m_GameObject: {fileID: 1355261643861141592}
+  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &8456581328619378648
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1484065152994879347}
+  m_GameObject: {fileID: 1355261643861141592}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -90,7 +90,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &2128691946994990032
+--- !u!1 &3576743781593870391
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -98,60 +98,60 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3479793470501555871}
-  - component: {fileID: 3434847228568337161}
+  - component: {fileID: 9085111770743502328}
+  - component: {fileID: 6652671314733445769}
   m_Layer: 0
-  m_Name: Ghost_Welcoming
+  m_Name: Character_Vampire
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3479793470501555871
+--- !u!4 &9085111770743502328
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128691946994990032}
+  m_GameObject: {fileID: 3576743781593870391}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1732401379621885872}
-  - {fileID: 1512750579143116906}
+  - {fileID: 6439820940255248204}
+  - {fileID: 8691771922676061495}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &3434847228568337161
+--- !u!114 &6652671314733445769
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2128691946994990032}
+  m_GameObject: {fileID: 3576743781593870391}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 8f4dd1a6ca3558f4491f6186098fab4e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::CharacterModel
   teamTintRoots:
-  - {fileID: 1512750579143116906}
-  animator: {fileID: 5686521533531393482}
+  - {fileID: 8691771922676061495}
+  animator: {fileID: 0}
   fullBlendSpeed: 5
   blendDampSeconds: 0.1
   crossFadeSeconds: 0.08
-  coffeeSocket: {fileID: 8429157220259044999}
-  plateSocket: {fileID: 1143325595316662351}
-  bag: {fileID: 6347390774803721734}
---- !u!1001 &6115542071219283471
+  coffeeSocket: {fileID: 0}
+  plateSocket: {fileID: 0}
+  bag: {fileID: 0}
+--- !u!1001 &1552242113862700787
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 3479793470501555871}
+    m_TransformParent: {fileID: 9085111770743502328}
     m_Modifications:
     - target: {fileID: 5161033159357852421, guid: af301ce485dde9448a41155b69710329, type: 3}
       propertyPath: m_Name
@@ -202,28 +202,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af301ce485dde9448a41155b69710329, type: 3}
---- !u!4 &1143325595316662351 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6558135574460192320, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 6115542071219283471}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1732401379621885872 stripped
+--- !u!4 &6439820940255248204 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5536187267799396799, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 6115542071219283471}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &5686521533531393482 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 6115542071219283471}
-  m_PrefabAsset: {fileID: 0}
---- !u!1 &6347390774803721734 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 921183327845550089, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 6115542071219283471}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &8429157220259044999 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2316157294633482376, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 6115542071219283471}
+  m_PrefabInstance: {fileID: 1552242113862700787}
   m_PrefabAsset: {fileID: 0}

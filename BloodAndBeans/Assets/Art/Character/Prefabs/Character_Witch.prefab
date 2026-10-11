@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2936574115189010460
+--- !u!1 &2627840615729551604
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,9 +8,64 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 3232452614689117792}
-  - component: {fileID: 8487455184124826480}
-  - component: {fileID: 8300703820088327925}
+  - component: {fileID: 3434589919280012659}
+  - component: {fileID: 8067486686650205213}
+  m_Layer: 0
+  m_Name: Character_Witch
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3434589919280012659
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2627840615729551604}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5444006498267362358}
+  - {fileID: 1171704768796210401}
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8067486686650205213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2627840615729551604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8f4dd1a6ca3558f4491f6186098fab4e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::CharacterModel
+  teamTintRoots:
+  - {fileID: 1171704768796210401}
+  animator: {fileID: 0}
+  fullBlendSpeed: 5
+  blendDampSeconds: 0.1
+  crossFadeSeconds: 0.08
+  coffeeSocket: {fileID: 0}
+  plateSocket: {fileID: 0}
+  bag: {fileID: 0}
+--- !u!1 &5430053109932351162
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1171704768796210401}
+  - component: {fileID: 7860374483765447652}
+  - component: {fileID: 8070271779052646862}
   m_Layer: 0
   m_Name: MonsterCrest
   m_TagString: Untagged
@@ -18,36 +73,36 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &3232452614689117792
+--- !u!4 &1171704768796210401
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2936574115189010460}
+  m_GameObject: {fileID: 5430053109932351162}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.104528464, w: 0.9945219}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 1.65, z: 0}
-  m_LocalScale: {x: 0.42000002, y: 0.65, z: 0.25}
+  m_LocalScale: {x: 0.48000002, y: 0.25, z: 0.25}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 1962290100773049877}
+  m_Father: {fileID: 3434589919280012659}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!33 &8487455184124826480
+--- !u!33 &7860374483765447652
 MeshFilter:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2936574115189010460}
-  m_Mesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
---- !u!23 &8300703820088327925
+  m_GameObject: {fileID: 5430053109932351162}
+  m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!23 &8070271779052646862
 MeshRenderer:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2936574115189010460}
+  m_GameObject: {fileID: 5430053109932351162}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 1
@@ -90,68 +145,13 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1 &7827999494130469733
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1962290100773049877}
-  - component: {fileID: 712393730398700282}
-  m_Layer: 0
-  m_Name: Ghost_Alchemist
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1962290100773049877
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7827999494130469733}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4956394016452570234}
-  - {fileID: 3232452614689117792}
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &712393730398700282
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7827999494130469733}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8f4dd1a6ca3558f4491f6186098fab4e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::CharacterModel
-  teamTintRoots:
-  - {fileID: 3232452614689117792}
-  animator: {fileID: 1308448307122222592}
-  fullBlendSpeed: 5
-  blendDampSeconds: 0.1
-  crossFadeSeconds: 0.08
-  coffeeSocket: {fileID: 2898205088867755341}
-  plateSocket: {fileID: 5989778068463586181}
-  bag: {fileID: 348019339661727180}
---- !u!1001 &584582733007674821
+--- !u!1001 &529318014426662281
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 1962290100773049877}
+    m_TransformParent: {fileID: 3434589919280012659}
     m_Modifications:
     - target: {fileID: 5161033159357852421, guid: af301ce485dde9448a41155b69710329, type: 3}
       propertyPath: m_Name
@@ -202,28 +202,8 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: af301ce485dde9448a41155b69710329, type: 3}
---- !u!1 &348019339661727180 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 921183327845550089, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 584582733007674821}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &1308448307122222592 stripped
-Animator:
-  m_CorrespondingSourceObject: {fileID: 1888222278488222661, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 584582733007674821}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2898205088867755341 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2316157294633482376, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 584582733007674821}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &4956394016452570234 stripped
+--- !u!4 &5444006498267362358 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5536187267799396799, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 584582733007674821}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &5989778068463586181 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6558135574460192320, guid: af301ce485dde9448a41155b69710329, type: 3}
-  m_PrefabInstance: {fileID: 584582733007674821}
+  m_PrefabInstance: {fileID: 529318014426662281}
   m_PrefabAsset: {fileID: 0}
