@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 414abf6dea679254f80e7f6d1c54a956
+guid: df4fea334240519428f4867b5437cb60
 ModelImporter:
   serializedVersion: 24501
   internalIDToNameTable: []
@@ -32,40 +32,11 @@ ModelImporter:
     extraUserProperties: []
     clipAnimations:
     - serializedVersion: 16
-      name: zombie_rig|Dash_End
-      takeName: zombie_rig|Dash_End
-      internalID: -117307661328173568
+      name: PC_rig|Dash_End
+      takeName: PC_rig|Dash_End
+      internalID: 2148739863675927746
       firstFrame: 0
       lastFrame: 18
-      wrapMode: 0
-      orientationOffsetY: 0
-      level: 0
-      cycleOffset: 0
-      loop: 0
-      hasAdditiveReferencePose: 0
-      loopTime: 0
-      loopBlend: 0
-      loopBlendOrientation: 0
-      loopBlendPositionY: 0
-      loopBlendPositionXZ: 0
-      keepOriginalOrientation: 0
-      keepOriginalPositionY: 1
-      keepOriginalPositionXZ: 0
-      heightFromFeet: 0
-      mirror: 0
-      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
-      curves: []
-      events: []
-      transformMask: []
-      maskType: 3
-      maskSource: {instanceID: 0}
-      additiveReferencePoseFrame: 0
-    - serializedVersion: 16
-      name: zombie_rig|Dash_Hold
-      takeName: zombie_rig|Dash_Hold
-      internalID: -3283460137817293180
-      firstFrame: 0
-      lastFrame: 24
       wrapMode: 0
       orientationOffsetY: 0
       level: 0
@@ -90,9 +61,38 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Dash_Start
-      takeName: zombie_rig|Dash_Start
-      internalID: -4998604010263968960
+      name: PC_rig|Dash_Hold
+      takeName: PC_rig|Dash_Hold
+      internalID: -572257252489575823
+      firstFrame: 0
+      lastFrame: 24
+      wrapMode: 0
+      orientationOffsetY: 0
+      level: 0
+      cycleOffset: 0
+      loop: 0
+      hasAdditiveReferencePose: 0
+      loopTime: 0
+      loopBlend: 0
+      loopBlendOrientation: 0
+      loopBlendPositionY: 0
+      loopBlendPositionXZ: 0
+      keepOriginalOrientation: 0
+      keepOriginalPositionY: 1
+      keepOriginalPositionXZ: 0
+      heightFromFeet: 0
+      mirror: 0
+      bodyMask: 01000000010000000100000001000000010000000100000001000000010000000100000001000000010000000100000001000000
+      curves: []
+      events: []
+      transformMask: []
+      maskType: 3
+      maskSource: {instanceID: 0}
+      additiveReferencePoseFrame: 0
+    - serializedVersion: 16
+      name: PC_rig|Dash_Start
+      takeName: PC_rig|Dash_Start
+      internalID: -7246395872218448459
       firstFrame: 0
       lastFrame: 15
       wrapMode: 0
@@ -119,9 +119,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Hit
-      takeName: zombie_rig|Hit
-      internalID: -5901174246886899858
+      name: PC_rig|Hit
+      takeName: PC_rig|Hit
+      internalID: -6875524240088271956
       firstFrame: 0
       lastFrame: 30
       wrapMode: 0
@@ -148,9 +148,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Idle
-      takeName: zombie_rig|Idle
-      internalID: -5684242608090241162
+      name: PC_rig|Idle
+      takeName: PC_rig|Idle
+      internalID: 5100765388568012884
       firstFrame: 0
       lastFrame: 72
       wrapMode: 0
@@ -159,7 +159,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -177,9 +177,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Idle_Coffee
-      takeName: zombie_rig|Idle_Coffee
-      internalID: -2875554080728025320
+      name: PC_rig|Idle_Coffee
+      takeName: PC_rig|Idle_Coffee
+      internalID: 230561130828314848
       firstFrame: 0
       lastFrame: 72
       wrapMode: 0
@@ -188,7 +188,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -206,9 +206,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Idle_Plate
-      takeName: zombie_rig|Idle_Plate
-      internalID: -4528164261550503446
+      name: PC_rig|Idle_Plate
+      takeName: PC_rig|Idle_Plate
+      internalID: -3257261419984702357
       firstFrame: 0
       lastFrame: 72
       wrapMode: 0
@@ -217,7 +217,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -235,9 +235,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_B
-      takeName: zombie_rig|Move_B
-      internalID: 281372474941798557
+      name: PC_rig|Move_B
+      takeName: PC_rig|Move_B
+      internalID: -6725458174595562193
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -246,7 +246,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -264,9 +264,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_B_Coffee
-      takeName: zombie_rig|Move_B_Coffee
-      internalID: 1098256964270886968
+      name: PC_rig|Move_B_Coffee
+      takeName: PC_rig|Move_B_Coffee
+      internalID: -5941676292412010777
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -275,7 +275,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -293,9 +293,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_B_Plate
-      takeName: zombie_rig|Move_B_Plate
-      internalID: -1611034805461327082
+      name: PC_rig|Move_B_Plate
+      takeName: PC_rig|Move_B_Plate
+      internalID: 4167589344676888401
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -304,7 +304,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -322,9 +322,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_F
-      takeName: zombie_rig|Move_F
-      internalID: 6726316879097947154
+      name: PC_rig|Move_F
+      takeName: PC_rig|Move_F
+      internalID: 3424846767906147776
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -333,7 +333,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -351,9 +351,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_F_Coffee
-      takeName: zombie_rig|Move_F_Coffee
-      internalID: -7795937338703266908
+      name: PC_rig|Move_F_Coffee
+      takeName: PC_rig|Move_F_Coffee
+      internalID: 2695597398382250532
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -362,7 +362,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -380,9 +380,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_F_Plate
-      takeName: zombie_rig|Move_F_Plate
-      internalID: -161425492067701048
+      name: PC_rig|Move_F_Plate
+      takeName: PC_rig|Move_F_Plate
+      internalID: 3072763948925941989
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -391,7 +391,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -409,9 +409,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_L
-      takeName: zombie_rig|Move_L
-      internalID: 6011989176452880290
+      name: PC_rig|Move_L
+      takeName: PC_rig|Move_L
+      internalID: -7041391845688889488
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -420,7 +420,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -438,9 +438,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_L_Coffee
-      takeName: zombie_rig|Move_L_Coffee
-      internalID: -7852725953748033016
+      name: PC_rig|Move_L_Coffee
+      takeName: PC_rig|Move_L_Coffee
+      internalID: -8789353798801910494
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -449,7 +449,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -467,9 +467,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_L_Plate
-      takeName: zombie_rig|Move_L_Plate
-      internalID: -8205823245986827060
+      name: PC_rig|Move_L_Plate
+      takeName: PC_rig|Move_L_Plate
+      internalID: 1643248644545995643
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -478,7 +478,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -496,9 +496,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_R
-      takeName: zombie_rig|Move_R
-      internalID: 934318934112996103
+      name: PC_rig|Move_R
+      takeName: PC_rig|Move_R
+      internalID: 1988501124824300642
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -507,7 +507,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -525,9 +525,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_R_Coffee
-      takeName: zombie_rig|Move_R_Coffee
-      internalID: -1774417994097313458
+      name: PC_rig|Move_R_Coffee
+      takeName: PC_rig|Move_R_Coffee
+      internalID: 3446369111167483293
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -536,7 +536,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
@@ -554,9 +554,9 @@ ModelImporter:
       maskSource: {instanceID: 0}
       additiveReferencePoseFrame: 0
     - serializedVersion: 16
-      name: zombie_rig|Move_R_Plate
-      takeName: zombie_rig|Move_R_Plate
-      internalID: -6556205049596830866
+      name: PC_rig|Move_R_Plate
+      takeName: PC_rig|Move_R_Plate
+      internalID: 3995322119439253936
       firstFrame: 0
       lastFrame: 32
       wrapMode: 0
@@ -565,7 +565,7 @@ ModelImporter:
       cycleOffset: 0
       loop: 0
       hasAdditiveReferencePose: 0
-      loopTime: 1
+      loopTime: 0
       loopBlend: 0
       loopBlendOrientation: 0
       loopBlendPositionY: 0
