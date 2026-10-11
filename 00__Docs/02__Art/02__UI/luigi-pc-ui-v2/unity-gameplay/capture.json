@@ -1,0 +1,287 @@
+{
+  "capturedAt": "2026-10-10T21:05:58.3111921+00:00",
+  "source": "Actual Battle_01 Play Mode, existing Main Camera, UI canvases temporarily disabled for base capture",
+  "width": 1920,
+  "height": 1080,
+  "scene": "Assets/Scenes/Battle_01.unity",
+  "camera": {
+    "name": "Main Camera",
+    "position": [
+      225.6363,
+      4.370466,
+      16.2171249
+    ],
+    "rotation": [
+      25.9353981,
+      305.660156,
+      9.49388664E-07
+    ],
+    "fov": 60.0,
+    "aspect": 1.77734375
+  },
+  "team": 0,
+  "totalDays": 7,
+  "day": 1,
+  "remaining": 38.8465652,
+  "sales": 5,
+  "bill": 50,
+  "revenues": [
+    5,
+    0,
+    0,
+    0
+  ],
+  "orders": [
+    {
+      "kind": "Zombie",
+      "menu": "CreamCake",
+      "name": "크림 케이크",
+      "price": 17,
+      "fill": 0.487804234,
+      "copies": 1,
+      "x": 0.4480284,
+      "y": 0.14564842,
+      "depth": 21.13189
+    },
+    {
+      "kind": "Witch",
+      "menu": "IcedLatte",
+      "name": "아이스라떼",
+      "price": 35,
+      "fill": 0.6028494,
+      "copies": 1,
+      "x": 0.41410315,
+      "y": 0.1452533,
+      "depth": 21.2576389
+    },
+    {
+      "kind": "Witch",
+      "menu": "IcedLatte",
+      "name": "아이스라떼",
+      "price": 35,
+      "fill": 0.250437975,
+      "copies": 1,
+      "x": 0.380576849,
+      "y": 0.144862354,
+      "depth": 21.3833866
+    }
+  ],
+  "shelves": [
+    {
+      "item": "Ice",
+      "name": "얼음",
+      "count": 0,
+      "x": 0.13045612,
+      "y": 0.194501162,
+      "depth": 18.0683613
+    },
+    {
+      "item": "Cream",
+      "name": "크림",
+      "count": 0,
+      "x": -0.0559350252,
+      "y": 0.245806217,
+      "depth": 12.5170546
+    },
+    {
+      "item": "Chocolate",
+      "name": "초콜렛",
+      "count": 0,
+      "x": 0.0541757941,
+      "y": 0.215497732,
+      "depth": 15.2927074
+    },
+    {
+      "item": "Milk",
+      "name": "우유",
+      "count": 0,
+      "x": -0.228793919,
+      "y": 0.293386877,
+      "depth": 9.7414
+    },
+    {
+      "item": "Almond",
+      "name": "아몬드",
+      "count": 0,
+      "x": 0.65683794,
+      "y": 0.2963432,
+      "depth": 9.609002
+    },
+    {
+      "item": "Berry",
+      "name": "베리",
+      "count": 0,
+      "x": 0.6330568,
+      "y": 0.247592211,
+      "depth": 12.384655
+    },
+    {
+      "item": "BloodBean",
+      "name": "블러드 빈",
+      "count": 0,
+      "x": 0.617984,
+      "y": 0.2166915,
+      "depth": 15.1603088
+    }
+  ],
+  "menus": [
+    {
+      "id": "HotAmericano",
+      "name": "핫 아메리카노",
+      "price": 5,
+      "parts": [
+        "Bean"
+      ],
+      "partNames": [
+        "원두"
+      ]
+    },
+    {
+      "id": "IcedAmericano",
+      "name": "아이스 아메리카노",
+      "price": 10,
+      "parts": [
+        "Bean",
+        "Ice"
+      ],
+      "partNames": [
+        "원두",
+        "얼음"
+      ]
+    },
+    {
+      "id": "CafeLatte",
+      "name": "카페라떼",
+      "price": 11,
+      "parts": [
+        "Bean",
+        "Milk"
+      ],
+      "partNames": [
+        "원두",
+        "우유"
+      ]
+    },
+    {
+      "id": "Einspanner",
+      "name": "아인슈페너",
+      "price": 16,
+      "parts": [
+        "Bean",
+        "Cream"
+      ],
+      "partNames": [
+        "원두",
+        "크림"
+      ]
+    },
+    {
+      "id": "CafeMocha",
+      "name": "카페모카",
+      "price": 28,
+      "parts": [
+        "Bean",
+        "Milk",
+        "Chocolate"
+      ],
+      "partNames": [
+        "원두",
+        "우유",
+        "초콜렛"
+      ]
+    },
+    {
+      "id": "IcedLatte",
+      "name": "아이스라떼",
+      "price": 24,
+      "parts": [
+        "Bean",
+        "Milk",
+        "Ice"
+      ],
+      "partNames": [
+        "원두",
+        "우유",
+        "얼음"
+      ]
+    },
+    {
+      "id": "IcedMocha",
+      "name": "아이스모카",
+      "price": 38,
+      "parts": [
+        "Bean",
+        "Milk",
+        "Chocolate",
+        "Ice"
+      ],
+      "partNames": [
+        "원두",
+        "우유",
+        "초콜렛",
+        "얼음"
+      ]
+    },
+    {
+      "id": "ChocoBrownie",
+      "name": "초코 브라우니",
+      "price": 19,
+      "parts": [
+        "BreadBase",
+        "Chocolate"
+      ],
+      "partNames": [
+        "빵 베이스",
+        "초콜렛"
+      ]
+    },
+    {
+      "id": "AlmondCookie",
+      "name": "아몬드 쿠키",
+      "price": 17,
+      "parts": [
+        "BreadBase",
+        "Almond"
+      ],
+      "partNames": [
+        "빵 베이스",
+        "아몬드"
+      ]
+    },
+    {
+      "id": "CreamCake",
+      "name": "크림 케이크",
+      "price": 21,
+      "parts": [
+        "BreadBase",
+        "Cream"
+      ],
+      "partNames": [
+        "빵 베이스",
+        "크림"
+      ]
+    },
+    {
+      "id": "BerryTart",
+      "name": "베리 타르트",
+      "price": 23,
+      "parts": [
+        "BreadBase",
+        "Berry"
+      ],
+      "partNames": [
+        "빵 베이스",
+        "베리"
+      ]
+    }
+  ],
+  "held": {
+    "menu": "None",
+    "name": "—",
+    "parts": [
+      "Bean"
+    ],
+    "product": false,
+    "burnt": false
+  }
+}
