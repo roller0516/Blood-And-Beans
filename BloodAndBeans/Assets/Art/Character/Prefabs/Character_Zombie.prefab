@@ -25,12 +25,12 @@ Transform:
   m_GameObject: {fileID: 4645696669436558307}
   serializedVersion: 2
   m_LocalRotation: {x: -0.0000000078126385, y: 0.98242533, z: 0.18665607, w: -0.00000011895302}
-  m_LocalPosition: {x: 0, y: 0.00254, z: -0.00292}
+  m_LocalPosition: {x: 0, y: 0.0007599989, z: -0.0031699995}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 7234347655951512716}
-  m_Father: {fileID: 3795603557479879784}
+  m_Father: {fileID: 2789007919466161054}
   m_LocalEulerAnglesHint: {x: -7, y: 180, z: 0}
 --- !u!1 &5890605901037723363
 GameObject:
@@ -62,7 +62,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 8105828583620572584}
+  - {fileID: 7090225574419710558}
   - {fileID: 6676262391943988925}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -80,12 +80,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: BB.Client::CharacterModel
   teamTintRoots:
   - {fileID: 6676262391943988925}
-  animator: {fileID: 2881947482257964443}
+  animator: {fileID: 4306604687383705880}
   fullBlendSpeed: 5
   blendDampSeconds: 0.1
   crossFadeSeconds: 0.08
-  coffeeSocket: {fileID: 1706139687413659003}
-  plateSocket: {fileID: 7517013046607315453}
+  coffeeSocket: {fileID: 411331422200562317}
+  plateSocket: {fileID: 8811839367191836171}
   bag: {fileID: 4645696669436558307}
 --- !u!1 &6819118243336647695
 GameObject:
@@ -177,7 +177,7 @@ MeshRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!1001 &8644388296313803331
+--- !u!1001 &7345146577416103349
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -242,41 +242,36 @@ PrefabInstance:
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: df4fea334240519428f4867b5437cb60, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 2881947482257964443}
+      addedObject: {fileID: 4306604687383705880}
   m_SourcePrefab: {fileID: 100100000, guid: df4fea334240519428f4867b5437cb60, type: 3}
---- !u!4 &1706139687413659003 stripped
+--- !u!4 &411331422200562317 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6942972115723790136, guid: df4fea334240519428f4867b5437cb60, type: 3}
-  m_PrefabInstance: {fileID: 8644388296313803331}
+  m_PrefabInstance: {fileID: 7345146577416103349}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &3795603557479879784 stripped
+--- !u!4 &2789007919466161054 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4853675369290008107, guid: df4fea334240519428f4867b5437cb60, type: 3}
-  m_PrefabInstance: {fileID: 8644388296313803331}
+  m_PrefabInstance: {fileID: 7345146577416103349}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &7517013046607315453 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2280724472691790782, guid: df4fea334240519428f4867b5437cb60, type: 3}
-  m_PrefabInstance: {fileID: 8644388296313803331}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &8105828583620572584 stripped
+--- !u!4 &7090225574419710558 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: df4fea334240519428f4867b5437cb60, type: 3}
-  m_PrefabInstance: {fileID: 8644388296313803331}
+  m_PrefabInstance: {fileID: 7345146577416103349}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &8878389865026760466 stripped
+--- !u!1 &7579094405485500644 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: df4fea334240519428f4867b5437cb60, type: 3}
-  m_PrefabInstance: {fileID: 8644388296313803331}
+  m_PrefabInstance: {fileID: 7345146577416103349}
   m_PrefabAsset: {fileID: 0}
---- !u!95 &2881947482257964443
+--- !u!95 &4306604687383705880
 Animator:
   serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8878389865026760466}
+  m_GameObject: {fileID: 7579094405485500644}
   m_Enabled: 1
   m_Avatar: {fileID: 9000000, guid: df4fea334240519428f4867b5437cb60, type: 3}
   m_Controller: {fileID: 9100000, guid: 489026d4fa90159498f06d1a3218a8b5, type: 2}
@@ -291,6 +286,11 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!4 &8811839367191836171 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2280724472691790782, guid: df4fea334240519428f4867b5437cb60, type: 3}
+  m_PrefabInstance: {fileID: 7345146577416103349}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &9173749434333216094
 PrefabInstance:
   m_ObjectHideFlags: 0
