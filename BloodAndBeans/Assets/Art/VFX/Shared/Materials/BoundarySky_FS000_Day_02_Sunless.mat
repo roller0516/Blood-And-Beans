@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TrackSense
-  m_Shader: {fileID: 4800000, guid: a30972237066fb24493781c118389a0a, type: 3}
+  m_Name: BoundarySky_FS000_Day_02_Sunless
+  m_Shader: {fileID: 4800000, guid: 317c78b791a64164bb64c6b6b3c5fbd2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -16,23 +16,24 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2450
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _Tex:
+        m_Texture: {fileID: 8900000, guid: 3b9c8413bb7d59b4dbd832a9122271cb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Distortion: 0.0025
-    - _EdgeStart: 0.35
-    - _Frequency: 38
-    - _Glow: 0.13
-    - _PulseStrength: 0
-    - _PulseTime: 0
-    - _Speed: 12
+    - _Cull: 2
+    - _Exposure: 1.5
+    - _Rotation: 0
+    - _ZWrite: 1
     m_Colors:
-    - _ScentColor: {r: 1.4, g: 0.8, b: 0.2, a: 1}
+    - _Tint: {r: 0.5471698, g: 0.5471698, b: 0.5471698, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

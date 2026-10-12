@@ -34,7 +34,11 @@ public class ItemCheatGroup : DevConsoleGroup
 
     readonly List<ulong> shownClients = new();
     readonly List<Label> bagValues = new();
-    readonly List<Button> bagAdds = new(), bagWeights = new(), bagClears = new();
+    readonly List<Button> bagAdds = new(), bagWeights = new(), bagClears = new(), bagPlants = new();
+
+    /// 추적 시험용 적 가방 자리. 추적 반경 배수라 반경을 바꿔도 안쪽에 남는다.
+    static readonly Vector3[] TestBagOffsets = { new(0.4f, 0f, 0.3f), new(-0.3f, 0f, -0.6f) };
+    const float TestBagNavSnap = 4f;
 
     int shownTeams = -1;
     readonly List<Label> stockValues = new();
@@ -121,6 +125,7 @@ public class ItemCheatGroup : DevConsoleGroup
         bagAdds.Clear();
         bagWeights.Clear();
         bagClears.Clear();
+        bagPlants.Clear();
         bags.Clear();
 
         foreach (var client in manager.ConnectedClientsList)
@@ -134,6 +139,7 @@ public class ItemCheatGroup : DevConsoleGroup
             bagAdds.Add(Btn(buttons, "넣기", () => AddToBag(id), "btn--primary"));
             bagWeights.Add(Btn(buttons, "무게+", () => InventoryOf(id)?.AddWeightCheatServer(weight.value)));
             bagClears.Add(Btn(buttons, "비우기", () => ClearBag(id), "btn--danger"));
+            bagPlants.Add(Btn(buttons, "적 가방 심기", () => PlantEnemyBags(id)));
         }
     }
 
@@ -152,6 +158,34 @@ public class ItemCheatGroup : DevConsoleGroup
             bagAdds[i].SetEnabled(usable);
             bagWeights[i].SetEnabled(usable);
             bagClears[i].SetEnabled(usable);
+            // 가방은 밤이 아닌 페이즈로 넘어가는 순간 사라진다 (BuriedBag.OnPhaseEntered).
+            bagPlants[i].SetEnabled(inv != null && director != null && director.Phase.Current == Phase.Night);
+        }
+    }
+
+    /// 추적 시험용. 그 사람 주변 추적 반경 안에 다른 팀 가방을 실제 묻기와 같은 경로로 심는다.
+    /// 내용물·소실 기록은 없다 — 누구의 가방도 아니다.
+    void PlantEnemyBags(ulong clientId)
+    {
+        var inv = InventoryOf(clientId);
+        if (inv == null || inv.BuriedBagPrefab == null) return;
+
+        var enemy = PlayerTeam.Of(clientId) == 0 ? 1 : 0;
+        foreach (var offset in TestBagOffsets)
+        {
+            var bag = inv.InstantiateBagAtFeetServer();
+            var at = bag.transform.position + offset * NightSkills.TrackRadius;
+            // 냄새 길은 내비메시로 그린다. 나무 속이나 벽 밖에 박히지 않게 걸을 수 있는 자리로 당긴다.
+            if (UnityEngine.AI.NavMesh.SamplePosition(at, out var hit, TestBagNavSnap, UnityEngine.AI.NavMesh.AllAreas))
+            {
+                at.x = hit.position.x;
+                at.z = hit.position.z;
+            }
+            bag.transform.position = at;
+
+            bag.SeedServer(enemy, new List<Ingredient>());
+            bag.NetworkObject.SpawnWithObservers = false;   // 보여 주는 시점은 BuriedBag이 정한다
+            bag.NetworkObject.Spawn();
         }
     }
 

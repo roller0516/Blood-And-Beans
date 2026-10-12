@@ -9,6 +9,7 @@ Shader "BB/ReturnMagic"
         _PulseSpeed("맥동 속도", Float) = 2
         _Rim("잔상 윤곽", Range(0,1)) = 0
         _Flow("안개 흐름", Range(0,1)) = 0
+        [Enum(UnityEngine.Rendering.BlendMode)] _DstBlend("배경 합성", Float) = 1
     }
     SubShader
     {
@@ -16,9 +17,9 @@ Shader "BB/ReturnMagic"
         Pass
         {
             Tags { "LightMode"="UniversalForward" }
-            Blend SrcAlpha One
-            ZWrite Off
-            Cull Off
+            Blend SrcAlpha [_DstBlend]
+            ZWrite On
+            Cull Back
             HLSLPROGRAM
             #pragma vertex vert
             #pragma fragment frag

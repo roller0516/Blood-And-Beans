@@ -24,12 +24,15 @@ public static class PlayerTeleport
         var controller = player.GetComponent<CharacterController>();
         if (controller != null) controller.enabled = false;
 
+        // 몸통은 skinWidth만큼 떠 있어야 걷는다 (PlayerController.OnNetworkSpawn). 처음부터 그 높이로 보내야
+        // 클라이언트 소유자가 받는 y와 서버 접지 높이가 같다. 목적지 그대로 보내면 소유자만 8cm 낮게 굳는다.
+        var hovered = controller != null ? destination + Vector3.up * controller.skinWidth : destination;
         var networkTransform = player.GetComponent<NetworkTransform>();
         var facing = rotation ?? player.transform.rotation;
         if (networkTransform != null)
-            networkTransform.Teleport(destination, facing, player.transform.localScale);
+            networkTransform.Teleport(hovered, facing, player.transform.localScale);
         else
-            player.transform.SetPositionAndRotation(destination, facing);
+            player.transform.SetPositionAndRotation(hovered, facing);
 
         if (controller != null) controller.enabled = true;
 

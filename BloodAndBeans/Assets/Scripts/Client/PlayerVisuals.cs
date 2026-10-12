@@ -32,14 +32,14 @@ public class PlayerVisuals : NetworkBehaviour
 
     [Header("밤 주변 조명")]
     [SerializeField] Light localNightLight;
-    [SerializeField] TrackSenseFeature trackSense;
+    [SerializeField] ScreenEffectFeature trackSense;
     Camera localCamera;
     GamePhase lightingPhase;
 
-    [Header("전송 잔상")]
+    [Header("전송 사라짐")]
     [SerializeField] Material teleportAfterimageMaterial;
+    /// 시전 시간(`PlayerTeam.teleportWindupSeconds`)에 맞춰야 도착 직전에 다 사라진다.
     [SerializeField, Min(0.01f)] float teleportAfterimageSeconds = 1.35f;
-    [SerializeField, Min(0f)] float teleportAfterimageRise = 0.65f;
 
     [Header("대시/피격 피드백")]
     /// 색·시간·흔들림 수치는 전 플레이어가 공유하는 설정이다 (`PlayerFeedbackConfig`).
@@ -86,6 +86,7 @@ public class PlayerVisuals : NetworkBehaviour
     Transform[] anchorHomes;
     Vector3[] anchorHomePositions;
     Quaternion[] anchorHomeRotations;
+    Vector3[] anchorHomeScales;
 
     Tween flash;
     ParticleSystem attached;
@@ -107,6 +108,10 @@ public class PlayerVisuals : NetworkBehaviour
         dash = GetComponent<DashHarass>();
         inventory = GetComponent<PlayerInventory>();
 
+        // 몸통 캡슐은 걷기 위해 skinWidth만큼 떠 있다 (PlayerController.OnNetworkSpawn). 모델만 그만큼 내려 발을 바닥에 붙인다.
+        var body = GetComponent<CharacterController>();
+        if (modelRoot != null && body != null) modelRoot.localPosition += Vector3.down * body.skinWidth;
+
         modelSpawner = new CharacterModelSpawner(characterVisuals);
         itemPresenter = new ItemSlotPresenter(itemVisuals, itemAnchors, itemHighlightScale, itemHighlightOffset);
         publicProps = new MaterialPropertyBlock();
@@ -115,12 +120,14 @@ public class PlayerVisuals : NetworkBehaviour
         anchorHomes = new Transform[anchorCount];
         anchorHomePositions = new Vector3[anchorCount];
         anchorHomeRotations = new Quaternion[anchorCount];
+        anchorHomeScales = new Vector3[anchorCount];
         for (var i = 0; i < anchorCount; i++)
         {
             if (itemAnchors[i] == null) continue;
             anchorHomes[i] = itemAnchors[i].parent;
             anchorHomePositions[i] = itemAnchors[i].localPosition;
             anchorHomeRotations[i] = itemAnchors[i].localRotation;
+            anchorHomeScales[i] = itemAnchors[i].localScale;
         }
 
         if (trail != null) trail.emitting = false;
@@ -170,7 +177,7 @@ public class PlayerVisuals : NetworkBehaviour
 
     public override void OnNetworkDespawn()
     {
-        if (IsOwner && trackSense != null) trackSense.Clear(localCamera);
+        if (IsOwner && trackSense != null) trackSense.Stop(localCamera);
         localCamera = null;
         MatchDirector.Unbind(OnLightingDirectorReady);
         if (lightingPhase != null) lightingPhase.PhaseEntered -= RefreshNightLight;
@@ -227,7 +234,7 @@ public class PlayerVisuals : NetworkBehaviour
     void RefreshNightLight(Phase phase)
     {
         if (localNightLight != null) localNightLight.enabled = IsClient && IsOwner && phase == Phase.Night;
-        if (phase != Phase.Night && trackSense != null) trackSense.Clear(localCamera);
+        if (phase != Phase.Night && trackSense != null) trackSense.Stop(localCamera);
     }
 
     // --- 모델·팀 색 (예전 PlayerAppearance) ---
@@ -304,7 +311,7 @@ public class PlayerVisuals : NetworkBehaviour
             {
                 // 플레이어 스폰 뒤 매치 씬의 카메라가 생길 수 있어 발동 사건에서 잡는다.
                 localCamera = Camera.main;
-                trackSense.Pulse(localCamera);
+                trackSense.Play(localCamera, NightSkills.TrackRevealSeconds);
             }
             return;
         }
@@ -323,6 +330,10 @@ public class PlayerVisuals : NetworkBehaviour
             trail.Clear();
         }
         EffectManager.Play(EffectId.TeleportDeparture, origin);
+        if (teleportAfterimageMaterial == null)
+            CDebug.LogError("전송 머티리얼이 연결되지 않았다.", this);
+        else if (Model != null)
+            Model.FadeOut(teleportAfterimageMaterial, teleportAfterimageSeconds);
     }
 
     void OnTeleported(Vector3 origin, Vector3 destination, Quaternion rotation)
@@ -336,8 +347,10 @@ public class PlayerVisuals : NetworkBehaviour
         }
         EffectManager.Play(EffectId.TeleportArrival, destination);
         if (Model != null)
-            TeleportAfterimage.Play(Model.transform, transform, origin, rotation,
-                teleportAfterimageMaterial, teleportAfterimageSeconds, teleportAfterimageRise);
+        {
+            Model.RestoreLook();
+            Apply(playerTeam.Team);
+        }
     }
 
     /// 상호작용 성공 — 노란 오각별. `SuccessRpc`는 소유자에게만 오므로 이 핸들러는 다른
@@ -410,11 +423,16 @@ public class PlayerVisuals : NetworkBehaviour
             {
                 anchor.SetParent(socket, false);
                 anchor.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+                // 리그 단위(×100)와 캐릭터 배율을 상쇄해 아이템이 원래 자리와 같은 월드 크기로 보이게 한다.
+                var home = anchorHomes[i] != null ? anchorHomes[i].lossyScale : Vector3.one;
+                anchor.localScale = Vector3.Scale(Vector3.Scale(home, anchorHomeScales[i]),
+                    new Vector3(1f / socket.lossyScale.x, 1f / socket.lossyScale.y, 1f / socket.lossyScale.z));
             }
             else
             {
                 anchor.SetParent(anchorHomes[i], false);
                 anchor.SetLocalPositionAndRotation(anchorHomePositions[i], anchorHomeRotations[i]);
+                anchor.localScale = anchorHomeScales[i];
             }
         }
     }

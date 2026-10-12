@@ -39,6 +39,20 @@ public sealed class UICustomerOrder : MonoBehaviour
         if (expectedPrice != null) priceColor = expectedPrice.color;
         if (coinTab != null) tabColor = coinTab.color;
     }
+    // 손님은 NetworkPool로 재사용된다. 꺼짐·켜짐이 손님 한 명의 수명이라, 켜질 때 지난 손님의 상태를 지운다.
+    void OnEnable()
+    {
+        saleClosed = false;
+        wasUrgent = false;
+        refreshAt = 0f;
+        cafe = null;
+        floor = null;
+    }
+    // 그림은 HUD 층에 있어 손님이 풀로 돌아가도 남는다. 보이던 채로 꺼지면 그 자리에 박히므로 여기서 감춘다.
+    void OnDisable()
+    {
+        if (group != null) group.alpha = 0f;
+    }
     // 그림은 HUD 층으로 옮겨 가 있어 손님과 함께 파괴되지 않는다.
     void OnDestroy()
     {

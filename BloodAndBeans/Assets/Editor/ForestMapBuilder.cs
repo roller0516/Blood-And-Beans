@@ -339,6 +339,7 @@ public static class ForestMapBuilder
         var scene = director.gameObject.scene;
         DressBoxes(boxes, origin, forestSize);
         var planted = PlantForest(scene, origin, forestSize, director.GroundSize, keepOut, spawns, boxPositions, densityScale, seed);
+        CharacterSkillVfxBuilder.BakeTrackNavigation(scene);
 
         Random.state = state;
 

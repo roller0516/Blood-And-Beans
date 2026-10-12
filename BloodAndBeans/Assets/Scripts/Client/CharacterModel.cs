@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -42,9 +44,15 @@ public sealed class CharacterModel : MonoBehaviour
     [Tooltip("등에 멘 가방. 묻으면 꺼진다 (기획서 6.7). 가방이 없는 모델이면 비워 둔다.")]
     [SerializeField] GameObject bag;
 
+    static readonly int OpacityId = Shader.PropertyToID("_Opacity");
+
     Vector3 lastPosition;
     int holdLayer = -1;
     int holdState;
+
+    readonly List<(Renderer renderer, Material[] materials)> fadedLooks = new();
+    Material fadeMaterial;
+    Tween fade;
 
     void Awake()
     {
@@ -123,8 +131,49 @@ public sealed class CharacterModel : MonoBehaviour
 
     public void Tint(Color color, float strength)
     {
+        // 사라지는 동안 팀 색 블록이 발광 셰이더의 `_BaseColor`(빛 색)를 덮지 않게 한다.
+        if (fadeMaterial != null) return;
         foreach (var root in teamTintRoots)
             if (root != null) TeamColors.TintWith(root.gameObject, color, strength);
+    }
+
+    /// 순간이동 시전 동안 몸을 발광 머티리얼로 바꾸고 `_Opacity`를 1→0으로 내린다.
+    /// 다 사라져도 그대로 둔다. 되돌리는 것은 도착 신호다 (<see cref="RestoreLook"/>).
+    public void FadeOut(Material glow, float seconds)
+    {
+        RestoreLook();
+        fadeMaterial = new Material(glow);
+        var empty = new MaterialPropertyBlock();
+        foreach (var r in GetComponentsInChildren<Renderer>())
+        {
+            if (r is not (MeshRenderer or SkinnedMeshRenderer)) continue;
+            var originals = r.sharedMaterials;
+            fadedLooks.Add((r, originals));
+            var glows = new Material[originals.Length];
+            for (var i = 0; i < glows.Length; i++) glows[i] = fadeMaterial;
+            r.sharedMaterials = glows;
+            // 팀 색 블록을 비워야 발광 색이 보인다. 되돌린 뒤 팀 색은 부른 쪽이 다시 입힌다.
+            for (var i = 0; i < glows.Length; i++) r.SetPropertyBlock(empty, i);
+        }
+        fade = DOVirtual.Float(1f, 0f, Mathf.Max(0.01f, seconds), a => fadeMaterial.SetFloat(OpacityId, a))
+                        .SetEase(Ease.InQuad).SetLink(gameObject);
+    }
+
+    /// <see cref="FadeOut"/> 전의 머티리얼로 되돌린다.
+    public void RestoreLook()
+    {
+        fade?.Kill();
+        fade = null;
+        foreach (var (r, materials) in fadedLooks)
+            if (r != null) r.sharedMaterials = materials;
+        fadedLooks.Clear();
+        if (fadeMaterial != null) Destroy(fadeMaterial);
+        fadeMaterial = null;
+    }
+
+    void OnDestroy()
+    {
+        if (fadeMaterial != null) Destroy(fadeMaterial);
     }
 
     /// 준비 → 돌진 포즈 유지(루프)까지 간다. 돌진 길이는 서버가 정하므로 끝은 <see cref="EndDash"/>가 낸다.

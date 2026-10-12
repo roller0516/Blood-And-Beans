@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TrackScentOutline
-  m_Shader: {fileID: 4800000, guid: ca680cc77fea71849a4595e7238614ee, type: 3}
+  m_Name: TrackScentRoute
+  m_Shader: {fileID: 4800000, guid: a80a8f11776b5bb439bb38f3e4c45da2, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -25,13 +25,11 @@ Material:
     m_TexEnvs: []
     m_Ints: []
     m_Floats:
-    - _ColorWrite: 15
-    - _OutlineScale: 1.12
-    - _StencilComp: 6
-    - _StencilOp: 0
-    - _StencilRef: 128
-    - _ZTest: 8
+    - _EndFade: 4.53
+    - _FlowSpeed: 2
+    - _NoiseScale: 2
+    - _RouteLength: 1
     m_Colors:
-    - _OutlineColor: {r: 1.65, g: 1.05, b: 0.22, a: 0.9}
+    - _ScentColor: {r: 9.612565, g: 0, b: 0, a: 0.85}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

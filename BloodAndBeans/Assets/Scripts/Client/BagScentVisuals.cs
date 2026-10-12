@@ -1,13 +1,22 @@
 using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.AI;
 
-/// 가방의 소유자 전용 추적 RPC를 받은 화면에서만 냄새와 스텐실 표식을 켠다.
+/// 추적을 받은 로컬 플레이어에서 가방까지 붉은 냄새 길을 그린다.
 public class BagScentVisuals : MonoBehaviour
 {
-    public const uint RenderingLayerBit = 1u << 10;
     [SerializeField] BuriedBag bag;
-    [SerializeField] Renderer[] body = System.Array.Empty<Renderer>();
+    [SerializeField] LineRenderer route;
+    [SerializeField, Min(0.01f)] float routeRefreshSeconds = 0.15f;
+    [SerializeField, Min(0f)] float routeHeight = 0.12f;
+    [SerializeField, Min(0.01f)] float navSampleDistance = 2f;
+
+    // 필드 초기화로 만들면 네이티브 객체가 비어 null 참조로 터진다 (네트워크 스폰 인스턴스). 처음 쓸 때 만든다.
+    NavMeshPath path;
+    MaterialPropertyBlock routeProperties;
+    float routeLength;
+    static readonly int RouteLength = Shader.PropertyToID("_RouteLength");
 
     Transform viewer;
     ParticleSystem scent;
@@ -17,12 +26,14 @@ public class BagScentVisuals : MonoBehaviour
 
     void OnEnable()
     {
-        if (bag == null || body.Length == 0)
+        if (bag == null || route == null)
         {
             CDebug.LogError("가방 냄새 표시의 참조가 비었다.", this);
             enabled = false;
             return;
         }
+        route.positionCount = 0;
+        route.enabled = false;
         bag.TrackRevealed += Reveal;
     }
 
@@ -45,7 +56,6 @@ public class BagScentVisuals : MonoBehaviour
             return;
         }
         until = Mathf.Max(until, Time.time + seconds);
-        Mark(true);
         if (scent == null) scent = EffectManager.PlayAttached(EffectId.TrackScent, transform, 0f);
         if (!showing)
         {
@@ -57,9 +67,16 @@ public class BagScentVisuals : MonoBehaviour
     async UniTaskVoid ShowAsync(int version)
     {
         var ct = this.GetCancellationTokenOnDestroy();
+        var nextRouteUpdate = 0f;
         while (Time.time < until)
         {
             if (viewer == null) break;
+            if (Time.time >= nextRouteUpdate)
+            {
+                DrawRoute(viewer.position, transform.position);
+                nextRouteUpdate = Time.time + Mathf.Max(0.01f, routeRefreshSeconds);
+            }
+            else FollowRouteStart(viewer.position);
             if (scent != null)
             {
                 var toward = viewer.position - scent.transform.position;
@@ -67,8 +84,8 @@ public class BagScentVisuals : MonoBehaviour
                 if (toward.sqrMagnitude > 0.0001f)
                     scent.transform.rotation = Quaternion.LookRotation(toward, Vector3.up);
             }
-            // 입자 방출 방향은 플레이어가 움직인 다음 프레임마다 따라간다.
-            var cancelled = await UniTask.NextFrame(PlayerLoopTiming.Update, ct).SuppressCancellationThrow();
+            // 이동이 끝난 뒤 시작점과 입자 방향을 갱신하고, 경로 탐색만 제한된 주기로 실행한다.
+            var cancelled = await UniTask.NextFrame(PlayerLoopTiming.LastPreLateUpdate, ct).SuppressCancellationThrow();
             if (cancelled || version != showVersion) return;
         }
         showing = false;
@@ -77,7 +94,11 @@ public class BagScentVisuals : MonoBehaviour
 
     void Clear()
     {
-        Mark(false);
+        if (route != null)
+        {
+            route.positionCount = 0;
+            route.enabled = false;
+        }
         until = 0f;
         viewer = null;
         if (scent == null) return;
@@ -87,12 +108,45 @@ public class BagScentVisuals : MonoBehaviour
         scent = null;
     }
 
-    void Mark(bool on)
+    void FollowRouteStart(Vector3 from)
     {
-        foreach (var r in body)
+        if (route == null || !route.enabled || route.positionCount < 2) return;
+        if (!NavMesh.SamplePosition(from, out var start, navSampleDistance, NavMesh.AllAreas)) return;
+
+        var at = start.position + Vector3.up * routeHeight;
+        var previous = route.GetPosition(0);
+        var next = route.GetPosition(1);
+        routeLength += Vector3.Distance(at, next) - Vector3.Distance(previous, next);
+        route.SetPosition(0, at);
+        routeProperties.SetFloat(RouteLength, routeLength);
+        route.SetPropertyBlock(routeProperties);
+    }
+
+    /// 에디터 미리보기에서도 같은 경로를 사용한다. 게임 상태나 플레이어 위치는 바꾸지 않는다.
+    public void DrawRoute(Vector3 from, Vector3 to)
+    {
+        if (route == null) return;
+        route.enabled = false;
+        route.positionCount = 0;
+        path ??= new NavMeshPath();
+        routeProperties ??= new MaterialPropertyBlock();
+        if (!NavMesh.SamplePosition(from, out var start, navSampleDistance, NavMesh.AllAreas)
+            || !NavMesh.SamplePosition(to, out var end, navSampleDistance, NavMesh.AllAreas)
+            || !NavMesh.CalculatePath(start.position, end.position, NavMesh.AllAreas, path)
+            || path.status != NavMeshPathStatus.PathComplete) return;
+
+        var corners = path.corners;
+        if (corners.Length < 2) return;
+        routeLength = 0f;
+        for (var i = 0; i < corners.Length; i++)
         {
-            if (r == null) continue;
-            r.renderingLayerMask = on ? r.renderingLayerMask | RenderingLayerBit : r.renderingLayerMask & ~RenderingLayerBit;
+            if (i > 0) routeLength += Vector3.Distance(corners[i - 1], corners[i]);
         }
+        for (var i = 0; i < corners.Length; i++) corners[i] += Vector3.up * routeHeight;
+        route.positionCount = corners.Length;
+        route.SetPositions(corners);
+        routeProperties.SetFloat(RouteLength, routeLength);
+        route.SetPropertyBlock(routeProperties);
+        route.enabled = true;
     }
 }
