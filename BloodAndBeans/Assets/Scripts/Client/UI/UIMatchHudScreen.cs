@@ -135,10 +135,13 @@ public sealed class UIMatchHudScreen : UIScreen
     TMP_Text[] handoffTexts;
 
     [Header("제조 카드")]
-    /// 들고 있는 식기 위에 뜨는 카드 (기획서 5.7.3). 나와 팀원 둘이라 처음 쓸 때 두 장을 만든다.
+    /// 제조 카드 (기획서 5.7.3). 나와 팀원 둘이라 처음 쓸 때 두 장을 만든다.
     [SerializeField] UIMakingCard makingCardPrefab;
 
-    /// 식기 자리에서 카드가 뜨는 높이(m).
+    /// 내 카드의 고정 자리. 좌하단 줄(`BottomLeft`)이라 레이아웃이 스킬 슬롯 옆에 놓는다.
+    [SerializeField] RectTransform makingCardDock;
+
+    /// 팀원 카드가 식기 자리에서 뜨는 높이(m).
     [SerializeField, Min(0f)] float makingCardHeight = 0.45f;
 
     UIMakingCard[] makingCards;
@@ -470,7 +473,8 @@ public sealed class UIMatchHudScreen : UIScreen
         if (visible && handoffTexts[index].text != marker.Label) SetText(handoffTexts[index], marker.Label);
     }
 
-    /// 매 프레임 불린다. 카드는 식기를 따라다닌다. 내용은 손이 바뀔 때만 다시 그린다.
+    /// 매 프레임 불린다. 내 카드는 HUD에 고정, 팀원 카드는 식기를 따라다닌다.
+    /// 내용은 손이 바뀔 때만 다시 그린다.
     public void SetMakingCards(in MatchHudPresenter.MakingCards cards)
     {
         if (makingCardPrefab == null) return;
@@ -478,19 +482,17 @@ public sealed class UIMatchHudScreen : UIScreen
 
         if (makingCards == null)
         {
+            if (makingCardDock == null)
+                CDebug.LogError($"{name}: {nameof(makingCardDock)}가 비어 있다. 내 제조 카드가 화면 구석에 붙는다.", this);
             makingCards = new UIMakingCard[2];
-            for (var i = 0; i < makingCards.Length; i++) makingCards[i] = Instantiate(makingCardPrefab, worldMarkers);
+            makingCards[0] = Instantiate(makingCardPrefab, makingCardDock != null ? makingCardDock : (RectTransform)transform);
+            makingCards[1] = Instantiate(makingCardPrefab, worldMarkers);
         }
 
-        PlaceCard(makingCards[0], cards.ShowSelf, cards.Self, cards.SelfAt, cards.View);
-        PlaceCard(makingCards[1], cards.ShowMate, cards.Mate, cards.MateAt, cards.View);
-    }
-
-    void PlaceCard(UIMakingCard card, bool show, in CarryView view, Vector3 held, Camera camera)
-    {
-        var visible = show && camera != null && card.Render(view)
-            && PlaceMarker((RectTransform)card.transform, held + Vector3.up * makingCardHeight, camera);
-        SetGroup(card, visible);
+        SetGroup(makingCards[0], cards.ShowSelf && makingCards[0].Render(cards.Self));
+        var mate = makingCards[1];
+        SetGroup(mate, cards.ShowMate && cards.View != null && mate.Render(cards.Mate)
+            && PlaceMarker((RectTransform)mate.transform, cards.MateAt + Vector3.up * makingCardHeight, cards.View));
     }
 
     static void SetText(TMP_Text target, string value)

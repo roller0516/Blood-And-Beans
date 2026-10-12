@@ -39,8 +39,7 @@ public sealed class MatchHudPresenter
     /// 전부다.
     PlayerCarry mate;
 
-    /// 손 아이템이 놓이는 자리를 든 표현 컴포넌트. 제조 카드가 그 위에 뜬다 (5.7.3).
-    PlayerVisuals visuals;
+    /// 팀원의 손 아이템 자리. 팀원 제조 카드가 그 위에 뜬다 (5.7.3). 내 카드는 HUD에 고정이다.
     PlayerVisuals mateVisuals;
 
     /// 브레인이 붙은 카메라. 귀환 방향을 화면 기준으로 돌리는 데만 쓴다. 늦게 생기므로
@@ -274,8 +273,7 @@ public sealed class MatchHudPresenter
     public struct MakingCards
     {
         public bool ShowSelf;
-        public CarryView Self;
-        public Vector3 SelfAt;     // 들고 있는 식기 자리. 카드 높이는 화면이 정한다
+        public CarryView Self;     // 내 카드는 HUD 고정 자리라 월드 좌표가 없다
         public bool ShowMate;
         public CarryView Mate;
         public Vector3 MateAt;
@@ -294,11 +292,10 @@ public sealed class MatchHudPresenter
             if (cam == null) return cards;
             cards.View = cam;
 
-            if (carry != null && visuals != null)
+            if (carry != null)
             {
                 cards.Self = carry.View;
                 cards.ShowSelf = cards.Self.PartCount > 0;
-                cards.SelfAt = visuals.HeldAnchor.position;
             }
             if (mate != null && mateVisuals != null)
             {
@@ -504,7 +501,6 @@ public sealed class MatchHudPresenter
         input = player != null ? player.GetComponent<PlayerInputRouter>() : null;
         abilities = player != null ? player.GetComponent<PlayerAbilities>() : null;
         carry = player != null ? player.GetComponent<PlayerCarry>() : null;
-        visuals = player != null ? player.GetComponent<PlayerVisuals>() : null;
 
         // 로컬 플레이어가 바뀌면 팀도 바뀔 수 있다. 옛 팀의 팀원을 계속 들고 있으면
         // 남의 손을 내 HUD에 그린다.
