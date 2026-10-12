@@ -16,7 +16,7 @@ public class TeamLedgerTests
     public void AFreshLedgerOwesNothingAndIsUnpunished()
     {
         var ledger = new TeamLedger();
-        Assert.AreEqual(0, ledger.Rent.Debt);
+        Assert.AreEqual(0, ledger.Rent.MissStreak);
         Assert.AreEqual(RentPenalty.None, ledger.Penalty);
         Assert.AreEqual(1f, ledger.CraftTimeScale, 0.0001f);
         Assert.AreEqual(1f, ledger.MoveSpeedScale, 0.0001f);
@@ -105,7 +105,7 @@ public class TeamLedgerTests
         var ledger = AtStreak(2);
         Assert.AreEqual(RentPenalty.Tier2, ledger.Penalty);
 
-        ledger.Rent.Settle(3, 10000);
+        ledger.Rent.Settle(3, Rent.Due(3));   // 그날 임대료만 채우면 된다 — 지난 미납은 붙지 않는다
         ledger.ApplySettledPenalty();
         Assert.AreEqual(RentPenalty.None, ledger.Penalty, "다음 날 임대료를 내면 해제된다");
         Assert.AreEqual(1f, ledger.MoveSpeedScale, 0.0001f);
@@ -132,6 +132,6 @@ public class TeamLedgerTests
 
         Assert.AreEqual(0.8f, a.MoveSpeedScale, 0.0001f);
         Assert.AreEqual(1f, b.MoveSpeedScale, 0.0001f);
-        Assert.AreEqual(0, b.Rent.Debt);
+        Assert.AreEqual(0, b.Rent.MissStreak);
     }
 }

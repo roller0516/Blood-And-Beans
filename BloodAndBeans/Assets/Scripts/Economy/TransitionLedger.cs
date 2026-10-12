@@ -42,21 +42,20 @@ public class TransitionLedger : NetworkBehaviour
     public Rent RentOf(int team) => director?.LedgerOf(team)?.Rent;
 
     /// 전환 화면이 보여 줄 하루 마감 결과. 장부는 서버에만 있으므로 마감 순간에 자기 팀
-    /// 클라이언트로만 보낸다 — 남의 임대료와 부채는 공개 대상이 아니다 (기획서 3.1).
+    /// 클라이언트로만 보낸다.
     public readonly struct Settlement
     {
         public readonly int Day;
         public readonly int Sales;
         public readonly int RentOwed;
         public readonly int RentPaid;
-        public readonly int Debt;
         public readonly int MissStreak;
         public readonly bool Valid;
 
-        public Settlement(int day, int sales, int owed, int paid, int debt, int missStreak)
+        public Settlement(int day, int sales, int owed, int paid, int missStreak)
         {
             Day = day; Sales = sales; RentOwed = owed; RentPaid = paid;
-            Debt = debt; MissStreak = missStreak; Valid = true;
+            MissStreak = missStreak; Valid = true;
         }
     }
 
@@ -115,15 +114,14 @@ public class TransitionLedger : NetworkBehaviour
             var revenue = board != null ? board.RevenueOf(team) : 0;
             var earnedToday = revenue - revenueAtDayStart[team];
 
-            // 청구액은 오늘 임대료에 지난 부채를 더한 것이다 (3.2). Settle이 부채를
-            // 갱신하므로 그 전에 읽어야 한다.
-            var owed = Rent.Due(dayClosing) + ledger.Rent.Debt;
+            // 청구액은 그날 임대료뿐이다. 부채는 이월하지 않는다 (3.2).
+            var owed = Rent.Due(dayClosing);
             var paid = ledger.Rent.Settle(dayClosing, earnedToday);
             ledger.ApplySettledPenalty();
             revenueAtDayStart[team] = revenue;
 
             SendSettlement(team, new Settlement(
-                dayClosing, earnedToday, owed, paid, ledger.Rent.Debt, ledger.Rent.MissStreak));
+                dayClosing, earnedToday, owed, paid, ledger.Rent.MissStreak));
         }
         dayClosing++;
     }
@@ -135,8 +133,7 @@ public class TransitionLedger : NetworkBehaviour
         var forecasts = new Forecast[TeamCount];
         for (var team = 0; team < TeamCount; team++)
         {
-            director.CafeOf(team)?.SetDayBudgetServer(revenueAtDayStart[team],
-                Rent.Due(dayClosing) + director.LedgerOf(team).Rent.Debt);
+            director.CafeOf(team)?.SetDayBudgetServer(revenueAtDayStart[team], Rent.Due(dayClosing));
             forecasts[team] = Forecast.Build(seed, dayClosing, RegenPool(), menus, HeldByTeam(team), ordersPerDay);
             director.CafeOf(team)?.Queue?.SetDayPlanServer(forecasts[team]);
         }
@@ -159,23 +156,21 @@ public class TransitionLedger : NetworkBehaviour
         }
     }
 
-    /// 자기 팀 클라이언트에게만 보낸다. 예보와 같은 방식이며 이유도 같다 — 임대료·부채는
-    /// 팀 바깥에 공개되지 않는다 (기획서 3.1).
+    /// 자기 팀 클라이언트에게만 보낸다. 정산 화면은 자기 팀 결과만 그린다.
     void SendSettlement(int team, Settlement s)
     {
         var clients = ClientsOfTeam(team);
         if (clients.Count == 0) return;
 
         foreach (var clientId in clients)
-            SettlementRpc(s.Day, s.Sales, s.RentOwed, s.RentPaid, s.Debt, s.MissStreak,
+            SettlementRpc(s.Day, s.Sales, s.RentOwed, s.RentPaid, s.MissStreak,
                           RpcTarget.Single(clientId, RpcTargetUse.Temp));
     }
 
     [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
-    void SettlementRpc(int day, int sales, int owed, int paid, int debt, int missStreak,
-                       RpcParams p = default)
+    void SettlementRpc(int day, int sales, int owed, int paid, int missStreak, RpcParams p = default)
     {
-        Today = new Settlement(day, sales, owed, paid, debt, missStreak);
+        Today = new Settlement(day, sales, owed, paid, missStreak);
     }
 
     /// 보내고 잊는다. 패널은 10초짜리 전환 동안만 살아 있으므로, 전환 도중에 접속한

@@ -2,7 +2,7 @@
 /// 임대료를 완납하는 즉시 풀린다. 매출에는 절대 관여하지 않는다.
 public enum RentPenalty { None, Tier1, Tier2, Tier3 }
 
-/// 일일 임대료, 미납금 이월, 미납 페널티 (기획서 3.2 / 3.3).
+/// 일일 임대료와 미납 페널티 (기획서 3.2 / 3.3).
 /// 팀당 인스턴스 하나, 서버 전용이다.
 public class Rent
 {
@@ -10,7 +10,6 @@ public class Rent
     /// 표는 `BalanceData.RentByDay`가 갖는다 — 데이터 파일이 덮어쓸 수 있는 값이다.
     public static int Due(int day) => Balance.ByDay(Balance.Current.RentByDay, day);
 
-    public int Debt { get; private set; }
     public int MissStreak { get; private set; }
 
     /// 단계는 3에서 멈춘다. 기획서에 4회 행이 없으므로 그 이상 연속되어도 Tier3을 유지한다.
@@ -22,16 +21,13 @@ public class Rent
         _ => RentPenalty.Tier3,
     };
 
-    /// 낮 종료 정산. 실제로 낸 금액을 돌려준다.
-    /// 이월된 미납금에 이자는 붙지 않는다 (3.2).
-    public int Settle(int day, int cash)
+    /// 낮 종료 정산. 그날 매출이 그날 임대료에 닿았는지만 본다. 실제로 낸 금액을 돌려준다.
+    /// 부채는 이월하지 않는다 — 못 낸 금액은 다음 날 청구에 붙지 않는다 (3.2).
+    public int Settle(int day, int sales)
     {
-        var owed = Due(day) + Debt;
-        var paid = cash < owed ? cash : owed;
-        if (paid < 0) paid = 0;
-
-        Debt = owed - paid;
-        MissStreak = Debt > 0 ? MissStreak + 1 : 0;
+        var owed = Due(day);
+        var paid = System.Math.Max(0, System.Math.Min(sales, owed));
+        MissStreak = paid < owed ? MissStreak + 1 : 0;
         return paid;
     }
 }

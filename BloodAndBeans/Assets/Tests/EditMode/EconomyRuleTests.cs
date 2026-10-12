@@ -21,35 +21,35 @@ public class EconomyRuleTests
         Assert.AreEqual(480, Rent.Due(8), "7일이 마지막이므로 그 뒤는 마지막 값을 유지한다");
     }
 
-    // --- 3.2 부채 이월 (이자 없음) ---
+    // --- 3.2 그날 판정, 부채 이월 없음 ---
 
     [Test]
-    public void ShortfallCarriesWithoutInterest()
+    public void ShortfallDoesNotCarryToTheNextDay()
     {
         var rent = new Rent();
 
-        Assert.AreEqual(40, rent.Settle(1, 40), "40만 있으면 40만 낸다");
-        Assert.AreEqual(10, rent.Debt, "50 - 40 = 10이 이월된다");
+        Assert.AreEqual(40, rent.Settle(1, 40), "40만 벌었으면 40만 낸다");
+        Assert.AreEqual(1, rent.MissStreak, "50에 못 닿았으니 미납");
 
-        // 2일차: 80 + 이월 10 = 90. 이자가 붙지 않는다.
-        Assert.AreEqual(90, rent.Settle(2, 500));
-        Assert.AreEqual(0, rent.Debt);
+        // 2일차는 80으로만 판정한다. 1일차의 부족분 10이 붙지 않는다.
+        Assert.AreEqual(80, rent.Settle(2, 80));
+        Assert.AreEqual(0, rent.MissStreak, "80에 닿았으니 납부");
     }
 
     [Test]
-    public void PayingNothingIsNotNegativeDebt()
+    public void SalesExactlyAtRentCountAsPaid()
     {
         var rent = new Rent();
-        Assert.AreEqual(0, rent.Settle(1, 0));
-        Assert.AreEqual(50, rent.Debt);
+        Assert.AreEqual(50, rent.Settle(1, 50));
+        Assert.AreEqual(0, rent.MissStreak);
     }
 
     [Test]
-    public void OverpayingClearsButDoesNotCredit()
+    public void OverpayingDoesNotCredit()
     {
         var rent = new Rent();
         Assert.AreEqual(50, rent.Settle(1, 1000), "낼 것보다 더 내지는 않는다");
-        Assert.AreEqual(0, rent.Debt);
+        Assert.AreEqual(0, rent.Settle(2, -5), "음수 매출은 0으로 본다");
     }
 
     // --- 3.3 미납 연속 카운트와 단계 ---

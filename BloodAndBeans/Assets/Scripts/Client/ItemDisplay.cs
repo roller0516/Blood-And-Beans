@@ -10,8 +10,7 @@ using UnityEngine;
 ///
 /// **표현만 한다.** 무엇이 어디 있는지는 전부 복제된 값이고(`CarryView`), 실제 세우고
 /// 치우는 로직은 `ItemSlotPresenter`(일반 C# 객체)가 진다 — 손(`PlayerVisuals`)과 시설이
-/// 같은 규칙을 쓴다. 이 컴포넌트에 남은 것은 이 오브젝트의 생애(구독 시작·해제)와
-/// 팀 레이어 적용뿐이다.
+/// 같은 규칙을 쓴다. 이 컴포넌트에 남은 것은 이 오브젝트의 생애(구독 시작·해제)뿐이다.
 [DisallowMultipleComponent]
 public class ItemDisplay : MonoBehaviour
 {
@@ -41,11 +40,6 @@ public class ItemDisplay : MonoBehaviour
     /// 여기서만 조회한다 (AGENTS.md 참조와 결합도의 예외). 주기 실행이 아니다.
     IItemHolder holder;
 
-    /// 손에 든 것도 팀 밖에서는 보이지 않아야 한다 (기획서 3.1: 재료는 비공개). 카페는
-    /// 통째로 팀 레이어에 있지만(`Cafe.OnNetworkSpawn`) 플레이어는 Default라, 카페끼리
-    /// 트인 공간에서 상대가 내 손의 컵을 볼 수 있다. 손 앵커만 팀 레이어로 옮겨 막는다.
-    PlayerTeam team;
-
     ItemSlotPresenter presenter;
 
     /// 실제 칸 목록. `unlimited`면 직렬화된 `anchors` 뒤로 런타임에 늘어난다.
@@ -54,7 +48,6 @@ public class ItemDisplay : MonoBehaviour
     void Awake()
     {
         holder = GetComponent<IItemHolder>();
-        team = GetComponent<PlayerTeam>();
         slots = new List<Transform>(anchors ?? System.Array.Empty<Transform>());
 
         if (holder == null)
@@ -71,18 +64,12 @@ public class ItemDisplay : MonoBehaviour
     void OnEnable()
     {
         if (holder != null) holder.ContentsChanged += Refresh;
-        if (team != null)
-        {
-            team.TeamChanged += ApplyTeamLayer;
-            ApplyTeamLayer(team.Team);
-        }
         Refresh();
     }
 
     void OnDisable()
     {
         if (holder != null) holder.ContentsChanged -= Refresh;
-        if (team != null) team.TeamChanged -= ApplyTeamLayer;
         presenter.Clear();
     }
 
@@ -123,13 +110,5 @@ public class ItemDisplay : MonoBehaviour
         anchor.gameObject.layer = first.gameObject.layer;
         slots.Add(anchor);
         presenter.AddSlot(anchor);
-    }
-
-    /// 팀이 정해지면 손 앵커를 그 팀의 레이어로 옮긴다. 이미 서 있는 아이템도 앵커의
-    /// 자식이라 같이 따라간다.
-    void ApplyTeamLayer(int myTeam)
-    {
-        foreach (var anchor in slots)
-            if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
     }
 }

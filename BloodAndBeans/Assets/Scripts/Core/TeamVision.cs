@@ -1,7 +1,7 @@
 using UnityEngine;
 
-/// 손에 든 것을 팀 밖에서 숨긴다 (기획서 5.4.1: 다른 팀에는 3단계로만 보인다).
-/// 카페는 모두에게 보이므로 이 레이어로 옮기지 않는다 (`Cafe.OnNetworkSpawn`).
+/// 팀 레이어로 옮긴 것을 팀 밖 카메라에서 숨긴다.
+/// 카페와 플레이어 손은 모두에게 보이므로 이 레이어로 옮기지 않는다 (`Cafe.OnNetworkSpawn`).
 public class TeamVision : MonoBehaviour
 {
     public const string LayerPrefix = "CafeTeam";
@@ -22,8 +22,8 @@ public class TeamVision : MonoBehaviour
         cam.cullingMask = mask;
     }
 
-    /// 오브젝트 하나를 통째로 그 팀의 레이어로 옮긴다. 플레이어의 손 앵커가 쓴다
-    /// (`ItemDisplay`, `PlayerVisuals`) — 손에 든 것은 숨기되 플레이어 본체는 Default에 남아야 한다.
+    /// 오브젝트 하나를 통째로 그 팀의 레이어로 옮긴다 (`ReturnZone`).
+    /// 플레이어 손 앵커는 옮기지 않는다 — 손에 든 것은 전원에게 보인다.
     public static void ApplyTeamLayer(GameObject root, int team)
     {
         var layer = LayerMask.NameToLayer(LayerPrefix + team);

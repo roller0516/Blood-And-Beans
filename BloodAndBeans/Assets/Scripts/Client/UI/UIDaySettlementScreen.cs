@@ -71,7 +71,7 @@ public sealed class UIDaySettlementScreen : UIScreen
     {
         dayHeading.text = $"DAY {day:00} 정산";
 
-        // 부족분은 부채로 이월되므로 완납 여부는 낸 금액과 청구액으로 판정한다 (기획서 3.2).
+        // 그날 매출이 그날 임대료에 닿았는가로만 판정한다 (기획서 3.2).
         var settled = rentPaid >= rentOwed;
         salesLine.Render(sales.ToString("N0"), UITheme.Cream);
         rentLine.Render(rentOwed.ToString("N0"), UITheme.Cream);
