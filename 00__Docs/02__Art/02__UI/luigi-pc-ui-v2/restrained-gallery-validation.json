@@ -1,0 +1,279 @@
+{
+  "date": "2026-10-11",
+  "checks": [
+    {
+      "screen": "day",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-day.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/#ui-day",
+      "view": "concept"
+    },
+    {
+      "screen": "day",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-day.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-day",
+      "view": "restrained"
+    },
+    {
+      "screen": "recipe",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-day.webp",
+          "width": 1672
+        },
+        {
+          "loaded": false,
+          "src": "images/unity-gameplay/menu-board.webp",
+          "width": 1214
+        }
+      ],
+      "panel": 384,
+      "url": "http://127.0.0.1:8873/#ui-recipe",
+      "view": "concept"
+    },
+    {
+      "screen": "recipe",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-day.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-menu-board.webp",
+          "width": 1214
+        }
+      ],
+      "panel": 384,
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-recipe",
+      "view": "restrained"
+    },
+    {
+      "screen": "orders",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-day.webp",
+          "width": 1672
+        },
+        {
+          "loaded": false,
+          "src": "images/unity-gameplay/orders-board.webp",
+          "width": 0
+        }
+      ],
+      "panel": 403.1875,
+      "url": "http://127.0.0.1:8873/#ui-orders",
+      "view": "concept"
+    },
+    {
+      "screen": "orders",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-day.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-orders-board.webp",
+          "width": 1536
+        }
+      ],
+      "panel": 403.1875,
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-orders",
+      "view": "restrained"
+    },
+    {
+      "screen": "making",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-making.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/#ui-making",
+      "view": "concept"
+    },
+    {
+      "screen": "making",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-making.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-making",
+      "view": "restrained"
+    },
+    {
+      "screen": "night",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/#ui-night",
+      "view": "concept"
+    },
+    {
+      "screen": "night",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        }
+      ],
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-night",
+      "view": "restrained"
+    },
+    {
+      "screen": "loot",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/loot-board.webp",
+          "width": 1900
+        }
+      ],
+      "panel": 451.1875,
+      "url": "http://127.0.0.1:8873/#ui-loot",
+      "view": "concept"
+    },
+    {
+      "screen": "loot",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-loot-board.webp",
+          "width": 1899
+        }
+      ],
+      "panel": 451.1875,
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-loot",
+      "view": "restrained"
+    },
+    {
+      "screen": "night-parts",
+      "tone": "concept",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/night-components.webp",
+          "width": 1448
+        }
+      ],
+      "panel": 412.796875,
+      "url": "http://127.0.0.1:8873/#ui-night-parts",
+      "view": "concept"
+    },
+    {
+      "screen": "night-parts",
+      "tone": "restrained",
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night.webp",
+          "width": 1672
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/restrained-night-components.webp",
+          "width": 1448
+        }
+      ],
+      "panel": 412.796875,
+      "url": "http://127.0.0.1:8873/?view=restrained#ui-night-parts",
+      "view": "restrained"
+    },
+    {
+      "screen": "recipe",
+      "tone": "concept",
+      "recheck": true,
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-day.webp"
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/menu-board.webp"
+        }
+      ]
+    },
+    {
+      "screen": "orders",
+      "tone": "concept",
+      "recheck": true,
+      "images": [
+        {
+          "loaded": true,
+          "src": "images/unity-luigi-v2-day.webp"
+        },
+        {
+          "loaded": true,
+          "src": "images/unity-gameplay/orders-board.webp"
+        }
+      ]
+    }
+  ],
+  "unsupportedScreenFallback": "title -> concept",
+  "imageCount": 43,
+  "fonts": 3,
+  "referenceScreens": 0,
+  "approvedOriginalsUnchanged": {
+    "unity-concepts-v2/unity-luigi-v2-day.png": "A7CEF7C2EAB40A9028A29AC5047B4118E404F9428745827BE901DFA85A2FB776",
+    "unity-concepts-v2/unity-luigi-v2-making.png": "DCF8C94F229AD6CBDDA7CC8F7808502E463D98F6BE3B88F660D070F7976B18E7",
+    "unity-concepts-v2/unity-luigi-v2-night.png": "C5FD57C44A9102A159FD378523A7C6DB1868C23D5A4BF932B690A724C92B8483",
+    "unity-gameplay/menu-board.png": "64DC31AA38F58D803238C1B0EF06FA4BF66B7FD6CEE54CE450C4DF458774D916",
+    "unity-gameplay/orders-board.png": "814573549665CA17953A2BEAA170ECFEAC1AA151C0F0EB733EC2C254A4777858",
+    "unity-gameplay/loot-board.png": "5F8024655A13DB08E7661D3DB230C2C927A60ADCB70A121DE0A557690D7CDED1",
+    "unity-gameplay/night-components.png": "63043FC1D4B03850DA4E0D7AC3A916FCFDD5CBEC55EEEE2CB226E46D01944D2B"
+  },
+  "verifiedVisiblePixelLossless": 43
+}

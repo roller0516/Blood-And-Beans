@@ -1,0 +1,10 @@
+{
+  "tool": "image_gen.imagegen",
+  "transparent_background": true,
+  "prompt": "Use case: stylized-concept. Asset type: transparent 3D game UI sprite sheet for Blood & Beans. Reference images 1 and 2 are STYLE REFERENCES ONLY: match the original Luigi's Mansion 3 inspired interface icons visible in them, not the scenery or characters. Generate exactly four isolated icons in a precise 2 by 2 square grid, each centered in its equal square cell with generous transparent padding. Top-left: chunky bright green twin-bell alarm clock, cream dial, black hands, slightly worried playful cartoon silhouette, recognizable at 48 pixels. Top-right: warm golden coin with one simple embossed vertical stroke, thick beveled rim, warm highlights, no letters. Bottom-left: luminous cyan-blue will-o-wisp ghost flame with two simple glowing eyes, soft 3D translucent rounded flame, bright center but tight glow. Bottom-right: SMALL LIGHT simple matte tan canvas backpack, soft rounded flap, single small bronze latch, modest straps, no bulky frame. Style: polished stylized 3D rendered game HUD icons, soft volume, charming spooky Nintendo-like game interface quality, moderate front view, consistent upper-left key light and subtle attached shadow only. No flat vector outline art. No extra ornamental motifs. No skull decorations, no gems, no labels, no numbers, no text, no logos, no background scenes. Exactly four objects, no duplicates. Transparent background with actual alpha, keep each object fully within its own cell. Do not put a checkerboard in the image.",
+  "styleReferences": [
+    "unity-concepts-v2/unity-luigi-v2-day.png",
+    "unity-concepts-v2/unity-luigi-v2-night.png"
+  ],
+  "asset": "unity-gameplay/ui-icons.png"
+}

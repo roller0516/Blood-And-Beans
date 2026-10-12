@@ -1,0 +1,344 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "createdDate": "2026-10-12",
+  "project": "C:/Users/eatyourmeat/Desktop/Blood_And_Beans/Blood-And-Beans/00__Docs/02__Art/02__UI/luigi-pc-ui-v2",
+  "constraints": "Blank text templates only; original character/camera/world artwork preserved; no CLI or pixel editing.",
+  "records": [
+    {
+      "stem": "pcVampire0",
+      "source": "pcVampire0.png",
+      "template": "pcVampire0-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-b3acfa3b-f288-4e8a-9bd9-bb6245c2343f.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers at top-left (0 G, 팀 매출), top-center (1일차 · 카페 운영, 02:48), top-right (주문 4); customer-card numbers 22,30,114,31; player name JinKyu; recipe tag 카페모카 and its two plus signs; bottom-left key F and 서빙. Preserve bars, checkmark, cup/ingredient/coin/sun/clipboard icons, keycap shapes, and all world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-7d1f6e7b-0303-405f-a918-ee21dee3a9d5.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Input is edit target. Remove the remaining letter F inside the lower-left white keyboard keycap. Restore only the small cyan circular player-marker icon at original x789 y604 (47.2% width,64.2% height); do not restore player-name text. Keep all other blank UI text surfaces blank and do not change any art, crop, panels, icons, camera or 3D character. This is a targeted two-detail correction.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-0582e987-521d-43d4-a670-895aafd7e3df.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Use case: text-localization. Edit the original into a BLANK text template: remove all UI words and numeric glyphs 0 G 팀 매출; 1일차 · 카페 운영; 02:48; 주문 4; 22 30 114 31; JinKyu; 카페모카; two recipe plus signs; F; 서빙. Keep all original illustration, shapes, bars, cups, checkmark, clipboard, sun, and coin engravings exactly. Especially preserve the original tiny flat cyan circle just to LEFT of JinKyu above the vampire head, at 47.2% image width /64.2% image height (789,604 pixels). It is not text. Do not relocate or enlarge that dot and do not add any marker or triangle. Keep original keycap outline at bottom left but erase its F. Preserve original camera and 1672:941 composition; no new art or panels.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-f09e1f41-44b4-48ca-b66f-26d0bd272ab2.png"
+        },
+        {
+          "attempt": "fix3",
+          "prompt": "Remove only the two white plus signs between coffee-bean, milk, chocolate ingredient circles in the bottom-right recipe panel. Keep ALL remaining image pixels/art as unchanged as possible; keep tiny cyan player circle over vampire head exactly where it is. Keep surfaces blank; no replacement symbols.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-b3acfa3b-f288-4e8a-9bd9-bb6245c2343f.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcVampire1",
+      "source": "pcVampire1.png",
+      "template": "pcVampire1-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-083c338d-b5c4-4619-972a-ab95de62f8ef.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers 팀 매출, 0 G, 가방 없음 at top-left; 1일차 · 야간 탐색 and 01:37 top-center; 팀 1 top-right; YOU over character; F and 가방 회수 near character; bottom-left Q, SPACE, 도깨비불. Keep every underlying UI plate/keycap, icon, meter, triangle, bag and scene unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-083c338d-b5c4-4619-972a-ab95de62f8ef.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcVampire2",
+      "source": "pcVampire2.png",
+      "template": "pcVampire2-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-f77ab033-dda0-4e6e-a154-a559f609d90c.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove only UI lettering JinKyu on top-right profile, 게임 시작 / 설정 / 게임 종료 on three left buttons, bottom-right Enter 선택 Esc 뒤로. Preserve main BLOOD & BEANS logo lettering completely, decorative background chalkboard menu lettering completely, and coffee-bean engraving. Keep keycap outlines, buttons, artwork unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-f77ab033-dda0-4e6e-a154-a559f609d90c.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcVampire3",
+      "source": "pcVampire3.png",
+      "template": "pcVampire3-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-303cdca9-8e9a-4e98-b18d-61ae76eab3fb.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove all UI text and numbers except small upper-left BLOOD & BEANS brand lettering: 크루 선택; prepared crew top-right 준비한 크루 0/1; left panel 도깨비, JinKyu, 낮 · 불붙이기, 조리 시간 단축, 쿨타임 15초, 밤 · 도깨비불, 가짜 아이템 박스 설치, 쿨타임 18초, 팀 선택, 1 2 3 4; floating 도깨비 and JinKyu; five character-card labels 도깨비 박쥐 연금술사 하운드 미믹; bottom Esc 뒤로 F1 정보 and 준비 완료. Preserve panels, separators, sun/moon icons, check/ready icon, card art, selected triangles and world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-1797a044-6c08-4669-b64a-c033eb4cf134.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-fdbec09f-6aaf-4463-8827-2c527e0e64a7.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged. Additional critical shape preservation: retain original translucent purple prepared-crew plate top-right x1423..1611 y46..88; retain original small underline under character title in left panel x80..188 y227; retain horizontal separator x72..315 y375; retain original TWO purple rounded cooldown pills x134..231 y331..358 and x135..232 y457..484, blank ONLY their text. Retain team-choice container x61..326 y499..607. Retain four small yellow accent strokes around floating character title. Add no shapes. Erase glyphs only.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-303cdca9-8e9a-4e98-b18d-61ae76eab3fb.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcZombie0",
+      "source": "pcZombie0.png",
+      "template": "pcZombie0-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-cf1a3d39-60d8-418b-a4a5-135a62ea2ba4.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers at top-left (0 G, 팀 매출), top-center (1일차 · 카페 운영, 02:48), top-right (주문 4); customer-card numbers 22,30,114,31; player name JinKyu; recipe tag 카페모카 and its two plus signs; bottom-left key F and 서빙. Preserve bars, checkmark, cup/ingredient/coin/sun/clipboard icons, keycap shapes, and all world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-16d552d2-7681-42cf-a7b1-755fbdc06f01.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Edit the original into a BLANK text template: remove all UI words and numeric glyphs 0 G 팀 매출; 1일차 · 카페 운영; 02:48; 주문 4; 22 30 114 31; JinKyu; 카페모카; two recipe plus signs; F; 서빙. Keep all original illustration, shapes, bars, cups, checkmark, clipboard, sun, and coin engravings exactly. Especially preserve the original tiny flat cyan circle just to LEFT of JinKyu above the zombie head, at 47.2% image width /64.0% image height (789,602 pixels). It is not text. Do not relocate or enlarge that dot and do not add any marker or triangle. Keep original keycap outline at bottom left but erase its F. Preserve original camera and 1672:941 composition; no new art or panels.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-7c27c875-6dd3-48aa-908c-bfc9b49e6470.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Remove only the small extra gold circular coin at x153 y55 in the TOP-LEFT HUD next to zombie portrait. It was accidentally created from the letter G during text erasure. Keep zombie portrait unchanged. Leave empty original translucent purple HUD surface there for live number+G overlay. Keep all other icons, café art, panels, character, cyan player circle, blank UI areas unchanged. Do not add any text or shape.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-cf1a3d39-60d8-418b-a4a5-135a62ea2ba4.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcZombie1",
+      "source": "pcZombie1.png",
+      "template": "pcZombie1-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-56cdbe6f-8cf7-47f9-8fee-82b9eabf112d.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers 팀 매출, 0 G, 가방 없음 at top-left; 1일차 · 야간 탐색 and 01:37 top-center; 팀 1 top-right; YOU over character; F and 가방 회수 near character; bottom-left Q, SPACE, 도깨비불. Keep every underlying UI plate/keycap, icon, meter, triangle, bag and scene unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-56cdbe6f-8cf7-47f9-8fee-82b9eabf112d.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1671,
+      "height": 941
+    },
+    {
+      "stem": "pcZombie2",
+      "source": "pcZombie2.png",
+      "template": "pcZombie2-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-6c588efe-59a4-4510-917d-c09a569e084f.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove only UI lettering JinKyu on top-right profile, 게임 시작 / 설정 / 게임 종료 on three left buttons, bottom-right Enter 선택 Esc 뒤로. Preserve main BLOOD & BEANS logo lettering completely, decorative background chalkboard menu lettering completely, and coffee-bean engraving. Keep keycap outlines, buttons, artwork unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-6c588efe-59a4-4510-917d-c09a569e084f.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcZombie3",
+      "source": "pcZombie3.png",
+      "template": "pcZombie3-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-9caa27bd-552d-418a-83f8-46885634c5e8.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove all UI text and numbers except small upper-left BLOOD & BEANS brand lettering: 크루 선택; prepared crew top-right 준비한 크루 0/1; left panel 도깨비, JinKyu, 낮 · 불붙이기, 조리 시간 단축, 쿨타임 15초, 밤 · 도깨비불, 가짜 아이템 박스 설치, 쿨타임 18초, 팀 선택, 1 2 3 4; floating 도깨비 and JinKyu; five character-card labels 도깨비 박쥐 연금술사 하운드 미믹; bottom Esc 뒤로 F1 정보 and 준비 완료. Preserve panels, separators, sun/moon icons, check/ready icon, card art, selected triangles and world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-9c2dcfd7-8664-4843-9034-7bff282c7965.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-94c4dc65-fbc8-4a75-a163-bd0fdaafb8d6.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged. Additional critical shape preservation: retain original translucent purple prepared-crew plate top-right x1423..1611 y46..88; retain original small underline under character title in left panel x80..188 y227; retain horizontal separator x72..315 y375; retain original TWO purple rounded cooldown pills x134..231 y331..358 and x135..232 y457..484, blank ONLY their text. Retain team-choice container x61..326 y499..607. Retain four small yellow accent strokes around floating character title. Add no shapes. Erase glyphs only.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-3af36189-5fa1-4601-b965-6f436dd62d8c.png"
+        },
+        {
+          "attempt": "fix3",
+          "prompt": "Input 1 is the blank text template to correct. Input 2 is the original reference. Keep Input 1 entirely unchanged except restore missing original UI artwork from Input 2: (a) bottom-left white Esc keycap outline at x59..103 y860..893 and F1 keycap outline at x188..226 y860..893, blank without lettering; (b) bottom-right green rounded ready button x1434..1630 y832..895 including black circle and white ghost-face icon at x1453..1494 y844..884, blank without 준비 완료 text. Keep all other input 1 panels, cooldown pills, separators, brand lettering, world art and characters unchanged. Do not restore any text.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-9caa27bd-552d-418a-83f8-46885634c5e8.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWerewolf0",
+      "source": "pcWerewolf0.png",
+      "template": "pcWerewolf0-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-d4dd2686-625e-4409-8a89-46963c379a18.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers at top-left (0 G, 팀 매출), top-center (1일차 · 카페 운영, 02:48), top-right (주문 4); customer-card numbers 22,30,114,31; player name JinKyu; recipe tag 카페모카 and its two plus signs; bottom-left key F and 서빙. Preserve bars, checkmark, cup/ingredient/coin/sun/clipboard icons, keycap shapes, and all world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-2c3ffad6-19e2-4ed7-8189-f980c820b8a5.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Edit the original into a BLANK text template: remove all UI words and numeric glyphs 0 G 팀 매출; 1일차 · 카페 운영; 02:48; 주문 4; 22 30 114 31; JinKyu; 카페모카; two recipe plus signs; F; 서빙. Keep all original illustration, shapes, bars, cups, checkmark, clipboard, sun, and coin engravings exactly. Especially preserve the original tiny flat cyan circle just to LEFT of JinKyu above the werewolf head, at 47.2% image width /61.2% image height (789,576 pixels). It is not text. Do not relocate or enlarge that dot and do not add any marker or triangle. Keep original keycap outline at bottom left but erase its F. Preserve original camera and 1672:941 composition; no new art or panels.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-d4dd2686-625e-4409-8a89-46963c379a18.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1671,
+      "height": 941
+    },
+    {
+      "stem": "pcWerewolf1",
+      "source": "pcWerewolf1.png",
+      "template": "pcWerewolf1-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-e2d7e08a-ca2b-4167-a224-3f78dff56fbd.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers 팀 매출, 0 G, 가방 없음 at top-left; 1일차 · 야간 탐색 and 01:37 top-center; 팀 1 top-right; YOU over character; F and 가방 회수 near character; bottom-left Q, SPACE, 도깨비불. Keep every underlying UI plate/keycap, icon, meter, triangle, bag and scene unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-e2d7e08a-ca2b-4167-a224-3f78dff56fbd.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWerewolf2",
+      "source": "pcWerewolf2.png",
+      "template": "pcWerewolf2-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-ac97f85b-3e8e-4b90-9033-517e3bd6fd57.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove only UI lettering JinKyu on top-right profile, 게임 시작 / 설정 / 게임 종료 on three left buttons, bottom-right Enter 선택 Esc 뒤로. Preserve main BLOOD & BEANS logo lettering completely, decorative background chalkboard menu lettering completely, and coffee-bean engraving. Keep keycap outlines, buttons, artwork unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-ac97f85b-3e8e-4b90-9033-517e3bd6fd57.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWerewolf3",
+      "source": "pcWerewolf3.png",
+      "template": "pcWerewolf3-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-36729006-ac83-4d3a-8d35-be80b634305f.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove all UI text and numbers except small upper-left BLOOD & BEANS brand lettering: 크루 선택; prepared crew top-right 준비한 크루 0/1; left panel 도깨비, JinKyu, 낮 · 불붙이기, 조리 시간 단축, 쿨타임 15초, 밤 · 도깨비불, 가짜 아이템 박스 설치, 쿨타임 18초, 팀 선택, 1 2 3 4; floating 도깨비 and JinKyu; five character-card labels 도깨비 박쥐 연금술사 하운드 미믹; bottom Esc 뒤로 F1 정보 and 준비 완료. Preserve panels, separators, sun/moon icons, check/ready icon, card art, selected triangles and world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-9a85c64d-ad0c-4a75-85b2-0990c98362e1.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-47e68747-5785-4067-beba-f66fe5ca3424.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged. Additional critical shape preservation: retain original translucent purple prepared-crew plate top-right x1423..1611 y46..88; retain original small underline under character title in left panel x80..188 y227; retain horizontal separator x72..315 y375; retain original TWO purple rounded cooldown pills x134..231 y331..358 and x135..232 y457..484, blank ONLY their text. Retain team-choice container x61..326 y499..607. Retain four small yellow accent strokes around floating character title. Add no shapes. Erase glyphs only.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-36729006-ac83-4d3a-8d35-be80b634305f.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWitch0",
+      "source": "pcWitch0.png",
+      "template": "pcWitch0-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-e6dbcb4c-4f67-4519-8960-ad8d355149f5.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers at top-left (0 G, 팀 매출), top-center (1일차 · 카페 운영, 02:48), top-right (주문 4); customer-card numbers 22,30,114,31; player name JinKyu; recipe tag 카페모카 and its two plus signs; bottom-left key F and 서빙. Preserve bars, checkmark, cup/ingredient/coin/sun/clipboard icons, keycap shapes, and all world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-32b9ecff-1655-4fdb-bc55-01f62b019944.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Edit the original into a BLANK text template: remove all UI words and numeric glyphs 0 G 팀 매출; 1일차 · 카페 운영; 02:48; 주문 4; 22 30 114 31; JinKyu; 카페모카; two recipe plus signs; F; 서빙. Keep all original illustration, shapes, bars, cups, checkmark, clipboard, sun, and coin engravings exactly. Especially preserve the original tiny flat cyan circle just to LEFT of JinKyu above the witch head, at 47.2% image width /61.5% image height (789,579 pixels). It is not text. Do not relocate or enlarge that dot and do not add any marker or triangle. Keep original keycap outline at bottom left but erase its F. Preserve original camera and 1672:941 composition; no new art or panels.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-e6dbcb4c-4f67-4519-8960-ad8d355149f5.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWitch1",
+      "source": "pcWitch1.png",
+      "template": "pcWitch1-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-79ec05c5-f0a8-4e94-a08e-5982b0926567.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove HUD text/numbers 팀 매출, 0 G, 가방 없음 at top-left; 1일차 · 야간 탐색 and 01:37 top-center; 팀 1 top-right; YOU over character; F and 가방 회수 near character; bottom-left Q, SPACE, 도깨비불. Keep every underlying UI plate/keycap, icon, meter, triangle, bag and scene unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-79ec05c5-f0a8-4e94-a08e-5982b0926567.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWitch2",
+      "source": "pcWitch2.png",
+      "template": "pcWitch2-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-6b4b8e0b-4653-4453-90ab-9129715d9b69.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove only UI lettering JinKyu on top-right profile, 게임 시작 / 설정 / 게임 종료 on three left buttons, bottom-right Enter 선택 Esc 뒤로. Preserve main BLOOD & BEANS logo lettering completely, decorative background chalkboard menu lettering completely, and coffee-bean engraving. Keep keycap outlines, buttons, artwork unchanged. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-6b4b8e0b-4653-4453-90ab-9129715d9b69.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    },
+    {
+      "stem": "pcWitch3",
+      "source": "pcWitch3.png",
+      "template": "pcWitch3-font-template.png",
+      "selectedGeneratedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-b3ac8a87-7427-4adf-855e-6004c908f544.png",
+      "attempts": [
+        {
+          "attempt": "initial",
+          "prompt": "Use case: text-localization. Edit target: supplied original game UI image. Create its BLANK TEXT TEMPLATE. Remove all UI text and numbers except small upper-left BLOOD & BEANS brand lettering: 크루 선택; prepared crew top-right 준비한 크루 0/1; left panel 도깨비, JinKyu, 낮 · 불붙이기, 조리 시간 단축, 쿨타임 15초, 밤 · 도깨비불, 가짜 아이템 박스 설치, 쿨타임 18초, 팀 선택, 1 2 3 4; floating 도깨비 and JinKyu; five character-card labels 도깨비 박쥐 연금술사 하운드 미믹; bottom Esc 뒤로 F1 정보 and 준비 완료. Preserve panels, separators, sun/moon icons, check/ready icon, card art, selected triangles and world art. Change only lettering and numeric glyph pixels, reconstruct each original surface seamlessly. Do not change crop, dimensions, camera, composition, color, texture, lighting, 3D character appearance, pose, panel dimensions or any icon. Leave original spaces completely blank for real-font overlay; no replacement text, no new marks. Preserve exact original aspect ratio 1672:941.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-1ebee4f5-5b4f-4a69-adae-a620ae7593e9.png"
+        },
+        {
+          "attempt": "fix",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-350f3d52-d2d4-423c-babd-e6168d2624ea.png"
+        },
+        {
+          "attempt": "fix2",
+          "prompt": "Use case: text-localization. Input is edit target. Create a blank text template by erasing UI glyphs only. CRITICAL: preserve small BLOOD & BEANS brand lettering at x75..195 y36..55 exactly. Preserve ALL background art and café decorative writing. Remove 크루 선택 and every other interface word/number: 준비한 크루 0/1; 도깨비 JinKyu; 낮 · 불붙이기; 조리 시간 단축; 쿨타임 15초; 밤 · 도깨비불; 가짜 아이템 박스 설치; 쿨타임 18초; 팀 선택 1 2 3 4; floating 도깨비 JinKyu; card labels 도깨비 박쥐 연금술사 하운드 미믹; Esc 뒤로 F1 정보; 준비 완료. Inpaint behind glyphs with EXACT original surface. DO NOT ADD any new pill, rectangular plate, label background, wooden sign or shape behind former text. Exact panels, character, scenes, sun/moon, keycaps, selected highlight triangles must remain unchanged. Additional critical shape preservation: retain original translucent purple prepared-crew plate top-right x1423..1611 y46..88; retain original small underline under character title in left panel x80..188 y227; retain horizontal separator x72..315 y375; retain original TWO purple rounded cooldown pills x134..231 y331..358 and x135..232 y457..484, blank ONLY their text. Retain team-choice container x61..326 y499..607. Retain four small yellow accent strokes around floating character title. Add no shapes. Erase glyphs only.",
+          "generatedPath": "C:\\Users\\eatyourmeat\\.codex\\generated_images\\01a12b6b-b080-7692-b562-e55a7a2cc875\\exec-b3ac8a87-7427-4adf-855e-6004c908f544.png"
+        }
+      ],
+      "qa": "Original and generated output viewed; UI words/numbers removed; brand/background decorative writing preserved; no gallery code edits.",
+      "width": 1672,
+      "height": 941
+    }
+  ]
+}
