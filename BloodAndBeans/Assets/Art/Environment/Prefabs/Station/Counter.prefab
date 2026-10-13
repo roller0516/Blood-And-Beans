@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3826744955359484751}
   - component: {fileID: 151385814386291418}
+  - component: {fileID: 8613473390921749575}
   - component: {fileID: 6088246153172328226}
   m_Layer: 0
   m_Name: Counter
@@ -53,8 +54,34 @@ BoxCollider:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Size: {x: 8, y: 1, z: 1}
-  m_Center: {x: 0, y: 0, z: 0}
+  m_Size: {x: 4.38, y: 1, z: 1}
+  m_Center: {x: 0, y: 0.5, z: -0.02}
+--- !u!114 &8613473390921749575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5056805410087687443}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
+  GlobalObjectIdHash: 3890820258
+  InScenePlacedSourceGlobalObjectIdHash: 0
+  DeferredDespawnTick: 0
+  Ownership: 1
+  AlwaysReplicateAsRoot: 0
+  SynchronizeTransform: 1
+  m_InScenePlaced: 0
+  ActiveSceneSynchronization: 0
+  SceneMigrationSynchronization: 1
+  SpawnWithObservers: 1
+  DontDestroyWithOwner: 0
+  AutoObjectParentSync: 1
+  SyncOwnerTransformWhenParented: 1
+  AllowOwnerToParent: 0
 --- !u!114 &6088246153172328226
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -111,15 +138,15 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 8cb7e05ddc819f142ba6fa6ad0d27cee, type: 3}
       propertyPath: m_LocalScale.x
-      value: 150
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8cb7e05ddc819f142ba6fa6ad0d27cee, type: 3}
       propertyPath: m_LocalScale.y
-      value: 150
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8cb7e05ddc819f142ba6fa6ad0d27cee, type: 3}
       propertyPath: m_LocalScale.z
-      value: 150
+      value: 100
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 8cb7e05ddc819f142ba6fa6ad0d27cee, type: 3}
       propertyPath: m_LocalPosition.x
