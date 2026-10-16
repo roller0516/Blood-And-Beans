@@ -264,7 +264,6 @@ Transform:
   - {fileID: 863622905430282439}
   - {fileID: 6289538130448293566}
   - {fileID: 5660803631463244006}
-  - {fileID: 5551236895413680864}
   - {fileID: 6096572045783888131}
   - {fileID: 784605402519578065}
   - {fileID: 1148475187334414072}
@@ -280,6 +279,7 @@ Transform:
   - {fileID: 6697402864668091632}
   - {fileID: 8603961403811662923}
   - {fileID: 7519836646544349714}
+  - {fileID: 7060604461555934170}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &5704004882917952057
@@ -862,37 +862,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 212253780283027920}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &1685438278683691742
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4929165428538701290}
-  m_Layer: 0
-  m_Name: Slot0
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4929165428538701290
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1685438278683691742}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.1, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6289538130448293566}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1688666874369727037
 GameObject:
@@ -1886,6 +1855,37 @@ Transform:
   m_Children: []
   m_Father: {fileID: 4260883358392470772}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &4389486771431688905
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7060604461555934170}
+  m_Layer: 0
+  m_Name: Customer_StartPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7060604461555934170
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4389486771431688905}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 13.893}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1914624446022514306}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4428678429259040721
 GameObject:
   m_ObjectHideFlags: 0
@@ -2429,37 +2429,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1269366319809844425}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &5839760238390987104
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 5551236895413680864}
-  m_Layer: 0
-  m_Name: Seating
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &5551236895413680864
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5839760238390987104}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 9}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1914624446022514306}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6139346634699525407
 GameObject:
@@ -3240,7 +3209,7 @@ Transform:
   m_GameObject: {fileID: 7432659168480402945}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 2.25, y: 0, z: 9.1}
+  m_LocalPosition: {x: 1.413, y: 0.738, z: 9.855}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -3275,8 +3244,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CustomerQueue
   ShowTopMostFoldoutHeaderGroup: 1
   customerPrefab: {fileID: 397695399714067981, guid: 5a9856f8fdef19a45906100835701fb8, type: 3}
+  startPoint: {fileID: 7060604461555934170}
   maxWaiting: 4
-  slotSpacing: 1.5
+  slotSpacing: 1
   slotStagger: 0
 --- !u!114 &4151856092055359088
 MonoBehaviour:
@@ -6974,44 +6944,9 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects:
-    - targetCorrespondingSourceObject: {fileID: 3826744955359484751, guid: 113210a220039fd498b109a0b2a15c7a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4929165428538701290}
-    m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 5056805410087687443, guid: 113210a220039fd498b109a0b2a15c7a, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4735766120623349726}
+    m_AddedGameObjects: []
+    m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 113210a220039fd498b109a0b2a15c7a, type: 3}
---- !u!1 &2629777149092008162 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 5056805410087687443, guid: 113210a220039fd498b109a0b2a15c7a, type: 3}
-  m_PrefabInstance: {fileID: 7085210977164936689}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4735766120623349726
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2629777149092008162}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 722e96e6d0eaa754ea965f2bddb1d4fe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: BB.Client::ItemDisplay
-  config: {fileID: 11400000, guid: 14d50ef31c03c2449a41ded492084163, type: 2}
-  anchors:
-  - {fileID: 4929165428538701290}
-  highlightScale: 1.4
-  highlightOffset: {x: 0, y: 0.1, z: 0}
-  unlimited: 0
-  rowStart: {x: 0, y: 0, z: 0}
-  rowStep: {x: 0.5, y: 0, z: 0}
-  rowWrap: 0
-  wrapStep: {x: 0, y: 0, z: 0.5}
-  stackStart: {x: 0, y: 0, z: 0}
-  stackStep: {x: 0, y: 0.1, z: 0}
 --- !u!4 &6289538130448293566 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3826744955359484751, guid: 113210a220039fd498b109a0b2a15c7a, type: 3}
