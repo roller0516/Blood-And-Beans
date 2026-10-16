@@ -152,6 +152,10 @@ public class Station : NetworkBehaviour, IItemHolder
         var cue = judgement switch { Judgement.Perfect => SfxCue.Perfect, Judgement.Good => SfxCue.Good,
             Judgement.Miss => SfxCue.Miss, _ => SfxCue.None };
         PlayerController.ReportSoundServer(operatorCarry.OwnerClientId, this, cue);
+        // 몸짓은 Perfect와 Miss·탐만 있다. Good은 글자만 뜬다 (18장 DA-13).
+        var motion = judgement switch { Judgement.Perfect => BodyMotion.Perfect, Judgement.Good => BodyMotion.None,
+            _ => BodyMotion.Miss };
+        PlayerController.ReportMotionServer(operatorCarry.OwnerClientId, motion, teamOnly: true);
         foreach (var client in NetworkManager.ConnectedClientsList)
             if (PlayerTeam.Of(client.ClientId) == Team)
                 JudgementRpc(judgement, Team, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));

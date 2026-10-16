@@ -59,13 +59,10 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
 
     /// 표시용. 서버가 쓰고 전원이 읽는다. 초기값을 명시하는 이유는 `default`가
     /// "우유를 들고 있음"으로 읽히기 때문이다 (`CarryView.Nothing` 주석).
-    readonly NetworkVariable<CarryView> view = new(CarryView.Nothing, NetworkVariableReadPermission.Owner);
-    readonly NetworkVariable<int> publicState = new();
+    readonly NetworkVariable<CarryView> view = new(CarryView.Nothing);
     readonly NetworkVariable<bool> bloodGlow = new();
-    CarryView teamView = CarryView.Nothing;
     PlayerTeam playerTeam;
     int ownerTeam = -1;
-    public int PublicState => publicState.Value;
     public bool BloodGlow => bloodGlow.Value;
     public void BeginInteractionClient() => ExchangeRpc();
     public void EndInteractionClient() { }
@@ -73,23 +70,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
 
     /// 둘 다 들고 있으면 맞바꾸고, 한쪽만 들고 있으면 건넨다 (기획서 5.7.4).
     public string PromptFor(in InteractionContext ctx) => ctx.Held.Empty ? "받기" : View.Empty ? "건네기" : "맞바꾸기";
-    [Rpc(SendTo.Server)]
-    void RequestTeamViewRpc(RpcParams p = default)
-    {
-        var sender = p.Receive.SenderClientId;
-        if (ownerTeam < 0 || PlayerTeam.Of(sender) != ownerTeam) return;
-        TeamViewRpc(view.Value, RpcTarget.Single(sender, RpcTargetUse.Temp));
-    }
-    void OnTeamChanged(int team)
-    {
-        ownerTeam = team;
-        teamView = CarryView.Nothing;
-        if (!IsServer && IsSpawned) RequestTeamViewRpc();
-        if (IsServer && IsSpawned)
-            foreach (var client in NetworkManager.ConnectedClientsList)
-                if (PlayerTeam.Of(client.ClientId) == team)
-                    Of(client.ClientId)?.PublishTeamServer();
-    }
+    void OnTeamChanged(int team) => ownerTeam = team;
 
     [Rpc(SendTo.Server)]
     void ExchangeRpc(RpcParams p = default)
@@ -105,23 +86,19 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         other.SetServer(item);
         if (!item.Empty || !held.Empty) PlayerController.ReportSuccessServer(sender, this);
         if (!item.Empty || !held.Empty) PlayerController.ReportSoundServer(sender, this, SfxCue.HandOff);
+        if (!item.Empty || !held.Empty)
+        {
+            // 내준 쪽은 건네고 빈손이었던 쪽은 받는다 (DA-11). 맞바꾸면 둘 다 건넨다.
+            // 손에 든 것이 전원에게 보이므로 건네는 몸짓도 전원에게 보낸다.
+            PlayerController.ReportMotionServer(sender, held.Empty ? BodyMotion.Receive : BodyMotion.HandOver, teamOnly: false);
+            PlayerController.ReportMotionServer(OwnerClientId, item.Empty ? BodyMotion.Receive : BodyMotion.HandOver, teamOnly: false);
+        }
     }
 
-    void PublishTeamServer()
+    void RefreshBloodGlowServer()
     {
-        publicState.Value = held.Empty ? 0 : held.Dirty ? 2 : 1;
         bloodGlow.Value = held.Ingredient == Ingredient.BloodBean ||
             (held.Recipe != null && System.Array.IndexOf(held.Recipe, Ingredient.BloodBean) >= 0);
-        var team = PlayerTeam.Of(OwnerClientId);
-        foreach (var client in NetworkManager.ConnectedClientsList)
-            if (team >= 0 && PlayerTeam.Of(client.ClientId) == team && client.ClientId != OwnerClientId)
-                TeamViewRpc(view.Value, RpcTarget.Single(client.ClientId, RpcTargetUse.Temp));
-    }
-    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
-    void TeamViewRpc(CarryView value, RpcParams p = default)
-    {
-        teamView = value;
-        ContentsChanged?.Invoke();
     }
 
     readonly NetworkVariable<bool> reserved = new();
@@ -140,8 +117,8 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     public HeldItem Held => held;
     public bool Empty => held.Empty;
 
-    /// 팀원 화면이 읽는 값. 서버의 `Held`와 항상 같은 시점에 바뀐다.
-    public CarryView View => IsServer || IsOwner ? view.Value : teamView;
+    /// 모든 화면이 읽는 값. 서버의 `Held`와 항상 같은 시점에 바뀐다.
+    public CarryView View => view.Value;
 
     /// 손은 한 번에 하나만 든다 (`IngredientShelf.TakeRpc`의 `!carry.Empty` 검사).
     public event System.Action ContentsChanged;
@@ -159,7 +136,6 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         status = GetComponent<PlayerStatus>();
         if (playerTeam != null) { playerTeam.TeamChanged += OnTeamChanged; OnTeamChanged(playerTeam.Team); }
         view.OnValueChanged += OnViewChanged;
-        publicState.OnValueChanged += OnPublicState;
         bloodGlow.OnValueChanged += OnBloodGlow;
         MatchDirector.Bind(BindDirector);
         ContentsChanged?.Invoke();      // 스폰 시점의 값으로 한 번 그린다
@@ -170,7 +146,6 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         if (IsServer && held.HasDish) director?.CafeOf(ownerTeam)?.Dishes?.SoilServer(held.DishIsPlate);
         if (playerTeam != null) playerTeam.TeamChanged -= OnTeamChanged;
         view.OnValueChanged -= OnViewChanged;
-        publicState.OnValueChanged -= OnPublicState;
         bloodGlow.OnValueChanged -= OnBloodGlow;
 
         MatchDirector.Unbind(BindDirector);
@@ -196,8 +171,8 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     /// 군데도 없었다.** 그래서 낮에 집은 재료가 전환·밤을 넘어 다음 낮까지 그대로 남았다.
     ///
     /// **완성품이었으면 그릇을 함께 돌려보낸다.** 그릇은 조리를 시작할 때 나가서
-    /// (`Station.Insert` -> `Dish.ClaimServer`) 서빙하거나 버릴 때만 돌아오는데
-    /// (`Counter`, `Sink`), 손에 든 채로 낮이 끝나면 돌아올 길이 없어 영영 InUse로 남는다.
+    /// (`Station.Insert` -> `Dish.ClaimServer`) 서빙하거나 세척할 때만 돌아오는데
+    /// (`Counter`, `SharedFacility`), 손에 든 채로 낮이 끝나면 돌아올 길이 없어 영영 InUse로 남는다.
     /// 그릇이 다 나가면 그 팀은 **어느 기계에도 재료를 넣을 수 없다** (기획서 5.3).
     void OnPhaseEntered(Phase p)
     {
@@ -210,7 +185,6 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     }
 
     void OnViewChanged(CarryView _, CarryView __) => ContentsChanged?.Invoke();
-    void OnPublicState(int _, int __) => ContentsChanged?.Invoke();
     void OnBloodGlow(bool _, bool __) => ContentsChanged?.Invoke();
 
     /// 재료 추가로 확정된 결과만 팀에게 보낸다. 손 교환·재접속에는 다시 터뜨리지 않는다.
@@ -236,7 +210,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         if (!IsServer) return;
         held = item;
         view.Value = CarryView.Of(item);
-        PublishTeamServer();
+        RefreshBloodGlowServer();
     }
 
     /// 손에 든 재료 하나를 덜어낸다. 마지막 하나였으면 손이 빈다.
@@ -253,7 +227,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
 
         held.Count = left;
         view.Value = CarryView.Of(held);
-        PublishTeamServer();
+        RefreshBloodGlowServer();
     }
 
     /// 이 재료를 하나 더 받을 수 있는가. 빈손이거나 같은 재료를 한도 미만으로 들고 있을 때다.
@@ -275,7 +249,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
             : new HeldItem { Ingredient = want, Count = held.Amount + 1 };
 
         view.Value = CarryView.Of(held);
-        PublishTeamServer();
+        RefreshBloodGlowServer();
     }
 
     public void ClearServer()
@@ -283,7 +257,22 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
         if (!IsServer) return;
         held = HeldItem.Nothing;
         view.Value = CarryView.Nothing;
-        PublishTeamServer();
+        RefreshBloodGlowServer();
+    }
+
+    /// 낮에 `B`로 손에 든 것을 쏟는다 (기획서 5.3 · 5.7.3). 내용물은 사라지고 식기는 더러워져
+    /// 손에 남는다 — 서빙과 같다. 카페 안에서만 쏟는다 (5.7.3: 쏟으러 카페까지 들고 돌아가야 한다).
+    [Rpc(SendTo.Server, InvokePermission = RpcInvokePermission.Owner)]
+    public void DiscardRpc()
+    {
+        if (director == null || director.Phase.Current != Phase.Day || Reserved) return;
+        if (!held.IsProduct && held.Ingredient == Ingredient.None) return;   // 빈손·빈 식기는 쏟을 것이 없다
+
+        var cafe = director.CafeOf(PlayerTeam.Of(OwnerClientId));
+        if (cafe == null || !cafe.Contains(transform.position)) return;
+
+        SetServer(held.HasDish ? HeldItem.Dish(held.DishIsPlate, true) : HeldItem.Nothing);
+        PlayerController.ReportMotionServer(OwnerClientId, BodyMotion.Dump, teamOnly: false);   // 손에 든 것이 전원에게 보인다
     }
 
     /// 클라이언트가 사라졌으면 null이다. static 맵이 표현하지 못하던 바로 그 경우다.

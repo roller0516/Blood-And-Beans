@@ -8,7 +8,6 @@ using Unity.Netcode;
 public static class DayV5Setup
 {
     const string CafePath = "Assets/Art/Environment/Prefabs/Cafe.prefab";
-    const string PlayerPath = "Assets/Art/Character/Prefabs/Player.prefab";
     const string BattlePath = "Assets/Scenes/Battle_01.unity";
     const string PlazaName = "SharedPlaza";
 
@@ -75,7 +74,6 @@ public static class DayV5Setup
             PrefabUtility.SaveAsPrefabAsset(cafe, CafePath);
         }
         finally { PrefabUtility.UnloadPrefabContents(cafe); }
-        SetupPlayer();
         EditorSceneManager.MarkSceneDirty(director.gameObject.scene);
         EditorSceneManager.SaveScene(director.gameObject.scene);
         AssetDatabase.SaveAssets();
@@ -181,36 +179,5 @@ public static class DayV5Setup
         serialized.FindProperty("kind").enumValueIndex = (int)kind;
         serialized.FindProperty("statusRenderer").objectReferenceValue = lamp.GetComponent<Renderer>();
         serialized.ApplyModifiedPropertiesWithoutUndo();
-    }
-    static void SetupPlayer()
-    {
-        var player = PrefabUtility.LoadPrefabContents(PlayerPath);
-        try
-        {
-            // 공개 소지 표시는 PublicCarryDisplay가 아니라 PlayerVisuals.publicMarker다
-            // (표현 통합 — PlayerAppearance·PlayerEffects·PublicCarryDisplay가 한 컴포넌트다).
-            var visuals = player.GetComponent<PlayerVisuals>();
-            if (visuals != null)
-            {
-                var so = new SerializedObject(visuals);
-                var markerProp = so.FindProperty("publicMarker");
-                if (markerProp.objectReferenceValue == null)
-                {
-                    var marker = player.transform.Find("PublicCarry")?.gameObject;
-                    if (marker == null)
-                    {
-                        marker = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                        marker.name = "PublicCarry"; marker.transform.SetParent(player.transform, false);
-                        marker.transform.localPosition = new Vector3(0.55f, 0.2f, 0.4f);
-                        marker.transform.localScale = Vector3.one * 0.25f;
-                        Object.DestroyImmediate(marker.GetComponent<Collider>());
-                    }
-                    markerProp.objectReferenceValue = marker.GetComponent<Renderer>();
-                    so.ApplyModifiedPropertiesWithoutUndo();
-                }
-            }
-            PrefabUtility.SaveAsPrefabAsset(player, PlayerPath);
-        }
-        finally { PrefabUtility.UnloadPrefabContents(player); }
     }
 }

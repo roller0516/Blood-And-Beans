@@ -400,12 +400,12 @@ public sealed class MatchHudPresenter
         }
     }
 
-    /// 낮 시계는 m:ss, 밤은 초 단위로 쫓기는 구간이라 mm:ss.fff로 표시한다.
+    /// 낮 시계는 m:ss, 밤은 mm:ss로 표시한다.
     static string Clock(float seconds, bool compact)
     {
         var span = System.TimeSpan.FromSeconds(Mathf.Max(0f, seconds));
         return compact ? $"{(int)span.TotalMinutes}:{span.Seconds:00}"
-            : $"{(int)span.TotalMinutes:00}:{span.Seconds:00}.{span.Milliseconds:000}";
+            : $"{(int)span.TotalMinutes:00}:{span.Seconds:00}";
     }
 
     static string PhaseLabel(Phase p) => p switch

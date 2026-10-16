@@ -46,16 +46,20 @@ Material:
     m_Ints: []
     m_Floats:
     - _CenterMoveSeconds: 0.8
-    - _CenterTravelRadius: 0.75
+    - _CenterNoisePower: 5.81
+    - _CenterNoiseSpeed: 0.594
+    - _CenterOpacity: 0.35
+    - _CenterTravelRadius: 0.5
     - _EffectElapsed: 0.15
     - _EffectStrength: 1
     - _EffectTime: 0
-    - _OuterFadeSeconds: 0.3
-    - _VignetteIntensity: 1.12
-    - _VignettePower: 5.52
-    - _VignetteSpeed: 0.328
-    - _VoronoiPower: 3.12
+    - _OuterFadeSeconds: 0.45
+    - _VignetteIntensity: 1.166
+    - _VignettePower: 4.69
+    - _VignetteSpeed: 0.525
+    - _VoronoiPower: 3.67
     m_Colors:
+    - _CenterColor: {r: 1, g: 0, b: 0, a: 1}
     - _TendrilColor: {r: 1, g: 0, b: 0, a: 1}
     - _VignetteColor: {r: 1, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []

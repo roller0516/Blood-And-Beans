@@ -235,7 +235,13 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         hold.Begin(clientId, now);
         CastStateRpc(now, team == ownerTeam.Value ? NightBalance.BagRetrieveSeconds : NightBalance.BagBurnSeconds,
             RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        ReportHoldMotionServer(clientId, team, BodyMotion.HoldStart);
     }
+
+    /// 회수하는 몸짓은 같은 팀에게만 보낸다 — 적에게 보이면 가방 자리를 알려 주는 꼴이다.
+    /// 소각은 불이 모두에게 보이므로(`BurnEffectRpc`) 몸짓도 숨기지 않는다.
+    void ReportHoldMotionServer(ulong clientId, int team, BodyMotion motion) =>
+        PlayerController.ReportMotionServer(clientId, motion, teamOnly: team == ownerTeam.Value);
 
     [Rpc(SendTo.Server)]
     void EndHoldRpc(RpcParams p = default) => CancelHold(p.Receive.SenderClientId);
@@ -328,6 +334,11 @@ public class BuriedBag : NetworkBehaviour, IInteractable
         inv.RetrieveServer(contents);
         if (sourceInventory != null) sourceInventory.ResolveBuriedLossServer(contents.Count);
         contents.Clear();
+
+        // 홀드 이탈 대신 회수 몸짓으로 끝낸다. 디스폰이 남은 홀드를 정리하며 이탈을 다시 보내지 않게 먼저 뺀다.
+        hold.Cancel(clientId);
+        holds.Remove(clientId);
+        PlayerController.ReportMotionServer(clientId, BodyMotion.Collect, teamOnly: true);
         DespawnServer();
     }
 
@@ -361,7 +372,11 @@ public class BuriedBag : NetworkBehaviour, IInteractable
 
     void CancelHold(ulong clientId)
     {
-        if (hold.Holding(clientId)) CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        if (hold.Holding(clientId))
+        {
+            CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+            if (holds.TryGetValue(clientId, out var h)) ReportHoldMotionServer(clientId, h.Team, BodyMotion.HoldEnd);
+        }
         hold.Cancel(clientId);
         holds.Remove(clientId);
     }
@@ -369,8 +384,11 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     void CancelAllHolds()
     {
         // `scratch`를 쓰지 않는다. 틱 순회 도중 `DespawnServer`에서 불린다.
-        foreach (var clientId in holds.Keys)
-            CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        foreach (var pair in holds)
+        {
+            CastStateRpc(double.NaN, 0f, RpcTarget.Single(pair.Key, RpcTargetUse.Temp));
+            ReportHoldMotionServer(pair.Key, pair.Value.Team, BodyMotion.HoldEnd);
+        }
         hold.CancelAll();
         holds.Clear();
     }

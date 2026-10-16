@@ -14,15 +14,24 @@ public sealed class NetworkPool : INetworkPrefabInstanceHandler
 
     readonly GameObject prefab;
     readonly Stack<NetworkObject> idle = new();
+    readonly bool parentSync;   // 프리팹의 AutoObjectParentSync. 쉬는 동안 꺼 두었다가 꺼낼 때 되돌린다
+    readonly Transform root;
 
-    NetworkPool(GameObject prefab) => this.prefab = prefab;
+    NetworkPool(GameObject prefab, Transform parent)
+    {
+        this.prefab = prefab;
+        parentSync = prefab.GetComponent<NetworkObject>().AutoObjectParentSync;
+        root = new GameObject(prefab.name).transform;
+        root.SetParent(parent, false);
+    }
 
-    public static void Register(NetworkManager manager, GameObject prefab)
+    /// `parent` 밑에 이 프리팹의 풀 루트를 만든다. 쉬는 인스턴스가 씬 언로드에 휩쓸리지 않게 `parent`는 DontDestroyOnLoad여야 한다.
+    public static void Register(NetworkManager manager, GameObject prefab, Transform parent)
     {
         var hash = prefab.GetComponent<NetworkObject>().PrefabIdHash;
         if (pools.ContainsKey(hash)) return;
 
-        var pool = new NetworkPool(prefab);
+        var pool = new NetworkPool(prefab, parent);
         if (manager.PrefabHandler.AddHandler(hash, pool)) pools[hash] = pool;
         else CDebug.LogError($"{nameof(NetworkPool)}: {prefab.name} 핸들러 등록에 실패했다. 풀 없이 생성·파괴한다.", prefab);
     }
@@ -45,6 +54,8 @@ public sealed class NetworkPool : INetworkPrefabInstanceHandler
 
             // 새로 만든 것과 같은 자리(활성 씬)에 둔다. 위치는 켜기 전에 잡아야 콜라이더 경계가 맞는다.
             var go = reused.gameObject;
+            go.transform.SetParent(null);   // 씬 이동은 루트 오브젝트만 된다
+            reused.AutoObjectParentSync = parentSync;
             SceneManager.MoveGameObjectToScene(go, SceneManager.GetActiveScene());
             go.transform.SetPositionAndRotation(position, rotation);
             go.SetActive(true);
@@ -54,13 +65,13 @@ public sealed class NetworkPool : INetworkPrefabInstanceHandler
         return Object.Instantiate(prefab, position, rotation).GetComponent<NetworkObject>();
     }
 
-    /// 쉬는 인스턴스는 씬 언로드에 휩쓸리지 않게 DontDestroyOnLoad로 뺀다.
-    /// 부모로 넣지 않는 이유: despawn된 NetworkObject는 부모 변경을 거부한다 (NetworkObject.OnTransformParentChanged).
+    /// 쉬는 인스턴스는 풀 루트 밑에 둔다.
+    /// despawn된 NetworkObject는 부모 변경을 거부하므로 (NetworkObject.OnTransformParentChanged) 쉬는 동안 부모 동기화를 끈다.
     public void Destroy(NetworkObject networkObject)
     {
-        var go = networkObject.gameObject;
-        go.SetActive(false);
-        Object.DontDestroyOnLoad(go);
+        networkObject.gameObject.SetActive(false);
+        networkObject.AutoObjectParentSync = false;
+        networkObject.transform.SetParent(root);
         idle.Push(networkObject);
     }
 }

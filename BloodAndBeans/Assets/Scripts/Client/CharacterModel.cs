@@ -14,6 +14,36 @@ public sealed class CharacterModel : MonoBehaviour
     static readonly int DashHoldHash = Animator.StringToHash("DashHold");
     static readonly int DashEndHash = Animator.StringToHash("DashEnd");
     static readonly int HitHash = Animator.StringToHash("Hit");
+    static readonly int HitStrongHash = Animator.StringToHash("HitStrong");
+
+    // 일회성 몸짓 (18장). 상태 이름은 FBX 클립 이름을 따른다.
+    static readonly int PickUpStartHash = Animator.StringToHash("PickUpStart");
+    static readonly int PickUpHoldHash = Animator.StringToHash("PickUpHold");
+    static readonly int PickUpEndHash = Animator.StringToHash("PickUpEnd");
+    static readonly int CollectHash = Animator.StringToHash("Collect");
+    static readonly int BuryHash = Animator.StringToHash("Bury");
+    static readonly int ThrowAwayHash = Animator.StringToHash("ThrowAway");
+    static readonly int KnotHash = Animator.StringToHash("Knot");
+    static readonly int PerfectHash = Animator.StringToHash("Perfect");
+    static readonly int MissHash = Animator.StringToHash("Miss");
+    static readonly int HandOverHash = Animator.StringToHash("HandOver");
+    static readonly int ReceiveHash = Animator.StringToHash("Receive");
+    static readonly int CollapseHash = Animator.StringToHash("Collapse");
+    static readonly int ReturnHash = Animator.StringToHash("Return");
+    static readonly int ThrowHash = Animator.StringToHash("Throw");
+    static readonly int CastingHash = Animator.StringToHash("Casting");
+
+    // 「안 됨」을 걸으면서 하면 이동은 두고 상체만 젓는다 (DA-08).
+    const string UpperLayerName = "UpperBody";
+    static readonly int IdleNoHash = Animator.StringToHash("IdleNo");
+
+    // 걸음걸이. 컨트롤러의 이동 상태(블렌드 트리) 이름이다.
+    static readonly int RunHash = Animator.StringToHash("Run");
+    static readonly int WalkHash = Animator.StringToHash("Walk");
+    static readonly int MoveHeavyHash = Animator.StringToHash("MoveHeavy");
+    static readonly int ZombieWalkHash = Animator.StringToHash("ZombieWalk");
+
+    public enum Gait { Run, Walk, Heavy, Zombie }
 
     // 들기 자세는 팔 본만 덮는 마스크가 걸린 Hold 레이어에서 이동 위에 겹쳐 돈다.
     const string HoldLayerName = "Hold";
@@ -34,6 +64,8 @@ public sealed class CharacterModel : MonoBehaviour
     [Tooltip("이동 블렌드 값이 따라가는 시간. 원격 플레이어의 보간 떨림을 흡수한다.")]
     [SerializeField, Min(0f)] float blendDampSeconds = 0.1f;
     [SerializeField, Min(0f)] float crossFadeSeconds = 0.08f;
+    [Tooltip("이동 블렌드(0~1)가 이 값을 넘으면 움직이는 것으로 본다. 「안 됨」을 상체로 할지, 서서 하던 몸짓을 끊을지 가른다.")]
+    [SerializeField, Range(0f, 1f)] float movingBlend = 0.2f;
 
     [Header("손 소켓")]
     [Tooltip("잔을 쥐는 자리. 뜨거운·아이스 커피와 식기 없는 재료가 여기 붙는다.")]
@@ -47,7 +79,9 @@ public sealed class CharacterModel : MonoBehaviour
     static readonly int OpacityId = Shader.PropertyToID("_Opacity");
 
     Vector3 lastPosition;
+    bool moving;
     int holdLayer = -1;
+    int upperLayer = -1;
     int holdState;
 
     readonly List<(Renderer renderer, Material[] materials)> fadedLooks = new();
@@ -66,6 +100,10 @@ public sealed class CharacterModel : MonoBehaviour
         holdLayer = animator.GetLayerIndex(HoldLayerName);
         if (holdLayer < 0)
             CDebug.LogError($"{name}: 컨트롤러에 '{HoldLayerName}' 레이어가 없다. 들기 자세가 재생되지 않는다.", this);
+
+        upperLayer = animator.GetLayerIndex(UpperLayerName);
+        if (upperLayer < 0)
+            CDebug.LogError($"{name}: 컨트롤러에 '{UpperLayerName}' 레이어가 없다. 걸으며 하는 「안 됨」이 재생되지 않는다.", this);
     }
 
     void OnEnable() => lastPosition = transform.position;
@@ -88,7 +126,73 @@ public sealed class CharacterModel : MonoBehaviour
 
         animator.SetFloat(MoveXHash, local.x, blendDampSeconds, dt);
         animator.SetFloat(MoveZHash, local.z, blendDampSeconds, dt);
+        moving = local.magnitude > movingBlend;
+
+        // 일회성 동작에서 이동으로 돌아오면 컨트롤러는 기본 걸음(Run)으로 보낸다. 지금 걸음걸이와 다르면 맞춘다.
+        // 서서 하는 몸짓은 걷기 시작하면 끊는다 — 몸이 미끄러지며 춤추지 않게.
+        var state = BaseState();
+        if (IsGait(state) ? state != gaitHash : moving && StopsWhenMoving(state))
+            animator.CrossFadeInFixedTime(gaitHash, crossFadeSeconds);
     }
+
+    int gaitHash = RunHash;
+
+    int BaseState() => animator.IsInTransition(0)
+        ? animator.GetNextAnimatorStateInfo(0).shortNameHash
+        : animator.GetCurrentAnimatorStateInfo(0).shortNameHash;
+
+    static bool IsGait(int hash) => hash == RunHash || hash == WalkHash || hash == MoveHeavyHash || hash == ZombieWalkHash;
+
+    static bool StopsWhenMoving(int hash) =>
+        hash == PerfectHash || hash == MissHash || hash == HandOverHash || hash == ReceiveHash ||
+        hash == KnotHash || hash == BuryHash || hash == CollectHash || hash == ThrowAwayHash;
+
+    /// 확정된 몸짓을 재생한다 (18장). 서서 하는 몸짓은 걷기 시작하면 `LateUpdate`가 끊는다.
+    public void PlayMotion(BodyMotion motion)
+    {
+        if (!enabled) return;
+
+        if (motion == BodyMotion.Denied && moving)
+        {
+            if (upperLayer >= 0) animator.CrossFadeInFixedTime(IdleNoHash, crossFadeSeconds, upperLayer);
+            return;
+        }
+
+        // 홀드 몸짓이 이미 다른 것(피격·회수 등)으로 덮였으면 이탈 동작을 끼워 넣지 않는다.
+        var current = BaseState();
+        if (motion == BodyMotion.HoldEnd && current != PickUpStartHash && current != PickUpHoldHash) return;
+
+        var state = StateOf(motion);
+        if (state != 0) animator.CrossFadeInFixedTime(state, crossFadeSeconds);
+    }
+
+    static int StateOf(BodyMotion motion) => motion switch
+    {
+        BodyMotion.HoldStart => PickUpStartHash,
+        BodyMotion.HoldEnd => PickUpEndHash,
+        BodyMotion.Collect => CollectHash,
+        BodyMotion.Bury => BuryHash,
+        BodyMotion.Dump => ThrowAwayHash,
+        BodyMotion.Denied => KnotHash,
+        BodyMotion.Perfect => PerfectHash,
+        BodyMotion.Miss => MissHash,
+        BodyMotion.HandOver => HandOverHash,
+        BodyMotion.Receive => ReceiveHash,
+        BodyMotion.Collapse => CollapseHash,
+        BodyMotion.Return => ReturnHash,
+        BodyMotion.Throw => ThrowHash,
+        BodyMotion.Cast => CastingHash,
+        _ => 0,
+    };
+
+    /// 걸음걸이를 바꾼다. 실제 전환은 다음 `LateUpdate`가 이동 상태일 때 한다.
+    public void PlayGait(Gait gait) => gaitHash = gait switch
+    {
+        Gait.Walk => WalkHash,
+        Gait.Heavy => MoveHeavyHash,
+        Gait.Zombie => ZombieWalkHash,
+        _ => RunHash,
+    };
 
     /// 손에 든 것을 붙일 소켓. 접시면 접시 자리, 얼음이 든 완성품이면 아이스 잔 자리, 나머지는 잔 자리다.
     public void ShowBag(bool worn)
@@ -195,5 +299,6 @@ public sealed class CharacterModel : MonoBehaviour
         return state.shortNameHash == DashStartHash || state.shortNameHash == DashHoldHash;
     }
 
-    public void PlayHit() { if (enabled) animator.CrossFadeInFixedTime(HitHash, crossFadeSeconds); }
+    /// `strong`이면 밤에 대시를 맞은 강한 반응이다 (18장 DA-06 강).
+    public void PlayHit(bool strong) { if (enabled) animator.CrossFadeInFixedTime(strong ? HitStrongHash : HitHash, crossFadeSeconds); }
 }

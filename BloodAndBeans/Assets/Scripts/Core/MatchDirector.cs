@@ -124,14 +124,6 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     /// 안개 표시용 평면. NetworkObject가 없는 순수 뷰라서 피어마다 각자 하나씩 만든다.
     [SerializeField] GameObject fogPlanePrefab;
 
-    /// 카페 외관(`CafeDecor`). 남의 카페도 벽과 입구는 보여야 한다 (기획서 5.7.6 「이 등은
-    /// 전원에게 보인다」, 5.4.3-2 「광장 어디서든 자기 카페 입구가 보여야 한다」).
-    ///
-    /// 안개 평면과 같은 순수 뷰다 — 복제하지 않고 피어마다 각자 세운다. 카페 본체는
-    /// NetworkObject가 루트 하나뿐이라 복제를 열면 재고·설비·손님·예산이 함께 열린다.
-    /// 껍데기를 떼어 내면 내부를 팀 전용으로 둔 채 외관만 공개할 수 있다 (기획서 3.4 · 5.4-18).
-    [SerializeField] GameObject cafeShellPrefab;
-
     /// 스폰된 카페의 팀별 색인. 서버는 스폰하면서, 클라이언트는 복제를 받으면서 채운다.
     readonly Dictionary<int, Cafe> cafes = new();
 
@@ -207,8 +199,6 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         if (phase != null) phase.PhaseEntered += OnPhaseEntered;
 
         if (fogPlanePrefab != null) Instantiate(fogPlanePrefab);
-
-        SpawnCafeShells();
 
         // 팀 수와 시계가 다 선 뒤에 알린다. 그 전에 부르면 받은 쪽이 0팀짜리 판을 본다.
         ready?.Invoke(this);
@@ -498,23 +488,6 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     public Vector3 PlazaCenter => cafeOrigin + Vector3.right *
         (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
 
-    /// 카페 외관을 팀마다 하나씩, 본체와 같은 자리·같은 회전으로 세운다.
-    ///
-    /// 서버가 스폰하는 본체와 달리 여기서 만드는 것은 이 피어의 화면에만 있다. 팀 수는
-    /// `GameManager.Seating`이 들고 있어 클라이언트도 서버와 같은 값을 본다.
-    void SpawnCafeShells()
-    {
-        if (cafeShellPrefab == null)
-        {
-            CDebug.LogError($"{name}: {nameof(cafeShellPrefab)}이 비어 있다. "
-                          + "남의 카페가 광장에서 보이지 않는다 (기획서 5.4.3-2).", this);
-            return;
-        }
-
-        for (var team = 0; team < teamCount; team++)
-            Instantiate(cafeShellPrefab, CafePosition(team), CafeRotation(team));
-    }
-
     /// 카페 입구가 광장 중앙을 보도록 돌린다. 입구는 카페 로컬 -Z다 (`CafeDecor/EntryRunner`가
     /// z -4.6, 반대편 z +14에 `BackPanel`). 그래서 정면(+Z)을 광장 반대쪽으로 둔다.
     ///
@@ -590,9 +563,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     {
         foreach (var cafe in cafes.Values)
         {
-            if (cafe == null || cafe.Floor == null || cafe.TeamId == exceptTeam) continue;
-            var b = cafe.Floor.bounds;
-            if (point.x >= b.min.x && point.x <= b.max.x && point.z >= b.min.z && point.z <= b.max.z) return true;
+            if (cafe == null || cafe.TeamId == exceptTeam) continue;
+            if (cafe.Contains(point)) return true;
         }
         return false;
     }

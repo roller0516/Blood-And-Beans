@@ -46,8 +46,12 @@ public sealed class MatchFlow : MonoBehaviour
     /// HUD 조합식 패널을 여닫는 액션. 캐릭터 선택창의 정보 패널과 같은 F1·패드 Y다.
     const string TogglePanelActionPath = "UI/TogglePanel";
 
+    /// 커서를 수동으로 보이게 하는 액션 (Ctrl+F1).
+    const string ToggleCursorActionPath = "UI/ToggleCursor";
+
     InputAction cancel;
     InputAction togglePanel;
+    InputAction toggleCursor;
     const string MoveActionPath = "Player/Move";
     const string InteractActionPath = "Player/Interact";
     InputAction recipeMove;
@@ -174,6 +178,9 @@ public sealed class MatchFlow : MonoBehaviour
         togglePanel = actions.FindAction(TogglePanelActionPath, true);
         togglePanel.performed += OnToggleRecipe;
         togglePanel.Enable();
+        toggleCursor = actions.FindAction(ToggleCursorActionPath, true);
+        toggleCursor.performed += OnToggleCursor;
+        toggleCursor.Enable();
         recipeMove = actions.FindAction(MoveActionPath, true);
         recipeInteract = actions.FindAction(InteractActionPath, true);
         recipeMove.performed += OnRecipeActivity;
@@ -187,6 +194,11 @@ public sealed class MatchFlow : MonoBehaviour
         var ui = UIManager.Instance;
         if (ui == null || hud == null || ui.PopupDepth > 0 || ui.CurrentScreen != hud) return;
         hud.ToggleRecipe();
+    }
+
+    void OnToggleCursor(InputAction.CallbackContext _)
+    {
+        if (UIManager.Instance != null) UIManager.Instance.ToggleCursorForced();
     }
 
     void OnRecipeActivity(InputAction.CallbackContext _)
@@ -235,6 +247,7 @@ public sealed class MatchFlow : MonoBehaviour
         if (phase != null) phase.PhaseEntered -= OnPhaseEntered;
         if (cancel != null) cancel.performed -= OnCancel;
         if (togglePanel != null) togglePanel.performed -= OnToggleRecipe;
+        if (toggleCursor != null) toggleCursor.performed -= OnToggleCursor;
         if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;
         if (recipeInteract != null) recipeInteract.started -= OnRecipeActivity;
 

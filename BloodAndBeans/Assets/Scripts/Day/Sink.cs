@@ -12,6 +12,4 @@ public class Sink : NetworkBehaviour, IInteractable
     public void WashHoldBeginRpc(RpcParams p = default) { }
     [Rpc(SendTo.Server)]
     public void WashHoldEndRpc(RpcParams p = default) { }
-    [Rpc(SendTo.Server)]
-    public void DiscardRpc(RpcParams p = default) { }
 }

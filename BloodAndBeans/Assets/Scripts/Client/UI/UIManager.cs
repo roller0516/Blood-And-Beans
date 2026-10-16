@@ -378,6 +378,15 @@ public sealed class UIManager : MonoSingleton<UIManager>
     /// 스택은 그대로인데 뷰가 원하는 커서가 바뀌었을 때 부른다 (HUD 조합식 패널).
     public void RefreshInputGates() => ApplyInputGates();
 
+    /// 뷰가 원하지 않아도 커서를 보이게 하는 수동 스위치. 이동은 막지 않는다.
+    bool cursorForced;
+
+    public void ToggleCursorForced()
+    {
+        cursorForced = !cursorForced;
+        ApplyInputGates();
+    }
+
     void ApplyInputGates()
     {
         var wants = false;
@@ -389,6 +398,7 @@ public sealed class UIManager : MonoSingleton<UIManager>
         }
         if (!wants) wants = CurrentScreen == null || CurrentScreen.WantsCursor;
         if (!blocks) blocks = CurrentScreen != null && CurrentScreen.BlocksPlayerInput;
+        wants |= cursorForced;
 
         PlayerInputBlocked = blocks;
         Cursor.visible = wants;

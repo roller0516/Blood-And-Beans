@@ -275,7 +275,11 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 남의 팀 값이나 사라진 값으로 개봉 시간을 계산한다.
     void CancelCast(ulong clientId)
     {
-        if (hold.Holding(clientId)) CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+        if (hold.Holding(clientId))
+        {
+            CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+            PlayerController.ReportMotionServer(clientId, BodyMotion.HoldEnd, teamOnly: false);
+        }
         hold.Cancel(clientId);
         castTeam.Remove(clientId);
     }
@@ -283,7 +287,10 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     void CancelAllCasts()
     {
         foreach (var clientId in castTeam.Keys)
+        {
             CastStateRpc(double.NaN, 0f, RpcTarget.Single(clientId, RpcTargetUse.Temp));
+            PlayerController.ReportMotionServer(clientId, BodyMotion.HoldEnd, teamOnly: false);
+        }
         hold.CancelAll();
         castTeam.Clear();
     }
@@ -400,9 +407,11 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         var team = PlayerTeam.Of(clientId);
         if (team < 0 || !InReach(clientId) || !Cleared) return;
 
+        var started = !hold.Holding(clientId);
         castTeam[clientId] = team;
         hold.Begin(clientId, NetworkManager.ServerTime.Time);
         SendCastStartServer(clientId, team);
+        if (started) PlayerController.ReportMotionServer(clientId, BodyMotion.HoldStart, teamOnly: false);   // 상자는 모두에게 보인다
     }
 
     /// F를 놓았다. 캐스팅만 버린다 — 이미 열린 루팅 세션은 F와 무관하게 유지된다.

@@ -579,7 +579,7 @@ public struct MatchHudModel
     }
     public string Day;          // "2일차"
     public string PhaseName;    // "야간 탐색"
-    public string Timer;        // "02:46.021"
+    public string Timer;        // "02:46"
     public string Team;         // "Team 0"
     public string Ping;         // "핑 42ms" / "호스트"
     public string Revenue;      // "팀 매출  2,840G"

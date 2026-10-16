@@ -75,6 +75,7 @@ public class PlayerInventory : NetworkBehaviour
         // 소유자 분기를 두지 않는다 (기획서 6.6).
         overloaded.OnValueChanged += OnAppearanceChanged;
         hasBag.OnValueChanged += OnAppearanceChanged;
+        carried.OnValueChanged += OnCarriedChanged;   // 소유자만 읽는 값이라 남의 화면에서는 오르지 않는다
         LoadChanged?.Invoke();
 
         if (!IsServer) return;
@@ -90,6 +91,7 @@ public class PlayerInventory : NetworkBehaviour
         MatchDirector.Unbind(BindDirector);
         overloaded.OnValueChanged -= OnAppearanceChanged;
         hasBag.OnValueChanged -= OnAppearanceChanged;
+        carried.OnValueChanged -= OnCarriedChanged;
         if (IsServer) carried.OnValueChanged -= OnCarriedChangedServer;
         if (subscribedPhase != null) subscribedPhase.PhaseEntered -= OnPhaseEntered;
         subscribedPhase = null;
@@ -98,6 +100,8 @@ public class PlayerInventory : NetworkBehaviour
     void OnCarriedChangedServer(float previous, float current) => PushSpeedServer();
 
     void OnAppearanceChanged(bool _, bool __) => LoadChanged?.Invoke();
+
+    void OnCarriedChanged(float _, float __) => LoadChanged?.Invoke();
 
     /// 지금 무게와 밴드로 정해지는 속도 배수를 이동에 넣는다.
     ///
@@ -337,6 +341,7 @@ public class PlayerInventory : NetworkBehaviour
         if (phase == null || phase.Current != Phase.Night || items.Count == 0) return;
 
         SpawnPilesServer(DrainServer(), transform.position);
+        PlayerController.ReportMotionServer(OwnerClientId, BodyMotion.Dump, teamOnly: false);   // 쏟은 더미는 모두에게 보인다
     }
 
     /// 서 있는 자리 발밑에 가방을 세운다. 진짜(`BuryRpc`)와 미끼(`IllusionAbility`)가 같은 높이에
@@ -383,6 +388,7 @@ public class PlayerInventory : NetworkBehaviour
         bag.NetworkObject.SpawnWithObservers = false;   // 보여주는 시점은 BuriedBag이 정한다
         bag.NetworkObject.Spawn();
         hasBag.Value = false;
+        PlayerController.ReportMotionServer(OwnerClientId, BodyMotion.Bury, teamOnly: true);   // 가방 자리를 적에게 알리지 않는다
         var returnZone = director != null && team != null ? director.ZoneOf(team.Team) : null;
         leftReturnZoneWithoutBag = returnZone != null && !returnZone.Contains(transform.position);
 

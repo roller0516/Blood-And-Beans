@@ -24,6 +24,8 @@ public struct ServeInfo
 public class CustomerQueue : NetworkBehaviour
 {
     [SerializeField] Customer customerPrefab;
+    [Tooltip("손님이 걸어 들어오기 시작하는 자리. 카페 프리팹의 Customer_StartPoint.")]
+    [SerializeField] Transform startPoint;
     [SerializeField] int maxWaiting = 4;
     [SerializeField] float slotSpacing = 1.5f;
     // ponytail: 계단식 대기열 깊이 초안. 카운터 실치수 확정 후 조정한다 (5.7.2).
@@ -50,6 +52,12 @@ public class CustomerQueue : NetworkBehaviour
     /// 판매를 먼저 구독한 계산대 하나에 몰아넣었다.
     public event System.Action<ServeInfo> Served;
 
+    public override void OnNetworkSpawn()
+    {
+        if (IsServer && startPoint == null)
+            CDebug.LogError($"{name}: startPoint가 비어 있다. 손님이 걸어 들어오지 않고 자리에 바로 나타난다.", this);
+    }
+
     void Update()
     {
         if (!IsServer) return;
@@ -67,7 +75,7 @@ public class CustomerQueue : NetworkBehaviour
         {
             if (waiting[i] == null) { waiting.RemoveAt(i); continue; }
             if (waiting[i].Patience > 0f) continue;
-            Leave(i);                      // 인내심 소진: 나가고 매출 0
+            Leave(i, CustomerExit.Impatient);   // 인내심 소진: 나가고 매출 0
         }
 
         if (waiting.Count >= maxWaiting || planned.Count == 0) return;
@@ -85,13 +93,16 @@ public class CustomerQueue : NetworkBehaviour
     {
         if (customerPrefab == null) return;
 
-        var c = Instantiate(customerPrefab, SlotPosition(waiting.Count), transform.rotation);
+        var slotIndex = FreeSlot();
+        var slot = SlotPosition(slotIndex);
+        var c = Instantiate(customerPrefab, startPoint != null ? startPoint.position : slot, transform.rotation);
         c.NetworkObject.Spawn();   // 카페와 같이 모두에게 보인다
+        c.WalkToServer(slot, transform.rotation);
         // 소속 카페를 한 번 풀어서 팀 번호와 조립 루트를 같은 출처에서 받는다.
         var myCafe = Cafe.Of(this);
         var team = myCafe != null ? myCafe.TeamId : -1;
         waiting.Add(c);
-        c.SetQueueIndexServer(waiting.Count - 1);
+        c.SetQueueIndexServer(slotIndex);
 
         var next = planned.Dequeue();
         var menu = Menus.All[next.menu];
@@ -118,27 +129,56 @@ public class CustomerQueue : NetworkBehaviour
                 planned.Enqueue((forecast.Races[i], forecast.Orders[i]));
     }
 
+    const float SlotGizmoRadius = 0.3f;
+
+    /// 씬 뷰에서 대기 자리(하늘색 구, 선 방향)와 입장 경로(노란 선)를 보여 준다.
+    void OnDrawGizmos()
+    {
+        Gizmos.color = Color.cyan;
+        for (var i = 0; i < maxWaiting; i++)
+        {
+            var slot = SlotPosition(i);
+            Gizmos.DrawWireSphere(slot, SlotGizmoRadius);
+            Gizmos.DrawRay(slot, transform.forward * SlotGizmoRadius * 2f);
+        }
+
+        if (startPoint == null) return;
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawLine(startPoint.position, SlotPosition(0));
+    }
+
     Vector3 SlotPosition(int index) => transform.position + transform.right * (index * slotSpacing) + transform.forward * (index % 2 * slotStagger);
 
-    void Leave(int index)
+    /// 슬롯은 바로 비운다 (기획서 5.5). `None`이면 몸짓 없이 즉시 사라지고, 그 밖에는 몸짓을 보이며 입구로 걸어 나간다.
+    void Leave(int index, CustomerExit reason)
     {
         var c = waiting[index];
         waiting.RemoveAt(index);
-        if (c != null && c.NetworkObject.IsSpawned) c.NetworkObject.Despawn();
-        Reflow();
+        if (c == null || !c.NetworkObject.IsSpawned) return;
+
+        if (reason == CustomerExit.None) c.NetworkObject.Despawn();
+        else c.ExitServer(reason, startPoint != null ? startPoint.position : c.transform.position);
+    }
+
+    /// 비어 있는 가장 앞 슬롯 (기획서 5.5: 슬롯 4개 고정). 손님이 나가도 남은 손님은 제자리에 서 있고,
+    /// 새 손님이 그 빈 슬롯으로 걸어 들어온다. Spawn은 자리가 있을 때만 부른다.
+    int FreeSlot()
+    {
+        for (var i = 0; i < maxWaiting; i++)
+        {
+            var taken = false;
+            foreach (var c in waiting)
+                if (c != null && c.QueueIndex == i) { taken = true; break; }
+            if (!taken) return i;
+        }
+        return waiting.Count;
     }
 
     void ClearAll()
     {
         enteredToday = 0;
         nextSpawn = 0;
-        for (int i = waiting.Count - 1; i >= 0; i--) Leave(i);
-    }
-
-    void Reflow()
-    {
-        for (int i = 0; i < waiting.Count; i++)
-            if (waiting[i] != null) { waiting[i].transform.position = SlotPosition(i); waiting[i].SetQueueIndexServer(i); }
+        for (int i = waiting.Count - 1; i >= 0; i--) Leave(i, CustomerExit.None);
     }
 
     /// 서버 권위 서빙. 누군가 물건을 받았으면 true를 돌려준다.
@@ -178,7 +218,7 @@ public class CustomerQueue : NetworkBehaviour
         var complete = c.CountServedServer();
         PlayerController.ReportSoundServer(clientId, c,
             !complete ? SfxCue.PartialSale : item.Burnt ? SfxCue.BurntSale : SfxCue.Sale);
-        if (complete) Leave(index);
+        if (complete) Leave(index, CustomerExit.Served);
         return true;
     }
 

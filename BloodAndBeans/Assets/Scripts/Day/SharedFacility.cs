@@ -10,6 +10,10 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     [SerializeField] FacilityKind kind;
     [SerializeField] float reach = 2.5f;
     [SerializeField] Renderer statusRenderer;
+    
+    //표시등 전용 머티리얼 사본, MPB (Material Property Block) 
+    Material statusMaterial;
+    
     readonly NetworkVariable<bool> busy = new();
     readonly NetworkVariable<int> occupyingTeam = new(-1);
 
@@ -32,8 +36,10 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public int OccupyingTeam => occupyingTeam.Value;
     public bool Hot => NetworkManager != null && IsSpawned && NetworkManager.ServerTime.Time < hotUntil.Value;
     public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : Hot ? "달아오름" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
-    string FacilityName => kind switch { FacilityKind.Coffee => "커피 머신", FacilityKind.Oven => "오븐",
-        FacilityKind.Sink => "개수대", FacilityKind.Beans => "원두함", _ => "빵함" };
+    string FacilityName => kind switch { 
+        FacilityKind.Coffee => "커피 머신", FacilityKind.Oven => "오븐",
+        FacilityKind.Sink => "개수대", FacilityKind.Beans => "원두함", 
+        _ => "빵함" };
     void Awake()
     {
         surface = GetComponent<Collider>();
@@ -49,10 +55,21 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         OnBusy(false, busy.Value);
     }
     public override void OnNetworkDespawn() { busy.OnValueChanged -= OnBusy; occupyingTeam.OnValueChanged -= OnTeam; BusyChanged?.Invoke(false); }
+
+    public override void OnDestroy()
+    {
+        if(statusMaterial != null) Destroy(statusMaterial);
+        base.OnDestroy();
+    }
     void OnTeam(int _, int __) => OnBusy(false, Busy);
     void OnBusy(bool _, bool value)
     {
-        if (statusRenderer != null) TeamColors.TintWith(statusRenderer.gameObject, value ? TeamColors.Of(OccupyingTeam) : Color.white, 1f);
+        if (statusRenderer != null)
+        {
+            statusMaterial = statusRenderer.material;
+            statusMaterial.SetColor(TeamColors.BaseColorId, value ? TeamColors.Of(OccupyingTeam) : Color.white);
+        }
+        
         BusyChanged?.Invoke(value);
     }
     public void BeginInteractionClient() => UseRpc();
@@ -133,6 +150,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
         user = id;
         washing = carry;
         carry.ReserveServer(true);
+        PlayerController.ReportMotionServer(id, BodyMotion.HoldStart, teamOnly: false);   // 광장 설비라 누구에게나 보인다
         var scale = cafe.HasGem(Gem.Foam) ? Gems.WashTimeScale : 1f;
         fullWashSeconds = DayBalance.WashSeconds * scale;
         completesAt = NetworkManager.ServerTime.Time + fullWashSeconds * (1f - Mathf.Clamp01(carry.Held.WashProgress));
@@ -192,7 +210,11 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public void ReleaseServer()
     {
         if (!IsServer) return;
-        if (washing != null) washing.ReserveServer(false);
+        if (washing != null)
+        {
+            washing.ReserveServer(false);
+            PlayerController.ReportMotionServer(user, BodyMotion.HoldEnd, teamOnly: false);
+        }
         washing = null;
         busy.Value = false;
         occupyingTeam.Value = -1;

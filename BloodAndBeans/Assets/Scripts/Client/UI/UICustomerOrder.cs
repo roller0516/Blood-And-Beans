@@ -62,7 +62,7 @@ public sealed class UICustomerOrder : MonoBehaviour
     {
         // 플레이·앱 종료 때는 HUD가 이 컴포넌트보다 먼저 파괴되며 그 층에 옮겨 둔 그림을 데려간다.
         if (view == null || saleClosed) return;
-        if (customer == null || !customer.IsSpawned) { group.alpha = 0f; return; }
+        if (customer == null || !customer.IsSpawned || customer.Exit != CustomerExit.None) { group.alpha = 0f; return; }
         if (cameraView == null) cameraView = Camera.main;
         if (hud == null) UIManager.Instance.TryGet(out hud);
         if (player == null) player = NetworkManager.Singleton?.LocalClient?.PlayerObject?.transform;

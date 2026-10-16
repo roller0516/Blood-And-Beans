@@ -35,6 +35,7 @@ public class CharacterCheatGroup : DevConsoleGroup
     protected override void Build(VisualElement group)
     {
         note = Row(group, "상태", "-");
+        Btn(ButtonRow(group), "전원 스킬 쿨타임 초기화", ResetAllCooldowns);
 
         list = new VisualElement();
         group.Add(list);
@@ -145,6 +146,16 @@ public class CharacterCheatGroup : DevConsoleGroup
         if (pc == null) return;
 
         pc.SetCharacterCheatServer(index);
+    }
+
+    /// 접속자 전원의 낮·밤·대시 쿨타임을 푼다. 서버가 아니면 아무 일도 없다 (`Refresh`가 안내).
+    static void ResetAllCooldowns()
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager == null || !manager.IsServer) return;
+
+        foreach (var client in manager.ConnectedClientsList)
+            PlayerAbilities.Of(client.ClientId)?.ResetCooldownsCheatServer();
     }
 
     static string LabelOf(ulong clientId)

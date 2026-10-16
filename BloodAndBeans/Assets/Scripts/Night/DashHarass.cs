@@ -163,7 +163,12 @@ public class DashHarass : NetworkBehaviour
 
         // 가방이 무거우면 대시가 없다. 서버가 판정한다 — 소유자에게 맡기면 무게 제한이
         // 없는 것과 같다.
-        if (BlockedByLoad) return false;
+        if (BlockedByLoad)
+        {
+            // 무거워서 대시가 안 된다 — 배낭에 끌려 주저앉는다 (NA-10). 적재는 같은 팀만 안다.
+            PlayerController.ReportMotionServer(OwnerClientId, BodyMotion.Collapse, teamOnly: true);
+            return false;
+        }
 
         dashDirection = move.FacingServer;
         dashEnd = Time.time + dashSeconds;

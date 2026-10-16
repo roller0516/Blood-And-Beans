@@ -1,8 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 
-/// `MatchDirector` Inspector에 숲 굽기 버튼을 붙인다. 메뉴(`Blood & Beans`)와 같은
-/// 일을 하며, 씨앗을 보면서 그 자리에서 눌러 볼 수 있게 한 것뿐이다.
+/// `MatchDirector` Inspector에서 씨앗을 보며 숲을 굽는다.
 [CustomEditor(typeof(MatchDirector))]
 public class MatchDirectorEditor : Editor
 {

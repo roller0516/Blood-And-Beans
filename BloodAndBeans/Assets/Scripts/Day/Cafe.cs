@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,8 +21,19 @@ public class Cafe : NetworkBehaviour
     /// 전부 한 색이 되어 형태가 사라진다.
     [SerializeField, Range(0f, 1f)] float teamTintStrength = 0.35f;
 
+    /// `TeamColors.Tint`가 만든 팀 색 머티리얼 사본. 카페가 소유하므로 파괴될 때 함께 지운다.
+    readonly List<Material> tintMaterials = new();
+
     [SerializeField] Collider floor;
     public Collider Floor => floor;
+
+    /// 이 카페 바닥 위인가. 높이는 보지 않는다.
+    public bool Contains(Vector3 point)
+    {
+        if (floor == null) return false;
+        var b = floor.bounds;
+        return point.x >= b.min.x && point.x <= b.max.x && point.z >= b.min.z && point.z <= b.max.z;
+    }
 
     /// 같은 팀만 들어오게 하는 울타리.
     [SerializeField] CafeGate gate;
@@ -127,7 +139,7 @@ public class Cafe : NetworkBehaviour
                 if (player.Team == team.Value) gate.Admit(player.Body);
 
         // 색도 같은 이유로 스폰 시점이다. 서버·클라이언트 양쪽에서 실행되므로 보는 쪽에도 걸린다.
-        TeamColors.Tint(gameObject, team.Value, teamTintStrength);
+        TeamColors.Tint(gameObject, team.Value, teamTintStrength, tintMaterials);
 
         // 서버는 `BindDirectorServer`로 이미 받았다. 클라이언트만 여기서 푼다.
         if (director == null) director = MatchDirector.Instance;
@@ -143,6 +155,13 @@ public class Cafe : NetworkBehaviour
     public override void OnNetworkDespawn()
     {
         if (director != null) director.UnregisterCafe(this);
+    }
+
+    public override void OnDestroy()
+    {
+        foreach (var material in tintMaterials) Destroy(material);
+        tintMaterials.Clear();
+        base.OnDestroy();
     }
 
     /// 모든 설비는 자기 카페 밑에 붙어 있으므로, 소유 판정은 부모를 거슬러 올라가면 끝난다.

@@ -346,6 +346,34 @@ public class PlayerController : NetworkBehaviour
     [Rpc(SendTo.Owner, InvokePermission = RpcInvokePermission.Server)]
     void SuccessRpc(Vector3 position) => InteractionSucceeded?.Invoke(position);
 
+    /// 이 플레이어의 몸짓. 남의 화면에도 그려진다.
+    public event System.Action<BodyMotion> MotionPlayed;
+
+    /// 서버가 확정한 몸짓을 보낸다. `teamOnly`면 같은 팀에게만 — 카페 안 일이나 숨긴 가방처럼
+    /// 상대에게 알려선 안 되는 사건이다 (3.4 · 6.7).
+    public static void ReportMotionServer(ulong clientId, BodyMotion motion, bool teamOnly)
+    {
+        var manager = NetworkManager.Singleton;
+        if (manager == null || !manager.IsServer || motion == BodyMotion.None ||
+            !manager.ConnectedClients.TryGetValue(clientId, out var client) || client.PlayerObject == null) return;
+        var player = client.PlayerObject.GetComponent<PlayerController>();
+        if (player == null || !player.IsSpawned) return;
+        if (!teamOnly) { player.MotionRpc(motion, player.RpcTarget.Everyone); return; }
+
+        var team = PlayerTeam.Of(clientId);
+        if (team < 0) return;
+        foreach (var receiver in manager.ConnectedClientsList)
+            if (PlayerTeam.Of(receiver.ClientId) == team)
+                player.MotionRpc(motion, player.RpcTarget.Single(receiver.ClientId, RpcTargetUse.Temp));
+    }
+
+    [Rpc(SendTo.SpecifiedInParams, InvokePermission = RpcInvokePermission.Server)]
+    void MotionRpc(BodyMotion motion, RpcParams p = default) => MotionPlayed?.Invoke(motion);
+
+    /// 「안 됨」은 소유자 화면에서만 판정된다(대상 없음). 몸짓만 남에게 알린다 — 상태는 바꾸지 않는다.
+    [Rpc(SendTo.NotMe, InvokePermission = RpcInvokePermission.Owner)]
+    void DeniedRpc() => MotionPlayed?.Invoke(BodyMotion.Denied);
+
     readonly List<IInteractable> candidates = new();
 
     /// 대상 하나에 콜라이더가 여럿 겹칠 수 있다(설비 부품마다 따로인 경우). 참조 수를 세어
@@ -457,6 +485,8 @@ public class PlayerController : NetworkBehaviour
         {
             SoundPlayed?.Invoke(SfxCue.NotAllowed, transform.position, -1);
             deniedUntil = Time.unscaledTime + deniedSeconds;
+            MotionPlayed?.Invoke(BodyMotion.Denied);
+            DeniedRpc();
         }
         if (current != null)
         {
@@ -475,11 +505,11 @@ public class PlayerController : NetworkBehaviour
         current = null;
     }
 
+    /// `B` — 낮에는 손에 든 것을, 밤에는 가방을 쏟는다 (11장). 되는지는 서버가 판정한다.
     public void DumpClient()
     {
         if (!IsOwner) return;
-        var sink = Nearest() as Sink;
-        if (sink != null) sink.DiscardRpc();
+        if (phase != null && phase.Current == Phase.Day) localCarry?.DiscardRpc();
         else GetComponent<PlayerInventory>()?.DumpRpc();
     }
 

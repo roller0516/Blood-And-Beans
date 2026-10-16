@@ -16,11 +16,6 @@ using UnityEngine;
 /// 아래의 상자 배치·통로 검사는 0개로 돈다. 런타임 자리에 통로를 보장하려면 그쪽으로 옮긴다.
 public static class ForestMapBuilder
 {
-    const string MenuPath = "Blood & Beans/숲 맵 생성";
-    const string RerollMenuPath = "Blood & Beans/숲 맵 생성 — 씨앗 무작위";
-    const string VerifyMenuPath = "Blood & Beans/숲 씨앗 훑기";
-    const string SurfaceMenuPath = "Blood & Beans/숲 잔디·흙·풀 적용";
-
     /// 씨앗 훑기가 볼 씨앗 수. 씬의 씨앗부터 이만큼 이어서 센다.
     const int VerifySeedCount = 200;
 
@@ -133,7 +128,7 @@ public static class ForestMapBuilder
     const int TerrainAlphamapResolution = 512;
     const int TerrainBaseMapResolution = 512;
     const int GrassResolution = 256;
-    const int GrassPatchResolution = 16;
+    const int GrassPatchResolution = 32;
 
     // ponytail: 참고 이미지에 맞춘 임시 연출 프리셋. 아트 확정 시 이 도구의 직렬화 설정으로 옮긴다.
     const float GroundTileSize = 5f;
@@ -218,18 +213,15 @@ public static class ForestMapBuilder
     const int BoxPlaceAttempts = 24;
 
     /// 씬에 적힌 씨앗으로 굽는다. 몇 번을 돌려도 같은 숲이 나온다.
-    [MenuItem(MenuPath)]
     internal static void Build() => Build(null);
 
     /// 씨앗을 새로 뽑아 씬에 적고 굽는다. 마음에 드는 숲이 나오면 그 씨앗이 `MatchDirector`에
-    /// 남으므로 「숲 맵 생성」으로 언제든 같은 숲을 되살린다.
-    [MenuItem(RerollMenuPath)]
+    /// 남으므로 Inspector의 「이 씨앗으로 굽기」로 같은 숲을 되살린다.
     internal static void Reroll() => Build(Random.Range(int.MinValue, int.MaxValue));
 
     /// 씨앗을 통째로 훑어 "네 모서리에서 걸어서 모든 상자에 닿는다"는 불변식을 확인한다.
     /// 씬은 건드리지 않는다. 밀도·콜라이더 두께·상자 링을 만진 뒤 이걸 돌린다 — 한 씨앗만
     /// 보고 넘어가면 다른 씨앗에서 중심부가 벽이 되는 것을 못 잡는다.
-    [MenuItem(VerifyMenuPath)]
     internal static void VerifySeeds()
     {
         var director = Object.FindFirstObjectByType<MatchDirector>();
@@ -668,32 +660,6 @@ public static class ForestMapBuilder
         layer.smoothness = 0f;
         EditorUtility.SetDirty(layer);
         return layer;
-    }
-
-    /// 현재 나무·높이·콜라이더를 보존하고 표면만 다시 칠한다.
-    [MenuItem(SurfaceMenuPath)]
-    internal static void ApplySurface()
-    {
-        if (EditorApplication.isPlayingOrWillChangePlaymode)
-            throw new System.InvalidOperationException("플레이를 정지한 뒤 숲 표면을 적용한다.");
-        var director = Object.FindFirstObjectByType<MatchDirector>();
-        if (director == null) throw new System.InvalidOperationException("열린 씬에 MatchDirector가 없다.");
-        var terrain = director.gameObject.scene.GetRootGameObjects()
-            .SelectMany(root => root.GetComponentsInChildren<Terrain>(true))
-            .FirstOrDefault(t => t.name == ForestRootName);
-        if (terrain == null) throw new System.InvalidOperationException("열린 씬에 숲 Terrain이 없다.");
-
-        var so = new SerializedObject(director);
-        var origin = so.FindProperty("cafeOrigin").vector3Value;
-        var size = so.FindProperty("forestSize").vector2Value;
-        var spawns = SpawnPoints(origin, size, so.FindProperty("spawnInset").floatValue,
-            so.FindProperty("spawnSlotSpacing").floatValue);
-        var boxes = Object.FindObjectsByType<ItemBox>(FindObjectsInactive.Include, FindObjectsSortMode.None)
-            .Where(box => box.gameObject.scene == director.gameObject.scene)
-            .Select(box => box.transform.position).ToList();
-        PaintSurface(terrain, origin, size, CollectKeepOut(spawns, boxes), so.FindProperty("mapSeed").intValue);
-        AssetDatabase.SaveAssets();
-        EditorSceneManager.MarkSceneDirty(terrain.gameObject.scene);
     }
 
     /// 콜라이더 없는 풀 두 종류를 GPU 인스턴싱용 프로젝트 프리팹으로 만든다.

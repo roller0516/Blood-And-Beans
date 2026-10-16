@@ -78,7 +78,10 @@ public sealed class DashPresentation
         if (look != null)
         {
             look.FlashClient(spilled ? spillFlash : hitFlash, flashSeconds);
-            if (look.Model != null) look.Model.PlayHit();
+            // 밤의 대시는 공격이라 강하게 찌그러진다 (18장 DA-06 강). 낮의 부딪힘은 중간 반응이다.
+            var phase = MatchDirector.Instance != null ? MatchDirector.Instance.Phase : null;
+            var night = phase != null && phase.Current == Phase.Night;
+            if (look.Model != null) look.Model.PlayHit(night);
         }
         if (IsMine) Shake(spilled ? shakeOnSpill : shakeOnTaken);
     }

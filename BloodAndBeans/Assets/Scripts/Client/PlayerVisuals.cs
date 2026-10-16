@@ -4,14 +4,15 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 
-/// 이 플레이어가 화면에서 어떻게 보이는가 — 모델·팀 색·대시/피격 연출·액티브 연출·손 아이템·
-/// 공개 소지 표시를 한 컴포넌트가 진다.
+/// 이 플레이어가 화면에서 어떻게 보이는가 — 모델·팀 색·대시/피격 연출·액티브 연출·손 아이템을
+/// 한 컴포넌트가 진다.
 ///
 /// **예전에는 넷으로 흩어져 있었다** (`PlayerAppearance`·`PlayerEffects`·`PublicCarryDisplay`
 /// + `PlayerCarry`에 붙은 `ItemDisplay`). 넷 다 같은 플레이어 인스턴스의 표현이고 수명도
 /// 스폰·디스폰에 같이 걸리는데, 진입점이 넷으로 나뉘어 있으면 "이 플레이어가 화면에서
-/// 무엇을 하는지" 보려면 네 파일을 오가야 했다. 이제 모델·팀 색·대시/피격·손 아이템·
-/// 공개 소지가 이 한 클래스의 `OnNetworkSpawn`/`OnNetworkDespawn`에서 같이 걸리고 같이 풀린다.
+/// 무엇을 하는지" 보려면 네 파일을 오가야 했다. 이제 모델·팀 색·대시/피격·손 아이템이
+/// 이 한 클래스의 `OnNetworkSpawn`/`OnNetworkDespawn`에서 같이 걸리고 같이 풀린다.
+/// (공개 소지 표시는 손에 든 것을 전원에게 보이게 하면서 없앴다.)
 ///
 /// **DashPresentation(일반 C# 객체)과 손 슬롯 표시(`ItemSlotPresenter`, 시설과 공유)는
 /// 그대로 내부 객체로 둔다.** 새 MonoBehaviour나 새 인터페이스를 더 만들지 않는다 — 이미
@@ -29,6 +30,10 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField, Range(0f, 1f)] float tintStrength = 1f;
     [SerializeField] CharacterVisualConfig characterVisuals;
     [SerializeField] Transform modelRoot;
+    [Tooltip("이 적재 밴드(LoadBands.BandOf)부터 Walk로 걷는다. 2 = 80% 이상 (18장 DA-17 2단).")]
+    [SerializeField, Min(0)] int walkFromBand = 2;
+    [Tooltip("이 적재 밴드부터 MoveHeavy로 걷는다. 3 = 100% 이상 (18장 DA-17 3단).")]
+    [SerializeField, Min(0)] int heavyFromBand = 3;
 
     [Header("밤 주변 조명")]
     [SerializeField] Light localNightLight;
@@ -60,13 +65,6 @@ public class PlayerVisuals : NetworkBehaviour
     [SerializeField] float itemHighlightScale = 1.4f;
     [SerializeField] Vector3 itemHighlightOffset = new(0f, 0.1f, 0f);
 
-    [Header("공개 소지 표시")]
-    /// 상대 손은 내용물 없이 소지·오염·블러드 빈 빛만 표시한다 (기획서 5.4.1).
-    [SerializeField] Renderer publicMarker;
-    [SerializeField] Color publicHeldColor = Color.white;
-    [SerializeField] Color publicDirtyColor = new(0.35f, 0.2f, 0.1f);
-    [SerializeField] Color publicBloodColor = Color.red;
-
     PlayerTeam playerTeam;
     PlayerCharacter character;
     PlayerCarry carry;
@@ -90,8 +88,6 @@ public class PlayerVisuals : NetworkBehaviour
 
     Tween flash;
     ParticleSystem attached;
-    MaterialPropertyBlock publicProps;
-    static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 
     /// 지금 서 있는 모델. 캐릭터를 고르지 않았으면 null이다.
     public CharacterModel Model => modelSpawner?.Model;
@@ -114,7 +110,6 @@ public class PlayerVisuals : NetworkBehaviour
 
         modelSpawner = new CharacterModelSpawner(characterVisuals);
         itemPresenter = new ItemSlotPresenter(itemVisuals, itemAnchors, itemHighlightScale, itemHighlightOffset);
-        publicProps = new MaterialPropertyBlock();
 
         var anchorCount = itemAnchors?.Length ?? 0;
         anchorHomes = new Transform[anchorCount];
@@ -156,14 +151,15 @@ public class PlayerVisuals : NetworkBehaviour
         if (status != null) status.Applied += OnStatusApplied;
         interaction.InteractionSucceeded += OnInteractionSucceeded;
         interaction.SoundPlayed += OnSound;
+        interaction.MotionPlayed += OnMotion;
         dash.DashStarted += OnDashSound;
         dash.DashStarted += dashPresentation.OnDashStarted;
         dash.HitLanded += dashPresentation.OnHitLanded;
         dash.TookHit += dashPresentation.OnTookHit;
         carry.ContentsChanged += RefreshHand;
         carry.RecipeEffectPlayed += OnRecipeEffect;
-        carry.ContentsChanged += RefreshPublicMarker;
         inventory.LoadChanged += RefreshBag;
+        inventory.LoadChanged += RefreshGait;
 
         SetCharacter(character.Index);
         OnTeamChanged(playerTeam.Team);
@@ -194,6 +190,7 @@ public class PlayerVisuals : NetworkBehaviour
         if (status != null) status.Applied -= OnStatusApplied;
         if (interaction != null) interaction.InteractionSucceeded -= OnInteractionSucceeded;
         if (interaction != null) interaction.SoundPlayed -= OnSound;
+        if (interaction != null) interaction.MotionPlayed -= OnMotion;
         if (dash != null)
         {
             dash.DashStarted -= OnDashSound;
@@ -205,9 +202,8 @@ public class PlayerVisuals : NetworkBehaviour
         {
             carry.ContentsChanged -= RefreshHand;
             carry.RecipeEffectPlayed -= OnRecipeEffect;
-            carry.ContentsChanged -= RefreshPublicMarker;
         }
-        if (inventory != null) inventory.LoadChanged -= RefreshBag;
+        if (inventory != null) { inventory.LoadChanged -= RefreshBag; inventory.LoadChanged -= RefreshGait; }
 
         dashPresentation.Cancel();
         if (trail != null)
@@ -283,16 +279,13 @@ public class PlayerVisuals : NetworkBehaviour
             handModel = Model;
             PlaceHand();
             RefreshBag();
+            shownGait = GaitNow();   // 모델을 새로 세운 것이지 무게가 늘어난 것이 아니다
+            RefreshGait();
         }
         Apply(playerTeam.Team);
     }
 
-    void OnTeamChanged(int team)
-    {
-        Apply(team);
-        ApplyItemTeamLayer(team);
-        RefreshPublicMarker();
-    }
+    void OnTeamChanged(int team) => Apply(team);
 
     void Apply(int team) => Tint(TeamColors.Of(team));
 
@@ -303,8 +296,23 @@ public class PlayerVisuals : NetworkBehaviour
 
     // --- 액티브 연출 (예전 PlayerEffects) ---
 
+    void OnMotion(BodyMotion motion)
+    {
+        if (Model != null) Model.PlayMotion(motion);
+    }
+
+    /// 스킬 시전 몸짓은 둘뿐이다 (18장 5절). 무엇을 썼는지는 이펙트가 말한다.
+    /// 이 이벤트는 시전자 자신의 `PlayerAbilities`에서 시전 순간 한 번 오른다.
+    static BodyMotion CastMotionOf(EffectId id) => id switch
+    {
+        EffectId.BatSwarm or EffectId.ArmGrab or EffectId.FrogCurse or EffectId.PotionPuddle => BodyMotion.Throw,
+        EffectId.CoffinImpact or EffectId.Howl => BodyMotion.Cast,
+        _ => BodyMotion.None,
+    };
+
     void OnEffect(EffectId id, Vector3 position, float scale, float seconds)
     {
+        OnMotion(CastMotionOf(id));
         if (id == EffectId.TrackSniff)
         {
             if (IsClient && IsOwner && trackSense != null)
@@ -319,11 +327,52 @@ public class PlayerVisuals : NetworkBehaviour
     }
 
     /// 남이 건 스킬의 연출. 둘 이상 겹칠 수 있어 각자 시간이 다 되면 스스로 멈춘다.
-    void OnStatusApplied(EffectId id, float seconds) => EffectManager.PlayAttached(id, transform, seconds);
+    void OnStatusApplied(EffectId id, float seconds)
+    {
+        EffectManager.PlayAttached(id, transform, seconds);
+        if (id == EffectId.Dizzy) OnMotion(BodyMotion.Collapse);   // 물약에 미끄러져 넘어졌다 (18장 4절)
+        if (id != EffectId.ZombieWalk) return;
+
+        // 물렸다 (기획서 9.1.2). 걸린 시간 동안 좀비걸음으로 걷는다 (18장 DA-35).
+        zombie = true;
+        RefreshGait();
+        zombieEnd?.Kill();
+        zombieEnd = DOVirtual.DelayedCall(seconds, () => { zombie = false; RefreshGait(); }).SetLink(gameObject);
+    }
+
+    bool zombie;
+    Tween zombieEnd;
+
+    /// 걸음걸이 (18장 DA-17 · DA-35). 남의 화면에는 80% 이상인지만 복제되므로(기획서 6.6)
+    /// 정확한 밴드로 고르는 것은 소유자뿐이고, 남의 캐릭터는 80% 이상이면 Walk까지만 보인다.
+    void RefreshGait()
+    {
+        if (handModel == null) return;
+        var gait = GaitNow();
+        // 무게 구간이 무거운 쪽으로 넘어가면 배낭에 끌려 주저앉는다 (18장 NA-10).
+        if (gait != CharacterModel.Gait.Zombie && shownGait != CharacterModel.Gait.Zombie && gait > shownGait)
+            handModel.PlayMotion(BodyMotion.Collapse);
+        shownGait = gait;
+        handModel.PlayGait(gait);
+    }
+
+    CharacterModel.Gait shownGait;
+
+    CharacterModel.Gait GaitNow()
+    {
+        if (zombie) return CharacterModel.Gait.Zombie;
+        if (inventory == null || !inventory.BagVisible) return CharacterModel.Gait.Run;
+
+        var band = IsOwner ? LoadBands.BandOf(inventory.LoadRatio) : inventory.Overloaded ? walkFromBand : 0;
+        return band >= heavyFromBand ? CharacterModel.Gait.Heavy
+             : band >= walkFromBand ? CharacterModel.Gait.Walk
+             : CharacterModel.Gait.Run;
+    }
 
     void OnTeleportStarted(Vector3 origin)
     {
         dashPresentation.Cancel();
+        OnMotion(BodyMotion.Return);   // 빛기둥에 빨려 올라간다 (18장 NA-11)
         if (trail != null)
         {
             trail.emitting = false;
@@ -437,30 +486,9 @@ public class PlayerVisuals : NetworkBehaviour
         }
     }
 
-    /// 손에 든 것도 팀 밖에서는 보이지 않아야 한다 (기획서 3.1). 손 앵커만 팀 레이어로
-    /// 옮겨 막는다 — 플레이어 본체는 Default에 남아야 하기 때문이다.
-    void ApplyItemTeamLayer(int myTeam)
-    {
-        if (itemAnchors == null) return;
-        foreach (var anchor in itemAnchors)
-            if (anchor != null) TeamVision.ApplyTeamLayer(anchor.gameObject, myTeam);
-    }
-
     /// 묻으면 등의 가방이 꺼진다. 전원에게 보인다 — 적이 묻은 곳을 찾는 단서다 (기획서 6.7). 낮에도 꺼진다.
     void RefreshBag()
     {
         if (Model != null) Model.ShowBag(inventory.BagVisible);
-    }
-
-    // --- 공개 소지 표시 (예전 PublicCarryDisplay) ---
-
-    void RefreshPublicMarker()
-    {
-        if (publicMarker == null || carry == null || playerTeam == null) return;
-
-        publicMarker.enabled = carry.IsSpawned && playerTeam.Team != PlayerTeam.Local() && carry.PublicState != 0;
-        publicProps.SetColor(BaseColor,
-            carry.BloodGlow ? publicBloodColor : carry.PublicState == 2 ? publicDirtyColor : publicHeldColor);
-        publicMarker.SetPropertyBlock(publicProps);
     }
 }

@@ -45,7 +45,7 @@ public class PoolManager : MonoBehaviour
         foreach (var reference in prefabs)
         {
             var prefab = await ResourceManager.Instance.LoadAsync<GameObject>(reference, ct);
-            NetworkPool.Register(manager, prefab);
+            NetworkPool.Register(manager, prefab, transform);
         }
     }
 }

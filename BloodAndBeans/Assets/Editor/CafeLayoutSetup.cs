@@ -2,8 +2,6 @@ using UnityEditor;
 using UnityEngine;
 
 // 카페 가구와 장식만 편집한다. 네트워크 구성과 기획 수치는 보존한다.
-// 여기서 지은 CafeDecor는 공개 껍데기로 떼어 내 쓴다. 이 함수를 돌린 뒤에는
-// CafeShellSetup.Apply()도 같이 돌려야 껍데기가 갱신되고 본체에서 장식이 다시 빠진다.
 public static class CafeLayoutSetup
 {
     const string Path = "Assets/Art/Environment/Prefabs/Cafe.prefab";

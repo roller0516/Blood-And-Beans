@@ -308,6 +308,15 @@ public class PlayerAbilities : NetworkBehaviour
         nextAt.Value = now + seconds;
     }
 
+    /// 낮·밤 액티브와 대시의 쿨타임을 즉시 푼다. 개발 치트용이다.
+    public void ResetCooldownsCheatServer()
+    {
+        if (!IsServer) return;
+
+        nextAt.Value = 0d;
+        commonNextAt.Value = 0d;
+    }
+
     // --- 연출 통지. 판정은 이미 끝났고, 아래는 그리기 위한 통지뿐이다 ---
 
     /// 전원에게 보이는 연출. 서버에서 부른다.

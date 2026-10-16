@@ -1,6 +1,15 @@
 using Unity.Netcode;
 using UnityEngine;
 
+/// 손님이 떠나는 이유. 이유마다 몸짓이 다르다 (18장 6).
+public enum CustomerExit
+{
+    None,
+    Served,       // 주문을 다 받았다
+    Impatient,    // 인내심이 바닥났다
+    Angry,        // 오배송으로 화나서 떠난다
+}
+
 /// 대기 중인 손님 한 명 (기획서 5.5). 선호 태그와 줄어드는 인내심 게이지를 들고 있다.
 /// 인내심이 바닥나면 나가 버리고 그 주문은 아무 수익도 남기지 않는다.
 public class Customer : NetworkBehaviour
@@ -67,10 +76,17 @@ public class Customer : NetworkBehaviour
         _ => 1.0f,
     };
 
+    readonly NetworkVariable<CustomerExit> exit = new();
+    public CustomerExit Exit => exit.Value;
+
+    /// 떠나는 몸짓을 재생할 표현 쪽이 구독한다. 몸짓이 끝나면 서버가 스스로 디스폰한다.
+    public event System.Action<CustomerExit> ExitChanged;
+
     public override void OnNetworkSpawn()
     {
         race.OnValueChanged += (_, now) => RaceChanged?.Invoke(now);
         RaceChanged?.Invoke(race.Value);
+        exit.OnValueChanged += (_, now) => ExitChanged?.Invoke(now);
     }
 
     /// `patienceScale`은 「찻잎」 보석 배수다 (기획서 8.2). 대기열이 팀 상태를 보고 넘긴다 —
@@ -94,14 +110,73 @@ public class Customer : NetworkBehaviour
         patient.Value = neverImpatient;
     }
 
+    [Tooltip("입장할 때 걷는 속도(m/s).")]
+    [SerializeField, Min(0.01f)] float walkSpeed = 2.5f;
+    [Tooltip("떠나는 데 걸리는 시간(초). 입구까지 이 시간에 걸어 가장 긴 이탈 클립(receipt 3.0초)이 끝날 즈음 닿는다.")]
+    [SerializeField, Min(0.1f)] float exitSeconds = 3f;
+
+    Vector3 goal;
+    Quaternion goalFacing;
+    float speed;
+    bool walking;
+    float exitTimer;
+
+    /// 대기열에서 빠진 손님이 이탈 몸짓을 보이며 `exitPoint`(입구)로 걸어 나간다. 닿으면 디스폰한다.
+    public void ExitServer(CustomerExit reason, Vector3 exitPoint)
+    {
+        if (!IsServer || reason == CustomerExit.None || exit.Value != CustomerExit.None) return;
+        goal = exitPoint;
+        goalFacing = transform.rotation;
+        speed = Vector3.Distance(transform.position, exitPoint) / exitSeconds;
+        walking = true;
+        exitTimer = exitSeconds;
+        exit.Value = reason;
+    }
+
+    /// 자리까지 걸어간다. 도착하면 `facing`을 본다. 위치는 NetworkTransform이 모두에게 복제한다.
+    public void WalkToServer(Vector3 position, Quaternion facing)
+    {
+        if (!IsServer) return;
+        goal = position;
+        goalFacing = facing;
+        speed = walkSpeed;
+        walking = true;
+    }
+
     void Update()
     {
-        if (!IsServer || patience.Value <= 0f) return;
+        if (!IsServer) return;
+        if (walking) Walk();
+
+        if (exit.Value != CustomerExit.None)
+        {
+            exitTimer -= Time.deltaTime;
+            if (!walking && exitTimer <= 0f && NetworkObject.IsSpawned) NetworkObject.Despawn();
+            return;
+        }
+
+        // 걷는 동안에는 인내심이 닳지 않는다. 자리에 선 뒤부터 줄어든다.
+        if (walking) return;
+
+        if (patience.Value <= 0f) return;
 
         // 「붙임성」이 걸린 손님은 게이지가 줄지 않는다 (기획서 9.1).
         if (patient.Value) return;
 
         patience.Value = Mathf.Max(0f, patience.Value - Time.deltaTime);
+    }
+
+    void Walk()
+    {
+        var from = transform.position;
+        var to = Vector3.MoveTowards(from, goal, speed * Time.deltaTime);
+        transform.position = to;
+
+        walking = to != goal;
+        if (!walking) { transform.rotation = goalFacing; return; }
+
+        var heading = new Vector3(to.x - from.x, 0f, to.z - from.z);
+        if (heading.sqrMagnitude > 0f) transform.rotation = Quaternion.LookRotation(heading);
     }
 
     /// 태그로만 대조한다. 손님은 메뉴 이름을 알지 못한다 (기획서 7.2).

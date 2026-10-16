@@ -16,8 +16,8 @@ Shader "BloodAndBean/Style/BipedSoft"
   _SpecularStrength("Specular Strength",Range(0,2))=0.6
   _DiffuseWrap("Diffuse Wrap",Range(0,0.5))=0.16
   _FillColor("Fill Color",Color)=(0.6,0.7,0.85,1)
-  _FillStrength("Shadow Fill Strength",Range(0,0.4))=0.16
-  _ShadowStrength("Shadow Strength",Range(0,1))=0.85
+  _FillStrength("Shadow Fill Strength",Range(0,0.4))=0.4
+  _ShadowStrength("Shadow Strength",Range(0,1))=0
   _AOStrength("AO Strength",Range(0,1))=0.5
   [Header(Team Area)] _TeamColor("Team Color",Color)=(1,0.65,0.2,1)
   _TeamStrength("Team Color Strength",Range(0,1))=1
@@ -49,7 +49,15 @@ Shader "BloodAndBean/Style/BipedSoft"
   struct Varyings {float4 positionCS:SV_POSITION;float3 positionWS:TEXCOORD0;half3 normalWS:TEXCOORD1;half4 tangentWS:TEXCOORD2;float2 uv:TEXCOORD3;half fog:TEXCOORD4;half team:TEXCOORD5;};
   Varyings Vert(Attributes i){Varyings o;VertexPositionInputs p=GetVertexPositionInputs(i.positionOS.xyz);o.positionCS=p.positionCS;o.positionWS=p.positionWS;o.normalWS=TransformObjectToWorldNormal(i.normalOS);o.tangentWS=half4(TransformObjectToWorldDir(i.tangentOS.xyz),i.tangentOS.w*GetOddNegativeScale());o.uv=TRANSFORM_TEX(i.uv,_BaseMap);o.team=i.color.r;o.fog=ComputeFogFactor(p.positionCS.z);return o;}
   half3 Normal(Varyings i){half3 n=normalize(i.normalWS),t=SafeNormalize(i.tangentWS.xyz),b=cross(n,t)*i.tangentWS.w;half3 nt=UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap,sampler_NormalMap,i.uv),_NormalStrength);return normalize(TransformTangentToWorld(nt,half3x3(t,b,n)));}
-  half3 Shade(Light l,half3 n,half3 view,half3 albedo,half4 surface){half ndl=saturate(dot(n,l.direction));half diffuse=saturate((dot(n,l.direction)+_DiffuseWrap)/(1+_DiffuseWrap));half rough=clamp(surface.g*_RoughnessScale,0.18,1);half exponent=clamp(2/(rough*rough)-2,2,60);half spec=pow(saturate(dot(n,SafeNormalize(l.direction+view))),exponent)*ndl*surface.r*_SpecularStrength;return (albedo*diffuse+spec)*l.color*l.distanceAttenuation*lerp(1,l.shadowAttenuation,_ShadowStrength);}
+  half3 Shade(Light l,half3 n,half3 view,half3 albedo,half4 surface)
+  {
+   half ndl=saturate(dot(n,l.direction));
+   half diffuse=saturate((dot(n,l.direction)+_DiffuseWrap)/(1+_DiffuseWrap));
+   half rough=clamp(surface.g*_RoughnessScale,0.18,1);
+   half exponent=clamp(2/(rough*rough)-2,2,60);
+   half spec=pow(saturate(dot(n,SafeNormalize(l.direction+view))),exponent)*ndl*surface.r*_SpecularStrength;
+   return (albedo*diffuse+spec)*l.color*l.distanceAttenuation*lerp(1,l.shadowAttenuation,_ShadowStrength);
+  }
   ENDHLSL
   Pass
   {
