@@ -27,6 +27,11 @@ public sealed class UICharacterCard : MonoBehaviour
     [SerializeField] RectTransform claimChip;
     [SerializeField] TMP_Text claimLabel;
 
+    [Header("카드 색")]
+    [SerializeField] Color idleBackground = new(0.12f, 0.17f, 0.17f);
+    [SerializeField] Color idleLabel = new(0.95f, 0.89f, 0.8f);
+    [SerializeField] Color activeLabel = new(0.95f, 0.89f, 0.8f);
+
     /// 카드를 만들 때 한 번. 이름은 카탈로그에서, 아이콘은 `CharacterVisualConfig`에서 온다.
     /// <paramref name="icon"/>이 null이면 아직 아트가 안 들어온 칸이라 자리색만 남는다.
     public void Bind(string characterName, Sprite icon, Action click)
@@ -82,6 +87,7 @@ public sealed class UICharacterCard : MonoBehaviour
     void RefreshBorder()
     {
         if (background == null) return;
-        background.color = claimed ? claimColor : selected ? selectedColor : UITheme.Panel;
+        background.color = claimed ? claimColor : selected ? selectedColor : idleBackground;
+        if (label != null) label.color = claimed || selected ? activeLabel : idleLabel;
     }
 }

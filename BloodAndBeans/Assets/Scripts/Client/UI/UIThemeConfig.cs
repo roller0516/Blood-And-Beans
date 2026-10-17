@@ -32,6 +32,7 @@ public class UIThemeConfig : ScriptableObject
     [SerializeField] Color purple = Hex(0xA46EE8);       // 업그레이드 재료
     [SerializeField] Color ice = Hex(0xE6EEF5);          // 슬롯·아이콘 자리
     [SerializeField] Color placeholder = Hex(0xF2E3CB);  // 에셋 없는 아이콘 자리
+    [SerializeField] Color paperInk = Hex(0x39291A);     // 밝은 종이 위의 본문
 
     /// 플레이어가 고르는 팀 색. 목업 2번 `MY NAMEPLATE` 팔레트 순서 그대로다.
     [SerializeField] Color[] teamColors =
@@ -79,6 +80,7 @@ public class UIThemeConfig : ScriptableObject
     public Color Purple => purple;
     public Color Ice => ice;
     public Color Placeholder => placeholder;
+    public Color PaperInk => paperInk;
     public Color[] TeamColors => teamColors;
 
     public float FontScale => fontScale;

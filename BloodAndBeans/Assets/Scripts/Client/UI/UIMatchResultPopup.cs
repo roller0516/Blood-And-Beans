@@ -111,6 +111,7 @@ public sealed class UIMatchResultPopup : UIPopup
         // 갈 곳이 없는 버튼은 잠근다. 눌러도 아무 일이 없으면 고장으로 보인다.
         if (lobbyButton != null) lobbyButton.interactable = lobby != null;
         if (rematchButton != null) rematchButton.interactable = rematch != null;
+        if (rematchButton != null) rematchButton.gameObject.SetActive(rematch != null);
     }
 
     void FillRanks(IReadOnlyList<int> revenueByTeam, int myTeam)

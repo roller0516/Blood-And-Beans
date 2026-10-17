@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// 전환 페이즈(10초)의 정산 화면. 기획서 4.1 표의 네 칸 — 하루 정산 · 순위 ·
-/// 자동 업그레이드 · 내일의 손님 예보 — 을 2×2 카드로 놓는다.
+/// 자동 업그레이드 · 내일의 손님 예보 — 의 배치는 프리팹이 소유한다.
 ///
 /// **트리는 프리팹에 있다.** 이 클래스는 아무것도 만들지 않고 이어 둔 파츠에 값만 넣는다.
 /// 상한이 기획서로 정해진 목록이라 칸을 미리 깔아 두고 남는 것은 끈다 — 순위는 최대
@@ -73,8 +73,8 @@ public sealed class UIDaySettlementScreen : UIScreen
 
         // 그날 매출이 그날 임대료에 닿았는가로만 판정한다 (기획서 3.2).
         var settled = rentPaid >= rentOwed;
-        salesLine.Render(sales.ToString("N0"), UITheme.Cream);
-        rentLine.Render(rentOwed.ToString("N0"), UITheme.Cream);
+        salesLine.Render(sales.ToString("N0"), UITheme.Config.PaperInk);
+        rentLine.Render(rentOwed.ToString("N0"), UITheme.Config.PaperInk);
         paymentLine.Render(settled ? "완납" : "미납", settled ? UITheme.Green : UITheme.Red);
         streakLine.Render($"{missStreak}일", missStreak > 0 ? UITheme.Red : UITheme.Green);
 

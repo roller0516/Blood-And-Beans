@@ -5,8 +5,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-/// 캐릭터 선택 화면 (기획서 9장). 레이아웃은 `BloodAndBeans_CharacterSelect_v0.5.html`의
-/// 1안(현행 1열 8인)이다 — 정보 패널이 왼쪽, 캐릭터 8명이 한 줄, 카드 줄이 하단이다.
+/// 캐릭터 선택 화면 (기획서 9장). 선택 캐릭터의 3D 무대, 참가자 카드, 상세 패널과 선택 카드로 구성한다.
 ///
 /// **머리·상세·네임플레이트 트리는 프리팹에 있다.** 이 클래스는 그것들을 만들지 않고
 /// 이어 둔 참조에 값만 넣는다. 다만 **카드는 `CharacterCatalog.All`을 보고 찍어 낸다** —
@@ -61,6 +60,9 @@ public sealed class UICharacterSelectScreen : UIScreen
     /// 자리 수만큼 프리팹에 미리 깔아 둔다. 상한이 `CharacterStage.MaxSeats`로 고정이라
     /// 런타임에 만들 이유가 없다.
     [SerializeField] UICharacterNameplate[] nameplates = Array.Empty<UICharacterNameplate>();
+
+    [Header("루이지 시안 · 참가자 카드")]
+    [SerializeField] UICrewRosterCard[] rosterCards = Array.Empty<UICrewRosterCard>();
 
     [Header("상세")]
     [SerializeField] TMP_Text selectedName;
@@ -226,6 +228,24 @@ public sealed class UICharacterSelectScreen : UIScreen
     {
         if (stage == null || members == null) return;
 
+        for (var i = 0; i < rosterCards.Length; i++)
+        {
+            var card = rosterCards[i];
+            if (card == null) continue;
+            var occupied = i < members.Count;
+            card.SetVisible(true);
+            if (!occupied)
+            {
+                card.RenderEmpty();
+                continue;
+            }
+            var member = members[i];
+            var icon = CharacterCatalog.IsValid(member.Character)
+                ? ResourceManager.Instance.CrewSprite(CharacterCatalog.All[member.Character].Id) : null;
+            card.Render(member.Name, icon, TeamColors.Of(member.Team),
+                member.IsReady || member.IsHost, member.IsSelf);
+        }
+
         var seats = Mathf.Min(members.Count, stage.SeatCount);
         var palette = UITheme.TeamColors;
 
@@ -260,6 +280,11 @@ public sealed class UICharacterSelectScreen : UIScreen
             if (seat >= nameplates.Length || nameplates[seat] == null) continue;
 
             var plate = nameplates[seat];
+            if (rosterCards.Length > 0)
+            {
+                plate.SetVisible(false);
+                continue;
+            }
             var color = member.Team >= 0 && member.Team < teamSlots.Length
                 ? TeamColors.Of(member.Team) : UITheme.PanelDeep;
 
@@ -308,6 +333,7 @@ public sealed class UICharacterSelectScreen : UIScreen
 
     void PlaceNameplates()
     {
+        if (rosterCards.Length > 0) return;
         if (stage == null || nameplateLayer == null) return;
 
         var count = Mathf.Min(shownPlates, nameplates.Length);

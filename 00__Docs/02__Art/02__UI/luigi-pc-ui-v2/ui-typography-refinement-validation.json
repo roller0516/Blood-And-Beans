@@ -1,0 +1,32 @@
+{
+  "date": "2026-10-18",
+  "runtimeFontFamiliesObserved": [
+    "Cafe24 Ssurround",
+    "Do Hyeon",
+    "Lilita One"
+  ],
+  "cause": "Fonts were assigned but short HUD copy and weak outline/shadow differed from concept.",
+  "changes": [
+    "Shared TMP bevel/outline/underlay and cream gradient",
+    "Short HUD copy uses title face; English logo uses Lilita One",
+    "Four real HUD sprites in shared atlas",
+    "Skill nested override / zero-height icon / keycap layout corrected"
+  ],
+  "prefabValidation": {
+    "passed": true,
+    "prefabs": 43,
+    "sharedSurfaceInstances": 114
+  },
+  "captureProvenance": "Title/crew: Play Mode Game View. Other gallery views: actual stored prefabs with controlled state inputs and reference backgrounds.",
+  "verifiedRuntime": [
+    "Original local Editor room flow",
+    "Runtime font family assignments",
+    "Day and night HUD with new material/frame",
+    "Recipe toggle before final display-only anchor corrections"
+  ],
+  "remaining": [
+    "Final player/Addressables build",
+    "Multi-PC networking",
+    "GPU/CPU profiling"
+  ]
+}

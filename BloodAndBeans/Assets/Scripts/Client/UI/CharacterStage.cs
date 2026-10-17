@@ -48,6 +48,10 @@ public sealed class CharacterStage : MonoBehaviour
     [Tooltip("내 자리를 비추는 스포트. 이 x가 곧 내 자리이고 줄 전체의 기준점이다.")]
     [SerializeField] Transform stageSpot;
 
+    [Header("선택 캐릭터 집중 보기")]
+    [SerializeField] bool selectedCharacterOnly;
+    [SerializeField] Rect selectedViewport = new(0f, 0f, 1f, 1f);
+
     [Header("스크롤 (시안 D안)")]
     [Tooltip("켜면 카메라가 내 자리를 놓고 좌우로 움직인다. 두 시안을 비교하려고 둔 옵션이다.")]
     [SerializeField] bool scrollMode;
@@ -91,6 +95,7 @@ public sealed class CharacterStage : MonoBehaviour
         // 배경은 테마 색으로 지운다. 캔버스에 배경 판을 깔면 그 판이 캐릭터를 가린다 —
         // 캔버스는 한 평면이라 캐릭터를 UI 사이에 끼울 수 없다.
         if (stageCamera != null) stageCamera.backgroundColor = UITheme.Ink;
+        if (stageCamera != null && selectedCharacterOnly) stageCamera.rect = selectedViewport;
     }
 
     /// 화면이 열리고 닫힐 때. 카메라가 켜져 있는 동안 이 화면이 화면 전체를 그린다.
@@ -237,6 +242,7 @@ public sealed class CharacterStage : MonoBehaviour
     public void SetSeat(int seat, int character)
     {
         if (seat < 0 || seat >= SeatCount) return;
+        if (selectedCharacterOnly && seat != SelfSeat) character = CharacterCatalog.NoPick;
         if (spawnedCharacter[seat] == character) return;
 
         spawnedCharacter[seat] = character;
