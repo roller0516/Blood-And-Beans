@@ -106,6 +106,7 @@ public sealed class MatchHudPresenter
         model.Revenue = board != null && team >= 0
             ? $"팀 매출  {board.RevenueOf(team):N0}G"
             : "팀 매출  --";
+        model.TeamRevenue = board != null && team >= 0 ? board.RevenueOf(team) : null;
 
         if (phase.Current == Phase.Night && inventory != null)
         {

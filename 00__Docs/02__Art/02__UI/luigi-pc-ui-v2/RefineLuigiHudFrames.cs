@@ -28,7 +28,7 @@ public static class RefineLuigiHudFrames
         var packables=AssetDatabase.LoadAssetAtPath<SpriteAtlas>(atlasPath).GetPackables();
         var tex=AssetDatabase.LoadAssetAtPath<Texture2D>(Sheet);
         if(!packables.Contains(tex)){atlas.Add(new Object[]{tex});SpriteAtlasAsset.Save(atlas,atlasPath);AssetDatabase.ImportAsset(atlasPath,ImportAssetOptions.ForceSynchronousImport);}
-        AssetDatabase.SaveAssets();return "Applied bronze timer / sales / ranking / ability frames to production HUD; four stable-ID sprites added to shared Atlas.";
+        AssetDatabase.SaveAssets();return "Three panel sprites retained; unsupported ability medallion removed. Skill slots use the approved plain disc, thin rim and separate keycap.";
     }
     static Sprite S(string name)=>sprites.First(x=>x.name==name);
     static void Slice()
@@ -47,8 +47,8 @@ public static class RefineLuigiHudFrames
         foreach(var required in new[]{EEditCapability.CreateAndDeleteSprite,EEditCapability.EditSpriteRect,EEditCapability.EditBorder,EEditCapability.EditPivot})
             if(!capability.GetEditCapability().HasCapability(required))throw new InvalidOperationException("Unsupported sprite operation: "+required);
         var tex=new Texture2D(2,2,TextureFormat.RGBA32,false);tex.LoadImage(File.ReadAllBytes(Sheet));var px=tex.GetPixels32();
-        var names=new[]{"LuigiTimerPlaque","LuigiRowPlaque","LuigiSalesPlaque","LuigiAbilityBezel"};
-        var cells=new[]{new RectInt(0,0,870,400),new RectInt(870,0,tex.width-870,340),new RectInt(0,480,990,420),new RectInt(990,315,tex.width-990,625)};
+        var names=new[]{"LuigiTimerPlaque","LuigiRowPlaque","LuigiSalesPlaque"};
+        var cells=new[]{new RectInt(0,0,870,400),new RectInt(870,0,tex.width-870,340),new RectInt(0,480,990,420)};
         var previous=provider.GetSpriteRects();var result=new List<SpriteRect>();
         for(int i=0;i<names.Length;i++)
         {
@@ -89,16 +89,19 @@ public static class RefineLuigiHudFrames
         var t=root.transform;var rootRect=(RectTransform)t;
         rootRect.sizeDelta=rootRect.anchorMin!=rootRect.anchorMax?Vector2.zero:new Vector2(108,132);
         var layout=t.GetComponent<LayoutElement>();layout.minWidth=layout.preferredWidth=108;layout.minHeight=layout.preferredHeight=132;
-        var circle=F(t,"Circle");var fitter=circle.GetComponent<AspectRatioFitter>();if(fitter!=null)fitter.enabled=false;Center(circle,0,7,55,55);
-        var back=F(circle,"Back").GetComponent<Image>();back.color=new Color(.035f,.07f,.09f,.97f);Stretch(F(circle,"Icon"));
-        var frame=Trim(t,"LuigiAbilityBezel");frame.transform.SetAsLastSibling();
-        var key=F(t,"KeyBadge");Center(key,0,-48,52,27);var keyImage=key.GetComponent<Image>();if(keyImage!=null)keyImage.color=Color.clear;
-        foreach(var layoutGroup in key.GetComponents<LayoutGroup>())layoutGroup.enabled=false;
-        var keyFitter=key.GetComponent<ContentSizeFitter>();if(keyFitter!=null)keyFitter.enabled=false;
-        var old=key.Find("LuigiSurface");if(old!=null)old.gameObject.SetActive(false);key.SetAsLastSibling();Text(F(key,"Key"),26,"Number");
-        Stretch(F(key,"Key"));
-        var keyText=F(key,"Key").GetComponent<TMP_Text>();keyText.enableAutoSizing=true;keyText.fontSizeMin=13;keyText.fontSizeMax=26;
-        var count=F(circle,"Count");Text(count,25,"Number");count.SetAsLastSibling();
+        var circle=F(t,"Circle");var fitter=circle.GetComponent<AspectRatioFitter>();if(fitter!=null)fitter.enabled=false;Center(circle,0,17,84,84);
+        var back=F(circle,"Back").GetComponent<Image>();back.color=new Color(.018f,.035f,.026f,.98f);Center(F(circle,"Icon"),0,0,66,66);
+        var invented=t.Find("LuigiSurface");if(invented!=null){invented.GetComponent<Image>().sprite=AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Common/Circle.png");invented.gameObject.SetActive(false);}
+        var rim=t.Find("ApprovedSkillRim");
+        if(rim==null){var go=(GameObject)PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts+"UISurfacePart.prefab"));go.name="ApprovedSkillRim";go.transform.SetParent(t,false);rim=go.transform;}
+        Center(rim,0,17,84,84);var frame=rim.GetComponent<Image>();frame.sprite=AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/Ingame/SkillRing.png");frame.type=Image.Type.Simple;frame.color=new Color(.47f,.36f,.15f);frame.raycastTarget=false;rim.SetAsLastSibling();
+        var key=F(t,"KeyBadge");Center(key,0,-37,48,32);var keyImage=key.GetComponent<Image>();if(keyImage!=null)keyImage.color=new Color(.025f,.038f,.027f);
+        var keyLayout=key.GetComponent<HorizontalLayoutGroup>();keyLayout.enabled=true;keyLayout.padding=new RectOffset(9,9,3,3);keyLayout.childControlHeight=keyLayout.childControlWidth=true;keyLayout.childForceExpandHeight=keyLayout.childForceExpandWidth=false;
+        var keyFitter=key.GetComponent<ContentSizeFitter>();if(keyFitter!=null){keyFitter.enabled=true;keyFitter.horizontalFit=ContentSizeFitter.FitMode.PreferredSize;keyFitter.verticalFit=ContentSizeFitter.FitMode.PreferredSize;}
+        var edge=key.GetComponent<Outline>()??key.gameObject.AddComponent<Outline>();edge.effectColor=new Color(.49f,.37f,.15f);edge.effectDistance=new Vector2(1,-1);edge.useGraphicAlpha=true;
+        var old=key.Find("LuigiSurface");if(old!=null)old.gameObject.SetActive(false);key.SetAsLastSibling();Text(F(key,"Key"),23,"Number");
+        var keyText=F(key,"Key").GetComponent<TMP_Text>();keyText.enableAutoSizing=false;
+        var count=F(circle,"Count");Text(count,38,"Number");count.SetAsLastSibling();
     }
     static void Hud(GameObject root)
     {

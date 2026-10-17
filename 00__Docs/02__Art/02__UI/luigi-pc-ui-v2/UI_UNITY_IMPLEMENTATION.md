@@ -81,9 +81,9 @@ FPS나 CPU/GPU 개선 수치를 측정해 확정한 결과는 아닙니다. 최�
 - Unity 컴파일 및 최종 로컬 플레이의 새 오류 없음.
 - 실제 버튼으로 설정 열기/닫기, 방 목록, 로컬 방 생성, 캐릭터/팀 변경, 매치 시작을 확인했습니다.
 - 실제 매치에서 낮 가방 숨김, 밤 가방 표시, 조합법 열기를 확인했습니다.
-- 프리팹 43개, 공통 Surface 인스턴스 108개를 참조·TMP·Atlas 설정 검사했습니다. 결과는 `ui-unity-implementation-validation.json`입니다.
+- 프리팹 43개, 공통 Surface 인스턴스 120개를 참조·TMP·Atlas 설정 검사했습니다. 결과는 `ui-unity-implementation-validation.json`입니다.
 - 실제 타이틀을 1920×1080, 2560×1080, 1600×1200에서 확인했습니다. 모든 화면의 모든 해상도 조합을 검증했다는 뜻은 아닙니다.
-- 현재 갤러리의 `unity-implementation/implemented-title`, `crew`는 실제 Game View 캡처입니다. 나머지는 새 폰트·프레임을 반영한 저장 프리팹에 검토용 상태를 입력해 Unity에서 렌더링했습니다. 일부 검토 렌더의 배경은 기존 환경 참고 이미지이며 게임 카메라를 변경한 결과가 아닙니다.
+- 현재 갤러리의 `unity-implementation/implemented-title`, `crew`, `night`는 실제 Game View 캡처입니다. 나머지는 새 폰트·프레임을 반영한 저장 프리팹에 검토용 상태를 입력해 Unity에서 렌더링했습니다. 일부 검토 렌더의 배경은 기존 환경 참고 이미지이며 게임 카메라를 변경한 결과가 아닙니다.
 
 HTML에 표시되는 결과도 같은 실제 에셋을 사용합니다. 전체 화면을 한 장의 배경 이미지로 게임에 붙이는 방식이 아닙니다. PNG → 무손실 WebP 변환 후 portable HTML에 내장합니다.
 
@@ -95,9 +95,10 @@ Unity CLI `run_script`의 클래스 진입점입니다. 에디터 모드에서 �
 2. `BuildLuigiCrewPortraits.Main` · 현재 모델의 초상과 ResourceManager 키.
 3. `ApplyLuigiProductionUI.Main` · 기존 화면/팝업/부품의 배치와 참조.
 4. `RefineLuigiTypography.Main` · 공유 TMP의 크림 그라데이션·갈색 외곽·베벨·아래 그림자, 짧은 HUD 표제 서체. 타이틀 영문 로고는 Lilita One을 사용합니다.
-5. `RefineLuigiHudFrames.Main` · `LuigiHudTrim.png` 슬라이싱, 시계·매출·순위·스킬의 실제 프레임과 배치.
-6. `ValidateLuigiProductionUI.Main` · 제작 범위 리소스 검사.
-7. `CaptureLuigiProductionScreens.Main` · 상태 비교 렌더. 실제 Play 캡처는 별도로 보존합니다.
+5. `RefineLuigiHudFrames.Main` · `LuigiHudTrim.png`의 패널 3종 슬라이싱. 거부된 메달 스프라이트는 포함하지 않습니다. 스킬은 기존 원판·얇은 링·별도 키캡입니다.
+6. `MatchApprovedNightHud.Main` · 승인한 `unity-luigi-v2-night.webp` 기준의 밤 배치와 실제 매출/가방 표시. 이 단계를 마지막에 적용합니다.
+7. `ValidateLuigiProductionUI.Main` · 제작 범위 리소스 검사.
+8. `CaptureLuigiProductionScreens.Main` · 상태 비교 렌더. 실제 Play 캡처는 별도로 보존합니다.
 
 프레임/버튼/가방/타이틀 배경은 문자 없는 실제 제작용 래스터 에셋으로 생성했습니다. 기존 시안의 초록 가죽, 황동, 크림 종이와 가벼운 천 가방을 제작 브리프로 사용했습니다. 동적인 글자·아이콘·상태는 PNG에 굽지 않았습니다.
 
@@ -109,6 +110,8 @@ Git에는 실제 Unity 에셋의 `.meta`와 새 스크립트, Addressables UI �
 
 실제 로컬 실행에서 TMP의 패밀리 이름은 Cafe24 Ssurround / Do Hyeon / Lilita One으로 확인했습니다. 기본 폰트로 바뀌는 문제는 확인되지 않았고, 짧은 HUD 문구에 본문 서체를 쓰며 깊이 표현이 약했던 차이를 수정했습니다. 공용 머티리얼과 343개 프리팹 TMP 설정을 갱신했습니다. 긴 설명에는 본문 서체를 유지합니다.
 
-보강한 HUD는 종전의 단순한 사각 테두리 대신 초록 알람시계가 붙은 가로 시계판, 동전이 붙은 매출판, 순위판, 파란 광점의 원형 스킬 테두리를 사용합니다. 스킬·키캡의 스트레치 및 중첩 프리팹 오버라이드를 함께 정리했습니다. 새 카메라/RenderTexture/매 프레임 효과 코드는 추가하지 않았습니다. TMP의 공유 Distance Field 셰이더를 사용하므로 최종 GPU 비용은 프로파일링으로 확인해야 합니다.
+앞서 추가했던 파란 광점의 메달형 스킬 테두리는 승인 시안에 없는 해석으로 사용자에게 거부되어 제거했습니다. 현재 스킬 프리팹은 단순한 어두운 원판·얇은 테두리·별도 키캡을 사용합니다. 밤은 좌측 매출/무게, 중앙 두 단 시계, 우하단 가방 무게판으로 다시 배치했습니다. 새 카메라/RenderTexture/매 프레임 효과 코드는 추가하지 않았습니다. TMP의 공유 Distance Field 셰이더를 사용하므로 최종 GPU 비용은 프로파일링으로 확인해야 합니다.
 
-제작용 이미지 경로: `Assets/Art/UI/Sprites/Common/LuigiHudTrim.png`. 내장 imagegen으로 생성한 투명 원본을 그대로 복사했고 Sprite Editor가 4종으로 슬라이싱합니다. 생성 브리프: 기존 낮 시안을 스타일 참고로, 문자 없는 정면 3D 황동·검게 산화된 청동·짙은 초록 에나멜 프레임 4종(알람시계 / 순위 행 / 동전 / 투명 구멍의 원형 스킬 베젤), 투명 배경과 분리된 셀. 실제 글자·수치는 이미지에 넣지 않았습니다.
+제작용 이미지 경로: `Assets/Art/UI/Sprites/Common/LuigiHudTrim.png`. 이전 생성 원본 중 패널 3종만 슬라이싱합니다. 거부된 원형 베젤 영역은 Sprite로 등록하거나 Atlas에 패킹하지 않습니다. `approved-skill-prefab.png`는 현재 `UISkillSlot.prefab`을 Unity에서 렌더링한 결과입니다. 실제 글자·수치는 Sprite에 넣지 않았습니다.
+
+밤의 작은 본문과 수치는 과한 금속 베벨을 끈 공용 Concept 머티리얼을 사용합니다. 매출 숫자는 기존 보드 값, 좌우 가방 무게는 같은 `MatchHudModel.BagWeight`를 사용합니다. 1080p 실제 로컬 실행에서 두 무게와 시계의 표시를 확인했습니다. `implemented-night.png`는 이 실제 실행 화면입니다. 이 확인은 승인 이미지와 픽셀 단위로 같다는 미술 검수 결과가 아닙니다.

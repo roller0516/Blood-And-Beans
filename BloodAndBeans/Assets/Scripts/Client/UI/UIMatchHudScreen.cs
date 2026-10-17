@@ -84,6 +84,13 @@ public sealed class UIMatchHudScreen : UIScreen
     [SerializeField] TMP_Text revenueText;
     [SerializeField] TMP_Text bagPercentText;
     [SerializeField] TMP_Text bagWeightText;
+    [Header("승인된 밤 HUD 배치")]
+    [SerializeField] RectTransform nightBagDock;
+    [SerializeField] RectTransform nightBagSummaryRoot;
+    [SerializeField] TMP_Text nightBagSummary;
+    [SerializeField] bool showNightBagCapacityDetails;
+    [SerializeField] bool compactNightClock = true;
+    [SerializeField] string nightRevenueFormat = "{0:N0}G";
     [SerializeField] RectTransform bagFill;
 
     /// 가방을 묻어 두면 게이지와 글자가 이 색으로 바뀐다. 글자만으로는 눈에 안 들어오는데,
@@ -341,13 +348,16 @@ public sealed class UIMatchHudScreen : UIScreen
         }
         SetText(dayText, model.Day);
         SetText(phaseText, model.PhaseName);
-        SetText(timerText, model.Timer);
+        SetText(timerText, compactNightClock && model.Timer != null ? model.Timer.Split('.')[0] : model.Timer);
         SetText(teamText, model.Team);
         SetText(pingText, model.Ping);
-        SetText(revenueText, model.Revenue);
+        SetText(revenueText, model.TeamRevenue.HasValue ? string.Format(nightRevenueFormat, model.TeamRevenue.Value) : model.Revenue);
         SetText(label, model.Details);
 
-        SetGroup(bagPercentText, model.ShowBag);
+        SetGroup(nightBagDock, model.ShowBag);
+        SetGroup(nightBagSummaryRoot, model.ShowBag);
+        SetText(nightBagSummary, model.BagWeight);
+        SetGroup(bagPercentText, model.ShowBag && showNightBagCapacityDetails);
         SetGroup(bagWeightText, model.ShowBag);
         // 가방 아이콘은 밤의 획득 연출 목표다 (기획서 6.5.5). 낮에도 켜 두면 정체를 알 수
         // 없는 사각형이 남는다.
@@ -355,7 +365,7 @@ public sealed class UIMatchHudScreen : UIScreen
         if (bagStatus != null) bagStatus.SetMissing(model.ShowBag && model.BagBuried);
         if (bagFill != null)
         {
-            SetGroup(bagFill, model.ShowBag);
+            SetGroup(bagFill, model.ShowBag && showNightBagCapacityDetails);
             if (model.ShowBag)
             {
                 SetText(bagPercentText, model.BagPercent);
@@ -583,6 +593,7 @@ public struct MatchHudModel
     public string Team;         // "Team 0"
     public string Ping;         // "핑 42ms" / "호스트"
     public string Revenue;      // "팀 매출  2,840G"
+    public int? TeamRevenue;    // 숫자와 고정 라벨을 따로 배치하는 밤 매출판.
     public string Details;      // 예보·순위·접시·손님
     public string Prompt;       // "[F] 상자 열기"
 

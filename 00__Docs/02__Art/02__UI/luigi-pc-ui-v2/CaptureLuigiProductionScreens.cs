@@ -46,11 +46,12 @@ try{
   var names=new[]{"JinKyu","Mina","Noah","Yuna","Haru","Sora","Leon","Nari"};
   var members=names.Select((n,i)=>new SteamLobby.RoomMember((ulong)(i+1),n,i/2,i==0,i==0,i<6,i%CharacterCatalog.All.Length)).ToArray();
   var stands=new[]{new MatchHudModel.Standing{Team=0,Name="우리",Revenue=1240,Mine=true},new MatchHudModel.Standing{Team=1,Name="B",Revenue=1180},new MatchHudModel.Standing{Team=2,Name="C",Revenue=980},new MatchHudModel.Standing{Team=3,Name="D",Revenue=720}};
-  System.Func<bool,MatchHudModel> hudModel=day=>new MatchHudModel{IsDay=day,RentMet=true,DayRemaining=84,DayTimeRatio=.47f,DayCounter="3/7",DaySales=340,DayBill=120,Standings=stands,Day="3일차",PhaseName=day?"낮 영업":"야간 탐색",Timer=day?"01:24":"01:37.926",Team="팀 1",Ping="핑 32ms",Revenue="팀 매출 1,240G",Details="",ShowBag=!day,BagPercent="가방 용량 42%",BagWeight="3.4 / 8.0 KG",BagRatio=.42f,BagBand=0,ShowDash=!day,DashKey="SPACE",DashTime="",Prompt=day?"[F] 조리 완료":"[F] 상자 열기"};
+  System.Func<bool,MatchHudModel> hudModel=day=>new MatchHudModel{IsDay=day,RentMet=true,DayRemaining=84,DayTimeRatio=.47f,DayCounter="3/7",DaySales=340,DayBill=120,Standings=stands,Day="3일차",PhaseName=day?"낮 영업":"야간 탐색",Timer=day?"01:24":"01:37.926",Team="팀 1",Ping="핑 32ms",Revenue="팀 매출 1,240G",TeamRevenue=1240,Details="",ShowBag=!day,BagPercent="가방 용량 42%",BagWeight="3.4 / 8.0 KG",BagRatio=.42f,BagBand=0,ShowDash=!day,DashKey="SPACE",DashTime="",Prompt=day?"[F] 조리 완료":"[F] 상자 열기"};
   var spec=new[]{"title|UITitleMenuScreen|Screen","rooms|UIRoomListScreen|Screen","crew|UICharacterSelectScreen|Screen","room|UIRoomScreen|Screen","day|UIMatchHudScreen|Screen","recipe|UIMatchHudScreen|Screen","orders|UICustomerOrder|Parts","making|UIMakingCard|Parts","night|UIMatchHudScreen|Screen","loot|UIBoxLootPopup|Popup","night-parts|UIMatchHudScreen|Screen","return|UIReturnResultPopup|Popup","settlement|UIDaySettlementScreen|Screen","final|UIMatchResultPopup|Popup","settings|UISettingsPopup|Popup","loading|UILoadingPopup|Popup","cue|UIPhaseCuePopup|Popup","shared|UICharacterCard|Parts"};
   foreach(var item in spec){
     foreach(UnityEngine.Transform child in root.transform.Cast<UnityEngine.Transform>().ToArray())UnityEngine.Object.DestroyImmediate(child.gameObject);
     var s=item.Split('|');var id=s[0];
+    if(id=="crew"){results.Add(new{id,source="Preserved separate actual Play Mode capture; this fixture does not render the character stage",width=1920,height=1080});continue;}
     if(id=="crew"){}
     else if(new[]{"day","recipe","orders","settings"}.Contains(id))backdrop("environment-cafe");
     else if(new[]{"night","loot","night-parts","return","loading","cue"}.Contains(id))backdrop("Battle_01-camera");
