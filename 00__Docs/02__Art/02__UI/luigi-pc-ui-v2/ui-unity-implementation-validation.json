@@ -1,8 +1,8 @@
 {
   "date": "2026-10-18",
   "passed": true,
-  "prefabs": 52,
-  "sharedSurfaceInstances": 146,
+  "prefabs": 53,
+  "sharedSurfaceInstances": 149,
   "errors": [],
   "atlas": {
     "format": "BC7",
@@ -38,7 +38,7 @@
     {
       "role": "TitleFallback",
       "mode": "Dynamic",
-      "glyphs": 13,
+      "glyphs": 14,
       "pages": 1,
       "width": 1024,
       "height": 1024
@@ -46,7 +46,7 @@
     {
       "role": "BodyFallback",
       "mode": "Dynamic",
-      "glyphs": 6,
+      "glyphs": 7,
       "pages": 1,
       "width": 1024,
       "height": 1024
@@ -154,6 +154,12 @@
       "buttons": 1,
       "texts": 2,
       "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UIRoomTeamCard.prefab",
+      "buttons": 1,
+      "texts": 5,
+      "sharedSurfaces": 3
     },
     {
       "path": "Assets/Art/UI/Prefabs/Parts/UISettlementCard.prefab",
@@ -296,7 +302,7 @@
     {
       "path": "Assets/Art/UI/Prefabs/Popup/UIBoxLootPopup.prefab",
       "buttons": 0,
-      "texts": 41,
+      "texts": 43,
       "sharedSurfaces": 3
     },
     {
@@ -326,7 +332,7 @@
     {
       "path": "Assets/Art/UI/Prefabs/Popup/UISettingsPopup.prefab",
       "buttons": 2,
-      "texts": 16,
+      "texts": 17,
       "sharedSurfaces": 8
     },
     {
@@ -350,13 +356,13 @@
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIRoomListScreen.prefab",
       "buttons": 7,
-      "texts": 14,
+      "texts": 18,
       "sharedSurfaces": 12
     },
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIRoomScreen.prefab",
       "buttons": 4,
-      "texts": 8,
+      "texts": 9,
       "sharedSurfaces": 6
     },
     {

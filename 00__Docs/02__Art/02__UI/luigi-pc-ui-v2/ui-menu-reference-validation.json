@@ -1,0 +1,6449 @@
+{
+  "date": "2026-10-18",
+  "scope": "Targeted settings/rooms/lobby/title/loot/return rendering, native control checks, CharacterStage recovery and requested live 3D background. Not full multiplayer or player performance QA.",
+  "prefabs": 53,
+  "serializedSurfaces": 149,
+  "textChecks": [
+    {
+      "id": "menu-final-title",
+      "activeTextFields": 3,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "ArtFrame/layout/btn_gamestart/Text (TMP)",
+          "text": "게임시작\n",
+          "size": 60.0,
+          "box": [
+            440.0,
+            83.0
+          ],
+          "preferred": [
+            228.01,
+            78.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -220.0,
+            -39.328125,
+            8.000015,
+            38.671875
+          ],
+          "rect": [
+            -220.0,
+            -41.5,
+            220.0,
+            41.5
+          ]
+        },
+        {
+          "path": "ArtFrame/layout/btn_setting/Text (TMP)",
+          "text": "설정\n",
+          "size": 60.0,
+          "box": [
+            440.0,
+            83.0
+          ],
+          "preferred": [
+            114.01,
+            78.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -220.0,
+            -39.3000031,
+            -106.0,
+            38.6999969
+          ],
+          "rect": [
+            -220.0,
+            -41.5,
+            220.0,
+            41.5
+          ]
+        },
+        {
+          "path": "ArtFrame/layout/btn_shutdown/Text (TMP)",
+          "text": "게임 종료\n",
+          "size": 60.0,
+          "box": [
+            440.0,
+            83.0
+          ],
+          "preferred": [
+            246.01,
+            78.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -220.0,
+            -39.3000031,
+            26.0000153,
+            38.6999969
+          ],
+          "rect": [
+            -220.0,
+            -41.5,
+            220.0,
+            41.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-rooms",
+      "activeTextFields": 22,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Actions/새로고침/Label",
+          "text": "새로고침",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            114.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -56.99995,
+            -19.5,
+            57.0000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/방 만들기/Label",
+          "text": "방 만들기",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            123.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.49995,
+            -19.5,
+            61.5000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/들어가기/Label",
+          "text": "들어가기",
+          "size": 53.0,
+          "box": [
+            328.0,
+            94.0
+          ],
+          "preferred": [
+            201.4,
+            68.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -100.699944,
+            -34.4499969,
+            100.700035,
+            34.4499969
+          ],
+          "rect": [
+            -164.0,
+            -47.0,
+            164.0,
+            47.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/뒤로/Label",
+          "text": "뒤로",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            57.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.4999466,
+            -19.5,
+            28.5000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/Help",
+          "text": "2 – 4팀 선택 가능",
+          "size": 24.0,
+          "box": [
+            420.0,
+            44.0
+          ],
+          "preferred": [
+            157.38,
+            28.63
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -78.686615,
+            7.685546,
+            78.68671,
+            36.3144531
+          ],
+          "rect": [
+            -210.0,
+            0.0,
+            210.0,
+            44.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Minus/Label",
+          "text": "-",
+          "size": 40.0,
+          "box": [
+            48.0,
+            56.0
+          ],
+          "preferred": [
+            23.21,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -11.5999508,
+            -26.0,
+            11.60005,
+            26.0
+          ],
+          "rect": [
+            -24.0,
+            -28.0,
+            24.0,
+            28.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Label",
+          "text": "4팀",
+          "size": 50.0,
+          "box": [
+            200.0,
+            70.0
+          ],
+          "preferred": [
+            77.41,
+            65.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -38.70112,
+            -32.5749969,
+            38.7012253,
+            32.5749969
+          ],
+          "rect": [
+            -100.0,
+            -35.0,
+            100.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Plus/Label",
+          "text": "+",
+          "size": 40.0,
+          "box": [
+            48.0,
+            56.0
+          ],
+          "preferred": [
+            24.28,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -12.13745,
+            -26.0,
+            12.1375494,
+            26.0
+          ],
+          "rect": [
+            -24.0,
+            -28.0,
+            24.0,
+            28.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/SelectedRoom",
+          "text": "달빛 카페",
+          "size": 42.0,
+          "box": [
+            430.0,
+            68.0
+          ],
+          "preferred": [
+            172.2,
+            54.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -86.0999451,
+            -61.3,
+            86.10004,
+            -6.700001
+          ],
+          "rect": [
+            -215.0,
+            -68.0,
+            215.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/Occupancy",
+          "text": "6/8",
+          "size": 36.0,
+          "box": [
+            130.0,
+            48.0
+          ],
+          "preferred": [
+            61.85,
+            41.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.8467636,
+            -44.5739975,
+            0.000106811523,
+            -3.4260025
+          ],
+          "rect": [
+            -130.0,
+            -48.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamsCaption",
+          "text": "팀 수",
+          "size": 26.0,
+          "box": [
+            160.0,
+            40.0
+          ],
+          "preferred": [
+            57.21,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -37.1071854,
+            57.2,
+            -3.30719
+          ],
+          "rect": [
+            0.0,
+            -40.0,
+            160.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/Label",
+          "text": "방 목록",
+          "size": 90.0,
+          "box": [
+            680.0,
+            160.0
+          ],
+          "preferred": [
+            302.4,
+            117.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -138.95,
+            308.699982,
+            -21.95
+          ],
+          "rect": [
+            0.0,
+            -160.0,
+            680.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/Label",
+          "text": "참여할 방을 골라주세요",
+          "size": 22.0,
+          "box": [
+            680.0,
+            38.0
+          ],
+          "preferred": [
+            182.19,
+            22.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -31.5159359,
+            182.187469,
+            -9.515936
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            680.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Label",
+          "text": "달빛 카페",
+          "size": 37.0,
+          "box": [
+            262.0,
+            75.0
+          ],
+          "preferred": [
+            151.7,
+            48.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.2003136,
+            151.7,
+            23.8996887
+          ],
+          "rect": [
+            0.0,
+            -37.5,
+            262.0,
+            37.5
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Occupancy",
+          "text": "6/8",
+          "size": 40.0,
+          "box": [
+            105.0,
+            72.0
+          ],
+          "preferred": [
+            68.72,
+            45.72
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -68.71865,
+            -22.86,
+            9.918213e-05,
+            22.86
+          ],
+          "rect": [
+            -105.0,
+            -36.0,
+            0.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Label",
+          "text": "유령의 찻잔",
+          "size": 37.0,
+          "box": [
+            262.0,
+            75.0
+          ],
+          "preferred": [
+            186.85,
+            48.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.3275,
+            186.849991,
+            23.7725
+          ],
+          "rect": [
+            0.0,
+            -37.5,
+            262.0,
+            37.5
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Occupancy",
+          "text": "3/8",
+          "size": 40.0,
+          "box": [
+            105.0,
+            72.0
+          ],
+          "preferred": [
+            66.84,
+            45.72
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -66.83584,
+            -22.86,
+            9.918213e-05,
+            22.86
+          ],
+          "rect": [
+            -105.0,
+            -36.0,
+            0.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Label",
+          "text": "밤의 원두",
+          "size": 37.0,
+          "box": [
+            262.0,
+            75.0
+          ],
+          "preferred": [
+            151.7,
+            48.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.252346,
+            151.7,
+            23.8476563
+          ],
+          "rect": [
+            0.0,
+            -37.5,
+            262.0,
+            37.5
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Occupancy",
+          "text": "4/8",
+          "size": 40.0,
+          "box": [
+            105.0,
+            72.0
+          ],
+          "preferred": [
+            69.65,
+            45.72
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -69.6405258,
+            -22.86,
+            9.918213e-05,
+            22.86
+          ],
+          "rect": [
+            -105.0,
+            -36.0,
+            0.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Label",
+          "text": "안개 등대",
+          "size": 37.0,
+          "box": [
+            262.0,
+            75.0
+          ],
+          "preferred": [
+            151.7,
+            48.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.235,
+            151.7,
+            23.8650017
+          ],
+          "rect": [
+            0.0,
+            -37.5,
+            262.0,
+            37.5
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/RoomsScroll/Viewport/RoomList/UIRoomListRow(Clone)/Occupancy",
+          "text": "2/8",
+          "size": 40.0,
+          "box": [
+            105.0,
+            72.0
+          ],
+          "preferred": [
+            66.72,
+            45.72
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -66.71865,
+            -22.86,
+            9.918213e-05,
+            22.86
+          ],
+          "rect": [
+            -105.0,
+            -36.0,
+            0.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/ClipboardBrand",
+          "text": "BLOOD & BEANS",
+          "size": 25.0,
+          "box": [
+            340.0,
+            46.0
+          ],
+          "preferred": [
+            213.04,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            63.48443,
+            -39.25,
+            276.5157,
+            -6.75
+          ],
+          "rect": [
+            0.0,
+            -46.0,
+            340.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-empty",
+      "activeTextFields": 15,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Actions/새로고침/Label",
+          "text": "새로고침",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            114.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -56.99995,
+            -19.5,
+            57.0000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/방 만들기/Label",
+          "text": "방 만들기",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            123.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.49995,
+            -19.5,
+            61.5000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/들어가기/Label",
+          "text": "들어가기",
+          "size": 53.0,
+          "box": [
+            328.0,
+            94.0
+          ],
+          "preferred": [
+            201.4,
+            68.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -100.699944,
+            -34.4499969,
+            100.700035,
+            34.4499969
+          ],
+          "rect": [
+            -164.0,
+            -47.0,
+            164.0,
+            47.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/뒤로/Label",
+          "text": "뒤로",
+          "size": 30.0,
+          "box": [
+            152.0,
+            60.0
+          ],
+          "preferred": [
+            57.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.4999466,
+            -19.5,
+            28.5000572,
+            19.5
+          ],
+          "rect": [
+            -76.0,
+            -30.0,
+            76.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/Help",
+          "text": "2 – 4팀 선택 가능",
+          "size": 24.0,
+          "box": [
+            420.0,
+            44.0
+          ],
+          "preferred": [
+            157.38,
+            28.63
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -78.686615,
+            7.685546,
+            78.68671,
+            36.3144531
+          ],
+          "rect": [
+            -210.0,
+            0.0,
+            210.0,
+            44.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Minus/Label",
+          "text": "-",
+          "size": 40.0,
+          "box": [
+            48.0,
+            56.0
+          ],
+          "preferred": [
+            23.21,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -11.5999508,
+            -26.0,
+            11.60005,
+            26.0
+          ],
+          "rect": [
+            -24.0,
+            -28.0,
+            24.0,
+            28.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Label",
+          "text": "4팀",
+          "size": 50.0,
+          "box": [
+            200.0,
+            70.0
+          ],
+          "preferred": [
+            77.41,
+            65.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -38.70112,
+            -32.5749969,
+            38.7012253,
+            32.5749969
+          ],
+          "rect": [
+            -100.0,
+            -35.0,
+            100.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamCount/Plus/Label",
+          "text": "+",
+          "size": 40.0,
+          "box": [
+            48.0,
+            56.0
+          ],
+          "preferred": [
+            24.28,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -12.13745,
+            -26.0,
+            12.1375494,
+            26.0
+          ],
+          "rect": [
+            -24.0,
+            -28.0,
+            24.0,
+            28.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/SelectedRoom",
+          "text": "방을 선택해 주세요",
+          "size": 42.0,
+          "box": [
+            430.0,
+            68.0
+          ],
+          "preferred": [
+            344.4,
+            54.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -172.199936,
+            -61.3,
+            172.200027,
+            -6.700001
+          ],
+          "rect": [
+            -215.0,
+            -68.0,
+            215.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomDetails/TeamsCaption",
+          "text": "팀 수",
+          "size": 26.0,
+          "box": [
+            160.0,
+            40.0
+          ],
+          "preferred": [
+            57.21,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -37.1071854,
+            57.2,
+            -3.30719
+          ],
+          "rect": [
+            0.0,
+            -40.0,
+            160.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/Label",
+          "text": "방 목록",
+          "size": 90.0,
+          "box": [
+            680.0,
+            160.0
+          ],
+          "preferred": [
+            302.4,
+            117.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -138.95,
+            308.699982,
+            -21.95
+          ],
+          "rect": [
+            0.0,
+            -160.0,
+            680.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/Label",
+          "text": "검색된 방이 없습니다",
+          "size": 22.0,
+          "box": [
+            680.0,
+            38.0
+          ],
+          "preferred": [
+            165.29,
+            22.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -31.2203121,
+            165.288727,
+            -9.220312
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            680.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/ClipboardBrand",
+          "text": "BLOOD & BEANS",
+          "size": 25.0,
+          "box": [
+            340.0,
+            46.0
+          ],
+          "preferred": [
+            213.04,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            63.48443,
+            -39.25,
+            276.5157,
+            -6.75
+          ],
+          "rect": [
+            0.0,
+            -46.0,
+            340.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/EmptyState/Title",
+          "text": "표시할 방이 없습니다",
+          "size": 35.0,
+          "box": [
+            610.0,
+            62.0
+          ],
+          "preferred": [
+            319.9,
+            45.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -159.949936,
+            -53.75,
+            159.950058,
+            -8.25
+          ],
+          "rect": [
+            -305.0,
+            -62.0,
+            305.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/RoomClipboard/EmptyState/Hint",
+          "text": "새로고침하거나 새 카페를 열어 주세요",
+          "size": 25.0,
+          "box": [
+            610.0,
+            55.0
+          ],
+          "preferred": [
+            410.01,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -204.999939,
+            -43.75,
+            205.000061,
+            -11.25
+          ],
+          "rect": [
+            -305.0,
+            -55.0,
+            305.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-room",
+      "activeTextFields": 24,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Label",
+          "text": "달빛 카페",
+          "size": 30.0,
+          "box": [
+            890.0,
+            45.0
+          ],
+          "preferred": [
+            123.01,
+            39.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -42.1218758,
+            123.000008,
+            -3.12187576
+          ],
+          "rect": [
+            0.0,
+            -45.0,
+            890.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Label",
+          "text": "모두 준비하면 시작합니다",
+          "size": 23.0,
+          "box": [
+            890.0,
+            40.0
+          ],
+          "preferred": [
+            253.93,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -35.295,
+            253.920013,
+            -5.39500046
+          ],
+          "rect": [
+            0.0,
+            -40.0,
+            890.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Heading",
+          "text": "팀 1",
+          "size": 33.0,
+          "box": [
+            150.0,
+            48.0
+          ],
+          "preferred": [
+            58.35,
+            42.91
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            45.82599,
+            -45.45,
+            104.174118,
+            -2.54999924
+          ],
+          "rect": [
+            0.0,
+            -48.0,
+            150.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/PlayerName",
+          "text": "JinKyu",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            56.14,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.0677567,
+            7.0,
+            28.0678673,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/PlayerName",
+          "text": "Mina",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            37.82,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -18.90979,
+            7.0,
+            18.9098969,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Heading",
+          "text": "팀 2",
+          "size": 33.0,
+          "box": [
+            150.0,
+            48.0
+          ],
+          "preferred": [
+            62.57,
+            42.91
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            43.7170868,
+            -45.45,
+            106.28302,
+            -2.54999924
+          ],
+          "rect": [
+            0.0,
+            -48.0,
+            150.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/PlayerName",
+          "text": "Noah",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            42.41,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.2001038,
+            7.0,
+            21.20021,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/PlayerName",
+          "text": "Yuna",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            41.88,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.937603,
+            7.0,
+            20.93771,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Heading",
+          "text": "팀 3",
+          "size": 33.0,
+          "box": [
+            150.0,
+            48.0
+          ],
+          "preferred": [
+            64.95,
+            42.91
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            42.5259857,
+            -45.45,
+            107.474121,
+            -2.54999924
+          ],
+          "rect": [
+            0.0,
+            -48.0,
+            150.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/PlayerName",
+          "text": "Haru",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            41.52,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.7571335,
+            7.0,
+            20.75724,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/PlayerName",
+          "text": "Sora",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            41.36,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.6751022,
+            7.0,
+            20.675209,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Heading",
+          "text": "팀 4",
+          "size": 33.0,
+          "box": [
+            150.0,
+            48.0
+          ],
+          "preferred": [
+            63.23,
+            42.91
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            43.387085,
+            -45.45,
+            106.613022,
+            -2.54999924
+          ],
+          "rect": [
+            0.0,
+            -48.0,
+            150.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat0/PlayerName",
+          "text": "Leon",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            42.84,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.4166641,
+            7.0,
+            21.41677,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Teams/UIRoomTeamCard(Clone)/Members/Seat1/PlayerName",
+          "text": "Nari",
+          "size": 21.0,
+          "box": [
+            156.0,
+            35.0
+          ],
+          "preferred": [
+            35.3,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -17.6497879,
+            7.0,
+            17.6498985,
+            28.0
+          ],
+          "rect": [
+            -78.0,
+            0.0,
+            78.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/ReadyCount",
+          "text": "준비 6/8",
+          "size": 35.0,
+          "box": [
+            205.0,
+            90.0
+          ],
+          "preferred": [
+            133.22,
+            45.61
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -133.2118,
+            -67.8025055,
+            0.000106811523,
+            -22.1975021
+          ],
+          "rect": [
+            -205.0,
+            -90.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Actions/게임 시작/Label",
+          "text": "게임 시작",
+          "size": 40.0,
+          "box": [
+            554.0,
+            61.0
+          ],
+          "preferred": [
+            164.01,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -81.99994,
+            -26.0,
+            82.00006,
+            26.0
+          ],
+          "rect": [
+            -277.0,
+            -30.5,
+            277.0,
+            30.5
+          ]
+        },
+        {
+          "path": "Panel/Actions/방 나가기/Label",
+          "text": "방 나가기",
+          "size": 40.0,
+          "box": [
+            234.0,
+            61.0
+          ],
+          "preferred": [
+            164.01,
+            52.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -81.99995,
+            -26.0,
+            82.00005,
+            26.0
+          ],
+          "rect": [
+            -117.0,
+            -30.5,
+            117.0,
+            30.5
+          ]
+        },
+        {
+          "path": "Panel/LobbyHeading",
+          "text": "크루 대기실",
+          "size": 74.0,
+          "box": [
+            665.0,
+            105.0
+          ],
+          "preferred": [
+            373.7,
+            96.21
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -101.039375,
+            373.699982,
+            -4.83937073
+          ],
+          "rect": [
+            0.0,
+            -105.0,
+            665.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-settings",
+      "activeTextFields": 11,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/RedSpine/Title",
+          "text": "설\n정",
+          "size": 83.0,
+          "box": [
+            150.0,
+            260.0
+          ],
+          "preferred": [
+            78.85,
+            205.84
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -39.4249458,
+            -232.92,
+            39.4250526,
+            -27.0800018
+          ],
+          "rect": [
+            -75.0,
+            -260.0,
+            75.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeMaster/Label",
+          "text": "전체 음량",
+          "size": 32.0,
+          "box": [
+            192.0,
+            64.0
+          ],
+          "preferred": [
+            131.2,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -21.07,
+            131.2,
+            20.5299988
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            192.0,
+            32.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeMaster/Input/Text Area/Text",
+          "text": "80​",
+          "size": 42.0,
+          "box": [
+            104.0,
+            52.0
+          ],
+          "preferred": [
+            50.78,
+            48.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.38862,
+            -24.0029984,
+            25.38872,
+            24.0029984
+          ],
+          "rect": [
+            -52.0,
+            -26.0,
+            52.0,
+            26.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeBgm/Label",
+          "text": "배경음",
+          "size": 32.0,
+          "box": [
+            192.0,
+            64.0
+          ],
+          "preferred": [
+            91.2,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -20.96,
+            91.2,
+            20.64
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            192.0,
+            32.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeBgm/Input/Text Area/Text",
+          "text": "65​",
+          "size": 42.0,
+          "box": [
+            104.0,
+            52.0
+          ],
+          "preferred": [
+            46.16,
+            48.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -23.0794411,
+            -24.0029984,
+            23.07954,
+            24.0029984
+          ],
+          "rect": [
+            -52.0,
+            -26.0,
+            52.0,
+            26.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeSfx/Label",
+          "text": "효과음",
+          "size": 32.0,
+          "box": [
+            192.0,
+            64.0
+          ],
+          "preferred": [
+            91.2,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -21.025,
+            91.2,
+            20.5749989
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            192.0,
+            32.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/VolumeSfx/Input/Text Area/Text",
+          "text": "85​",
+          "size": 42.0,
+          "box": [
+            104.0,
+            52.0
+          ],
+          "preferred": [
+            45.95,
+            48.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -22.9728012,
+            -24.0029984,
+            22.9729,
+            24.0029984
+          ],
+          "rect": [
+            -52.0,
+            -26.0,
+            52.0,
+            26.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/Fullscreen/Label",
+          "text": "전체 화면",
+          "size": 32.0,
+          "box": [
+            192.0,
+            64.0
+          ],
+          "preferred": [
+            131.2,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -21.085,
+            131.2,
+            20.515
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            192.0,
+            32.0
+          ]
+        },
+        {
+          "path": "Panel/Volumes/Fullscreen/AvailabilityHint",
+          "text": "감도는 카메라 사용 시 표시",
+          "size": 20.0,
+          "box": [
+            385.0,
+            48.0
+          ],
+          "preferred": [
+            233.01,
+            26.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -232.999908,
+            -13.0,
+            9.15527344e-05,
+            13.0
+          ],
+          "rect": [
+            -385.0,
+            -24.0,
+            0.0,
+            24.0
+          ]
+        },
+        {
+          "path": "Panel/Apply/Text (Legacy)",
+          "text": "적용하고 닫기",
+          "size": 41.0,
+          "box": [
+            400.0,
+            70.0
+          ],
+          "preferred": [
+            246.01,
+            53.31
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -122.999954,
+            -26.6500015,
+            123.000046,
+            26.6500015
+          ],
+          "rect": [
+            -200.0,
+            -35.0,
+            200.0,
+            35.0
+          ]
+        },
+        {
+          "path": "Panel/Close/Text (Legacy)",
+          "text": "X",
+          "size": 37.0,
+          "box": [
+            50.0,
+            50.0
+          ],
+          "preferred": [
+            26.28,
+            48.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.1349506,
+            -24.05,
+            13.13505,
+            24.05
+          ],
+          "rect": [
+            -25.0,
+            -25.0,
+            25.0,
+            25.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-return",
+      "activeTextFields": 3,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Title",
+          "text": "귀환 성공",
+          "size": 47.0,
+          "box": [
+            850.0,
+            65.0
+          ],
+          "preferred": [
+            192.7,
+            61.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -96.3499451,
+            -63.0500031,
+            96.35005,
+            -1.94999886
+          ],
+          "rect": [
+            -425.0,
+            -65.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Line",
+          "text": "소지한 아이템 100% 귀환",
+          "size": 32.0,
+          "box": [
+            850.0,
+            46.0
+          ],
+          "preferred": [
+            368.13,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -184.064926,
+            -43.8,
+            184.065048,
+            -2.20000076
+          ],
+          "rect": [
+            -425.0,
+            -46.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Detail",
+          "text": "재료 8개를 팀 재고로 넘겼다",
+          "size": 25.0,
+          "box": [
+            850.0,
+            37.0
+          ],
+          "preferred": [
+            254.69,
+            25.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -127.343689,
+            -31.0,
+            127.343811,
+            -6.0
+          ],
+          "rect": [
+            -425.0,
+            -37.0,
+            425.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-return-1",
+      "activeTextFields": 3,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Title",
+          "text": "귀환 실패",
+          "size": 47.0,
+          "box": [
+            850.0,
+            65.0
+          ],
+          "preferred": [
+            192.7,
+            61.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -96.3499451,
+            -63.0500031,
+            96.35005,
+            -1.94999886
+          ],
+          "rect": [
+            -425.0,
+            -65.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Line",
+          "text": "소지한 아이템 50% 소실 · 미회수 가방 전량 소실",
+          "size": 32.0,
+          "box": [
+            850.0,
+            46.0
+          ],
+          "preferred": [
+            683.6,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -341.794983,
+            -43.8,
+            341.7951,
+            -2.20000076
+          ],
+          "rect": [
+            -425.0,
+            -46.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Detail",
+          "text": "소환 위치 밖에서 밤이 끝났다 · 4개 소실 / 4개 반입",
+          "size": 25.0,
+          "box": [
+            850.0,
+            37.0
+          ],
+          "preferred": [
+            464.89,
+            29.83
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -232.440475,
+            -33.41089,
+            232.4406,
+            -3.58911037
+          ],
+          "rect": [
+            -425.0,
+            -37.0,
+            425.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-return-2",
+      "activeTextFields": 3,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Panel/Title",
+          "text": "가방 분실",
+          "size": 47.0,
+          "box": [
+            850.0,
+            65.0
+          ],
+          "preferred": [
+            192.7,
+            61.11
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -96.3499451,
+            -63.0500031,
+            96.35005,
+            -1.94999886
+          ],
+          "rect": [
+            -425.0,
+            -65.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Line",
+          "text": "획득 아이템 100% 소실",
+          "size": 32.0,
+          "box": [
+            850.0,
+            46.0
+          ],
+          "preferred": [
+            337.73,
+            41.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -168.864929,
+            -43.8,
+            168.865051,
+            -2.20000076
+          ],
+          "rect": [
+            -425.0,
+            -46.0,
+            425.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Panel/Detail",
+          "text": "묻어 둔 가방을 회수하지 못했다 · 8개 소실",
+          "size": 25.0,
+          "box": [
+            850.0,
+            37.0
+          ],
+          "preferred": [
+            379.56,
+            29.83
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -189.776413,
+            -33.41089,
+            189.776535,
+            -3.58911037
+          ],
+          "rect": [
+            -425.0,
+            -37.0,
+            425.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-final-loot",
+      "activeTextFields": 10,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Stage/Panel/Slot0/TierBadge",
+          "text": "일반",
+          "size": 22.0,
+          "box": [
+            116.0,
+            36.0
+          ],
+          "preferred": [
+            41.8,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.8999481,
+            3.70000076,
+            20.9000511,
+            32.3
+          ],
+          "rect": [
+            -58.0,
+            0.0,
+            58.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot1/TierBadge",
+          "text": "일반",
+          "size": 22.0,
+          "box": [
+            116.0,
+            36.0
+          ],
+          "preferred": [
+            41.8,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.8999481,
+            3.70000076,
+            20.9000511,
+            32.3
+          ],
+          "rect": [
+            -58.0,
+            0.0,
+            58.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot2/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot2/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot3/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot3/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot4/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot4/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/ChestHeading",
+          "text": "상자",
+          "size": 35.0,
+          "box": [
+            690.0,
+            52.0
+          ],
+          "preferred": [
+            66.51,
+            45.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.75,
+            66.5,
+            -3.25
+          ],
+          "rect": [
+            0.0,
+            -52.0,
+            690.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/ChestStatus",
+          "text": "슬롯 5 · 남은 것 5",
+          "size": 20.0,
+          "box": [
+            690.0,
+            32.0
+          ],
+          "preferred": [
+            159.91,
+            26.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -29.0593758,
+            159.906265,
+            -3.05937576
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            690.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "menu-loot-hover",
+      "activeTextFields": 14,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Stage/Panel/Slot0/TierBadge",
+          "text": "일반",
+          "size": 22.0,
+          "box": [
+            116.0,
+            36.0
+          ],
+          "preferred": [
+            41.8,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.8999481,
+            3.70000076,
+            20.9000511,
+            32.3
+          ],
+          "rect": [
+            -58.0,
+            0.0,
+            58.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot0/Tooltip/Name",
+          "text": "우유",
+          "size": 23.0,
+          "box": [
+            200.0,
+            40.0
+          ],
+          "preferred": [
+            43.71,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -29.9,
+            43.7,
+            0.0
+          ],
+          "rect": [
+            0.0,
+            -40.0,
+            200.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot0/Tooltip/Rarity",
+          "text": "일반",
+          "size": 20.0,
+          "box": [
+            200.0,
+            32.0
+          ],
+          "preferred": [
+            30.73,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -20.0,
+            30.725,
+            0.0
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            200.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot0/Tooltip/Count",
+          "text": "×1",
+          "size": 20.0,
+          "box": [
+            72.0,
+            32.0
+          ],
+          "preferred": [
+            14.72,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -20.0,
+            14.71875,
+            0.0
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            72.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot0/Tooltip/Weight",
+          "text": "0.4 KG",
+          "size": 20.0,
+          "box": [
+            116.0,
+            32.0
+          ],
+          "preferred": [
+            54.17,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -54.1624031,
+            -20.0,
+            9.918213e-05,
+            0.0
+          ],
+          "rect": [
+            -116.0,
+            -32.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot1/TierBadge",
+          "text": "일반",
+          "size": 22.0,
+          "box": [
+            116.0,
+            36.0
+          ],
+          "preferred": [
+            41.8,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.8999481,
+            3.70000076,
+            20.9000511,
+            32.3
+          ],
+          "rect": [
+            -58.0,
+            0.0,
+            58.0,
+            36.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot2/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot2/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot3/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot3/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot4/Blind/Mark",
+          "text": "?",
+          "size": 44.0,
+          "box": [
+            100.0,
+            68.0
+          ],
+          "preferred": [
+            26.01,
+            57.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -13.000576,
+            -62.6,
+            13.0006733,
+            -5.40000153
+          ],
+          "rect": [
+            -50.0,
+            -68.0,
+            50.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/Slot4/Blind/BlindIn",
+          "text": "1초 후",
+          "size": 18.0,
+          "box": [
+            110.0,
+            30.0
+          ],
+          "preferred": [
+            48.93,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.4630756,
+            3.29999924,
+            24.4631748,
+            26.7
+          ],
+          "rect": [
+            -55.0,
+            0.0,
+            55.0,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/ChestHeading",
+          "text": "상자",
+          "size": 35.0,
+          "box": [
+            690.0,
+            52.0
+          ],
+          "preferred": [
+            66.51,
+            45.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.75,
+            66.5,
+            -3.25
+          ],
+          "rect": [
+            0.0,
+            -52.0,
+            690.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Panel/ChestStatus",
+          "text": "슬롯 5 · 남은 것 5",
+          "size": 20.0,
+          "box": [
+            690.0,
+            32.0
+          ],
+          "preferred": [
+            159.91,
+            26.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -29.0593758,
+            159.906265,
+            -3.05937576
+          ],
+          "rect": [
+            0.0,
+            -32.0,
+            690.0,
+            0.0
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stage-recovery",
+      "activeTextFields": 42,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Stage/Caption",
+          "text": "오늘의 크루",
+          "size": 108.0,
+          "box": [
+            950.0,
+            160.0
+          ],
+          "preferred": [
+            583.21,
+            140.4
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -150.4025,
+            590.76,
+            -10.0025024
+          ],
+          "rect": [
+            0.0,
+            -160.0,
+            950.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card0/Name",
+          "text": "뱀파이어",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card1/Name",
+          "text": "좀비",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card2/Name",
+          "text": "늑대인간",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card3/Name",
+          "text": "마녀",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/SelectedName",
+          "text": "뱀파이어",
+          "size": 48.0,
+          "box": [
+            560.0,
+            67.0
+          ],
+          "preferred": [
+            182.41,
+            62.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -64.9625,
+            182.400009,
+            -2.5625
+          ],
+          "rect": [
+            0.0,
+            -67.0,
+            560.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayCaption",
+          "text": "낮",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.01828,
+            21.85,
+            -4.11828232
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayName",
+          "text": "관 떨어뜨리기",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            174.01,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            174.0,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayEffect",
+          "text": "지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            415.62,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            415.618683,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot/Text (TMP)",
+          "text": "팀 1",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            47.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -23.8696365,
+            -17.55,
+            23.86974,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (1)/Text (TMP)",
+          "text": "팀 2",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.2,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.595108,
+            -17.55,
+            25.5952034,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (2)/Text (TMP)",
+          "text": "팀 3",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            53.14,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -26.5696411,
+            -17.55,
+            26.5697365,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (3)/Text (TMP)",
+          "text": "팀 4",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.8651047,
+            -17.55,
+            25.8652077,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightName",
+          "text": "박쥐 떼",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            91.35,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            91.35,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightEffect",
+          "text": "맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            392.79,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            392.781219,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/PhaseLabel",
+          "text": "밤",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.0757828,
+            21.85,
+            -4.17578125
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/RegistrationCaption",
+          "text": "C R E W   R E G I S T R A T I O N",
+          "size": 16.0,
+          "box": [
+            600.0,
+            28.0
+          ],
+          "preferred": [
+            251.14,
+            20.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.83,
+            251.130035,
+            -4.03000069
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            600.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/EscChip/Esc",
+          "text": "ESC",
+          "size": 18.0,
+          "box": [
+            48.0,
+            34.0
+          ],
+          "preferred": [
+            35.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            6.315048,
+            -28.7,
+            41.68505,
+            -5.299999
+          ],
+          "rect": [
+            0.0,
+            -34.0,
+            48.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/BackLabel",
+          "text": "뒤로",
+          "size": 25.0,
+          "box": [
+            92.0,
+            42.0
+          ],
+          "preferred": [
+            47.51,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            22.2500477,
+            -37.25,
+            69.7500458,
+            -4.75
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            92.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Confirm/Label",
+          "text": "준비 취소",
+          "size": 39.0,
+          "box": [
+            226.0,
+            78.0
+          ],
+          "preferred": [
+            170.82,
+            50.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            27.5900574,
+            -64.35,
+            201.140045,
+            -13.6500015
+          ],
+          "rect": [
+            0.0,
+            -78.0,
+            226.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/KeyChip/Key",
+          "text": "F1",
+          "size": 18.0,
+          "box": [
+            41.0,
+            60.0
+          ],
+          "preferred": [
+            20.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -10.1896381,
+            -11.7000008,
+            10.1897373,
+            11.7000008
+          ],
+          "rect": [
+            -20.5,
+            -30.0,
+            20.5,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/Label",
+          "text": "정보 패널",
+          "size": 24.960001,
+          "box": [
+            102.34,
+            60.0
+          ],
+          "preferred": [
+            102.34,
+            32.45
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -51.17,
+            -16.3488,
+            51.166,
+            16.0992012
+          ],
+          "rect": [
+            -51.17,
+            -30.0,
+            51.17,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Brand",
+          "text": "BLOOD & BEAN   /   CREW ROOM",
+          "size": 18.0,
+          "box": [
+            700.0,
+            28.0
+          ],
+          "preferred": [
+            243.14,
+            18.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -23.9534378,
+            243.134979,
+            -5.953438
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            700.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/PlayerName",
+          "text": "JinKyu",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            56.14,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.0677567,
+            7.0,
+            28.0678673,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/PlayerName",
+          "text": "Mina",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            37.82,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -18.90979,
+            7.0,
+            18.9098969,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/PlayerName",
+          "text": "Noah",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.41,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.2001038,
+            7.0,
+            21.20021,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/PlayerName",
+          "text": "Yuna",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.88,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.937603,
+            7.0,
+            20.93771,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/PlayerName",
+          "text": "Haru",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.52,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.7571335,
+            7.0,
+            20.75724,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/PlayerName",
+          "text": "Sora",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.36,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.6751022,
+            7.0,
+            20.675209,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew6/PlayerName",
+          "text": "Leon",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.84,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.4166641,
+            7.0,
+            21.41677,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew7/PlayerName",
+          "text": "Nari",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            35.3,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -17.6497879,
+            7.0,
+            17.6498985,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewSubtitle",
+          "text": "커피는 함께, 밤은 대담하게.",
+          "size": 27.0,
+          "box": [
+            780.0,
+            56.0
+          ],
+          "preferred": [
+            321.57,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -45.4656219,
+            321.569977,
+            -10.3656235
+          ],
+          "rect": [
+            0.0,
+            -56.0,
+            780.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/WaitLabel",
+          "text": "준비한 크루",
+          "size": 27.0,
+          "box": [
+            230.0,
+            50.0
+          ],
+          "preferred": [
+            136.36,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            46.8250427,
+            -17.55,
+            183.175049,
+            17.55
+          ],
+          "rect": [
+            0.0,
+            -25.0,
+            230.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/Timer",
+          "text": "6/8",
+          "size": 36.0,
+          "box": [
+            92.0,
+            50.0
+          ],
+          "preferred": [
+            61.85,
+            41.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.84677,
+            -20.5739975,
+            9.918213e-05,
+            20.5739975
+          ],
+          "rect": [
+            -92.0,
+            -25.0,
+            0.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewName",
+          "text": "뱀파이어",
+          "size": 64.0,
+          "box": [
+            360.0,
+            100.0
+          ],
+          "preferred": [
+            243.2,
+            83.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -91.95,
+            243.2,
+            -8.75
+          ],
+          "rect": [
+            0.0,
+            -100.0,
+            360.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewCaptionPlate/Caption",
+          "text": "선택한 크루",
+          "size": 22.0,
+          "box": [
+            180.0,
+            31.0
+          ],
+          "preferred": [
+            111.11,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -55.54995,
+            -14.2999992,
+            55.5500565,
+            14.2999992
+          ],
+          "rect": [
+            -90.0,
+            -15.5,
+            90.0,
+            15.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stage-3d-wide",
+      "activeTextFields": 42,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Stage/Caption",
+          "text": "오늘의 크루",
+          "size": 108.0,
+          "box": [
+            950.0,
+            160.0
+          ],
+          "preferred": [
+            583.21,
+            140.4
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -150.4025,
+            590.76,
+            -10.0025024
+          ],
+          "rect": [
+            0.0,
+            -160.0,
+            950.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card0/Name",
+          "text": "뱀파이어",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card1/Name",
+          "text": "좀비",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card2/Name",
+          "text": "늑대인간",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card3/Name",
+          "text": "마녀",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/SelectedName",
+          "text": "뱀파이어",
+          "size": 48.0,
+          "box": [
+            560.0,
+            67.0
+          ],
+          "preferred": [
+            182.41,
+            62.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -64.9625,
+            182.400009,
+            -2.5625
+          ],
+          "rect": [
+            0.0,
+            -67.0,
+            560.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayCaption",
+          "text": "낮",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.01828,
+            21.85,
+            -4.11828232
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayName",
+          "text": "관 떨어뜨리기",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            174.01,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            174.0,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayEffect",
+          "text": "지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            415.62,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            415.618683,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot/Text (TMP)",
+          "text": "팀 1",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            47.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -23.8696365,
+            -17.55,
+            23.86974,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (1)/Text (TMP)",
+          "text": "팀 2",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.2,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.595108,
+            -17.55,
+            25.5952034,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (2)/Text (TMP)",
+          "text": "팀 3",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            53.14,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -26.5696411,
+            -17.55,
+            26.5697365,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (3)/Text (TMP)",
+          "text": "팀 4",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.8651047,
+            -17.55,
+            25.8652077,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightName",
+          "text": "박쥐 떼",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            91.35,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            91.35,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightEffect",
+          "text": "맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            392.79,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            392.781219,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/PhaseLabel",
+          "text": "밤",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.0757828,
+            21.85,
+            -4.17578125
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/RegistrationCaption",
+          "text": "C R E W   R E G I S T R A T I O N",
+          "size": 16.0,
+          "box": [
+            600.0,
+            28.0
+          ],
+          "preferred": [
+            251.14,
+            20.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.83,
+            251.130035,
+            -4.03000069
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            600.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/EscChip/Esc",
+          "text": "ESC",
+          "size": 18.0,
+          "box": [
+            48.0,
+            34.0
+          ],
+          "preferred": [
+            35.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            6.315048,
+            -28.7,
+            41.68505,
+            -5.299999
+          ],
+          "rect": [
+            0.0,
+            -34.0,
+            48.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/BackLabel",
+          "text": "뒤로",
+          "size": 25.0,
+          "box": [
+            92.0,
+            42.0
+          ],
+          "preferred": [
+            47.51,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            22.2500477,
+            -37.25,
+            69.7500458,
+            -4.75
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            92.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Confirm/Label",
+          "text": "준비 취소",
+          "size": 39.0,
+          "box": [
+            226.0,
+            78.0
+          ],
+          "preferred": [
+            170.82,
+            50.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            27.5900574,
+            -64.35,
+            201.140045,
+            -13.6500015
+          ],
+          "rect": [
+            0.0,
+            -78.0,
+            226.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/KeyChip/Key",
+          "text": "F1",
+          "size": 18.0,
+          "box": [
+            41.0,
+            60.0
+          ],
+          "preferred": [
+            20.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -10.1896381,
+            -11.7000008,
+            10.1897373,
+            11.7000008
+          ],
+          "rect": [
+            -20.5,
+            -30.0,
+            20.5,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/Label",
+          "text": "정보 패널",
+          "size": 24.960001,
+          "box": [
+            102.34,
+            60.0
+          ],
+          "preferred": [
+            102.34,
+            32.45
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -51.17,
+            -16.3488,
+            51.166,
+            16.0992012
+          ],
+          "rect": [
+            -51.17,
+            -30.0,
+            51.17,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Brand",
+          "text": "BLOOD & BEAN   /   CREW ROOM",
+          "size": 18.0,
+          "box": [
+            700.0,
+            28.0
+          ],
+          "preferred": [
+            243.14,
+            18.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -23.9534378,
+            243.134979,
+            -5.953438
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            700.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/PlayerName",
+          "text": "JinKyu",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            56.14,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.0677567,
+            7.0,
+            28.0678673,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/PlayerName",
+          "text": "Mina",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            37.82,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -18.90979,
+            7.0,
+            18.9098969,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/PlayerName",
+          "text": "Noah",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.41,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.2001038,
+            7.0,
+            21.20021,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/PlayerName",
+          "text": "Yuna",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.88,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.937603,
+            7.0,
+            20.93771,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/PlayerName",
+          "text": "Haru",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.52,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.7571335,
+            7.0,
+            20.75724,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/PlayerName",
+          "text": "Sora",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.36,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.6751022,
+            7.0,
+            20.675209,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew6/PlayerName",
+          "text": "Leon",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.84,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.4166641,
+            7.0,
+            21.41677,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew7/PlayerName",
+          "text": "Nari",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            35.3,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -17.6497879,
+            7.0,
+            17.6498985,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewSubtitle",
+          "text": "커피는 함께, 밤은 대담하게.",
+          "size": 27.0,
+          "box": [
+            780.0,
+            56.0
+          ],
+          "preferred": [
+            321.57,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -45.4656219,
+            321.569977,
+            -10.3656235
+          ],
+          "rect": [
+            0.0,
+            -56.0,
+            780.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/WaitLabel",
+          "text": "준비한 크루",
+          "size": 27.0,
+          "box": [
+            230.0,
+            50.0
+          ],
+          "preferred": [
+            136.36,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            46.8250427,
+            -17.55,
+            183.175049,
+            17.55
+          ],
+          "rect": [
+            0.0,
+            -25.0,
+            230.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/Timer",
+          "text": "6/8",
+          "size": 36.0,
+          "box": [
+            92.0,
+            50.0
+          ],
+          "preferred": [
+            61.85,
+            41.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.84677,
+            -20.5739975,
+            9.918213e-05,
+            20.5739975
+          ],
+          "rect": [
+            -92.0,
+            -25.0,
+            0.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewName",
+          "text": "뱀파이어",
+          "size": 64.0,
+          "box": [
+            360.0,
+            100.0
+          ],
+          "preferred": [
+            243.2,
+            83.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -91.95,
+            243.2,
+            -8.75
+          ],
+          "rect": [
+            0.0,
+            -100.0,
+            360.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewCaptionPlate/Caption",
+          "text": "선택한 크루",
+          "size": 22.0,
+          "box": [
+            180.0,
+            31.0
+          ],
+          "preferred": [
+            111.11,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -55.54995,
+            -14.2999992,
+            55.5500565,
+            14.2999992
+          ],
+          "rect": [
+            -90.0,
+            -15.5,
+            90.0,
+            15.5
+          ]
+        }
+      ]
+    },
+    {
+      "id": "stage-3d-four-three",
+      "activeTextFields": 42,
+      "overflow": 0,
+      "geometryOutside": 0,
+      "fields": [
+        {
+          "path": "Stage/Caption",
+          "text": "오늘의 크루",
+          "size": 108.0,
+          "box": [
+            950.0,
+            160.0
+          ],
+          "preferred": [
+            583.21,
+            140.4
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -150.4025,
+            590.76,
+            -10.0025024
+          ],
+          "rect": [
+            0.0,
+            -160.0,
+            950.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card0/Name",
+          "text": "뱀파이어",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card1/Name",
+          "text": "좀비",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card2/Name",
+          "text": "늑대인간",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            98.8,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -49.3999443,
+            6.10000229,
+            49.40005,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/Cards/Card3/Name",
+          "text": "마녀",
+          "size": 26.0,
+          "box": [
+            128.0,
+            46.0
+          ],
+          "preferred": [
+            49.4,
+            33.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -24.6999435,
+            6.10000229,
+            24.7000542,
+            39.8999977
+          ],
+          "rect": [
+            -64.0,
+            0.0,
+            64.0,
+            46.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/SelectedName",
+          "text": "뱀파이어",
+          "size": 48.0,
+          "box": [
+            560.0,
+            67.0
+          ],
+          "preferred": [
+            182.41,
+            62.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -64.9625,
+            182.400009,
+            -2.5625
+          ],
+          "rect": [
+            0.0,
+            -67.0,
+            560.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayCaption",
+          "text": "낮",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.01828,
+            21.85,
+            -4.11828232
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayName",
+          "text": "관 떨어뜨리기",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            174.01,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            174.0,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/DayGroup/DayEffect",
+          "text": "지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            415.62,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            415.618683,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot/Text (TMP)",
+          "text": "팀 1",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            47.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -23.8696365,
+            -17.55,
+            23.86974,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (1)/Text (TMP)",
+          "text": "팀 2",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.2,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.595108,
+            -17.55,
+            25.5952034,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (2)/Text (TMP)",
+          "text": "팀 3",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            53.14,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -26.5696411,
+            -17.55,
+            26.5697365,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/Nameplate/TeamSlot (3)/Text (TMP)",
+          "text": "팀 4",
+          "size": 27.0,
+          "box": [
+            126.0,
+            45.0
+          ],
+          "preferred": [
+            51.74,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -25.8651047,
+            -17.55,
+            25.8652077,
+            17.55
+          ],
+          "rect": [
+            -63.0,
+            -22.5,
+            63.0,
+            22.5
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightName",
+          "text": "박쥐 떼",
+          "size": 29.0,
+          "box": [
+            454.0,
+            42.0
+          ],
+          "preferred": [
+            91.35,
+            37.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -40.0085945,
+            91.35,
+            -2.30859756
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            454.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/NightEffect",
+          "text": "맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)",
+          "size": 20.0,
+          "box": [
+            440.0,
+            75.0
+          ],
+          "preferred": [
+            392.79,
+            20.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -48.8781242,
+            392.781219,
+            -28.8781242
+          ],
+          "rect": [
+            0.0,
+            -75.0,
+            440.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/NightGroup/PhaseLabel",
+          "text": "밤",
+          "size": 23.0,
+          "box": [
+            65.0,
+            38.0
+          ],
+          "preferred": [
+            21.86,
+            29.9
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -34.0757828,
+            21.85,
+            -4.17578125
+          ],
+          "rect": [
+            0.0,
+            -38.0,
+            65.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelWrap/Detail/RegistrationCaption",
+          "text": "C R E W   R E G I S T R A T I O N",
+          "size": 16.0,
+          "box": [
+            600.0,
+            28.0
+          ],
+          "preferred": [
+            251.14,
+            20.8
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -24.83,
+            251.130035,
+            -4.03000069
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            600.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/EscChip/Esc",
+          "text": "ESC",
+          "size": 18.0,
+          "box": [
+            48.0,
+            34.0
+          ],
+          "preferred": [
+            35.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            6.315048,
+            -28.7,
+            41.68505,
+            -5.299999
+          ],
+          "rect": [
+            0.0,
+            -34.0,
+            48.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Back/BackLabel",
+          "text": "뒤로",
+          "size": 25.0,
+          "box": [
+            92.0,
+            42.0
+          ],
+          "preferred": [
+            47.51,
+            32.51
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            22.2500477,
+            -37.25,
+            69.7500458,
+            -4.75
+          ],
+          "rect": [
+            0.0,
+            -42.0,
+            92.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/Confirm/Label",
+          "text": "준비 취소",
+          "size": 39.0,
+          "box": [
+            226.0,
+            78.0
+          ],
+          "preferred": [
+            170.82,
+            50.7
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            27.5900574,
+            -64.35,
+            201.140045,
+            -13.6500015
+          ],
+          "rect": [
+            0.0,
+            -78.0,
+            226.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/KeyChip/Key",
+          "text": "F1",
+          "size": 18.0,
+          "box": [
+            41.0,
+            60.0
+          ],
+          "preferred": [
+            20.38,
+            23.41
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -10.1896381,
+            -11.7000008,
+            10.1897373,
+            11.7000008
+          ],
+          "rect": [
+            -20.5,
+            -30.0,
+            20.5,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/PanelHint/Label",
+          "text": "정보 패널",
+          "size": 24.960001,
+          "box": [
+            102.34,
+            60.0
+          ],
+          "preferred": [
+            102.34,
+            32.45
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -51.17,
+            -16.3488,
+            51.166,
+            16.0992012
+          ],
+          "rect": [
+            -51.17,
+            -30.0,
+            51.17,
+            30.0
+          ]
+        },
+        {
+          "path": "Stage/Brand",
+          "text": "BLOOD & BEAN   /   CREW ROOM",
+          "size": 18.0,
+          "box": [
+            700.0,
+            28.0
+          ],
+          "preferred": [
+            243.14,
+            18.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -23.9534378,
+            243.134979,
+            -5.953438
+          ],
+          "rect": [
+            0.0,
+            -28.0,
+            700.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/PlayerName",
+          "text": "JinKyu",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            56.14,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -28.0677567,
+            7.0,
+            28.0678673,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew0/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/PlayerName",
+          "text": "Mina",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            37.82,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -18.90979,
+            7.0,
+            18.9098969,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew1/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/PlayerName",
+          "text": "Noah",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.41,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.2001038,
+            7.0,
+            21.20021,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew2/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/PlayerName",
+          "text": "Yuna",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.88,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.937603,
+            7.0,
+            20.93771,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew3/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/PlayerName",
+          "text": "Haru",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.52,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.7571335,
+            7.0,
+            20.75724,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew4/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/PlayerName",
+          "text": "Sora",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            41.36,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -20.6751022,
+            7.0,
+            20.675209,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew5/ReadyBadge/Ready",
+          "text": "✓",
+          "size": 23.0,
+          "box": [
+            29.0,
+            29.0
+          ],
+          "preferred": [
+            19.34,
+            27.44
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -9.669135,
+            -13.7180195,
+            9.669234,
+            13.7180195
+          ],
+          "rect": [
+            -14.5,
+            -14.5,
+            14.5,
+            14.5
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew6/PlayerName",
+          "text": "Leon",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            42.84,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -21.4166641,
+            7.0,
+            21.41677,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewRoster/Crew7/PlayerName",
+          "text": "Nari",
+          "size": 21.0,
+          "box": [
+            137.0,
+            35.0
+          ],
+          "preferred": [
+            35.3,
+            21.01
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -17.6497879,
+            7.0,
+            17.6498985,
+            28.0
+          ],
+          "rect": [
+            -68.5,
+            0.0,
+            68.5,
+            35.0
+          ]
+        },
+        {
+          "path": "Stage/CrewSubtitle",
+          "text": "커피는 함께, 밤은 대담하게.",
+          "size": 27.0,
+          "box": [
+            780.0,
+            56.0
+          ],
+          "preferred": [
+            321.57,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -45.4656219,
+            321.569977,
+            -10.3656235
+          ],
+          "rect": [
+            0.0,
+            -56.0,
+            780.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/WaitLabel",
+          "text": "준비한 크루",
+          "size": 27.0,
+          "box": [
+            230.0,
+            50.0
+          ],
+          "preferred": [
+            136.36,
+            35.1
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            46.8250427,
+            -17.55,
+            183.175049,
+            17.55
+          ],
+          "rect": [
+            0.0,
+            -25.0,
+            230.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/GameObject/Timer",
+          "text": "6/8",
+          "size": 36.0,
+          "box": [
+            92.0,
+            50.0
+          ],
+          "preferred": [
+            61.85,
+            41.15
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -61.84677,
+            -20.5739975,
+            9.918213e-05,
+            20.5739975
+          ],
+          "rect": [
+            -92.0,
+            -25.0,
+            0.0,
+            25.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewName",
+          "text": "뱀파이어",
+          "size": 64.0,
+          "box": [
+            360.0,
+            100.0
+          ],
+          "preferred": [
+            243.2,
+            83.2
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            0.0,
+            -91.95,
+            243.2,
+            -8.75
+          ],
+          "rect": [
+            0.0,
+            -100.0,
+            360.0,
+            0.0
+          ]
+        },
+        {
+          "path": "Stage/SelectedCrewCaptionPlate/Caption",
+          "text": "선택한 크루",
+          "size": 22.0,
+          "box": [
+            180.0,
+            31.0
+          ],
+          "preferred": [
+            111.11,
+            28.6
+          ],
+          "overflow": false,
+          "geometryOutside": false,
+          "bounds": [
+            -55.54995,
+            -14.2999992,
+            55.5500565,
+            14.2999992
+          ],
+          "rect": [
+            -90.0,
+            -15.5,
+            90.0,
+            15.5
+          ]
+        }
+      ]
+    }
+  ],
+  "settingsControlCheck": "Slider 37 -> field 37; typed 42 -> slider 0.42; toggle changes only UI; SoundManager bus and Screen.fullScreen unchanged before Apply",
+  "characterStage": {
+    "imageCanvasRemoved": true,
+    "existing3DCafe": true,
+    "cameraCount": 1,
+    "fullViewport": true,
+    "layerRepair": "Only objects inside private CharacterStage prefab; nested floor and equipment match stage layer",
+    "aspects": [
+      "1920x1080",
+      "2560x1080",
+      "1600x1200"
+    ]
+  },
+  "notes": [
+    "Title/lobby text reports were recorded before the later private-popup capture pass; related layouts were unchanged.",
+    "Main crew text report preceded the final backdrop change; its 42 TMP fields are unchanged. Wide/four-three reports were captured with final live 3D cafe.",
+    "Night popup backgrounds are prior actual camera references.",
+    "file browser automation was not retried because file:// access was previously blocked."
+  ]
+}

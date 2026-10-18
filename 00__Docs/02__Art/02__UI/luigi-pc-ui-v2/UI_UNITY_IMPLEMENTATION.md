@@ -1,10 +1,54 @@
+## 2026-10-19 — 승인된 가벼운 시안의 Unity 적용
+
+기준은 `light-ui-preview/`의 보라색 경량 시안입니다. 기존의 황동·종이·가죽 외형을 이 방향으로 수정했습니다. 이 절 아래의 이전 제작 기록과 구분합니다. 갤러리 HTML의 승인 시안 이미지를 이번 작업으로 교체하지는 않았습니다.
+
+- **기존 프리팹 재사용**: `Assets/Art/UI/Prefabs/`의 53개 GUID를 유지했습니다. `UISurfacePart` 인스턴스 149개와 기존 카드·행·슬롯을 재사용합니다. 새 Screen 루트는 없습니다.
+- **공용 외형**: `Assets/Art/Shaders/UIRoundedRect.shader`에 선택적인 얇은 외곽선·내부 투명도·상태 색 반영을 추가했습니다. 기본값은 기존 셰이더 동작입니다. `Assets/Art/Environment/Materials/UI_Luigi*.mat` 여섯 프리셋을 공유하며 위젯마다 머티리얼을 생성하지 않습니다.
+- **서체**: 기존 Cafe24Ssurround / DoHyeon / LilitaOne TMP 리소스를 유지하고 금색 그라데이션·두꺼운 베벨을 흰 글자와 보라색 음영으로 바꿨습니다. AutoSize는 사용하지 않습니다. 완성 크기로 작성한 화면은 UIFontScale의 fixedSizeRoots로 중복 배율을 제외합니다.
+- **배치**: 타이틀·방 목록·설정·캐릭터 선택·낮/밤 HUD·제조 카드·정산·결과 화면의 패널과 글자 영역을 조정했습니다. 낮 순위는 내 팀 + 다른 세 팀의 작은 행, 제조는 낮고 넓은 카드, 정산은 네 패널로 구성했습니다. 실제 여섯 보석은 2열·3행으로 표시합니다.
+- **팀 선택**: `UITeamSlot.cs`의 선택 표시 참조를 추가했습니다. 배경 색 참조는 작은 TeamAccent로 옮기고, 내 선택은 공유 연두 외곽선으로 분리했습니다. 클릭·로비·팀 배정 로직은 유지합니다.
+- **메뉴 배경**: 승인된 문자 없는 `light-ui-preview/background.png`를 기존 메뉴 배경 Sprite의 GUID를 유지해 적용했습니다. **CharacterStage는 기존 3D 카페·모델·카메라를 그대로 사용하며, 시안 이미지로 덮지 않았습니다.** 실제 낮/밤 카메라와 월드 모델도 변경하지 않았습니다.
+
+### 확인 기록
+
+사용 스킬: `bb-art-direction`, `unity-cli`, `ui-ugui`, `optimize-text-mesh-pro`, `sprite-editor`, `unity-architecture`.
+
+`light-ui-preview/native-validation.json`: 저장 프리팹의 Missing Script, 끊어진 직렬화 참조, 폰트·공용 표면·셰이더 오류 확인입니다. 전체 프로젝트 QA나 네트워크 매치 검증이 아닙니다.
+
+`light-ui-preview/reference-comparison.json`: 변경 전/후 GUID와 원래 UI 참조 대조입니다. 의도한 참조 변경은 팀 색 띠 다섯 곳과 정산 일차 제목의 부모 이동입니다. UIFontScale의 제외 루트는 별도로 변경했습니다.
+
+`light-ui-preview/native-captures/`: 저장 프리팹과 통제된 샘플 값의 Editor 렌더입니다. 낮/밤 배경은 이전 Unity 카메라 참고 이미지이며 최신 실시간 매치 캡처로 해석하지 않습니다. 캐릭터 선택의 실제 3D 화면과 런타임 확인은 `runtime-captures/` 및 `runtime-state-checks.json`을 참조합니다. 생성 시안의 3D 배경과 음료 그림을 새 월드 모델로 구현한 결과는 아닙니다.
+
+슬라이더와 숫자 입력의 양방향 연결 및 Apply 전 오디오/화면 설정이 유지되는 것을 Play Mode에서 확인했습니다. 성능 프레임 타임·빌드 메모리·다중 PC 매치는 측정하지 않았습니다.
+
+재현용 편집 스크립트는 `ApplyLightLuigiUI.cs`입니다. 실행은 Unity CLI의 `run_script`를 사용합니다. 사용자 작업이 없는 정지 상태에서만 실행하며, 프리팹을 YAML 문자열로 편집하지 않습니다.
+
+---
+
 # 루이지 콘셉트 UI · Unity 적용과 재사용 구조
 
 2026-10-18 갱신. `36d045a`의 Common / Day / Night 분리를 유지하고 현재 저장된 UI 프리팹을 수정했습니다. 기존 화면 프리팹의 GUID와 Presenter 연결을 유지합니다.
 
 결과는 이 폴더의 `blood-beans-luigi-portable.html` → **Unity 실제 적용**에서 확인합니다. 앞선 화면·상태 캡처 23장 갱신에 이어, 이번 보정으로 기존 항목 11장을 다시 교체했습니다. 새 비교 탭이나 온라인 사이트를 추가하지 않았습니다.
 
-## 최신 수정 · 캐릭터·팀 선택의 글자와 승인 시안 대응
+## 최신 수정 · 설정·방 목록과 기존 3D CharacterStage
+
+설정·방 목록이 승인 시안보다 단순했던 차이를 기존 프리팹에서 수정했습니다. 실제 입력·데이터·GUID·게임 흐름을 유지했습니다. 구현 미리보기 9개 항목(귀환 상태 2개 포함)을 교체했으며 새 비교 탭은 추가하지 않았습니다.
+
+- 설정: `UISettingsPopup/Panel`에 붉은 책등·커피콩 황동판·랜턴·크림 조작판을 적용했습니다. 공용 `UIVolumeSlider`와 기존 3개 음량 슬라이더/숫자 입력, 전체 화면 Toggle, Apply/Close를 재사용합니다. 회전 카메라가 있을 때만 감도 행이 보이는 조건도 유지합니다. 슬라이더 37→입력 37, 입력 42→슬라이더 0.42와 적용 전 실제 설정 불변을 확인했습니다.
+- 방 목록: `UIRoomListRow`에 일반/선택 표면, 공통 카페 사진, 인원 아이콘과 큰 이름을 적용했습니다. 오른쪽 상세판·팀 수 ±·하단 작업 버튼을 정리하고 선택 불가 버튼은 어둡게 표시합니다. 실제 방이 없을 때만 안내 문구/엠블럼과 비활성 입장 버튼이 표시됩니다. 예시 방은 검토용 값이며 실제 온라인 방으로 추가하지 않았습니다.
+- 보조 대기실: 기존 `UIRoomScreen`의 팀 영역을 2×2 팀 보드로 바꿨습니다. `UIRoomTeamCard` 하나에 기존 `UICrewRosterCard` 2개를 중첩해 재사용하며 팀·초상·이름·준비 상태는 실제 멤버 데이터에서 읽습니다. 팀원 수정의 현재 팀당 2인 구조를 따릅니다. 이 화면의 카페/뱀파이어 배경은 정적 일러스트이며 현재 기본 방 입장 흐름의 캐릭터 선택 무대와 구분됩니다.
+- 타이틀·귀환: 공용 제목 재질과 버튼, 귀환 제목/설명의 여백을 보정했습니다. 귀환 3종의 배경은 이전 실제 밤 카메라 PNG이며 결과 팝업은 실제 프리팹입니다. 신규 네트워크 매치를 진행한 캡처로 설명하지 않습니다.
+- 상자: `UIBoxLootPopup/Stage/Panel`의 HorizontalLayoutGroup과 ContentSizeFitter를 함께 활성화해 슬롯 수에 따라 패널이 맞춰지도록 복구했습니다. 기존 `UIBoxLootSlot`의 물음표·공개 안내·등급·툴팁 글자 영역을 확대했습니다. 툴팁은 슬롯 아래에 표시해 제목과 겹치지 않습니다. 실제 GridTitle과 남은 칸 안내는 각각 제목·상태 TMP에 연결했습니다. 공개·담기·희귀 효과·서버 호출은 변경하지 않았습니다.
+- **CharacterStage는 사용자 요청에 따라 기존 3D 카페를 사용합니다.** 병합에서 없어진 이미지 Canvas를 잠시 복구해 확인했으나 최종 저장본에서는 `MenuBackdropCanvas`를 제거했습니다. 기존 `Cafe_Lobby`·`CrewDecor`와 무대 카메라의 후처리를 켰고, 새로 병합된 바닥/설비가 촬영되도록 CharacterStage 내부 레이어만 전용 카메라에 맞췄습니다. 새 모델·Material·조명 프로필·8자리·GUID는 보존했습니다. 기존 카메라 1대, 전체 viewport, 좌측 선택 캐릭터 구도를 유지합니다. 월드용 원본 모델 프리팹이나 공용 렌더러는 수정하지 않았습니다.
+
+`LuigiSettingsKit.png` 9개 Sprite와 `LuigiRoomKit.png` 13개 Sprite가 기존 공용 Atlas를 공유합니다. 타이틀·보조 대기실의 정적 메뉴 그림과 실제 3D CharacterStage를 구별합니다. 제작 기록은 `RefineLuigiMenuReference.cs`, 무대 최종 복구 기록은 `RecoverLuigiCharacterStage.cs`입니다. 이전 `WireLuigiCrewPreview.cs`는 이미지 배경을 사용하던 시점의 기록이므로 재실행하지 않습니다.
+
+현재 검사: 프리팹 53개, 공유 Surface 참조 149개, 누락 참조 0. 대상 화면과 툴팁의 TMP 글자 검사 13개 상태에서 overflow/글자 경계 초과 0건을 확인했습니다. 3D 무대는 1920×1080 / 2560×1080 / 1600×1200에서 캡처했습니다. 이는 해당 샘플 값의 화면·컨트롤 확인이며 모든 이름/실제 다중 PC 매치/Player 성능 검증은 아닙니다. 검증 기록은 `ui-menu-reference-validation.json`입니다. file:// 브라우저 자동 접근은 이전 차단 이후 재시도하지 않았으며 portable 내장 이미지·폰트 검사를 사용합니다.
+
+이번 사용 스킬: unity-cli, ui-ugui, sprite-editor, optimize-text-mesh-pro, imagegen, urp-postprocessing. 설치 작업에는 skill-installer, skill-creator, plugin-management를 사용했습니다. Ponytail/engineering 플러그인은 제공되지 않아 사용하지 않았으며 실제 파일·참조·에디터 검사로 대신했습니다.
+
+## 이전 수정 · 캐릭터·팀 선택의 글자와 승인 시안 대응
 
 첨부된 실제 화면을 기준으로 `UICharacterCard`, `UICrewRosterCard`, `UICharacterSelectScreen`, 선택 UI 전용 `CharacterStage`를 수정했습니다. 기존 GUID·선택/준비/팀 콜백과 4종 CharacterCatalog는 유지합니다. `selectedStageName`은 기존 선택 이름을 캐릭터 옆에도 표시하는 선택적 TMP 참조이며, 같은 `Select`에서 갱신합니다.
 

@@ -13,6 +13,7 @@ GameObject:
   - component: {fileID: 3519493053637823184}
   - component: {fileID: 3236568641368810244}
   - component: {fileID: 8155914728166615748}
+  - component: {fileID: 3447726610972434315}
   m_Layer: 0
   m_Name: UISurfacePart
   m_TagString: Untagged
@@ -59,16 +60,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Material: {fileID: 2100000, guid: 47d00f2dbfe8f1149b1d51c0a4d250c5, type: 2}
+  m_Color: {r: 0.34509805, g: 0.21176471, b: 0.43529412, a: 0.88}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2038421349, guid: b89eea82b3d97024982390f665fe75f3, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -110,3 +111,17 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: BB.Client::UISurfacePart
   image: {fileID: 3519493053637823184}
+--- !u!114 &3447726610972434315
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9063240423912239698}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIRoundImage
+  radiusOverride: 18
+  bottomBrightness: 0.73

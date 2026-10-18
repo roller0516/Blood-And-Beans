@@ -1,0 +1,78 @@
+{
+  "date": "2026-10-18",
+  "skills": {
+    "forge": [
+      "codeart2d",
+      "generate2dmap",
+      "generate2dmedia",
+      "generate2dsprite",
+      "video2dsprite"
+    ],
+    "forgeSource": "https://github.com/0x0funky/agent-sprite-forge",
+    "scenario": [
+      "scenario-unity-expert",
+      "scenario-unity-vfx"
+    ],
+    "scenarioSource": "https://github.com/scenario-labs/skills",
+    "custom": "Blood-And-Beans/.agents/skills/bb-art-direction",
+    "metadataValidation": "all eight passed"
+  },
+  "ffmpeg": "9.0.1-essentials_build-www.gyan.dev",
+  "ffprobe": "9.0.1-essentials_build-www.gyan.dev",
+  "python": "C:/Users/eatyourmeat/.codex/tools/game-art/.venv/Scripts/python.exe",
+  "launcher": "C:/Users/eatyourmeat/.codex/tools/game-art/Invoke-GameArtPython.ps1",
+  "dependencies": {
+    "numpy": "2.3.5",
+    "Pillow": "12.3.0",
+    "scipy": "1.18.1",
+    "resvg-py": "0.5.0",
+    "svglib": "2.3.0",
+    "PyYAML": "6.0.3"
+  },
+  "svgPrimary": "resvg_py",
+  "svgFailedCases": 0,
+  "forgeChecks": [
+    {
+      "id": "deps.numpy",
+      "status": "OK",
+      "detail": "2.3.5"
+    },
+    {
+      "id": "deps.Pillow",
+      "status": "OK",
+      "detail": "12.3.0"
+    },
+    {
+      "id": "deps.scipy",
+      "status": "OK",
+      "detail": "1.18.1"
+    },
+    {
+      "id": "deps.resvg-py",
+      "status": "OK",
+      "detail": "0.5.0"
+    },
+    {
+      "id": "encoding.stdout",
+      "status": "OK",
+      "detail": "stdout=utf-8"
+    },
+    {
+      "id": "skills.present",
+      "status": "OK",
+      "detail": "~/.codex/skills: all 5 skills"
+    },
+    {
+      "id": "skills.vendored",
+      "status": "OK",
+      "detail": "vendored shared files agree across skills"
+    },
+    {
+      "id": "ffmpeg",
+      "status": "OK",
+      "detail": "9.0.1-essentials_build-www.gyan.dev at ~/AppData/Local/Microsoft/WinGet/Packages/Gyan.FFmpeg.Essentials_Microsoft.Winget.Source_8wekyb3d8bbwe/ffmpeg-9.0.1-essentials_build/bin/ffmpeg.EXE"
+    }
+  ],
+  "videoGenerationService": "not configured; supplied clips can be processed; no API key or paid generation was added",
+  "newSkillsAvailability": "next turn/session"
+}

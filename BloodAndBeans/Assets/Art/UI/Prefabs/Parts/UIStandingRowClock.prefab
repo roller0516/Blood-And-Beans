@@ -166,8 +166,8 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
-  m_enableVertexGradient: 1
+  m_fontColor: {r: 1, g: 0.9764706, b: 1, a: 1}
+  m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
     topLeft: {r: 1, g: 0.985, b: 0.89, a: 1}
@@ -258,13 +258,13 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1805477808452097412}
   - {fileID: 1097968422430893310}
   - {fileID: 2041274181069535798}
   - {fileID: 5110308083374638499}
   - {fileID: 7059496529056624692}
   - {fileID: 7843614314800607107}
   - {fileID: 5681654716924796747}
-  - {fileID: 1805477808452097412}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -310,20 +310,20 @@ MonoBehaviour:
   total: {fileID: 2371446820818944704}
   background: {fileID: 5036209030625682734}
   teamColors:
-  - {r: 0.09803922, g: 0.7529412, b: 0.99607843, a: 1}
-  - {r: 0.9647059, g: 0.35686275, b: 0.4, a: 1}
-  - {r: 0.99215686, g: 0.73333335, b: 0.19607843, a: 1}
-  - {r: 0.64705884, g: 0.3882353, b: 0.9882353, a: 1}
+  - {r: 0.2067451, g: 0.27784315, b: 0.42886275, a: 0.927}
+  - {r: 0.36874512, g: 0.1952549, b: 0.26686275, a: 0.927}
+  - {r: 0.25439218, g: 0.3127843, b: 0.36109805, a: 0.927}
+  - {r: 0.36980394, g: 0.27784315, b: 0.28062746, a: 0.927}
   ownTeamName: "\uC6B0\uB9AC"
   teamNames:
   - A
   - B
   - C
   - D
-  mineBadge: {r: 0.36, g: 0.78, b: 0.66, a: 1}
-  mineRank: {r: 1, g: 1, b: 1, a: 1}
-  otherBadge: {r: 1, g: 1, b: 1, a: 0.12}
-  otherRank: {r: 1, g: 1, b: 1, a: 1}
+  mineBadge: {r: 0.69803923, g: 0.9490196, b: 0.47058824, a: 1}
+  mineRank: {r: 0.16862746, g: 0.11372549, b: 0.2509804, a: 0.9}
+  otherBadge: {r: 0.16862746, g: 0.11372549, b: 0.2509804, a: 0.9}
+  otherRank: {r: 1, g: 0.9764706, b: 1, a: 1}
 --- !u!1 &1797829342614737969
 GameObject:
   m_ObjectHideFlags: 0
@@ -450,7 +450,7 @@ RectTransform:
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: -12, y: -9}
-  m_SizeDelta: {x: 100, y: 32}
+  m_SizeDelta: {x: 100, y: 34}
   m_Pivot: {x: 1, y: 1}
 --- !u!222 &1290532300339164091
 CanvasRenderer:
@@ -490,8 +490,8 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
-  m_enableVertexGradient: 1
+  m_fontColor: {r: 1, g: 0.9764706, b: 1, a: 1}
+  m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
     topLeft: {r: 1, g: 0.985, b: 0.89, a: 1}
@@ -610,16 +610,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Material: {fileID: 2100000, guid: 47d00f2dbfe8f1149b1d51c0a4d250c5, type: 2}
+  m_Color: {r: 0.34509805, g: 0.21176471, b: 0.43529412, a: 0.88}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2038421349, guid: b89eea82b3d97024982390f665fe75f3, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -635,13 +635,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4297966340467968573}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::UIRoundImage
-  radiusOverride: 12.599999
-  bottomBrightness: 0.94
+  radiusOverride: 18
+  bottomBrightness: 0.73
 --- !u!1 &6365628489923362185
 GameObject:
   m_ObjectHideFlags: 0
@@ -807,8 +807,8 @@ MonoBehaviour:
   m_fontColor32:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
-  m_enableVertexGradient: 1
+  m_fontColor: {r: 1, g: 0.9764706, b: 1, a: 1}
+  m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
     topLeft: {r: 1, g: 0.985, b: 0.89, a: 1}

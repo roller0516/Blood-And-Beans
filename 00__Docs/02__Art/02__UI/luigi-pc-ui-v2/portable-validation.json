@@ -1,9 +1,14 @@
 {
-  "imageCount": 125,
-  "newEmbeddedImages": 125,
-  "exactImageMatches": 125,
+  "revision": "light-20261018",
+  "packaged": "2026-10-19",
+  "screens": 18,
+  "selectableStates": 26,
+  "artFiles": 16,
+  "embeddedImages": 89,
+  "exactImageMatches": 89,
   "fonts": 8,
-  "portableBytes": 234823954,
-  "verification": "Embedded images match all current gallery asset bytes; font/script audit only; browser behavior is recorded separately",
-  "directFilePreview": "Not tested by browser automation; this audit checks embedded data, not browser interactions"
+  "portableBytes": 159199875,
+  "verification": "Source/data audit: all 18 screen asset paths resolve; embedded bytes match current gallery files; images/fonts/scripts/styles are bundled.",
+  "browserInteraction": "Not verified in browser; no Unity runtime changes or verification in this concept pass.",
+  "publication": "Local canonical HTML only; public hosted site was not deployed."
 }

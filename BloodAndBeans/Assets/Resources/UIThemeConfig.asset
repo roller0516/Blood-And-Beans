@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: UIThemeConfig
   m_EditorClassIdentifier: BB.Client::UIThemeConfig
   stageSize: {x: 1920, y: 1080}
-  ink: {r: 0.07058824, g: 0.047058824, b: 0.03137255, a: 1}
-  panel: {r: 0.075, g: 0.18, b: 0.14, a: 1}
-  panelDeep: {r: 0.055, g: 0.12, b: 0.1, a: 1}
-  cream: {r: 0.98, g: 0.92, b: 0.77, a: 1}
-  gold: {r: 0.83, g: 0.65, b: 0.29, a: 1}
-  goldLit: {r: 0.9137255, g: 0.72156864, b: 0.36078432, a: 1}
-  green: {r: 0.4862745, g: 0.8509804, b: 0.65882355, a: 1}
-  red: {r: 0.8509804, g: 0.3372549, b: 0.24705882, a: 1}
-  blue: {r: 0.4862745, g: 0.6862745, b: 0.8509804, a: 1}
-  purple: {r: 0.6431373, g: 0.43137255, b: 0.9098039, a: 1}
-  ice: {r: 0.9019608, g: 0.93333334, b: 0.9607843, a: 1}
-  placeholder: {r: 0.9490196, g: 0.8901961, b: 0.79607844, a: 1}
-  paperInk: {r: 0.19, g: 0.13, b: 0.08, a: 1}
+  ink: {r: 0.16862746, g: 0.11372549, b: 0.2509804, a: 0.9}
+  panel: {r: 0.34509805, g: 0.21176471, b: 0.43529412, a: 0.88}
+  panelDeep: {r: 0.16862746, g: 0.11372549, b: 0.2509804, a: 0.9}
+  cream: {r: 1, g: 0.9764706, b: 1, a: 1}
+  gold: {r: 0.8156863, g: 0.7254902, b: 0.9098039, a: 1}
+  goldLit: {r: 0.96862745, g: 0.85882354, b: 0.5019608, a: 1}
+  green: {r: 0.69803923, g: 0.9490196, b: 0.47058824, a: 1}
+  red: {r: 1, g: 0.44313726, b: 0.50980395, a: 1}
+  blue: {r: 0.57254905, g: 0.8509804, b: 0.9490196, a: 1}
+  purple: {r: 0.7764706, g: 0.5568628, b: 0.9607843, a: 1}
+  ice: {r: 1, g: 0.9764706, b: 1, a: 1}
+  placeholder: {r: 0.8156863, g: 0.7254902, b: 0.9098039, a: 1}
+  paperInk: {r: 1, g: 0.9764706, b: 1, a: 1}
   teamColors:
   - {r: 0.30980393, g: 0.72156864, b: 0.9098039, a: 1}
   - {r: 0.9098039, g: 0.41568628, b: 0.30980393, a: 1}
@@ -40,5 +40,5 @@ MonoBehaviour:
   buttonSecondaryLabelSize: 16
   buttonLabelHeight: 26
   roundedMaterial: {fileID: 2100000, guid: f3b351d9229044544ae6ba9d538ae164, type: 2}
-  cornerRadius: 12
+  cornerRadius: 18
   ruleHeight: 1

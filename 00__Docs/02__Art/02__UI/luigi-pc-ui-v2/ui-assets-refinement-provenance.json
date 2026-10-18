@@ -94,6 +94,39 @@
       "transparent_background": false,
       "reference": "unity-concepts-v2/unity-luigi-v2-crew.png",
       "brief": "Approved crew cafe camera/background composition with all UI and characters removed. Static cafe backdrop; existing live Unity 3D character drawn in front by the existing private stage camera."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiSettingsKit.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-91c20bc5-5e52-4f03-9611-ad61b19d398e.png",
+      "transparent_background": true,
+      "reference": "unity-concepts-v2/unity-luigi-v2-settings.png",
+      "brief": "Approved red spine, coffee bean brass plate, lantern, cream panel, recessed slider rail, ivory knob, close/toggle/check/apply/join/value field. Nine stable Sprite regions; native dynamic controls and text are separate."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiRoomKit.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-906d7501-9894-428f-9c58-19f3f8157445.png",
+      "transparent_background": true,
+      "reference": "unity-concepts-v2/unity-luigi-v2-rooms.png",
+      "brief": "Room row normal/selected surfaces, generic cafe polaroid, action surfaces/icons and empty emblem. Thirteen stable Sprite regions; generic thumbnail is not actual room/map data. No dynamic names/counts baked."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiLobbyBackdrop.png",
+      "size": [
+        1672,
+        941
+      ],
+      "source": "exec-7a91f2b2-1d95-4f35-b98d-d97763046cc8.png",
+      "transparent_background": false,
+      "reference": "unity-concepts-v2/unity-luigi-v2-room.png",
+      "brief": "UI-free static menu illustration matching approved lobby composition. It remains only in auxiliary UIRoomScreen; CharacterStage uses the existing live 3D cafe per user request."
     }
   ],
   "postprocess": "Original generated RGBA files copied to project. Alpha-bound Sprite rectangles and 9-slice borders assigned with Unity Sprite Data Provider APIs. Game View PNG captures converted to lossless WebP without resizing for HTML.",

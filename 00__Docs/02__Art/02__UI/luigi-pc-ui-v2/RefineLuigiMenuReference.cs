@@ -12,6 +12,38 @@ public static class RefineLuigiMenuReference {
  const string P="Assets/Art/UI/Prefabs/",Fnt="Assets/Art/Fonts/",Common="Assets/Art/UI/Sprites/Common/";
  static readonly Vector2 C=new(.5f,.5f),TL=new(0,1),TR=Vector2.one,TC=new(.5f,1),BC=new(.5f,0);
  static readonly Color Ink=new(.12f,.065f,.025f),Cream=new(1,.96f,.82f);
+ public static string LootFit(){
+  if(EditorApplication.isPlaying)throw new Exception("Stop preview first");
+  Action<Transform> slot=t=>{
+   var mark=R(t,"Blind/Mark");Place(mark,TC,0,-2,100,68,TC);mark.GetComponent<TMP_Text>().fontSize=44;mark.GetComponent<TMP_Text>().alignment=TextAlignmentOptions.Center;
+   Place(R(t,"Blind/BlindIn"),BC,0,4,110,30,BC);
+   var badge=t.Find("TierBadge");if(badge!=null)Place(badge,BC,0,8,116,36,BC);
+   var tip=R(t,"Tooltip");Place(tip,BC,0,-12,224,132,TC);
+   Place(R(tip,"Name"),TL,12,-10,200,40,TL);Place(R(tip,"Rarity"),TL,12,-50,200,32,TL);
+   Place(R(tip,"Count"),TL,12,-88,72,32,TL);Place(R(tip,"Weight"),TR,-12,-88,116,32,TR);
+  };
+  Edit(P+"Parts/UIBoxLootSlot.prefab",g=>slot(g.transform));
+  Edit(P+"Popup/UIBoxLootPopup.prefab",g=>{
+   var panel=R(g.transform,"Stage/Panel");var layout=panel.GetComponent<UnityEngine.UI.HorizontalLayoutGroup>();layout.enabled=true;layout.childControlWidth=layout.childControlHeight=true;layout.childForceExpandWidth=layout.childForceExpandHeight=false;
+   layout.padding=new RectOffset(28,28,98,22);
+   var heading=R(panel,"ChestHeading");Place(heading,TL,25,-8,690,52,TL);Text(heading,35,false,"Title",TextAlignmentOptions.Left);
+   var status=Label(panel,"ChestStatus","슬롯 5 · 남은 것 5",20);Place(status.transform,TL,25,-59,690,32,TL);var statusLayout=status.GetComponent<UnityEngine.UI.LayoutElement>()??status.gameObject.AddComponent<UnityEngine.UI.LayoutElement>();statusLayout.ignoreLayout=true;
+   var view=g.GetComponent<UIBoxLootPopup>();Wire(view,"tierLabel",heading.GetComponent<TMP_Text>());Wire(view,"title",status);
+   var fitter=panel.GetComponent<UnityEngine.UI.ContentSizeFitter>();fitter.enabled=true;fitter.horizontalFit=fitter.verticalFit=UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;
+   foreach(var item in panel.GetComponentsInChildren<UIBoxLootSlot>(true))slot(item.transform);
+   UnityEngine.UI.LayoutRebuilder.ForceRebuildLayoutImmediate(panel);
+  });return "Native loot strip layout enabled with its content fitter; hidden countdown, question mark and rarity labels have safe text heights.";
+ }
+ public static string ControlFeedback(){
+  if(EditorApplication.isPlaying)throw new Exception("Stop preview first");
+  Edit(P+"Screen/UIRoomListScreen.prefab",g=>{
+   foreach(var b in g.GetComponentsInChildren<UnityEngine.UI.Button>(true)){
+    if(b.GetComponent<UIRoomListRow>()!=null)continue;
+    b.transition=UnityEngine.UI.Selectable.Transition.ColorTint;
+    var colors=b.colors;colors.normalColor=Color.white;colors.highlightedColor=new Color(1.08f,1.08f,1.08f);colors.selectedColor=colors.highlightedColor;colors.pressedColor=new Color(.75f,.75f,.75f);colors.disabledColor=new Color(.36f,.36f,.36f,.7f);colors.fadeDuration=.1f;b.colors=colors;
+   }
+  });return "Disabled join/team controls retain their approved sprites and show a dimmed state.";
+ }
  public static string FinishContext(){if(EditorApplication.isPlaying)throw new Exception("Stop preview first");const string path="Assets/Art/UI/Sprites/Title/LuigiLobbyBackdrop.png";AssetDatabase.ImportAsset(path,ImportAssetOptions.ForceSynchronousImport);var ti=(TextureImporter)AssetImporter.GetAtPath(path);ti.textureType=TextureImporterType.Sprite;ti.spriteImportMode=SpriteImportMode.Single;ti.mipmapEnabled=false;ti.maxTextureSize=2048;ti.npotScale=TextureImporterNPOTScale.None;ti.textureCompression=TextureImporterCompression.CompressedHQ;ti.SaveAndReimport();Edit(P+"Screen/UIRoomScreen.prefab",g=>R(g.transform,"Backdrop").GetComponent<UnityEngine.UI.Image>().sprite=AssetDatabase.LoadAssetAtPath<Sprite>(path));Edit(P+"Popup/UIBoxLootPopup.prefab",g=>{var fitter=R(g.transform,"Stage/Panel").GetComponent<UnityEngine.UI.ContentSizeFitter>();if(fitter!=null){fitter.enabled=true;fitter.horizontalFit=UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;fitter.verticalFit=UnityEngine.UI.ContentSizeFitter.FitMode.PreferredSize;}});return "Lobby backdrop matches the approved composition; loot retains dynamic item-count sizing.";}
  public static string FinalPolish(){if(EditorApplication.isPlaying)throw new Exception("Stop preview first");
   Edit(P+"Screen/UIRoomListScreen.prefab",g=>{var clip=R(g.transform,"Panel/RoomClipboard");Place(R(clip,"Label"),TL,72,-125,680,160,TL);Text(R(clip,"Label"),90,true);var status=Ref<TMP_Text>(g.GetComponent<UIRoomListScreen>(),"status");Place(status.transform,TL,76,-288,680,38,TL);foreach(var b in R(g.transform,"Panel/RoomDetails/TeamCount").GetComponentsInChildren<UnityEngine.UI.Button>()){var label=b.GetComponentInChildren<TMP_Text>();Stretch(label.transform,14,7,14,7);}});

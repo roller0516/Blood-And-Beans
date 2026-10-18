@@ -25,6 +25,10 @@ Shader "BB/UI Rounded Rect"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
+        _BorderColor ("Border Color", Color) = (0.73,0.62,0.88,0.65)
+        _BorderWidth ("Border Width / Radius", Range(0,0.3)) = 0
+        _FillAlpha ("Interior Opacity", Range(0,1)) = 1
+        _BorderTintInfluence ("Border Vertex Tint", Range(0,1)) = 0
 
         // uGUI 마스크(Mask/RectMask2D)가 쓰는 값. UI 셰이더가 이걸 갖고 있지 않으면
         // 마스크 안에서 잘리지 않고 삐져나온다. `StencilMaterial`이 이 프로퍼티들을 채운
@@ -102,6 +106,10 @@ Shader "BB/UI Rounded Rect"
                 float4 _MainTex_ST;
                 float4 _Color;
                 float4 _ClipRect;
+                float4 _BorderColor;
+                float _BorderWidth;
+                float _FillAlpha;
+                float _BorderTintInfluence;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -130,6 +138,12 @@ Shader "BB/UI Rounded Rect"
                     // 화면 픽셀 하나가 이 좌표계에서 얼마인지를 미분으로 얻는다. 캔버스
                     // 배율이나 반지름이 바뀌어도 테두리가 늘 한 픽셀만 부드럽다.
                     float pixel = fwidth(distance);
+                    // 기본값은 기존 단색 면이다. 공용 프리셋만 얇은 선과 반투명 면을 켠다.
+                    float border = saturate(0.5 + (distance + _BorderWidth) / max(pixel, 1e-5));
+                    border *= step(1e-5, _BorderWidth);
+                    half3 borderColor = _BorderColor.rgb * lerp(half3(1,1,1), input.color.rgb, _BorderTintInfluence);
+                    color.rgb = lerp(color.rgb, borderColor, border * _BorderColor.a);
+                    color.a *= lerp(_FillAlpha, 1.0, border * _BorderColor.a);
                     color.a *= saturate(0.5 - distance / max(pixel, 1e-5));
                 }
 
