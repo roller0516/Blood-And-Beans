@@ -203,6 +203,14 @@ public sealed class UIMatchHudScreen : UIScreen
         if (target != null && target.gameObject.activeSelf != active) target.gameObject.SetActive(active);
     }
 
+    public void ShowPhase(bool isDay)
+    {
+        if (!isDay) day.Close();
+        SetGroup(day, isDay);
+        SetGroup(night, !isDay);
+    }
+    
+#if UNITY_EDITOR
     /// 낮/밤 루트를 한쪽만 켜는 유일한 길. 낮 루트를 끄기 전에 닫는다 — 꺼진 뒤에는 펼친
     /// 조합식이 안 보이는데 커서 잠금만 남는다.
     public override PreviewState[] PreviewStates => new[]
@@ -210,13 +218,8 @@ public sealed class UIMatchHudScreen : UIScreen
         new PreviewState("낮", () => ShowPhase(true)),
         new PreviewState("밤", () => ShowPhase(false)),
     };
+#endif
 
-    public void ShowPhase(bool isDay)
-    {
-        if (!isDay) day.Close();
-        SetGroup(day, isDay);
-        SetGroup(night, !isDay);
-    }
 }
 
 /// HUD 한 갱신분의 값. 화면이 그리기만 하도록 자리별로 나눠 담는다 — 한 덩어리 문자열로

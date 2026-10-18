@@ -15,7 +15,9 @@ public readonly struct PreviewState
 /// `UIManager`가 스택으로 관리하며, 뒤로 가기는 스택을 하나 내리는 것이다.
 public abstract class UIScreen : UIView
 {
+#if UNITY_EDITOR
     /// 프리팹 모드에서 이 화면을 전환해 볼 수 있는 상태들. 비어 있으면 오버레이가 뜨지 않는다.
     /// 게임 로직은 부르지 않는다 — 에디터에서 배치를 확인하는 용도다.
     public virtual PreviewState[] PreviewStates => System.Array.Empty<PreviewState>();
+#endif
 }
