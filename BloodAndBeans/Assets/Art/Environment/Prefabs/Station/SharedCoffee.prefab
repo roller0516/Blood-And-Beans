@@ -196,6 +196,10 @@ MonoBehaviour:
   workingEffect: 17
   completedEffect: 0
   model: {fileID: 6506190785636217071}
+  teamAreas:
+  - {fileID: 7088178145908282186}
+  - {fileID: 6769135457206342987}
+  - {fileID: 6707100264658232293}
 --- !u!1 &8075818720915659525
 GameObject:
   m_ObjectHideFlags: 0
@@ -375,3 +379,18 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!23 &6707100264658232293 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2638601259781779824, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+  m_PrefabInstance: {fileID: 465460681155472757}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &6769135457206342987 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2628577363660113858, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+  m_PrefabInstance: {fileID: 465460681155472757}
+  m_PrefabAsset: {fileID: 0}
+--- !u!23 &7088178145908282186 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -2005260178426806721, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+  m_PrefabInstance: {fileID: 465460681155472757}
+  m_PrefabAsset: {fileID: 0}

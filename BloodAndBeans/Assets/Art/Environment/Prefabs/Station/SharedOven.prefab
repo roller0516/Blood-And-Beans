@@ -227,6 +227,8 @@ MonoBehaviour:
   workingEffect: 18
   completedEffect: 0
   model: {fileID: 1793355169849795629}
+  teamAreas:
+  - {fileID: 722798758005314029}
 --- !u!1001 &2145525442984185193
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -315,6 +317,11 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 7057081884334733859}
   m_SourcePrefab: {fileID: 100100000, guid: 0a107b132a2e44244874d62655eb3e5c, type: 3}
+--- !u!23 &722798758005314029 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 0a107b132a2e44244874d62655eb3e5c, type: 3}
+  m_PrefabInstance: {fileID: 2145525442984185193}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1226977822773325880 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 0a107b132a2e44244874d62655eb3e5c, type: 3}

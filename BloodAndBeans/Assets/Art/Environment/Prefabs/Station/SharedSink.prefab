@@ -194,6 +194,8 @@ MonoBehaviour:
   workingEffect: 19
   completedEffect: 20
   model: {fileID: 8502906325939965441}
+  teamAreas:
+  - {fileID: 1453124763438866385}
 --- !u!1001 &282351167918981973
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -310,3 +312,8 @@ Animator:
   m_AllowConstantClipSamplingOptimization: 1
   m_KeepAnimatorStateOnDisable: 0
   m_WriteDefaultValuesOnDisable: 0
+--- !u!23 &1453124763438866385 stripped
+MeshRenderer:
+  m_CorrespondingSourceObject: {fileID: -7511558181221131132, guid: 41c380f72834665449a57894bd8c2f38, type: 3}
+  m_PrefabInstance: {fileID: 282351167918981973}
+  m_PrefabAsset: {fileID: 0}
