@@ -17,8 +17,8 @@ public class MatchHudBagIconTests
         Assert.AreEqual(1, guids.Length, "UIMatchHudScreen 프리팹이 하나여야 한다");
 
         var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guids[0]));
-        var hud = prefab.GetComponentInChildren<UIMatchHudScreen>(true);
-        Assert.IsNotNull(hud, "프리팹에 UIMatchHudScreen이 없다");
+        var hud = prefab.GetComponentInChildren<UIMatchHudNight>(true);
+        Assert.IsNotNull(hud, "프리팹에 UIMatchHudNight가 없다");
 
         var serialized = new SerializedObject(hud);
         var closed = serialized.FindProperty("bagClosedSprite").objectReferenceValue as Sprite;

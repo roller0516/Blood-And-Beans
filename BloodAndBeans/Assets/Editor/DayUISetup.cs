@@ -58,7 +58,6 @@ public static class DayUISetup
                 Set(view, "progress", progress);
             }
         });
-        Edit(HudPath, Header);
         Edit(HudPath, Skill);
         Edit(Parts + "UICustomerOrder.prefab", root => Set(root.GetComponent<UICustomerOrder>(), "warning", Sound(root, true)));
         Edit(HudPath, root =>
@@ -490,26 +489,6 @@ public static class DayUISetup
     /// 파티클 크기를 캔버스 좌표 그대로 사용한다. 커스텀 베이크 뷰로 화면 크기 제한을 피한다.
     const float ReadyParticleScale = 1f;
     const string SkillSlotPart = Parts + "UISkillSlot.prefab";
-    static void Header(GameObject root)
-    {
-        var view = root.GetComponent<UIMatchHudScreen>();
-        if (root.transform.Find("DayHeader") != null) return;
-        var row = Rect("DayHeader", root.transform);
-        row.anchorMin = new Vector2(0, 1); row.anchorMax = Vector2.one; row.pivot = new Vector2(.5f, 1);
-        row.sizeDelta = new Vector2(0, 64); row.anchoredPosition = Vector2.zero;
-        row.gameObject.AddComponent<UnityEngine.UI.Image>().color = Theme.Panel;
-        var layout = row.gameObject.AddComponent<HorizontalLayoutGroup>(); layout.padding = new RectOffset(24, 24, 8, 8); layout.spacing = 16;
-        layout.childControlWidth = layout.childControlHeight = true; layout.childForceExpandWidth = true;
-        var ranking = Text(row, "Ranking", 22); ranking.alignment = TextAlignmentOptions.MidlineLeft;
-        var clock = Text(row, "Clock", 26); clock.alignment = TextAlignmentOptions.Center;
-        var revenue = Text(row, "Revenue", 22); revenue.alignment = TextAlignmentOptions.MidlineRight;
-        foreach (var t in new[] { ranking, clock, revenue }) { var e = t.gameObject.AddComponent<LayoutElement>(); e.flexibleWidth = 1; e.minWidth = 200; }
-        Set(view, "dayHeader", row.gameObject); Set(view, "dayClock", clock); Set(view, "dayRevenue", revenue);
-        var data = new SerializedObject(view); var night = data.FindProperty("nightHeader");
-        var names = new[] { "TopLeft", "TopCenter", "Team", "Details" }; night.arraySize = names.Length;
-        for (var i = 0; i < names.Length; i++) night.GetArrayElementAtIndex(i).objectReferenceValue = root.transform.Find(names[i]).gameObject;
-        data.ApplyModifiedPropertiesWithoutUndo();
-    }
     static void Edit(string path, System.Action<GameObject> action)
     {
         var root = PrefabUtility.LoadPrefabContents(path);

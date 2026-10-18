@@ -9,7 +9,7 @@ public sealed class UICustomerOrder : MonoBehaviour
     [SerializeField] CanvasGroup group;
     /// 말풍선 배경. 써 버린 인내심만큼 아래에서부터 차오른다 (기획서 5.7.2).
     [SerializeField] UIBubbleFill patience;
-    /// 완성품만 보인다. 조합식은 HUD의 F1 패널에서 본다 (`UIMatchHudScreen.ToggleRecipe`).
+    /// 완성품만 보인다. 조합식은 HUD의 F1 패널에서 본다 (`UIMatchHudDay.ToggleRecipe`).
     [SerializeField] UINamedItemIcon product;
     [SerializeField] UIThemeConfig theme;
     [SerializeField] AudioSource warning;

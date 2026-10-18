@@ -73,9 +73,10 @@ public sealed class MatchHudPresenter
         var model = BuildModel();
         view.Render(model);
         var cafe = director != null ? director.CafeOf(PlayerTeam.Local()) : null;
-        view.RenderGems(model.IsDay ? cafe : null);
-        if (model.IsDay && view.RecipeOpen)
-            view.RenderRecipes(cafe != null ? cafe.Stock : null, ledger != null ? ledger.PopularShown : null);
+        if (!model.IsDay) return;
+        view.Day.RenderGems(cafe);
+        if (view.Day.RecipeOpen)
+            view.Day.RenderRecipes(cafe != null ? cafe.Stock : null, ledger != null ? ledger.PopularShown : null);
     }
 
     MatchHudModel BuildModel()

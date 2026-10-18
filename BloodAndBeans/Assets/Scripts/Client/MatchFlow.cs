@@ -193,7 +193,7 @@ public sealed class MatchFlow : MonoBehaviour
     {
         var ui = UIManager.Instance;
         if (ui == null || hud == null || ui.PopupDepth > 0 || ui.CurrentScreen != hud) return;
-        hud.ToggleRecipe();
+        hud.Day.ToggleRecipe();
     }
 
     void OnToggleCursor(InputAction.CallbackContext _)
@@ -203,7 +203,7 @@ public sealed class MatchFlow : MonoBehaviour
 
     void OnRecipeActivity(InputAction.CallbackContext _)
     {
-        if (hud != null && hud.RecipeOpen) hud.ToggleRecipe(false);
+        if (hud != null && hud.Day.RecipeOpen) hud.Day.ToggleRecipe(false);
     }
 
     /// ESC 한 번에 설정을 열고, 다시 누르면 닫는다.
@@ -223,9 +223,9 @@ public sealed class MatchFlow : MonoBehaviour
         }
 
         if (ui.PopupDepth > 0) return;
-        if (hud != null && hud.RecipeOpen)
+        if (hud != null && hud.Day.RecipeOpen)
         {
-            hud.ToggleRecipe(false);
+            hud.Day.ToggleRecipe(false);
             return;
         }
         OpenSettingsAsync(ui).Forget();
@@ -266,9 +266,9 @@ public sealed class MatchFlow : MonoBehaviour
     void Update()
     {
         presenter?.Tick(Time.unscaledTime);
-        if (hud != null && hud.RecipeOpen && recipeMove != null
+        if (hud != null && hud.Day.RecipeOpen && recipeMove != null
             && recipeMove.ReadValue<Vector2>() != Vector2.zero)
-            hud.ToggleRecipe(false);
+            hud.Day.ToggleRecipe(false);
 
         // 게이지는 0.6초 남짓이라 HUD 갱신 주기(0.1초)로 그리면 여섯 칸짜리 계단이 된다.
         // 문자열을 만들지 않는 스케일 대입 하나라 매 프레임 불러도 된다.
@@ -278,17 +278,17 @@ public sealed class MatchFlow : MonoBehaviour
 
             // 귀환 마커도 같은 이유로 매 프레임이다. 월드의 한 점에 붙어 있어서
             // 0.1초마다 옮기면 카메라가 도는 동안 끊겨 보인다 (기획서 6.4).
-            hud.SetReturnMarker(presenter.Marker);
+            hud.Night.SetReturnMarker(presenter.Marker);
 
             // 건네기 프롬프트도 두 사람의 머리를 따라가야 해서 매 프레임이다 (기획서 5.7.4).
             hud.SetHandoff(presenter.Handoff);
 
             // 제조 카드는 들고 있는 식기를 따라다닌다 (기획서 5.7.3).
-            hud.SetMakingCards(presenter.Cards);
+            hud.Day.SetMakingCards(presenter.Cards, hud);
 
             // 완성 게이지도 매 프레임이다. 침이 초당 1.4회 왕복해서 0.1초마다 옮기면
             // 노릴 수 없는 계단이 된다 (기획서 5.2).
-            hud.SetCompletionGauge(default);
+            hud.Day.SetCompletionGauge(default);
         }
 
         SyncLoadingPopup();
@@ -620,7 +620,7 @@ public sealed class MatchFlow : MonoBehaviour
 
         var hold = presenter.Interactor;
         popup.Bind(box, hold.TakeSlotClient, presenter.Bag,
-                   hud != null ? hud.BagAnchor : null);
+                   hud != null ? hud.Night.BagAnchor : null);
         lootOpen = true;
     }
 

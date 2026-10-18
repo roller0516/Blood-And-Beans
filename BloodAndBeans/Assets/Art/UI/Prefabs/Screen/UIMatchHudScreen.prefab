@@ -950,7 +950,7 @@ RectTransform:
   - {fileID: 8677352640705259693}
   - {fileID: 7790285847678944434}
   - {fileID: 7245828081359828257}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 7213634931340853681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
@@ -1186,7 +1186,7 @@ RectTransform:
   - {fileID: 308960292379787905}
   - {fileID: 4159806808230400587}
   - {fileID: 4873759814763093546}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6093405569040618878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -1517,7 +1517,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6093405569040618878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -1757,6 +1757,92 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &2642907382954478423
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7213634931340853681}
+  - component: {fileID: 4691398831490587361}
+  m_Layer: 0
+  m_Name: NightRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &7213634931340853681
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2642907382954478423}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 7902407888534886833}
+  - {fileID: 3642108317446879555}
+  - {fileID: 8857182878546578210}
+  - {fileID: 2555385139471952817}
+  - {fileID: 848603494142004930}
+  m_Father: {fileID: 7859009044981046936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &4691398831490587361
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2642907382954478423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0efe02f963fbe2c47924d5fad4f13e27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIMatchHudNight
+  bagIcon: {fileID: 2555385139471952817}
+  bagStatus: {fileID: 9082196203495271632}
+  bagClosedSprite: {fileID: 643717427, guid: bc124e4e79df0624f9bef1ae557da04c, type: 3}
+  bagOpenSprite: {fileID: -2082666348, guid: bc124e4e79df0624f9bef1ae557da04c, type: 3}
+  bagOpenUntilRatio: 1
+  bagPercentText: {fileID: 175052822920272176}
+  bagWeightText: {fileID: 8227706920560926646}
+  nightBagDock: {fileID: 7902407888534886833}
+  nightBagSummaryRoot: {fileID: 7245828081359828257}
+  nightBagSummary: {fileID: 4535399705801344165}
+  showNightBagCapacityDetails: 0
+  bagFill: {fileID: 6643675683230383712}
+  buriedColor: {r: 0.85, g: 0.34, b: 0.25, a: 1}
+  bagBuriedAlpha: 0.35
+  bagBandColors:
+  - {r: 0.55, g: 0.78, b: 0.45, a: 1}
+  - {r: 0.8, g: 0.8, b: 0.42, a: 1}
+  - {r: 0.93, g: 0.66, b: 0.28, a: 1}
+  - {r: 0.93, g: 0.42, b: 0.25, a: 1}
+  - {r: 0.85, g: 0.28, b: 0.28, a: 1}
+  - {r: 0.7, g: 0.2, b: 0.3, a: 1}
+  - {r: 0.52, g: 0.14, b: 0.32, a: 1}
+  revenueText: {fileID: 7832971021679706781}
+  nightRevenueFormat: '{0:N0}G'
+  dayText: {fileID: 3486851901586538885}
+  phaseText: {fileID: 3033773319815916112}
+  timerText: {fileID: 8346951327257148652}
+  compactNightClock: 1
+  returnBox: {fileID: 848603494142004930}
+  returnArrow: {fileID: 2310602685349280120}
+  returnLabel: {fileID: 4884029817759599173}
+  returnAlarmSound: {fileID: 8300000, guid: 64054fc3b5c83d945bb39e9cf472c078, type: 3}
+  markerEdgeMargin: {x: 96, y: 72}
 --- !u!1 &2724237757095070346
 GameObject:
   m_ObjectHideFlags: 0
@@ -2140,7 +2226,7 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 4260465864090600632}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2229,7 +2315,7 @@ RectTransform:
   m_Children:
   - {fileID: 2310602685349280120}
   - {fileID: 7094711895358102759}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 7213634931340853681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -2793,7 +2879,7 @@ RectTransform:
   - {fileID: 4631192817056826086}
   - {fileID: 8534129750014793438}
   - {fileID: 5738735895638663179}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 7213634931340853681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
@@ -3330,7 +3416,7 @@ RectTransform:
   m_Children:
   - {fileID: 3694942471727356243}
   - {fileID: 4167881752525362917}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -3615,7 +3701,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -3769,27 +3855,10 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 7902407888534886833}
   - {fileID: 394934124719802906}
-  - {fileID: 3642108317446879555}
-  - {fileID: 8857182878546578210}
-  - {fileID: 1784530135535122204}
-  - {fileID: 4322976835107824547}
-  - {fileID: 9215519043875793111}
-  - {fileID: 2555385139471952817}
-  - {fileID: 8312000582400375201}
-  - {fileID: 6026517710771948854}
-  - {fileID: 848603494142004930}
-  - {fileID: 6578755440107982969}
-  - {fileID: 8380218569068971346}
-  - {fileID: 7875501429053099392}
-  - {fileID: 5874887231311161323}
-  - {fileID: 3791756156199263074}
-  - {fileID: 5882767862732314064}
-  - {fileID: 7048183510251146231}
-  - {fileID: 3102084060293791259}
-  - {fileID: 3847035418716354008}
-  - {fileID: 6751346205852366003}
+  - {fileID: 6802029618871281268}
+  - {fileID: 7213634931340853681}
+  - {fileID: 6093405569040618878}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -3873,95 +3942,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 963c541993a9daa4599d9aa1b38ef9c9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::MatchHudScreen
+  day: {fileID: 3560537258427594002}
+  night: {fileID: 4691398831490587361}
   label: {fileID: 6671578465391917265}
-  bagIcon: {fileID: 2555385139471952817}
-  bagStatus: {fileID: 9082196203495271632}
-  bagClosedSprite: {fileID: 643717427, guid: bc124e4e79df0624f9bef1ae557da04c, type: 3}
-  bagOpenSprite: {fileID: -2082666348, guid: bc124e4e79df0624f9bef1ae557da04c, type: 3}
-  bagOpenUntilRatio: 1
-  castBarDrop: 90
   worldMarkers: {fileID: 394934124719802906}
   markerReferenceDepth: 5
   markerScaleRange: {x: 0.9, y: 1.2}
-  recipePanel: {fileID: 3591225021202619166}
-  recipeTabButton: {fileID: 6676610451690800347}
-  recipeTabGlyph: {fileID: 7063202139902639510}
-  recipeRowPrefab: {fileID: 7650198915343956542, guid: b6f0f19c49e28284e81db756c95f2d35, type: 3}
-  gemIcons:
-  - {fileID: 2016968750954403178}
-  - {fileID: 7462609651357418240}
-  - {fileID: 6455276085015672163}
-  - {fileID: 8638901705816649798}
-  - {fileID: 3095854112012813966}
-  - {fileID: 1745397946287048793}
-  recipeContent: {fileID: 2003155093838249793}
-  recipeDessertContent: {fileID: 2936504186980909340}
-  returnAlarmSound: {fileID: 8300000, guid: 64054fc3b5c83d945bb39e9cf472c078, type: 3}
-  alarmColor: {r: 0.93, g: 0.35, b: 0.28, a: 1}
-  markerEdgeMargin: {x: 96, y: 72}
-  accent: {r: 0.91, g: 0.77, b: 0.42, a: 1}
   muted: {r: 0.72, g: 0.72, b: 0.68, a: 0.9}
   panelBack: {r: 0.1882353, g: 0.15686275, b: 0.13725491, a: 0.55}
   margin: 24
-  revenueText: {fileID: 7832971021679706781}
-  bagPercentText: {fileID: 175052822920272176}
-  bagWeightText: {fileID: 8227706920560926646}
-  nightBagDock: {fileID: 7902407888534886833}
-  nightBagSummaryRoot: {fileID: 7245828081359828257}
-  nightBagSummary: {fileID: 4535399705801344165}
-  showNightBagCapacityDetails: 0
-  compactNightClock: 1
-  nightRevenueFormat: '{0:N0}G'
-  bagFill: {fileID: 6643675683230383712}
-  buriedColor: {r: 0.85, g: 0.34, b: 0.25, a: 1}
-  bagBuriedAlpha: 0.35
-  bagBandColors:
-  - {r: 0.55, g: 0.78, b: 0.45, a: 1}
-  - {r: 0.8, g: 0.8, b: 0.42, a: 1}
-  - {r: 0.93, g: 0.66, b: 0.28, a: 1}
-  - {r: 0.93, g: 0.42, b: 0.25, a: 1}
-  - {r: 0.85, g: 0.28, b: 0.28, a: 1}
-  - {r: 0.7, g: 0.2, b: 0.3, a: 1}
-  - {r: 0.52, g: 0.14, b: 0.32, a: 1}
-  dayText: {fileID: 3486851901586538885}
-  phaseText: {fileID: 3033773319815916112}
-  timerText: {fileID: 8346951327257148652}
   teamText: {fileID: 4795174364478429943}
   pingText: {fileID: 6334139232833476214}
   promptBox: {fileID: 6026517710771948854}
   promptText: {fileID: 2425777770923151799}
   handoffHeight: 2
-  makingCardPrefab: {fileID: 8460453039493645078, guid: 3e6b609cd682b4a458ec13a96723870d, type: 3}
-  makingCardDock: {fileID: 6751346205852366003}
-  makingCardHeight: 0.8
-  returnBox: {fileID: 848603494142004930}
-  returnArrow: {fileID: 2310602685349280120}
-  returnLabel: {fileID: 4884029817759599173}
   castBar: {fileID: 8312000582400375201}
   castFill: {fileID: 4260465864090600632}
-  completionBar: {fileID: 6578755440107982969}
-  completionGoodZone: {fileID: 3963243420692753557}
-  completionPerfectZone: {fileID: 308960292379787905}
-  completionNeedle: {fileID: 4159806808230400587}
-  completionLabel: {fileID: 8330769326378184839}
   dashSlot: {fileID: 5970779951372537865}
-  dayHeader: {fileID: 8244422075590373143}
-  dayClock: {fileID: 958587679066463346}
-  dayRevenue: {fileID: 7392221202564349673}
-  dayStandingRows:
-  - {fileID: 5670578848739767021}
-  - {fileID: 6656119960583464295}
-  - {fileID: 8334162970182775524}
-  - {fileID: 3057879707500510885}
-  dayCounter: {fileID: 5905936395724328480}
-  dayGoal: {fileID: 3801244971915083037}
-  dayTimeGauge: {fileID: 6463038143788644917}
-  dayRentBadge: {fileID: 3654301582776675674}
-  nightHeader:
-  - {fileID: 1316616307461258880}
-  - {fileID: 3666008471204804852}
-  rentMetColor: {r: 1, g: 1, b: 1, a: 1}
-  rentWarningSeconds: 30
 --- !u!114 &3907138872691627188
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4234,7 +4231,7 @@ RectTransform:
   m_Children:
   - {fileID: 7696413943224783349}
   - {fileID: 3837851478749132889}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 7213634931340853681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -4412,7 +4409,7 @@ RectTransform:
   - {fileID: 6808575019860914598}
   - {fileID: 3046493249715527559}
   - {fileID: 3792671559667128077}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 7213634931340853681}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 0}
@@ -5588,7 +5585,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -6443,13 +6440,54 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1208713785690729474}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6093405569040618878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 1}
+--- !u!1 &7463160773392960876
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6802029618871281268}
+  m_Layer: 0
+  m_Name: CommonRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6802029618871281268
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7463160773392960876}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1784530135535122204}
+  - {fileID: 4322976835107824547}
+  - {fileID: 9215519043875793111}
+  - {fileID: 8312000582400375201}
+  - {fileID: 6026517710771948854}
+  - {fileID: 7875501429053099392}
+  m_Father: {fileID: 7859009044981046936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &7533428842075267121
 GameObject:
   m_ObjectHideFlags: 0
@@ -6615,6 +6653,99 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!1 &7709032442075945682
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6093405569040618878}
+  - component: {fileID: 3560537258427594002}
+  m_Layer: 0
+  m_Name: DayRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6093405569040618878
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7709032442075945682}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 6578755440107982969}
+  - {fileID: 8380218569068971346}
+  - {fileID: 5874887231311161323}
+  - {fileID: 3791756156199263074}
+  - {fileID: 5882767862732314064}
+  - {fileID: 7048183510251146231}
+  - {fileID: 3102084060293791259}
+  - {fileID: 3847035418716354008}
+  - {fileID: 6751346205852366003}
+  m_Father: {fileID: 7859009044981046936}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3560537258427594002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7709032442075945682}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 986baa23f9bbfd749bbc4c61c506a5c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::UIMatchHudDay
+  dayClock: {fileID: 958587679066463346}
+  dayRevenue: {fileID: 7392221202564349673}
+  dayStandingRows:
+  - {fileID: 5670578848739767021}
+  - {fileID: 6656119960583464295}
+  - {fileID: 8334162970182775524}
+  - {fileID: 3057879707500510885}
+  dayCounter: {fileID: 5905936395724328480}
+  dayGoal: {fileID: 3801244971915083037}
+  dayTimeGauge: {fileID: 6463038143788644917}
+  dayRentBadge: {fileID: 3654301582776675674}
+  accent: {r: 0.91, g: 0.77, b: 0.42, a: 1}
+  alarmColor: {r: 0.93, g: 0.35, b: 0.28, a: 1}
+  rentMetColor: {r: 1, g: 1, b: 1, a: 1}
+  rentWarningSeconds: 30
+  recipePanel: {fileID: 3591225021202619166}
+  recipeTabButton: {fileID: 6676610451690800347}
+  recipeTabGlyph: {fileID: 7063202139902639510}
+  recipeRowPrefab: {fileID: 7650198915343956542, guid: b6f0f19c49e28284e81db756c95f2d35, type: 3}
+  recipeContent: {fileID: 2003155093838249793}
+  recipeDessertContent: {fileID: 2936504186980909340}
+  gemIcons:
+  - {fileID: 2016968750954403178}
+  - {fileID: 7462609651357418240}
+  - {fileID: 6455276085015672163}
+  - {fileID: 8638901705816649798}
+  - {fileID: 3095854112012813966}
+  - {fileID: 1745397946287048793}
+  makingCardPrefab: {fileID: 8460453039493645078, guid: 3e6b609cd682b4a458ec13a96723870d, type: 3}
+  makingCardDock: {fileID: 6751346205852366003}
+  makingCardHeight: 0.8
+  completionBar: {fileID: 6578755440107982969}
+  completionGoodZone: {fileID: 3963243420692753557}
+  completionPerfectZone: {fileID: 308960292379787905}
+  completionNeedle: {fileID: 4159806808230400587}
+  completionLabel: {fileID: 8330769326378184839}
 --- !u!1 &7811331456332152168
 GameObject:
   m_ObjectHideFlags: 0
@@ -6955,7 +7086,7 @@ RectTransform:
   - {fileID: 225404489936537760}
   - {fileID: 3651335451072137228}
   - {fileID: 7513613526690887319}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6093405569040618878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
@@ -7198,7 +7329,7 @@ RectTransform:
   m_Children:
   - {fileID: 6469226993622500141}
   - {fileID: 1136261925404030073}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -7464,7 +7595,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6802029618871281268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 1}
   m_AnchorMax: {x: 1, y: 1}
@@ -7743,7 +7874,7 @@ RectTransform:
   - {fileID: 4811304264513359431}
   - {fileID: 2292343212274579599}
   - {fileID: 3251109405020747352}
-  m_Father: {fileID: 7859009044981046936}
+  m_Father: {fileID: 6093405569040618878}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
@@ -8716,7 +8847,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7859009044981046936}
+    m_TransformParent: {fileID: 6093405569040618878}
     m_Modifications:
     - target: {fileID: 1800955018234367311, guid: da90b6e7bcdae564bab4f7b040d5252e, type: 3}
       propertyPath: m_Name
@@ -9207,7 +9338,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7859009044981046936}
+    m_TransformParent: {fileID: 6093405569040618878}
     m_Modifications:
     - target: {fileID: 2140847427722898251, guid: 51415c2296b07e54fb27d532d8bfc849, type: 3}
       propertyPath: m_Pivot.x
@@ -9402,7 +9533,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7859009044981046936}
+    m_TransformParent: {fileID: 6093405569040618878}
     m_Modifications:
     - target: {fileID: 106838938836501171, guid: 10583da68acf76949b777c4717685828, type: 3}
       propertyPath: m_AnchorMax.x
@@ -11890,7 +12021,7 @@ PrefabInstance:
   serializedVersion: 2
   m_Modification:
     serializedVersion: 3
-    m_TransformParent: {fileID: 7859009044981046936}
+    m_TransformParent: {fileID: 6093405569040618878}
     m_Modifications:
     - target: {fileID: 2935773805432024839, guid: df8d7f4dcff5ebb4d8643c2237bdb0ba, type: 3}
       propertyPath: m_Name
