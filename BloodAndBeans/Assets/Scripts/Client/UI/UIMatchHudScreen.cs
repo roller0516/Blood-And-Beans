@@ -205,6 +205,12 @@ public sealed class UIMatchHudScreen : UIScreen
 
     /// 낮/밤 루트를 한쪽만 켜는 유일한 길. 낮 루트를 끄기 전에 닫는다 — 꺼진 뒤에는 펼친
     /// 조합식이 안 보이는데 커서 잠금만 남는다.
+    public override PreviewState[] PreviewStates => new[]
+    {
+        new PreviewState("낮", () => ShowPhase(true)),
+        new PreviewState("밤", () => ShowPhase(false)),
+    };
+
     public void ShowPhase(bool isDay)
     {
         if (!isDay) day.Close();
