@@ -3,17 +3,17 @@ using Unity.Netcode;
 using UnityEngine;
 
 /// 한 팀의 카페. 설비가 찾아야 하는 것이 전부 여기 모여 있어서 낮 시스템이 static
-/// 싱글턴을 뒤지지 않아도 된다. 팀 수만큼 런타임에 스폰된다.
+/// 싱글턴을 뒤지지 않아도 된다. 씬에 깔려 있고 `MatchDirector.cafeSlots` 순서가 팀 번호다.
 ///
 /// NetworkObject는 이 루트에만 있다. 설비들은 그 아래의 NetworkBehaviour일 뿐이다.
-/// NGO 2.13은 동적으로 스폰한 프리팹의 자식 NetworkObject를 복제하지 않기 때문이다
+/// 자식에 NetworkObject를 두면 카페가 동적으로 스폰될 때 복제되지 않았다
 /// (NetworkSpawnManager.cs: "Spawning NetworkObjects with nested NetworkObjects is only
 /// supported for scene objects"). 카페는 모두에게 복제되고, 입장만 `CafeGate`가 가른다.
 [RequireComponent(typeof(NetworkObject))]
 public class Cafe : NetworkBehaviour
 {
-    /// 스폰 페이로드에 실려 모든 피어가 같은 값을 받는다. 예전에는 씬 슬롯 순서가
-    /// 팀 번호였는데, 카페가 런타임 생성이 되면서 그 순서가 사라졌다.
+    /// 씬 슬롯 순서(`MatchDirector.cafeSlots`)가 정한 번호를 서버가 스폰 때 싣는다.
+    /// 모든 피어가 같은 값을 받는다.
     readonly NetworkVariable<int> team = new();
     int pendingServerTeam = -1;
 
@@ -107,9 +107,6 @@ public class Cafe : NetworkBehaviour
     /// 카페마다 다른 답을 받을 여지가 생긴다 (아키텍처_v1.0.md §1.4).
     public MatchDirector Director => director;
 
-    /// 서버가 Spawn 직전에 주입한다. 클라이언트에는 복제 경로가 없어서 스폰 때 스스로 푼다.
-    public void BindDirectorServer(MatchDirector value) => director = value;
-
     void Awake()
     {
         Dishes = GetComponentInChildren<Dish>(true);
@@ -119,8 +116,8 @@ public class Cafe : NetworkBehaviour
             CDebug.LogError($"{name}: {nameof(gate)}가 비어 있다. 다른 팀이 카페에 들어온다.", this);
     }
 
-    /// 서버가 Spawn 직전에 부른다. NetworkBehaviour가 준비되기 전 NetworkVariable을 쓰면
-    /// NGO가 경고하므로 값을 보관했다가 OnNetworkSpawn에서 적용한다.
+    /// 씬이 로드될 때(`MatchDirector.Awake`) 부른다. NetworkBehaviour가 준비되기 전 NetworkVariable을
+    /// 쓰면 NGO가 경고하므로 값을 보관했다가 OnNetworkSpawn에서 적용한다.
     public void AssignTeamServer(int value) => pendingServerTeam = value;
 
     public override void OnNetworkSpawn()
@@ -141,12 +138,18 @@ public class Cafe : NetworkBehaviour
         // 색도 같은 이유로 스폰 시점이다. 서버·클라이언트 양쪽에서 실행되므로 보는 쪽에도 걸린다.
         TeamColors.Tint(gameObject, team.Value, teamTintStrength, tintMaterials);
 
-        // 서버는 `BindDirectorServer`로 이미 받았다. 클라이언트만 여기서 푼다.
         if (director == null) director = MatchDirector.Instance;
         if (director == null)
         {
             Debug.LogError($"{name}: 씬에 MatchDirector가 없다. 이 카페는 어느 팀 조회에도 "
                          + "잡히지 않는다.", this);
+            return;
+        }
+
+        // 씬에 깔린 칸이 이번 판 팀 수보다 많으면 남는 카페는 모든 피어에서 같이 끈다.
+        if (team.Value >= director.TeamCount)
+        {
+            gameObject.SetActive(false);
             return;
         }
         director.RegisterCafe(this);

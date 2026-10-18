@@ -91,12 +91,14 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     [SerializeField] int boxPlaceAttempts = 24;
 
     [Header("카페")]
-    [SerializeField] Cafe cafePrefab;
+    /// 씬에 깔아 둔 카페. 배열 순서가 팀 번호의 유일한 출처다. 위치와 회전은 씬이 정하고
+    /// 코드는 정하지 않는다. 칸이 팀 수보다 많으면 남는 카페는 `Cafe`가 스스로 끈다.
+    [SerializeField] Cafe[] cafeSlots = new Cafe[0];
 
     /// 팀의 귀환 지점. 숲 모서리에 서므로 카페의 자식이 아니라 따로 스폰한다 (기획서 6.8).
     [SerializeField] ReturnZone returnZonePrefab;
 
-    /// 카페 구역 격자의 한 칸. 카페 하나가 이 칸 가운데에 선다.
+    /// 카페 구역 격자의 한 칸. 지금은 `PlazaCenter`를 구하는 데만 쓴다 (카페 위치는 씬이 정한다).
     [SerializeField] Vector2 cafeCell = new(46f, 40f);
 
     /// 숲 오른쪽 끝과 카페 구역 사이의 빈 거리.
@@ -195,6 +197,10 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
         ApplyTeamCount(seating.TeamCount);
 
+        // 슬롯 순서가 팀 번호다. 씬 데이터라 모든 피어가 같은 값을 받는다.
+        for (var team = 0; team < cafeSlots.Length; team++)
+            if (cafeSlots[team] != null) cafeSlots[team].AssignTeamServer(team);
+
         // 밤마다 상자를 세운다. 첫 밤에는 스폰까지 한다.
         if (phase != null) phase.PhaseEntered += OnPhaseEntered;
 
@@ -207,7 +213,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     // OnEnable 시점에는 NetworkManager가 아직 깨어나지 않았을 수 있다. 씬 오브젝트 사이의
     // Awake/OnEnable 순서는 정해져 있지 않아서 Start까지 두 번 구독을 시도한다.
     // 이미 서버가 떠 있는 경로는 sceneLoaded까지 기다린다. 그 전에 만들면 NGO의
-    // OnProcessScene이 로드 중인 런타임 카페를 씬 배치 객체로 다시 처리한다.
+    // OnProcessScene이 로드 중인 런타임 귀환 지점을 씬 배치 객체로 다시 처리한다.
     void OnEnable()
     {
         SceneManager.sceneLoaded += OnSceneLoaded;
@@ -225,7 +231,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
     void OnSceneLoaded(Scene scene, LoadSceneMode _)
     {
         if (scene == gameObject.scene && NetworkManager.Singleton?.IsServer == true)
-            SpawnCafesServer();
+            SpawnZonesServer();
     }
 
     void SubscribeToServerStart()
@@ -233,7 +239,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         var manager = NetworkManager.Singleton;
         if (subscribed || manager == null) return;
 
-        manager.OnServerStarted += SpawnCafesServer;
+        manager.OnServerStarted += SpawnZonesServer;
         subscribed = true;
     }
 
@@ -242,35 +248,20 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         var manager = NetworkManager.Singleton;
         if (manager != null)
         {
-            manager.OnServerStarted -= SpawnCafesServer;
+            manager.OnServerStarted -= SpawnZonesServer;
         }
         subscribed = false;
     }
 
-    /// 서버가 뜬 직후 한 번. 클라이언트가 붙기 전이므로 관측자 없이 스폰해 두고, 팀원이
-    /// 들어올 때 그 팀 카페만 보여 준다 (`ApplyTeamVisibilityServer`).
-    void SpawnCafesServer()
+    /// 서버가 뜬 직후 한 번. 귀환 지점은 관측자 없이 스폰해 두고, 팀원이 들어올 때 그 팀
+    /// 것만 보여 준다 (`ApplyTeamVisibilityServer`). 카페는 씬에 깔려 있어 NGO가 스폰한다.
+    void SpawnZonesServer()
     {
         // 이미 스폰돼 있으면 두 번 하지 않는다. 구독과 직접 호출이 겹칠 수 있고,
-        // 이 색인은 카페가 despawn되면 스스로 빈다(`UnregisterCafe`).
-        if (cafes.Count > 0) return;
-        if (cafePrefab == null)
-        {
-            Debug.LogError($"{name}: cafePrefab이 비어 있다. 카페가 하나도 생기지 않는다.", this);
-            return;
-        }
+        // 이 색인은 귀환 지점이 despawn되면 스스로 빈다(`UnregisterZone`).
+        if (zones.Count > 0) return;
 
-        for (var team = 0; team < teamCount; team++)
-        {
-            var cafe = Instantiate(cafePrefab, CafePosition(team), CafeRotation(team));
-            cafe.AssignTeamServer(team);
-            cafe.BindDirectorServer(this);   // 카페 밑 설비들은 전역이 아니라 이 참조를 쓴다
-
-            // 카페는 모두에게 복제한다. 입장은 `CafeGate`가 같은 팀만 받는다.
-            cafe.GetComponent<NetworkObject>().Spawn();
-
-            SpawnZoneServer(team);
-        }
+        for (var team = 0; team < teamCount; team++) SpawnZoneServer(team);
 
         // 이미 붙어 있는 사람들은 타이틀 씬에서 스폰됐다. 그때는 카페도 박스도 없었으므로
         // 복제 범위와 안개 소속이 비어 있다. 매치 씬이 선 지금 채워 준다.
@@ -460,7 +451,7 @@ public class MatchDirector : MonoSingleton<MatchDirector>
         networkObject.Spawn();
     }
 
-    /// 팀이 서는 숲 모서리이자 카페가 놓이는 격자 칸. 부호는 (x, z)다.
+    /// 팀이 서는 숲 모서리. 부호는 (x, z)다.
     ///
     /// 대각선부터 채운다. 2팀에게 이웃한 두 모서리를 주면 한쪽이 상대 카페 구역에 더
     /// 가까워져 시작부터 거리 유불리가 생긴다.
@@ -474,31 +465,8 @@ public class MatchDirector : MonoSingleton<MatchDirector>
 
     static Vector2 CornerOf(int team) => Corners[Mathf.Abs(team) % Corners.Length];
 
-    /// 카페는 숲 오른쪽 바깥의 2×2 격자에 선다. 팀이 출발하는 모서리와 같은 칸에 두어
-    /// "이 모서리에서 나가 이 카페로 돌아온다"가 맵에서 그대로 읽히게 한다.
-    Vector3 CafePosition(int team)
-    {
-        var corner = CornerOf(team);
-        var areaCenter = cafeOrigin
-                       + Vector3.right * (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
-
-        return areaCenter + new Vector3(corner.x * cafeCell.x * 0.5f, 0f, corner.y * cafeCell.y * 0.5f);
-    }
-
     public Vector3 PlazaCenter => cafeOrigin + Vector3.right *
         (forestSize.x * 0.5f + cafeAreaGap + cafeCell.x * 0.5f);
-
-    /// 카페 입구가 광장 중앙을 보도록 돌린다. 입구는 카페 로컬 -Z다 (`CafeDecor/EntryRunner`가
-    /// z -4.6, 반대편 z +14에 `BackPanel`). 그래서 정면(+Z)을 광장 반대쪽으로 둔다.
-    ///
-    /// 네 칸이 모두 같은 회전이면 팀마다 입구에서 광장까지의 방향이 달라진다. 격자 칸이
-    /// 광장 중앙 기준 대각 대칭이라 거리는 이미 같고, 회전만 맞추면 광장 중앙이 어느 팀
-    /// 카페의 로컬 좌표에서도 같은 점이 된다 — 입구에서 광장까지의 경로가 팀마다 같아진다.
-    Quaternion CafeRotation(int team)
-    {
-        var away = CafePosition(team) - PlazaCenter;
-        return away.sqrMagnitude > 0f ? Quaternion.LookRotation(away, Vector3.up) : Quaternion.identity;
-    }
 
     /// 밤의 시작 지점 (기획서: 밤에는 모든 팀이 같은 숲에 선다). 팀마다 숲의 한 모서리를
     /// 받으므로 어느 팀도 다른 팀보다 숲 중앙에 가깝지 않다.
