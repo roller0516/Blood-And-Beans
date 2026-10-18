@@ -435,8 +435,7 @@ public sealed class MatchFlow : MonoBehaviour
         settlement.SetRemaining(phase.Remaining, phase.Duration(Phase.Transition));
     }
 
-    /// 이 팀의 카페. 자기 팀 것만 복제되므로(`MatchDirector.SpawnCafesServer`) 여기서
-    /// 얻는 것은 언제나 내 카페다.
+    /// 이 팀의 카페. 로컬 팀 번호로 찾으므로 여기서 얻는 것은 언제나 내 카페다.
     Cafe LocalCafe
     {
         get

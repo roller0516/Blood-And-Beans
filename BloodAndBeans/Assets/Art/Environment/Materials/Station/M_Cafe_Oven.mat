@@ -43,6 +43,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TeamMaskMap:
+        m_Texture: {fileID: 2800000, guid: 42267ff6b29f3d84999105a1e86159d2, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AOStrength: 0.5
@@ -57,6 +61,7 @@ Material:
     - _ShadowStrength: 0
     - _SpecularStrength: 0.6
     - _SurfaceLayout: 3
+    - _TeamMaskSource: 1
     - _TeamStrength: 0
     - _TextureContrast: 1
     - _TextureSaturation: 0.9

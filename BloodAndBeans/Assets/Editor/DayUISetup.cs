@@ -9,7 +9,6 @@ public static class DayUISetup
 {
     const string Parts = "Assets/Art/UI/Prefabs/Parts/";
     const string CafePath = "Assets/Art/Environment/Prefabs/Cafe.prefab";
-    const string CustomerPath = "Assets/Art/Environment/Prefabs/Customer.prefab";
     const string HudPath = "Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab";
     static UIThemeConfig Theme => Resources.Load<UIThemeConfig>(UIThemeConfig.AssetName);
     static TMP_FontAsset Font => TMP_Settings.defaultFontAsset;
@@ -30,18 +29,8 @@ public static class DayUISetup
             price.alignment = TextAlignmentOptions.BottomRight;
             Set(view, "expectedPrice", price);
         });
-        Edit(CafePath, root =>
-        {
-            Set(root.GetComponent<Cafe>(), "floor", root.transform.Find("Floor").GetComponent<Collider>());
-            foreach (var shelf in root.GetComponentsInChildren<IngredientShelf>(true))
-                if (shelf.gameObject.activeSelf && shelf.GetComponentInChildren<UIIngredientBadge>(true) == null)
-                    PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UIIngredientBadge.prefab"), shelf.transform);
-        });
-        Edit(CustomerPath, root =>
-        {
-            if (root.GetComponentInChildren<UICustomerOrder>(true) == null)
-                PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UICustomerOrder.prefab"), root.transform);
-        });
+        // 재료 배지·주문 말풍선은 소유자 프리팹의 WorldMarkerSpawner가 런타임에 세운다.
+        Edit(CafePath, root => Set(root.GetComponent<Cafe>(), "floor", root.transform.Find("Floor").GetComponent<Collider>()));
         Edit(Parts + "UICompletionGauge.prefab", root =>
         {
             var view = root.GetComponent<UICompletionGauge>();
@@ -67,20 +56,6 @@ public static class DayUISetup
         });
         AssetDatabase.SaveAssets();
         return "낮 상단 띠 · 재료 배지 · 손님 말풍선 · 월드 조리 진행 바 연결";
-    }
-    public static int ApplyScene()
-    {
-        if (EditorApplication.isPlaying) throw new System.InvalidOperationException("플레이 종료 후 적용한다.");
-        var count = 0;
-        foreach (var facility in Object.FindObjectsByType<SharedFacility>(FindObjectsInactive.Include, FindObjectsSortMode.None))
-        {
-            if (facility.Kind != FacilityKind.Beans && facility.Kind != FacilityKind.Bread) continue;
-            if (facility.GetComponentInChildren<UIIngredientBadge>(true) != null) continue;
-            PrefabUtility.InstantiatePrefab(AssetDatabase.LoadAssetAtPath<GameObject>(Parts + "UIIngredientBadge.prefab"), facility.transform);
-            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(facility.gameObject.scene);
-            count++;
-        }
-        return count;
     }
     static AudioSource Sound(GameObject root, bool spatial)
     {

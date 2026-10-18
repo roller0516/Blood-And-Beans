@@ -43,6 +43,10 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _TeamMaskMap:
+        m_Texture: {fileID: 2800000, guid: 28c70444532f58346b3dfacb9c8d6455, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
     - _AOStrength: 0.5
@@ -57,11 +61,12 @@ Material:
     - _ShadowStrength: 0
     - _SpecularStrength: 0.6
     - _SurfaceLayout: 3
+    - _TeamMaskSource: 1
     - _TeamStrength: 0
     - _TextureContrast: 1
     - _TextureSaturation: 0.9
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.9666373, b: 0.8820755, a: 1}
+    - _BaseColor: {r: 1, g: 0.9048278, b: 0.88235295, a: 1}
     - _EmissionColor: {r: 1, g: 0.66, b: 0.2, a: 1}
     - _FillColor: {r: 0.8509804, g: 0.72972524, b: 0.6, a: 1}
     - _TeamColor: {r: 1, g: 1, b: 1, a: 1}

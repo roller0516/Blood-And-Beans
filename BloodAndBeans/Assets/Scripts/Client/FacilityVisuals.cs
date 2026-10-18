@@ -11,7 +11,11 @@ public sealed class FacilityVisuals : MonoBehaviour
 
     /// 설비 모델. 움직이는 부품이 없는 설비는 비워 둔다.
     [SerializeField] FacilityModel model;
+
+    /// 쓰는 동안 점유 팀 색으로 물드는 렌더러. 물드는 범위는 머티리얼의 팀 마스크가 정한다.
+    [SerializeField] Renderer[] teamAreas;
     ParticleSystem working;
+    MaterialPropertyBlock teamBlock;
 
     void OnEnable()
     {
@@ -28,9 +32,26 @@ public sealed class FacilityVisuals : MonoBehaviour
     void SetBusy(bool busy)
     {
         if (model != null) model.SetWorking(busy);
+        PaintTeam(busy ? TeamColors.Of(facility.OccupyingTeam) : Color.white);
         if (!busy) { StopWorking(); return; }
         if (facility.IsClient && working == null && workingEffect != EffectId.None)
             working = EffectManager.PlayAttached(workingEffect, outlet, 0f);
+    }
+    /// 머티리얼을 진열대·조리대와 같이 쓰므로 사본 대신 블록으로 이 설비에만 칠한다.
+    void PaintTeam(Color color)
+    {
+        teamBlock ??= new MaterialPropertyBlock();
+        foreach (var area in teamAreas)
+        {
+            var materials = area.sharedMaterials;
+            for (var i = 0; i < materials.Length; i++)
+            {
+                if (materials[i] == null || !materials[i].HasProperty(TeamColors.TeamColorId)) continue;
+                area.GetPropertyBlock(teamBlock, i);
+                teamBlock.SetColor(TeamColors.TeamColorId, color);
+                area.SetPropertyBlock(teamBlock, i);
+            }
+        }
     }
     void OnWashed()
     {

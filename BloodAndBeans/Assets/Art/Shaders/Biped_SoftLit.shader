@@ -21,6 +21,8 @@ Shader "BloodAndBean/Style/BipedSoft"
   _AOStrength("AO Strength",Range(0,1))=0.5
   [Header(Team Area)] _TeamColor("Team Color",Color)=(1,0.65,0.2,1)
   _TeamStrength("Team Color Strength",Range(0,1))=1
+  [Enum(VertexColor,0,MaskMap,1,VertexColorTimesMask,2)] _TeamMaskSource("Team Area Source",Float)=0
+  _TeamMaskMap("Team Mask Map (R white tints)",2D)="white"{}
   [Header(Emission)] [HDR] _EmissionColor("Emission Color",Color)=(1,0.66,0.2,1)
   [Enum(SurfaceMapAlpha,0,EmissionMask,1,WholeSurface,2)] _EmissionMaskSource("Emission Area Source",Float)=0
   _EmissionMap("Emission Mask (R white emits)",2D)="white"{}
@@ -38,16 +40,19 @@ Shader "BloodAndBean/Style/BipedSoft"
   TEXTURE2D(_SurfaceMap); SAMPLER(sampler_SurfaceMap);
   TEXTURE2D(_NormalMap); SAMPLER(sampler_NormalMap);
   TEXTURE2D(_EmissionMap); SAMPLER(sampler_EmissionMap);
+  TEXTURE2D(_TeamMaskMap); SAMPLER(sampler_TeamMaskMap);
   CBUFFER_START(UnityPerMaterial)
    float4 _BaseMap_ST, _BaseColor, _TeamColor, _EmissionColor, _FillColor;
+   float4 _TeamMaskMap_ST;
    float _FillStrength;
    float _SurfaceLayout,_Roughness,_Metallic,_TextureSaturation,_TextureContrast;
    float _NormalStrength,_RoughnessScale,_SpecularStrength,_DiffuseWrap;
    float _ShadowStrength,_AOStrength,_TeamStrength,_EmissionStrength,_EmissionMaskSource;
+   float _TeamMaskSource;
   CBUFFER_END
   struct Attributes {float4 positionOS:POSITION;float3 normalOS:NORMAL;float4 tangentOS:TANGENT;float2 uv:TEXCOORD0;float4 color:COLOR;};
-  struct Varyings {float4 positionCS:SV_POSITION;float3 positionWS:TEXCOORD0;half3 normalWS:TEXCOORD1;half4 tangentWS:TEXCOORD2;float2 uv:TEXCOORD3;half fog:TEXCOORD4;half team:TEXCOORD5;};
-  Varyings Vert(Attributes i){Varyings o;VertexPositionInputs p=GetVertexPositionInputs(i.positionOS.xyz);o.positionCS=p.positionCS;o.positionWS=p.positionWS;o.normalWS=TransformObjectToWorldNormal(i.normalOS);o.tangentWS=half4(TransformObjectToWorldDir(i.tangentOS.xyz),i.tangentOS.w*GetOddNegativeScale());o.uv=TRANSFORM_TEX(i.uv,_BaseMap);o.team=i.color.r;o.fog=ComputeFogFactor(p.positionCS.z);return o;}
+  struct Varyings {float4 positionCS:SV_POSITION;float3 positionWS:TEXCOORD0;half3 normalWS:TEXCOORD1;half4 tangentWS:TEXCOORD2;float2 uv:TEXCOORD3;half fog:TEXCOORD4;half team:TEXCOORD5;float2 teamUV:TEXCOORD6;};
+  Varyings Vert(Attributes i){Varyings o;VertexPositionInputs p=GetVertexPositionInputs(i.positionOS.xyz);o.positionCS=p.positionCS;o.positionWS=p.positionWS;o.normalWS=TransformObjectToWorldNormal(i.normalOS);o.tangentWS=half4(TransformObjectToWorldDir(i.tangentOS.xyz),i.tangentOS.w*GetOddNegativeScale());o.uv=TRANSFORM_TEX(i.uv,_BaseMap);o.teamUV=TRANSFORM_TEX(i.uv,_TeamMaskMap);o.team=i.color.r;o.fog=ComputeFogFactor(p.positionCS.z);return o;}
   half3 Normal(Varyings i){half3 n=normalize(i.normalWS),t=SafeNormalize(i.tangentWS.xyz),b=cross(n,t)*i.tangentWS.w;half3 nt=UnpackNormalScale(SAMPLE_TEXTURE2D(_NormalMap,sampler_NormalMap,i.uv),_NormalStrength);return normalize(TransformTangentToWorld(nt,half3x3(t,b,n)));}
   half3 Shade(Light l,half3 n,half3 view,half3 albedo,half4 surface)
   {
@@ -74,7 +79,12 @@ Shader "BloodAndBean/Style/BipedSoft"
    #pragma multi_compile_fog
    half4 Frag(Varyings i):SV_Target{
     half3 albedo=SAMPLE_TEXTURE2D(_BaseMap,sampler_BaseMap,i.uv).rgb*_BaseColor.rgb;
-    albedo*=lerp(half3(1,1,1),_TeamColor.rgb,saturate(i.team*_TeamStrength));
+    half teamMask=i.team;
+    if(_TeamMaskSource>0.5){
+     half mapMask=SAMPLE_TEXTURE2D(_TeamMaskMap,sampler_TeamMaskMap,i.teamUV).r;
+     teamMask=_TeamMaskSource<1.5?mapMask:i.team*mapMask;
+    }
+    albedo*=lerp(half3(1,1,1),_TeamColor.rgb,saturate(teamMask*_TeamStrength));
     half4 surface=SAMPLE_TEXTURE2D(_SurfaceMap,sampler_SurfaceMap,i.uv);
     if(_SurfaceLayout<0.5)surface.b=1; else if(_SurfaceLayout>1.5&&_SurfaceLayout<2.5)surface=half4(lerp(0.22,0.8,surface.b),1-surface.g,surface.r,0); else if(_SurfaceLayout>2.5&&_SurfaceLayout<3.5)surface=half4(lerp(0.22,0.8,_Metallic),_Roughness,1,0); else if(_SurfaceLayout>3.5)surface=half4(lerp(0.22,0.8,surface.r*_Metallic),1-surface.a,1,0);
     surface.b*=SAMPLE_TEXTURE2D(_OcclusionMap,sampler_OcclusionMap,i.uv).g;

@@ -18,6 +18,9 @@ public static class TeamColors
     /// URP Lit·Unlit의 색 프로퍼티. 표준 셰이더의 `_Color`가 아니다.
     public static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
+    /// `BloodAndBean/Style/BipedSoft`의 팀 영역 색. 흰색이면 물들지 않는다.
+    public static readonly int TeamColorId = Shader.PropertyToID("_TeamColor");
+
     /// 팔레트를 넘는 팀에는 색을 주지 않는다. 조용히 팀 0으로 접으면 두 팀이 같은 색이 되어
     /// 구분하려고 넣은 장치가 오히려 사람을 속인다.
     static bool TryGet(int team, out Color color)
