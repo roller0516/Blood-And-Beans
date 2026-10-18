@@ -1,8 +1,8 @@
 {
   "date": "2026-10-18",
   "passed": true,
-  "prefabs": 43,
-  "sharedSurfaceInstances": 120,
+  "prefabs": 52,
+  "sharedSurfaceInstances": 146,
   "errors": [],
   "atlas": {
     "format": "BC7",
@@ -38,7 +38,7 @@
     {
       "role": "TitleFallback",
       "mode": "Dynamic",
-      "glyphs": 9,
+      "glyphs": 13,
       "pages": 1,
       "width": 1024,
       "height": 1024
@@ -46,7 +46,7 @@
     {
       "role": "BodyFallback",
       "mode": "Dynamic",
-      "glyphs": 7,
+      "glyphs": 6,
       "pages": 1,
       "width": 1024,
       "height": 1024
@@ -74,7 +74,7 @@
     {
       "path": "Assets/Art/UI/Prefabs/Parts/UICompletionGauge.prefab",
       "buttons": 0,
-      "texts": 2,
+      "texts": 3,
       "sharedSurfaces": 1
     },
     {
@@ -150,6 +150,12 @@
       "sharedSurfaces": 1
     },
     {
+      "path": "Assets/Art/UI/Prefabs/Parts/UIRoomListRow.prefab",
+      "buttons": 1,
+      "texts": 2,
+      "sharedSurfaces": 1
+    },
+    {
       "path": "Assets/Art/UI/Prefabs/Parts/UISettlementCard.prefab",
       "buttons": 0,
       "texts": 1,
@@ -177,6 +183,54 @@
       "path": "Assets/Art/UI/Prefabs/Parts/UIStandingRowClock.prefab",
       "buttons": 0,
       "texts": 3,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuBoard.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuBook.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuBrown.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuClipboard.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuCream.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuGreen.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuRed.prefab",
+      "buttons": 0,
+      "texts": 0,
+      "sharedSurfaces": 1
+    },
+    {
+      "path": "Assets/Art/UI/Prefabs/Parts/UISurfaceMenuRegistration.prefab",
+      "buttons": 0,
+      "texts": 0,
       "sharedSurfaces": 1
     },
     {
@@ -254,8 +308,8 @@
     {
       "path": "Assets/Art/UI/Prefabs/Popup/UIMatchResultPopup.prefab",
       "buttons": 2,
-      "texts": 36,
-      "sharedSurfaces": 7
+      "texts": 37,
+      "sharedSurfaces": 8
     },
     {
       "path": "Assets/Art/UI/Prefabs/Popup/UIPhaseCuePopup.prefab",
@@ -278,26 +332,26 @@
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UICharacterSelectScreen.prefab",
       "buttons": 9,
-      "texts": 71,
-      "sharedSurfaces": 19
+      "texts": 76,
+      "sharedSurfaces": 32
     },
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIDaySettlementScreen.prefab",
       "buttons": 0,
-      "texts": 45,
-      "sharedSurfaces": 12
+      "texts": 46,
+      "sharedSurfaces": 14
     },
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIMatchHudScreen.prefab",
       "buttons": 1,
-      "texts": 52,
+      "texts": 54,
       "sharedSurfaces": 25
     },
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIRoomListScreen.prefab",
       "buttons": 7,
-      "texts": 12,
-      "sharedSurfaces": 11
+      "texts": 14,
+      "sharedSurfaces": 12
     },
     {
       "path": "Assets/Art/UI/Prefabs/Screen/UIRoomScreen.prefab",

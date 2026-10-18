@@ -50,6 +50,7 @@ public sealed class UIMatchResultPopup : UIPopup
 
     [Header("순위")]
     [SerializeField] RankSlot[] rankSlots = Array.Empty<RankSlot>();
+    [SerializeField] string rankFormat = "0";
 
     [Header("일차별 매출")]
     [SerializeField] DaySlot[] daySlots = Array.Empty<DaySlot>();
@@ -64,6 +65,10 @@ public sealed class UIMatchResultPopup : UIPopup
     [SerializeField] Color draw = new(0.72f, 0.78f, 0.88f);
     [SerializeField] Color lose = new(0.78f, 0.55f, 0.52f);
     [SerializeField] Color muted = new(0.72f, 0.72f, 0.68f, 0.9f);
+    [SerializeField] Color rankText = new(0.16f, 0.085f, 0.035f);
+    [SerializeField] Color rankRevenueText = new(1f, 0.94f, 0.75f);
+    [SerializeField] Color myRankBar = new(0.24f, 0.42f, 0.18f);
+    [SerializeField] Color otherRankBar = new(0.49f, 0.43f, 0.32f);
 
     /// 판이 끝났으므로 조작할 것이 없다. 커서를 돌려주고 입력을 막는다.
     public override bool BlocksPlayerInput => true;
@@ -136,11 +141,11 @@ public sealed class UIMatchResultPopup : UIPopup
 
             var team = order[i];
             var value = revenueByTeam[team];
-            var tint = team == myTeam ? win : muted;
+            var tint = team == myTeam ? myRankBar : otherRankBar;
 
-            Set(slot.Rank, $"{i + 1:00}", i == 0 ? win : muted);
-            Set(slot.Cafe, DisplayNames.Team(team));
-            Set(slot.Revenue, value.ToString("N0"), tint);
+            Set(slot.Rank, (i + 1).ToString(rankFormat), rankText);
+            Set(slot.Cafe, DisplayNames.Team(team), rankText);
+            Set(slot.Revenue, value.ToString("N0"), rankRevenueText);
             if (slot.BarImage != null) slot.BarImage.color = tint;
             if (slot.Bar != null)
                 slot.Bar.localScale = new Vector3(Mathf.Clamp01(value / (float)top), 1f, 1f);

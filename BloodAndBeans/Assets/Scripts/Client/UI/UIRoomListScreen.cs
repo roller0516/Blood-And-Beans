@@ -15,6 +15,14 @@ public sealed class UIRoomListScreen : UIScreen
     [SerializeField] Button joinButton;
     [SerializeField] Button backButton;
 
+    [Header("선택한 방 정보")]
+    [SerializeField] TMP_Text selectedRoomName;
+    [SerializeField] TMP_Text selectedRoomOccupancy;
+    [SerializeField] string noRoomSelected;
+    [SerializeField] string occupancyFormat = "{0}/{1}";
+    [SerializeField] GameObject emptyState;
+    [SerializeField] GameObject occupancyIcon;
+
     /// 화면에 한 번에 그리는 방의 최대 수. 목록 자체의 상한은 SteamLobby가 가진다.
     [SerializeField, Min(1)] int maxRows = 8;
 
@@ -34,6 +42,7 @@ public sealed class UIRoomListScreen : UIScreen
     public int SelectedTeamCount { get; private set; }
 
     readonly List<Button> spawnedRows = new();
+    readonly List<UIRoomListRow> rowViews = new();
 
     Action<int> onSelectRoom;
     Action<int> onCreate;
@@ -73,27 +82,43 @@ public sealed class UIRoomListScreen : UIScreen
     {
         if (status != null) status.text = statusText;
 
-        foreach (var row in spawnedRows) Destroy(row.gameObject);
-        spawnedRows.Clear();
-
         if (rows == null || rowPrefab == null) return;
 
         var count = Mathf.Min(rooms.Count, maxRows);
+        if (emptyState != null) emptyState.SetActive(count == 0);
         for (var i = 0; i < count; i++)
         {
             var index = i;
             var room = rooms[i];
-            var row = Instantiate(rowPrefab, rows);
+            if (i >= spawnedRows.Count)
+            {
+                var created = Instantiate(rowPrefab, rows);
+                spawnedRows.Add(created);
+                rowViews.Add(created.GetComponent<UIRoomListRow>());
+            }
+            var row = spawnedRows[i];
             row.gameObject.SetActive(true);
 
-            var label = row.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = $"{room.Name}  {room.Members}/{room.Capacity}";
-
-            UIButtons.Wire(row, () => onSelectRoom?.Invoke(index));
-            UIExtentions.SetInteractable(row, index != selectedRoom);
-            spawnedRows.Add(row);
+            // 필요한 수만 만들고 이후 선택·새로고침에서는 같은 행과 파츠 참조를 재사용한다.
+            var view = rowViews[i];
+            if (view != null) view.Bind(room, index == selectedRoom, () => onSelectRoom?.Invoke(index));
+            else
+            {
+                var label = row.GetComponentInChildren<TMP_Text>();
+                if (label != null) label.text = $"{room.Name}  {room.Members}/{room.Capacity}";
+                UIButtons.Wire(row, () => onSelectRoom?.Invoke(index));
+            }
         }
+        for (var i = count; i < spawnedRows.Count; i++) spawnedRows[i].gameObject.SetActive(false);
 
         UIExtentions.SetInteractable(joinButton, selectedRoom >= 0);
+        var hasSelection = selectedRoom >= 0 && selectedRoom < rooms.Count;
+        if (occupancyIcon != null) occupancyIcon.SetActive(hasSelection);
+        if (selectedRoomName != null)
+            selectedRoomName.text = hasSelection ? rooms[selectedRoom].Name : noRoomSelected;
+        if (selectedRoomOccupancy != null)
+            selectedRoomOccupancy.text = hasSelection
+                ? string.Format(occupancyFormat, rooms[selectedRoom].Members, rooms[selectedRoom].Capacity)
+                : string.Empty;
     }
 }

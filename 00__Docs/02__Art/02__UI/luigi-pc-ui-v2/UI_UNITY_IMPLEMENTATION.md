@@ -1,117 +1,115 @@
-# 루이지 콘셉트 UI · 실제 Unity 적용
+# 루이지 콘셉트 UI · Unity 적용과 재사용 구조
 
-2026-10-18. 기존 게임 프로젝트에 화면 프리팹, 공통 외형, 실제 TMP와 상태 표시를 적용했습니다.
+2026-10-18 갱신. `36d045a`의 Common / Day / Night 분리를 유지하고 현재 저장된 UI 프리팹을 수정했습니다. 기존 화면 프리팹의 GUID와 Presenter 연결을 유지합니다.
 
-`blood-beans-luigi-portable.html`의 **Unity 실제 적용**에서 결과를 확인합니다. 기존 콘셉트 탭은 비교 자료로 유지합니다. 온라인 사이트와 Claude 아티팩트는 이번 단계에서 갱신하지 않습니다.
+결과는 이 폴더의 `blood-beans-luigi-portable.html` → **Unity 실제 적용**에서 확인합니다. 앞선 화면·상태 캡처 23장 갱신에 이어, 이번 보정으로 기존 항목 11장을 다시 교체했습니다. 새 비교 탭이나 온라인 사이트를 추가하지 않았습니다.
 
-## 적용 기준
+## 최신 수정 · 캐릭터·팀 선택의 글자와 승인 시안 대응
 
-- 캐릭터·팀 선택: 기본 루이지 시안. 큰 실제 3D 선택 캐릭터, 우측 참가자 8칸, 상세 정보, 하단 캐릭터 카드와 팀 선택입니다.
-- 나머지: 현재 시안의 초록 가죽·크림 종이·황동 프레임·입체 글자 방향입니다. 게임 데이터와 조작은 기존 구현을 사용합니다.
-- 낮·밤의 게임 카메라 리그, 게임 씬과 월드 프랍은 교체하지 않았습니다. 캡처를 위해 기존 마우스 시점과 서버 이동 기능을 사용했습니다.
-- 캐릭터 종류는 현재 `CharacterCatalog`의 뱀파이어·좀비·늑대인간·마녀 4종입니다. 초상은 현재 3D 모델을 Unity에서 렌더링했습니다.
-- 시안 이미지의 가격이나 버튼을 게임 규칙으로 복사하지 않았습니다. 레시피와 판매 예상가는 기존 데이터 표를 사용하며, 연결할 기능이 없는 재대전 버튼은 감춥니다.
+첨부된 실제 화면을 기준으로 `UICharacterCard`, `UICrewRosterCard`, `UICharacterSelectScreen`, 선택 UI 전용 `CharacterStage`를 수정했습니다. 기존 GUID·선택/준비/팀 콜백과 4종 CharacterCatalog는 유지합니다. `selectedStageName`은 기존 선택 이름을 캐릭터 옆에도 표시하는 선택적 TMP 참조이며, 같은 `Select`에서 갱신합니다.
 
-## Unity에서 확인
+- 하단 카드의 표면을 글자 뒤로 보내고 이름 영역을 높이 46 / 좌우 여백 12로 확보했습니다. 전체 카드를 팀색으로 덮던 표현은 작은 팀색 표시로 바꾸고, 선택한 카드만 녹색 테두리로 강조합니다. 캐릭터 카드를 새로 복제하지 않았습니다.
+- 참가자 카드는 얇은 어두운 녹색 프레임과 상반신 초상으로, 상세 영역은 종이 등록 카드·낮/밤 아이콘으로 수정했습니다. 실제 스킬 이름/설명은 현재 카탈로그 값을 그대로 표시합니다. 긴 설명은 고정 영역 안에서 줄바꿈하며 런타임 AutoSize는 사용하지 않습니다.
+- ESC 글자 영역의 높이와 기준선을 수정하고, F1 정보 힌트를 준비 버튼 왼쪽으로 옮겼습니다. 이전 `RosterBoard`, `ClassTray` 장식이 새 부품 뒤에 중복 표시되지 않도록 비활성화했습니다.
+- `LuigiCrewKit.png`의 9개 Sprite를 기존 공용 Atlas에 추가했습니다. 선택 프레임은 9-slice의 `fillCenter=false`로 가운데를 비웁니다. 배경은 `LuigiCrewBackdrop.png` 정적 카페 그림이고, 선택 캐릭터는 기존 카메라의 실제 3D 모델입니다. 새 카메라·RT·폰트 Atlas·패키지를 만들지 않았습니다. `LuigiCrewTitle.mat` 하나가 기존 제목 폰트 Atlas를 공유하며 과한 외곽선을 줄입니다.
 
-같은 프로젝트의 `Assets/Scenes/Title.unity`를 실행하면 적용된 화면을 사용합니다. 별도 설치나 런타임 UI 생성 도구는 필요하지 않습니다. 리소스 주소와 기존 화면 프리팹의 GUID를 유지했습니다.
+네 캐릭터를 실제 선택해서 각각 표시 중인 TMP 42개의 경계/overflow를 확인했고 모두 초과 0건입니다. 긴 좀비 설명은 1600×1200, 2560×1080에서도 확인했습니다. 이는 **캐릭터 선택 화면의 해당 표시 상태**를 확인한 결과이며 모든 UI·모든 닉네임·네트워크 매치 전체의 검증이 아닙니다. 최종 힌트 위치를 반영한 대표 실행 캡처로 기존 `implemented-crew.png`를 교체했습니다. 상세 수치는 `ui-crew-fit-validation.json`에 있습니다.
 
-| 갤러리 항목 | 실제 자산 / 연결 |
-| --- | --- |
-| 타이틀 | `Screen/UITitleMenuScreen` · 기존 시작/설정/종료 이벤트 |
-| 방 목록 | `Screen/UIRoomListScreen` · 실제 방 목록, 스크롤, 팀 수, 생성/참가 |
-| 캐릭터·팀 | `Screen/UICharacterSelectScreen` + `UICrewRosterCard` + 기존 `CharacterStage` |
-| 대기실 | `Screen/UIRoomScreen` · 실제 팀/참가자/준비 상태 |
-| 낮 HUD | `Screen/UIMatchHudScreen` · 순위, 시계, 매출/목표, 스킬 |
-| 조합법 | 같은 HUD의 RecipePanel + `UIRecipeRow` · 메뉴/가격/재고/인기 재료 |
-| 주문·인내심 | `UICustomerOrder` · 기존 말풍선 전체의 아래부터 채움, 가격 탭 |
-| 제조·판정 | `UIMakingCard`, `UICompletionGauge`, `UICraftingJudgement` |
-| 밤 HUD | 같은 HUD · 가벼운 가방 Sprite, 무게, 쿨타임, 안내 |
-| 상자 | `Popup/UIBoxLootPopup` + `UIBoxLootSlot` · 공개/가림/빈 슬롯 |
-| 밤 부품 | 기존 HUD의 캐스팅/귀환 표식/가방 상태 |
-| 귀환 | `Popup/UIReturnResultPopup` · 성공/일부 손실/가방 분실 |
-| 정산 | `Screen/UIDaySettlementScreen` · 실제 매출/임대료/순위/보석/예보 |
-| 최종 결과 | `Popup/UIMatchResultPopup` · 실제 순위와 로비 복귀 |
-| 설정 | `Popup/UISettingsPopup` · 기존 음량/감도/전체 화면/닫기 |
-| 로딩 | `Popup/UILoadingPopup` · 실제 대기 인원 상태 |
-| 페이즈 안내 | `Popup/UIPhaseCuePopup` · 기존 전환/카운트다운 |
-| 공통 부품 | `Assets/Art/UI/Prefabs/Parts` |
+현재 공통 검사: 프리팹 52개 / Surface 참조 146개, 누락 참조 0. 마지막 실행 확인의 현재 Console Error/Warning 0, compilationFailed=false. 이전 절의 143개는 정산 보정 시점 기록입니다. 이번에 사용한 스킬은 unity-cli, ui-ugui, optimize-text-mesh-pro, sprite-editor, imagegen이며, 기존 게임 규칙·월드 프랍은 변경하지 않았습니다.
 
-표의 프리팹 경로는 `Assets/Art/UI/Prefabs/` 아래입니다. 낮에는 가방이 표시되지 않습니다. 주문 말풍선에는 제품 이름을 추가하지 않았으며, 기존 인내심 셰이더와 판정을 유지했습니다.
+## 추가 보정 · 영수증과 결과의 시안 대응
 
-## 재사용 구조
+기존 결과가 작은 글자와 반복된 목재판 위주로 보이던 차이를 수정했습니다. 승인 이미지 자체를 바꾸지 않고 저장된 프리팹을 수정했습니다.
+
+- 정산: 얇고 긴 영수증, 작은 커피콩 황동 클립, 큰 매출·임대료, 완납/미납 도장, 금·은·동·백금색 메달과 가는 구분선을 사용합니다. 예보와 자동 적용은 별도 클립 없는 녹색 보드입니다. 실제 보석 6종과 남은 턴을 같은 `UIGemRow`로 표시합니다.
+- 최종 결과: 좌측 큰 결과/승리 문구, 우측 메달 순위·큰 매출·둥근 비율 막대, 하단 기존 로비 복귀 버튼으로 정리했습니다. 순위의 0 접두사를 제거했습니다.
+- 공통 글자: `LuigiTitleDisplay.mat`, `LuigiNumberDisplay.mat` 두 재질이 기존 SDF 텍스처를 공유합니다. 큰 글자에만 어두운 외곽선·짧은 갈색 그림자·크림 그라데이션을 적용했습니다. 작은 본문은 기존 Ink/Light 재질을 유지합니다. 새 폰트 Atlas를 만들지 않았습니다.
+- 제조: 기존 `UIMakingCard` 도크와 `UICompletionGauge`를 우측 끝에서 안쪽으로 옮겼습니다. 상태판, 둥근 판정 바, 바늘, 제목 위치를 보정했습니다. 실제 메뉴 Sprite와 서버 판정값·구간·입력 연결은 유지합니다. 카드에 조작 대상과 무관한 F 키를 추가하지 않았습니다.
+- 정산/최종 결과의 카페와 캐릭터는 **정적 메뉴 배경 일러스트**입니다. 금액·팀명·도장·순위·막대는 실제 uGUI/TMP입니다. 해당 배경을 실시간 승자 모델이나 실제 3D 렌더라고 설명하지 않습니다. 캐릭터 선택 화면은 기존 실제 3D 무대를 사용합니다.
+
+이번 런타임 변경은 `UIDaySettlementScreen`의 표시색/카운트다운 원, `UISettlementLine`의 도장 테두리색, `UIGemRow`의 두 줄 서식, `UIMatchResultPopup`의 순위/매출 표시 서식입니다. 정산·임대료·순위의 계산 규칙과 네트워크 경로는 바꾸지 않았습니다.
+
+제작 기록은 `MatchLuigiSettlementReference.cs`, `PolishLuigiMaking.cs`입니다. 수동 변경을 덮을 수 있으므로 일괄 재실행하지 않습니다. 새 `LuigiReceiptKit.png`의 영수증·보드·메달·동전 8개 Sprite는 기존 공용 Atlas를 공유하며, 안정 Sprite ID와 9-slice 테두리를 Unity Sprite Data Provider로 저장했습니다. 배경 2개는 별도 Sprite입니다. 생성 근거와 요약 브리프는 `ui-assets-refinement-provenance.json`에 기록했습니다.
+
+추가 확인: 저장된 프리팹 52개 / Surface 참조 143개 검사 통과, HUD 세 Root/8개 Surface Variant/Atlas 배선 검사 통과. 완납과 미납 2일을 각각 실행해 도장·연속 미납 색을 확인했습니다. 정산의 2560×1080 및 1600×1200 캡처에서 주요 패널의 겹침이 없는지 확인했습니다. 기록은 `unity-implementation/ui-match-check-*.png`이며 갤러리 항목으로 추가하지 않았습니다. 마지막 캡처 구간의 Console 현재 오류/경고는 0, compilationFailed=false였습니다. 원격/전체 매치/Player 빌드 성능 검증은 아닙니다.
+
+portable 파일은 이미지 125개와 폰트 8개를 내장하며 최신 배포 원본과 모든 이미지 바이트가 일치하는 것을 검사했습니다. 이번 직접 `file://` 브라우저 자동 확인은 브라우저 URL 정책으로 차단되어 수행하지 못했습니다. Unity 실제 캡처 및 내장 데이터 검사를 수행한 결과이며 브라우저 클릭 검증으로 표기하지 않습니다. 검증용 Play Mode와 임시 Game View 해상도는 종료·복원했습니다.
+
+## 적용 내용
+
+| 대상 | 바꾼 내용과 이유 |
+|---|---|
+| `Assets/Art/UI/Prefabs/Screen/UITitleMenuScreen.prefab` | 시안의 투명 로고와 녹색 시작 버튼을 분리해 저장. 텍스트와 버튼의 경계가 겹치지 않도록 수정 |
+| `Screen/UIRoomListScreen.prefab` | 왼쪽 목재 목록판, 오른쪽 등록 정보판, 하단 작업 버튼. 실제 선택 방 이름/인원을 표시 |
+| `Screen/UICharacterSelectScreen.prefab`, `Parts/UICharacterCard`, `Parts/UICrewRosterCard` | 큰 실제 3D 캐릭터, 우측 8명, 하단 4종 선택. 큰 프레임이 초상과 이름을 가리던 부분을 얇은 테두리로 교체 |
+| `Assets/Art/Environment/Prefabs/CharacterStage.prefab` | 선택 UI 전용 무대에서 기존 캐릭터 카메라 1대와 카메라 뒤쪽 배경 Canvas를 사용. 월드 게임 씬/카메라 리그는 변경하지 않음 |
+| `Screen/UIMatchHudScreen.prefab` | 팀원 변경의 CommonRoot / DayRoot / NightRoot와 `day`, `night` 배선을 유지. 낮 순위·시계·목표, 밤 매출·시계·가벼운 가방의 위치와 TMP를 조정 |
+| `Parts/UIMakingCard.prefab` | 좁은 목재 클립보드, 실제 제품 Sprite, 별도 상태판. 상태판이 글자를 가리던 순서와 기존 넓은 클립의 중복 표시 수정 |
+| `Parts/UICompletionGauge.prefab` | 공용 녹색/황동 판정판에 실제 구간·바늘·남은 시간 배치. 판정 계산은 기존 구현 유지 |
+| `Parts/UIRecipeRow`, `Parts/UINamedItemIcon`, `Parts/UIStandingRow` | 같은 행/아이콘/순위 부품을 재사용. 종이 위 글자 대비, 재료 폭, 얇은 구분선 정리 |
+| `Screen/UIDaySettlementScreen.prefab` | 목재 영수증판과 녹색 정보판으로 구분. 겹친 장식 Surface를 비활성화해 종이가 가려지는 문제 수정 |
+| `Popup/UIMatchResultPopup.prefab` | 크림 순위판과 큰 승리 글자. 승리 제목색과 순위 글자/그래프색을 분리해 밝은 배경의 글자 대비 확보 |
+| `Popup/UISettingsPopup.prefab` | 붉은 책등/크림 종이, 실제 Slider·InputField를 사용. 기존 음량/감도/전체 화면 연결 유지 |
+| `Screen/UIRoomScreen`, `Popup/UIBoxLootPopup`, `UIReturnResultPopup`, `UILoadingPopup`, `UIPhaseCuePopup` | 같은 공용 판·버튼·폰트 재질 사용. 루팅 중첩 제목판을 비활성화하고 종이 슬롯의 등급 글자를 잉크색으로, 귀환 상태 문구를 대비가 높은 색으로 조정. 데이터·결과·인원·카운트다운은 기존 컴포넌트가 표시 |
+
+프리팹 약식 경로는 `Assets/Art/UI/Prefabs/` 아래입니다. 캐릭터는 현재 CharacterCatalog의 뱀파이어·좀비·늑대인간·마녀입니다. 게임 규칙·서버/RPC·월드 프랍은 이번 수정 범위에 포함하지 않았습니다.
+
+## 새 화면 복제 대신 공유하는 구조
 
 ```text
-기존 Screen / Popup 프리팹
-├ 기존 UIView · Presenter · 버튼 이벤트 · 데이터 참조
-├ UISurfacePart 변형의 중첩 인스턴스
-│  └ Paper / Green / Selected / Red / Cream / Disabled / Header
-├ 실제 TMP: Title / Body / Number + 공유 Material
-└ 기존 용도별 부품
-   ├ UIRecipeRow · 메뉴마다 내용만 변경
-   ├ UIMakingCard · 제조/완성/쓰레기/탄 상태
-   ├ UIStandingRow · 순위와 팀 정보
-   └ UICrewRosterCard · 참가자/준비/자기 표시
+기존 Screen / Popup 프리팹 · 기존 GUID / UIView / Presenter
+├ UISurfacePart.prefab
+│  ├ 기존 Paper / Green / Header / Selected / Red / Cream / Disabled
+│  └ 새 MenuClipboard / Board / Book / Registration / Green / Red / Brown / Cream
+├ UIRoomListRow · 1회 생성 후 목록 변경/선택 때 재사용
+├ UICrewRosterCard · 초상 / 닉네임 / 팀색 / 준비 상태
+└ UIMatchHudScreen
+   ├ CommonRoot · 상호작용 / 스킬 / 대시 / 캐스팅 / 팀·핑
+   ├ DayRoot + UIMatchHudDay · 조합법 / 순위 / 시계 / 제조 / 판정
+   └ NightRoot + UIMatchHudNight · 매출 / 시계 / 가방 / 귀환
+
+UIMakingCard · 데이터와 상태만 바꿔 사용
+UIRecipeRow / UIStandingRow / UINamedItemIcon · 기존 반복 부품
+TMP Title / Body / Number · 같은 Font Atlas와 공유 Material
 ```
 
-공통 프레임과 버튼은 `UISurfacePart.prefab`을 기본으로 한 실제 Prefab Variant입니다. 원래 화면과 부품의 입력·데이터 컴포넌트를 유지하고 외형을 중첩했습니다. 값이 바뀌는 배경은 원래 Image를 유지하며 테두리를 별도로 겹칩니다.
+`UISurfaceMenu*.prefab` 8개는 UISurfacePart의 실제 Prefab Variant입니다. 새 Screen 루트는 만들지 않았습니다. 화면은 기존 컴포넌트·Button 참조를 사용하고 장식 Surface를 중첩합니다. 새 방 행은 `UIRoomListRow.prefab` 하나이며, `UIRoomListScreen.cs`는 생성한 행과 파츠 참조를 저장하고 남는 행을 숨깁니다.
 
-외형 PNG는 `Assets/Art/UI/Sprites/Common/Luigi*.png`, 타이틀 배경은 `Sprites/Title/LuigiTitleBackdrop.png`입니다. 캐릭터 초상은 `Sprites/CharacterSelect/LuigiCrew*.png`입니다.
+현재 정적인 클립보드는 투명 Sprite와 TMP입니다. 부품마다 실시간 카메라/RenderTexture를 추가하지 않았습니다. 선택 캐릭터만 기존 실제 3D 카메라로 표시하며, 참가자 카드에는 기존 실제 모델 초상을 사용합니다. 3D 원형 `PrototypeKit/UIClipboard3DAssembly.prefab`은 검토 기록으로 남아 있습니다.
 
-## 3D를 사용하는 범위
+## 자산·폰트·비용
 
-큰 선택 캐릭터는 현재 프로젝트의 실제 3D 모델입니다. 선택한 캐릭터 한 명을 무대에 표시하고, 참가자 카드에는 512px 투명 초상을 사용합니다. 이전 3D 클립보드 원형은 `PrototypeKit/UIClipboard3DAssembly.prefab`에 보존했습니다.
+- 새 제작 PNG: `Common/LuigiMenuKit.png`, `LuigiMenuBook.png`, `LuigiPlayKit.png`, `Title/LuigiGameLogo.png`. 동적 글자·수치·가격은 패널에 굽지 않았습니다.
+- `Assets/Art/Shaders/UICrewBackdrop.shader`와 `UI_CrewBackdrop.mat`는 카메라 뒤쪽 그림이 실제 선택 캐릭터를 덮지 않도록 깊이 비교를 사용합니다. 다른 씬의 Renderer 설정은 바꾸지 않습니다.
 
-현재 고정된 HUD와 클립보드는 실제 Sprite + 9-slice Image + TMP로 표시합니다. 클립보드마다 실시간 카메라나 RenderTexture를 두지 않습니다. 현재 PNG 외형을 자유 회전하는 3D 모델로 만들어 둔 상태는 아니며, 그런 연출을 추가할 때는 별도 모델 작업이 필요합니다.
+- 새 공용 시트 3개를 기존 `Assets/Art/UI/Atlases/LuigiCommon.spriteatlasv2`에 추가했습니다. 기존 항목과 PC BC7 / 최대 2048 / 회전·타이트 패킹·밉맵 없음 설정을 유지했습니다. 실제 Atlas 페이지 수와 GPU 메모리는 콘텐츠 빌드·프로파일러로 별도 측정해야 합니다.
+- 제목 Cafe24 Ssurround, 본문 Do Hyeon, 숫자 Lilita One. 실제 TMP Font Asset과 원본 TTF/OFL 파일을 유지합니다. 주요 글리프는 정적 Atlas, 추가 닉네임 등은 동적 폴백입니다.
+- `LuigiMenu{Title,Body,Number}{Ink,Light}.mat` 6개는 같은 폰트 텍스처를 공유하는 프리셋입니다. 작은 글자의 과한 베벨/그라데이션을 끄고 종이 위 잉크색과 어두운 판 위 크림색을 분리했습니다.
+- 새 장식 Image는 Raycast를 받지 않습니다. 패널 Surface의 LayoutElement.ignoreLayout을 설정해 실제 행 크기 계산에 끼어들지 않도록 했습니다.
+- CanvasScaler는 1920×1080 / Expand입니다. 반복 행은 부모 LayoutGroup이 크기를 정합니다.
 
-## 최적화 반영
+이는 재사용·메모리 구조를 정리한 결과입니다. FPS·Draw Call·GC 개선 수치를 측정한 결과는 아닙니다.
 
-- 같은 Sprite·Material·중첩 프리팹을 공유합니다. 반복 행은 기존 생성/재사용 경로를 사용합니다.
-- `LuigiCommon` Atlas: PC BC7 압축, 최대 2048, 회전/타이트 패킹/밉맵 없음. 기존 UI Addressables 그룹에 등록했습니다.
-- 자주 쓰는 제목·본문·숫자는 정적 TMP Atlas입니다. 미리 포함하지 않은 닉네임/문구는 역할별 동적 폴백으로 보완합니다.
-- 실제 폰트는 써라운드, 도현, Lilita One입니다. 원본 TTF와 OFL 문서는 `Assets/Art/UI/PrototypeKit`에 있습니다.
-- 원래의 전역 1.9배 글자 확대는 적용본에서 1배로 설정하고, 프리팹에 최종 표시 크기를 저장했습니다.
-- 새 장식 Image는 레이캐스트를 받지 않습니다. 새 공통 부품과 참가자 카드에 매 프레임 탐색/갱신 루프를 추가하지 않았습니다.
-- 기존 CanvasScaler의 1920×1080 / Expand 기준과 화면 가장자리 앵커를 사용합니다.
+## 이번에 확인한 범위
 
-FPS나 CPU/GPU 개선 수치를 측정해 확정한 결과는 아닙니다. 최종 플레이어 빌드, Addressables 콘텐츠 빌드, 다중 PC 네트워크와 장시간 프로파일링은 이번 확인 범위 밖입니다.
+- `ui-unity-implementation-validation.json`: 프리팹 **52개**, 직렬화된 Surface 참조 **143개** 검사 통과. 누락 스크립트, 끊어진 UI 참조, TMP 리소스, CanvasScaler, 초상 등록, Atlas 설정을 확인했습니다. 143은 활성 화면의 동시 렌더 개수가 아닙니다.
+- `ui-prefab-reuse-validation.json`: HUD의 세 Root와 Day/Night 연결, 새 Surface Variant 8개, Atlas의 새 시트 3개, 선택 무대 배경 Shader의 컴파일 메시지 검사 통과.
+- 방 목록 4→2→4행 갱신에서 같은 오브젝트 ID 유지, 남는 행 숨김/복원, 세 번째 행의 로컬 선택 콜백 인덱스 2 전달 확인.
+- 실제 저장 프리팹을 Play Mode에서 실행해 상태별 화면 23장을 캡처했습니다. 목록·참가자·매출 등은 검토용 입력값입니다. 낮/밤 HUD 배경은 기존 실제 플레이 카메라 캡처이며 전체 네트워크 매치를 새로 실행한 캡처는 아닙니다.
+- 캐릭터 선택/밤 HUD를 2560×1080 및 1600×1200에서 추가 확인했습니다. 기록은 `unity-implementation/ui-check-*.png` 4장입니다. 모든 화면·모든 해상도의 조합을 검증한 것은 아닙니다.
+- 마지막 로컬 캡처 확인 구간에서 새 Console Error가 없었고 compilationFailed=false였습니다. 이전 진단/Play 종료 오류 이력까지 모두 해결했다는 뜻은 아닙니다.
+- 갤러리 PNG는 크기를 줄이지 않고 무손실 WebP로 변환했습니다. portable 파일 안의 이미지 125개와 폰트 8개 내장을 검사했습니다. 브라우저 확인 기록은 별도 검증 JSON에 기록합니다.
 
-## 확인 결과와 갤러리 이미지
+최종 Player/Addressables 빌드, Steam 방 생성, 다중 PC 통신, 실제 매치 전체 흐름, 장시간 성능 측정은 이번 재확인 범위 밖입니다. 승인 이미지와 픽셀 단위로 완전히 같다는 미술 검수 결과도 아닙니다.
 
-- Unity 컴파일 및 최종 로컬 플레이의 새 오류 없음.
-- 실제 버튼으로 설정 열기/닫기, 방 목록, 로컬 방 생성, 캐릭터/팀 변경, 매치 시작을 확인했습니다.
-- 실제 매치에서 낮 가방 숨김, 밤 가방 표시, 조합법 열기를 확인했습니다.
-- 프리팹 43개, 공통 Surface 인스턴스 120개를 참조·TMP·Atlas 설정 검사했습니다. 결과는 `ui-unity-implementation-validation.json`입니다.
-- 실제 타이틀을 1920×1080, 2560×1080, 1600×1200에서 확인했습니다. 모든 화면의 모든 해상도 조합을 검증했다는 뜻은 아닙니다.
-- 현재 갤러리의 `unity-implementation/implemented-title`, `crew`, `night`는 실제 Game View 캡처입니다. 나머지는 새 폰트·프레임을 반영한 저장 프리팹에 검토용 상태를 입력해 Unity에서 렌더링했습니다. 일부 검토 렌더의 배경은 기존 환경 참고 이미지이며 게임 카메라를 변경한 결과가 아닙니다.
+## 후속 수정 시 주의
 
-HTML에 표시되는 결과도 같은 실제 에셋을 사용합니다. 전체 화면을 한 장의 배경 이미지로 게임에 붙이는 방식이 아닙니다. PNG → 무손실 WebP 변환 후 portable HTML에 내장합니다.
+저장된 프리팹을 기준으로 수정합니다. 이 폴더의 과거 `ApplyLuigiProductionUI`, `RefineLuigiHudFrames`, `MatchApprovedNightHud` 등은 팀원의 Day/Night 분리 이전 구조를 전제로 합니다. **전체 레시피를 순서대로 다시 실행하면 현재 배치·수동 수정·배선을 덮을 수 있으므로 실행하지 않습니다.** 초기 43개/120개 검사 및 네트워크 플레이 기록은 이전 단계 이력이며 현재 검증을 대신하지 않습니다.
 
-## 제작 레시피
+현재 구조의 읽기 전용 검사는 `ValidateLuigiProductionUI.Main`과 `ValidateLuigiReuse.Main`입니다. `RefineLuigiPlayUI.cs`, `WireLuigiCrewPreview.cs`, `RefineLuigiLootAndToast.cs`는 이번 특정 자산에 사용한 제작 기록이며 범용 런타임 생성기가 아닙니다. 현재 에셋만으로 실행되며 이 문서 폴더의 스크립트는 게임 어셈블리에 포함되지 않습니다.
 
-Unity CLI `run_script`의 클래스 진입점입니다. 에디터 모드에서 순서대로 실행합니다. 기존 프리팹을 갱신하므로 Inspector에서 수동 조정한 뒤에는 전체 레시피를 무심코 재실행하지 않습니다.
+Git에는 실제 Unity 자산의 `.meta`, 새 Material/Shader/Sprite, 공용 프리팹과 런타임 스크립트를 함께 포함해야 합니다. portable HTML과 assets.zip을 ignore해도 게임 실행에는 영향이 없습니다.
 
-1. `BuildLuigiProductionAssets.Main` · Sprite 슬라이싱, TMP, 공통 Surface, 참가자 카드, Atlas.
-2. `BuildLuigiCrewPortraits.Main` · 현재 모델의 초상과 ResourceManager 키.
-3. `ApplyLuigiProductionUI.Main` · 기존 화면/팝업/부품의 배치와 참조.
-4. `RefineLuigiTypography.Main` · 공유 TMP의 크림 그라데이션·갈색 외곽·베벨·아래 그림자, 짧은 HUD 표제 서체. 타이틀 영문 로고는 Lilita One을 사용합니다.
-5. `RefineLuigiHudFrames.Main` · `LuigiHudTrim.png`의 패널 3종 슬라이싱. 거부된 메달 스프라이트는 포함하지 않습니다. 스킬은 기존 원판·얇은 링·별도 키캡입니다.
-6. `MatchApprovedNightHud.Main` · 승인한 `unity-luigi-v2-night.webp` 기준의 밤 배치와 실제 매출/가방 표시. 이 단계를 마지막에 적용합니다.
-7. `ValidateLuigiProductionUI.Main` · 제작 범위 리소스 검사.
-8. `CaptureLuigiProductionScreens.Main` · 상태 비교 렌더. 실제 Play 캡처는 별도로 보존합니다.
+사용한 스킬: unity-cli, unity-architecture, ui-ugui, sprite-editor, optimize-text-mesh-pro, imagegen. Ponytail과 engineering 플러그인 스킬은 제공되지 않아 파일 검색·직렬화 참조·Unity 실행으로 대체 확인했습니다.
 
-프레임/버튼/가방/타이틀 배경은 문자 없는 실제 제작용 래스터 에셋으로 생성했습니다. 기존 시안의 초록 가죽, 황동, 크림 종이와 가벼운 천 가방을 제작 브리프로 사용했습니다. 동적인 글자·아이콘·상태는 PNG에 굽지 않았습니다.
-
-Git에는 실제 Unity 에셋의 `.meta`와 새 스크립트, Addressables UI 그룹 변경도 함께 포함해야 합니다. portable HTML과 assets.zip만 ignore하는 것은 게임 실행에 영향을 주지 않습니다.
-
-사용한 스킬: unity-cli, unity-architecture, ui-ugui, optimize-text-mesh-pro, sprite-editor, imagegen. Graphify/Ponytail 연결은 사용할 수 없어 파일 검색과 Unity의 실제 직렬화 참조로 확인했습니다.
-
-## 폰트·HUD 외형 보강
-
-실제 로컬 실행에서 TMP의 패밀리 이름은 Cafe24 Ssurround / Do Hyeon / Lilita One으로 확인했습니다. 기본 폰트로 바뀌는 문제는 확인되지 않았고, 짧은 HUD 문구에 본문 서체를 쓰며 깊이 표현이 약했던 차이를 수정했습니다. 공용 머티리얼과 343개 프리팹 TMP 설정을 갱신했습니다. 긴 설명에는 본문 서체를 유지합니다.
-
-앞서 추가했던 파란 광점의 메달형 스킬 테두리는 승인 시안에 없는 해석으로 사용자에게 거부되어 제거했습니다. 현재 스킬 프리팹은 단순한 어두운 원판·얇은 테두리·별도 키캡을 사용합니다. 밤은 좌측 매출/무게, 중앙 두 단 시계, 우하단 가방 무게판으로 다시 배치했습니다. 새 카메라/RenderTexture/매 프레임 효과 코드는 추가하지 않았습니다. TMP의 공유 Distance Field 셰이더를 사용하므로 최종 GPU 비용은 프로파일링으로 확인해야 합니다.
-
-제작용 이미지 경로: `Assets/Art/UI/Sprites/Common/LuigiHudTrim.png`. 이전 생성 원본 중 패널 3종만 슬라이싱합니다. 거부된 원형 베젤 영역은 Sprite로 등록하거나 Atlas에 패킹하지 않습니다. `approved-skill-prefab.png`는 현재 `UISkillSlot.prefab`을 Unity에서 렌더링한 결과입니다. 실제 글자·수치는 Sprite에 넣지 않았습니다.
-
-밤의 작은 본문과 수치는 과한 금속 베벨을 끈 공용 Concept 머티리얼을 사용합니다. 매출 숫자는 기존 보드 값, 좌우 가방 무게는 같은 `MatchHudModel.BagWeight`를 사용합니다. 1080p 실제 로컬 실행에서 두 무게와 시계의 표시를 확인했습니다. `implemented-night.png`는 이 실제 실행 화면입니다. 이 확인은 승인 이미지와 픽셀 단위로 같다는 미술 검수 결과가 아닙니다.
+런타임 코드 변경 위치: `Assets/Scripts/Client/UI/UIRoomListScreen.cs:87`의 행 생성/갱신 경로, 새 `UIRoomListRow.cs:20`의 데이터·선택 표시 바인딩, `UIMatchResultPopup.cs:142`의 순위 글자/막대 색 분리입니다. 순위 계산과 네트워크 경로는 유지합니다.

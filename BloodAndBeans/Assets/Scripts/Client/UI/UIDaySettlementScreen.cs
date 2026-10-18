@@ -42,12 +42,22 @@ public sealed class UIDaySettlementScreen : UIScreen
     [SerializeField] TMP_Text dayHeading;
     [SerializeField] TMP_Text countdown;
     [SerializeField] RectTransform countdownFill;
+    [SerializeField] UnityEngine.UI.Image countdownRing;
+    [SerializeField] string countdownFormat = "{0}초";
 
     [Header("하루 정산")]
     [SerializeField] UISettlementLine salesLine;
     [SerializeField] UISettlementLine rentLine;
     [SerializeField] UISettlementLine paymentLine;
     [SerializeField] UISettlementLine streakLine;
+
+    [Header("영수증 글자색")]
+    [SerializeField] Color salesTint = new(1f, 0.96f, 0.82f);
+    [SerializeField] Color rentTint = new(1f, 0.96f, 0.82f);
+    [SerializeField] Color paidTint = new(0.10f, 0.38f, 0.14f);
+    [SerializeField] Color unpaidTint = new(0.64f, 0.12f, 0.07f);
+    [SerializeField] Color clearStreakTint = new(0.16f, 0.08f, 0.03f);
+    [SerializeField] Color missedStreakTint = new(0.64f, 0.12f, 0.07f);
 
     [Header("순위")]
     [SerializeField] UIStandingRow[] standingRows = Array.Empty<UIStandingRow>();
@@ -73,10 +83,10 @@ public sealed class UIDaySettlementScreen : UIScreen
 
         // 그날 매출이 그날 임대료에 닿았는가로만 판정한다 (기획서 3.2).
         var settled = rentPaid >= rentOwed;
-        salesLine.Render(sales.ToString("N0"), UITheme.Config.PaperInk);
-        rentLine.Render(rentOwed.ToString("N0"), UITheme.Config.PaperInk);
-        paymentLine.Render(settled ? "완납" : "미납", settled ? UITheme.Green : UITheme.Red);
-        streakLine.Render($"{missStreak}일", missStreak > 0 ? UITheme.Red : UITheme.Green);
+        salesLine.Render(sales.ToString("N0"), salesTint);
+        rentLine.Render(rentOwed.ToString("N0"), rentTint);
+        paymentLine.Render(settled ? "완납" : "미납", settled ? paidTint : unpaidTint);
+        streakLine.Render($"{missStreak}일", missStreak > 0 ? missedStreakTint : clearStreakTint);
 
         FillStandings(standings);
         FillGems(gems);
@@ -86,9 +96,12 @@ public sealed class UIDaySettlementScreen : UIScreen
     /// 남은 시간. 전환은 10초라 초 단위로 충분하다 (기획서 4장).
     public void SetRemaining(float seconds, float total)
     {
-        countdown.text = Mathf.CeilToInt(Mathf.Max(seconds, 0f)).ToString();
+        countdown.text = string.Format(countdownFormat, Mathf.CeilToInt(Mathf.Max(seconds, 0f)));
+        var ratio = total > 0f ? Mathf.Clamp01(seconds / total) : 0f;
+        if (countdownRing != null && !Mathf.Approximately(countdownRing.fillAmount, ratio))
+            countdownRing.fillAmount = ratio;
         countdownFill.localScale =
-            new Vector3(total > 0f ? Mathf.Clamp01(seconds / total) : 0f, 1f, 1f);
+            new Vector3(ratio, 1f, 1f);
     }
 
     void FillStandings(IReadOnlyList<StandingRow> rows)

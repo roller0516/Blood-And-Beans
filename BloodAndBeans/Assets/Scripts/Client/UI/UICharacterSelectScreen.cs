@@ -66,6 +66,7 @@ public sealed class UICharacterSelectScreen : UIScreen
 
     [Header("상세")]
     [SerializeField] TMP_Text selectedName;
+    [SerializeField] TMP_Text selectedStageName;
     [SerializeField] TMP_Text dayName;
     [SerializeField] TMP_Text dayEffect;
     [SerializeField] TMP_Text nightCaption;
@@ -492,6 +493,7 @@ public sealed class UICharacterSelectScreen : UIScreen
         RefreshSelection();
 
         Set(selectedName, all[index].Name);
+        Set(selectedStageName, all[index].Name);
         Set(dayName, all[index].DayName);
         Set(dayEffect, all[index].DayEffect);
         Set(nightName, all[index].NightName);

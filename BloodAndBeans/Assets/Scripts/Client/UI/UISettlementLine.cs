@@ -5,10 +5,13 @@ using UnityEngine;
 public sealed class UISettlementLine : MonoBehaviour
 {
     [SerializeField] TMP_Text value;
+    [SerializeField] UnityEngine.UI.Image[] valueAccents = System.Array.Empty<UnityEngine.UI.Image>();
 
     public void Render(string text, Color color)
     {
         value.text = text;
         value.color = color;
+        foreach (var accent in valueAccents)
+            if (accent != null) accent.color = color;
     }
 }

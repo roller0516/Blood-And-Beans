@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-18",
+  "mode": "Built-in image_gen tool; per-asset transparency setting recorded for latest assets; earlier kits use transparency",
+  "reference": "Approved Luigi concept images supplied in this gallery; material, shape and composition reference only",
+  "textPolicy": "Panels contain no dynamic labels, prices or values. The title logo is the only intentionally baked lettering.",
+  "assets": [
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiMenuKit.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "source": "exec-01bcfa58-4fd8-4fa2-91c7-89764b8e82ab.png",
+      "brief": "Transparent UI sheet: warm wood clipboard with cream parchment and brass clip, dark green registration board, green/red/brown/cream buttons; approved haunted cafe concept; no text."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiMenuBook.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-07434043-7f35-4faa-b3f3-800d7e56290b.png",
+      "brief": "Transparent open settings book with red spine, dark leather and cream paper; separate green leather/cream registration panel; no text."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiGameLogo.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-112343eb-807b-423b-949a-c86f7b5c39f9.png",
+      "brief": "Extract the approved BLOOD & BEANS title treatment as a standalone transparent logo with ivory dimensional lettering, green ghost and drips, coffee bean accents."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiPlayKit.png",
+      "size": [
+        1254,
+        1254
+      ],
+      "source": "exec-6ae90b3c-66c6-42b7-ac68-de9372a178ca.png",
+      "brief": "Transparent matching gameplay UI parts: narrow wood/parchment manufacturing clipboard with small brass clip, restrained green ranking board, green alarm clock, wide green timing gauge backing with brass heading; no text."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiReceiptKit.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-adeee56a-bb84-4b99-95ea-8b17cdd1988b.png",
+      "transparent_background": true,
+      "reference": "unity-concepts-v2/unity-luigi-v2-settlement.png",
+      "brief": "Transparent matching receipt kit: thin long warm parchment, small coffee-bean brass clip, dark green leather ranking board and footer without clips, four blank gold/silver/copper/pewter medals and coin stack. No dynamic text or values."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiSettlementBackdrop.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-c0c5461a-7298-4afe-82fa-bceefa2fcf82.png",
+      "transparent_background": false,
+      "reference": "unity-concepts-v2/unity-luigi-v2-settlement.png",
+      "brief": "Approved haunted cafe settlement composition, remove all UI and lettering; retain vampire with mug at left and ghost customers in background. Static menu illustration."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiFinalBackdrop.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-a420a438-d450-4f58-aef8-fae99436a143.png",
+      "transparent_background": false,
+      "reference": "unity-concepts-v2/unity-luigi-v2-final.png",
+      "brief": "Approved haunted cafe final result composition, remove UI and lettering; retain celebrating vampire and witch at left. Static menu illustration."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiCrewKit.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "source": "exec-937f4c2e-caf4-457b-8c88-bbe48e0166f8.png",
+      "transparent_background": true,
+      "reference": "unity-concepts-v2/unity-luigi-v2-crew.png",
+      "brief": "Production sprite kit from approved crew concept: dark green registration parchment with brass ring/leather key tag, thin dark portrait cards, small clipboards, red confirm and neutral team buttons, lime selection surface, sun/moon/bell. No dynamic lettering. Nine Sprite regions imported with stable IDs. Selection frame uses Sliced fillCenter=false; generated filled center is not rendered."
+    },
+    {
+      "path": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiCrewBackdrop.png",
+      "size": [
+        1672,
+        941
+      ],
+      "source": "exec-947cb739-aa8f-4b16-ae33-6c4770159331.png",
+      "transparent_background": false,
+      "reference": "unity-concepts-v2/unity-luigi-v2-crew.png",
+      "brief": "Approved crew cafe camera/background composition with all UI and characters removed. Static cafe backdrop; existing live Unity 3D character drawn in front by the existing private stage camera."
+    }
+  ],
+  "postprocess": "Original generated RGBA files copied to project. Alpha-bound Sprite rectangles and 9-slice borders assigned with Unity Sprite Data Provider APIs. Game View PNG captures converted to lossless WebP without resizing for HTML.",
+  "briefPolicy": "Briefs summarize the generation intent; they are not verbatim prompts."
+}

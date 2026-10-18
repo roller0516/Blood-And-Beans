@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-18",
+  "target": "Local HTTP gallery using the same scripts and images embedded by export-portable.cjs",
+  "checks": [
+    {
+      "action": "Open #production",
+      "result": "Current crew screen and revised reuse description displayed"
+    },
+    {
+      "action": "Select 제조·판정",
+      "result": "implemented-making.webp loaded at 1920x1080"
+    },
+    {
+      "action": "Select 귀환 then 가방 분실",
+      "result": "implemented-return-2.webp loaded at 1920x1080; selected state updated"
+    },
+    {
+      "action": "Read browser error logs",
+      "result": "No captured errors"
+    }
+  ],
+  "portableFileProtocol": "Not tested by browser automation; embedded assets audited separately",
+  "unityLocalRuntimeCheck": "4 → 2 → 4 room rows retain identical EntityIds, 2 active rows in short list, correct local callback index 2; no network operation",
+  "resolutionEvidence": [
+    "ui-check-crew-2560x1080.png",
+    "ui-check-crew-1600x1200.png",
+    "ui-check-night-2560x1080.png",
+    "ui-check-night-1600x1200.png"
+  ],
+  "refinement20261018": {
+    "changedCaptures": [
+      "title",
+      "rooms",
+      "crew",
+      "room",
+      "settings",
+      "day",
+      "making",
+      "recipe",
+      "night",
+      "settlement",
+      "final"
+    ],
+    "unityValidation": {
+      "passed": true,
+      "prefabs": 52,
+      "serializedSurfaces": 143,
+      "missingReferences": 0,
+      "compilationFailed": false,
+      "finalEditorState": "ready / stopped"
+    },
+    "visualChecks": [
+      "Settlement paid and unpaid/two missed days stamp colors",
+      "Settlement 2560x1080 and 1600x1200 panel separation",
+      "Making card, gauge placement and rounded gauge track",
+      "Final heading, medal ranking, rounded value bars and lobby button bounds",
+      "Crew and settings shared display typography"
+    ],
+    "captureLimits": "Saved production prefab UI rendered with controlled local values. Gameplay backgrounds are prior actual Unity camera references. Settlement/final character cafe backdrops are static menu illustrations. No full multiplayer match or Player build verification.",
+    "fileProtocolBrowserCheck": {
+      "status": "blocked",
+      "reason": "Browser tool URL security policy does not allow file://; no alternate browser access attempted"
+    },
+    "portableAudit": {
+      "images": 125,
+      "byteMatches": 125,
+      "embeddedFonts": 8,
+      "productionScriptSyntax": "passed"
+    },
+    "cleanup": "14 task-owned temporary Unity screenshot assets deleted via AssetDatabase after exact SHA256 copy verification; Docs evidence retained. Game View restored to Free Aspect; preview Play stopped."
+  }
+}

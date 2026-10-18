@@ -26,6 +26,7 @@ public sealed class UIRoomScreen : UIScreen
 
     readonly List<Button> teamButtons = new();
     readonly List<TMP_Text> teamLabels = new();
+    readonly List<UIRoomTeamCard> teamCards = new();
     readonly List<TMP_Text> spawnedMembers = new();
 
     Action<int> onSelectTeam;
@@ -47,6 +48,7 @@ public sealed class UIRoomScreen : UIScreen
         foreach (var button in teamButtons) Destroy(button.gameObject);
         teamButtons.Clear();
         teamLabels.Clear();
+        teamCards.Clear();
 
         for (var team = 0; team < teamCount; team++)
         {
@@ -56,6 +58,7 @@ public sealed class UIRoomScreen : UIScreen
             UIButtons.Wire(button, () => onSelectTeam?.Invoke(index));
             teamButtons.Add(button);
             teamLabels.Add(button.GetComponentInChildren<TMP_Text>());
+            teamCards.Add(button.GetComponent<UIRoomTeamCard>());
         }
         builtTeamCount = teamCount;
     }
@@ -72,7 +75,9 @@ public sealed class UIRoomScreen : UIScreen
         {
             var mine = team == selectedTeam;
             var marker = mine ? "> " : string.Empty;
-            if (teamLabels[team] != null)
+            if (teamCards[team] != null)
+                teamCards[team].Render(team, mine, members);
+            else if (teamLabels[team] != null)
                 teamLabels[team].text = $"{marker}팀 {team + 1}  {occupancyOf(team)}/{playersPerTeam}";
             UIExtentions.SetInteractable(teamButtons[team], !mine && teamHasRoom(team));
         }
@@ -80,7 +85,8 @@ public sealed class UIRoomScreen : UIScreen
         // 줄을 지우고 다시 만들지 않고 재사용한다. `Destroy`는 프레임 끝에야 도는데
         // 로비는 스팀 콜백 하나당 한 번씩 다시 그리므로, 한 프레임에 두 번 그리면 아직
         // 지워지지 않은 줄 위에 새 줄이 겹쳐 붙는다 (`SteamLobby.RefreshMembersIfCurrent`).
-        if (memberRows != null && memberRowPrefab != null)
+        if (memberRows != null && memberRowPrefab != null &&
+            (teamCards.Count == 0 || teamCards[0] == null))
         {
             for (var i = 0; i < members.Count; i++)
             {
