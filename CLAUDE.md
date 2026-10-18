@@ -72,7 +72,7 @@ BB.Client  ──▶  BB.Game  ──▶  BB.Rules
 ## 그 외 MCP
 
 - `unreal` MCP는 사용하지 않는다. 이 저장소는 Unity 프로젝트다.
-- 코드베이스 구조·의존 관계·변경 영향 범위를 파악할 때는 `graphify` MCP를 먼저 쓴다. 결과는 실제 파일로 한 번 더 확인한다.
+- 코드베이스 구조·의존 관계·변경 영향 범위를 파악할 때는 `engineering` 플러그인 스킬(`engineering:architecture`, `engineering:code-review`, `engineering:tech-debt`)을 쓴다. 결과는 실제 파일로 한 번 더 확인한다. `graphify` MCP는 이 용도로 더 쓰지 않는다.
 - MCP가 연결되지 않았거나 호출이 실패하면 사용한 것처럼 말하지 않는다. 부재 사실과 대체로 수행한 확인 방법을 보고한다.
 
 ## Unity 공식 스킬

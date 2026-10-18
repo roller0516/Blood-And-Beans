@@ -13,20 +13,37 @@ public sealed class UISliderInput : MonoBehaviour
     [SerializeField, Min(0.0001f)] float displayScale = 1f;
     [SerializeField] string format = "0.00";
 
+    /// 슬라이더를 끌 때 맞출 칸. 0이면 맞추지 않는다. 범위처럼 화면이 정해 넣는다.
+    /// 칸에 직접 친 값은 맞추지 않는다 — 거친 슬라이더를 숫자 칸이 메운다 (기획서 11.a).
+    public float Step { get; set; }
+
+    bool typing;
+
     void Awake()
     {
-        slider.onValueChanged.AddListener(Show);
+        slider.onValueChanged.AddListener(OnSlider);
         input.onEndEdit.AddListener(OnTyped);
     }
 
     void OnDestroy()
     {
-        slider.onValueChanged.RemoveListener(Show);
+        slider.onValueChanged.RemoveListener(OnSlider);
         input.onEndEdit.RemoveListener(OnTyped);
     }
 
     /// `SetValueWithoutNotify`로 맞춘 뒤 부른다. 알림이 없으면 칸이 따라오지 않는다.
     public void Refresh() => Show(slider.value);
+
+    void OnSlider(float value)
+    {
+        if (Step > 0f && !typing)
+        {
+            var snapped = Mathf.Round(value / Step) * Step;
+            if (!Mathf.Approximately(snapped, value)) slider.SetValueWithoutNotify(snapped);
+            value = slider.value;
+        }
+        Show(value);
+    }
 
     void Show(float value) =>
         input.SetTextWithoutNotify((value * displayScale).ToString(format, CultureInfo.InvariantCulture));
@@ -35,7 +52,11 @@ public sealed class UISliderInput : MonoBehaviour
     void OnTyped(string text)
     {
         if (float.TryParse(text.Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var value))
+        {
+            typing = true;
             slider.value = value / displayScale;
+            typing = false;
+        }
         Refresh();
     }
 }

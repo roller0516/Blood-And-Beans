@@ -2,4 +2,5 @@
 /// `UIManager`가 스택으로 관리하며, 뒤로 가기는 스택을 하나 내리는 것이다.
 public abstract class UIScreen : UIView
 {
+    
 }

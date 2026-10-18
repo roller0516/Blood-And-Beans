@@ -272,6 +272,7 @@ MonoBehaviour:
   outlet: {fileID: 7124878967007571986}
   workingEffect: 17
   completedEffect: 0
+  model: {fileID: 8761596934133116852}
 --- !u!1 &8075818720915659525
 GameObject:
   m_ObjectHideFlags: 0
@@ -415,63 +416,55 @@ PrefabInstance:
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 7997908059883223878, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 273440001316051501}
-    - targetCorrespondingSourceObject: {fileID: -3458367669345439764, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+      addedObject: {fileID: 1787430252222409402}
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 7355881486558658124}
+      addedObject: {fileID: 8761596934133116852}
   m_SourcePrefab: {fileID: 100100000, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
 --- !u!4 &143868315563166366 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
   m_PrefabInstance: {fileID: 465460681155472757}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &6229831682281095833 stripped
+--- !u!1 &771469946048991268 stripped
 GameObject:
-  m_CorrespondingSourceObject: {fileID: -3458367669345439764, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
   m_PrefabInstance: {fileID: 465460681155472757}
   m_PrefabAsset: {fileID: 0}
---- !u!111 &7355881486558658124
-Animation:
+--- !u!95 &1787430252222409402
+Animator:
+  serializedVersion: 7
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6229831682281095833}
+  m_GameObject: {fileID: 771469946048991268}
   m_Enabled: 1
-  serializedVersion: 4
-  m_Animation: {fileID: 0}
-  m_Animations:
-  - {fileID: -456796767392211940, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  - {fileID: -4858081310586285008, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  - {fileID: 2040712424969555027, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: 95ca882f1439cec449f528ce52e2ea41, type: 2}
+  m_CullingMode: 0
   m_UpdateMode: 0
-  m_CullingType: 0
---- !u!1 &7533362211331003955 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 7997908059883223878, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  m_PrefabInstance: {fileID: 465460681155472757}
-  m_PrefabAsset: {fileID: 0}
---- !u!111 &273440001316051501
-Animation:
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
+--- !u!114 &8761596934133116852
+MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7533362211331003955}
+  m_GameObject: {fileID: 771469946048991268}
   m_Enabled: 1
-  serializedVersion: 4
-  m_Animation: {fileID: 0}
-  m_Animations:
-  - {fileID: 7767085969903164803, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  - {fileID: -7227303212607947863, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  - {fileID: -5559997031167747419, guid: e93be0ef341ec694f85efca533aa6df4, type: 3}
-  m_WrapMode: 0
-  m_PlayAutomatically: 1
-  m_AnimatePhysics: 0
-  m_UpdateMode: 0
-  m_CullingType: 0
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: abbbb7988f65c6e408b08234b17c03c8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::FacilityModel
+  animator: {fileID: 1787430252222409402}

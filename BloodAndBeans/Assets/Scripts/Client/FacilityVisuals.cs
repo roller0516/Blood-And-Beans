@@ -1,6 +1,6 @@
 using UnityEngine;
 
-/// 공용 설비의 점유 상태를 김·불·물거품으로 그린다. 완료는 서버의 세척 사건만 쓴다.
+/// 공용 설비의 점유 상태를 김·불·물거품과 모델 애니메이션으로 그린다. 완료는 서버의 세척 사건만 쓴다.
 [RequireComponent(typeof(SharedFacility))]
 public sealed class FacilityVisuals : MonoBehaviour
 {
@@ -8,6 +8,9 @@ public sealed class FacilityVisuals : MonoBehaviour
     [SerializeField] Transform outlet;
     [SerializeField] EffectId workingEffect;
     [SerializeField] EffectId completedEffect;
+
+    /// 설비 모델. 움직이는 부품이 없는 설비는 비워 둔다.
+    [SerializeField] FacilityModel model;
     ParticleSystem working;
 
     void OnEnable()
@@ -24,6 +27,7 @@ public sealed class FacilityVisuals : MonoBehaviour
     }
     void SetBusy(bool busy)
     {
+        if (model != null) model.SetWorking(busy);
         if (!busy) { StopWorking(); return; }
         if (facility.IsClient && working == null && workingEffect != EffectId.None)
             working = EffectManager.PlayAttached(workingEffect, outlet, 0f);

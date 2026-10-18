@@ -54,6 +54,7 @@ public sealed class UISettingsPopup : UIPopup
 
         lookSensitivity.minValue = LookSensitivity.Min;
         lookSensitivity.maxValue = LookSensitivity.Max;
+        lookInput.Step = LookSensitivity.Step;
         lookSensitivity.SetValueWithoutNotify(look.Multiplier);
         lookInput.Refresh();
     }
