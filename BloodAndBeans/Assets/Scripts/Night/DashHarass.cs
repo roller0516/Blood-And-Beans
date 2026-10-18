@@ -37,9 +37,9 @@ public class DashHarass : NetworkBehaviour
 
     const float KnockSeconds = 0.15f;
 
-    /// 돌진이 시작됐다. 인자는 돌진이 지속되는 시간이다. 위치와 방향은 싣지 않는다 —
-    /// NetworkTransform이 이미 보내고 있고, 두 경로가 어긋나면 잔상이 몸과 따로 논다.
-    public event Action<float> DashStarted;
+    /// 돌진 시간과 실제 방향. 위치는 NetworkTransform을 따르고, 방향은 회전 보간과 무관하게
+    /// 공기막이 돌진 앞쪽을 바라보도록 서버의 확정값을 보낸다.
+    public event Action<float, Vector3> DashStarted;
 
     /// 이 플레이어가 상대를 맞혔다. 맞은 자리와, 그 대시로 상대의 재료가 쏟아졌는지.
     public event Action<Vector3, bool> HitLanded;
@@ -178,14 +178,14 @@ public class DashHarass : NetworkBehaviour
         move.SuppressInputUntilServer(dashEnd);
         dashHitResolved = false;
 
-        DashStartedRpc(dashSeconds);
+        DashStartedRpc(dashSeconds, dashDirection);
         return true;
     }
 
     // --- 연출 알림. 판정은 위에서 이미 끝났고, 아래는 그리기 위한 통지뿐이다 ---
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
-    void DashStartedRpc(float seconds) => DashStarted?.Invoke(seconds);
+    void DashStartedRpc(float seconds, Vector3 direction) => DashStarted?.Invoke(seconds, direction);
 
     [Rpc(SendTo.Everyone, InvokePermission = RpcInvokePermission.Server)]
     void HitLandedRpc(Vector3 at, bool spilled) => HitLanded?.Invoke(at, spilled);

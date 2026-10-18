@@ -7,6 +7,9 @@ public sealed class FacilityVisuals : MonoBehaviour
     [SerializeField] SharedFacility facility;
     [SerializeField] Transform outlet;
     [SerializeField] EffectId workingEffect;
+    /// 물과 거품처럼 따로 조절하지만 함께 시작·종료하는 보조 연출.
+    [SerializeField] EffectId secondaryWorkingEffect;
+    [SerializeField] Transform secondaryOutlet;
     [SerializeField] EffectId completedEffect;
 
     /// 설비 모델. 움직이는 부품이 없는 설비는 비워 둔다.
@@ -15,6 +18,7 @@ public sealed class FacilityVisuals : MonoBehaviour
     /// 쓰는 동안 점유 팀 색으로 물드는 렌더러. 물드는 범위는 머티리얼의 팀 마스크가 정한다.
     [SerializeField] Renderer[] teamAreas;
     ParticleSystem working;
+    ParticleSystem secondaryWorking;
     MaterialPropertyBlock teamBlock;
 
     void OnEnable()
@@ -36,6 +40,13 @@ public sealed class FacilityVisuals : MonoBehaviour
         if (!busy) { StopWorking(); return; }
         if (facility.IsClient && working == null && workingEffect != EffectId.None)
             working = EffectManager.PlayAttached(workingEffect, outlet, 0f);
+        if (facility.IsClient && secondaryWorking == null && secondaryWorkingEffect != EffectId.None)
+        {
+            if (secondaryOutlet == null)
+                CDebug.LogError($"{name}: 보조 연출의 Secondary Outlet이 연결되지 않았다.", this);
+            else
+                secondaryWorking = EffectManager.PlayAttached(secondaryWorkingEffect, secondaryOutlet, 0f);
+        }
     }
     /// 머티리얼을 진열대·조리대와 같이 쓰므로 사본 대신 블록으로 이 설비에만 칠한다.
     void PaintTeam(Color color)
@@ -61,10 +72,15 @@ public sealed class FacilityVisuals : MonoBehaviour
     }
     void StopWorking()
     {
-        if (working == null) return;
+        StopWorking(ref working);
+        StopWorking(ref secondaryWorking);
+    }
+    static void StopWorking(ref ParticleSystem effect)
+    {
+        if (effect == null) return;
         // 설비가 사라져도 남은 입자와 풀 인스턴스는 매니저 밑에서 수명을 마친다.
-        working.transform.SetParent(EffectManager.Instance != null ? EffectManager.Instance.transform : null, true);
-        EffectManager.Stop(working);
-        working = null;
+        effect.transform.SetParent(EffectManager.Instance != null ? EffectManager.Instance.transform : null, true);
+        EffectManager.Stop(effect);
+        effect = null;
     }
 }

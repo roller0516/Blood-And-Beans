@@ -49,26 +49,30 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _AOStrength: 0.5
-    - _DiffuseWrap: 0.16
+    - _AOStrength: 0.65
+    - _AmbientStrength: 0.72
+    - _ContrastPivot: 0.18
+    - _DiffuseWrap: 0.1
     - _EmissionMaskSource: 0
     - _EmissionStrength: 0
-    - _FillStrength: 0.4
+    - _FillDirectionality: 0.7
+    - _FillStrength: 0.065
     - _Metallic: 0
     - _NormalStrength: 0
     - _Roughness: 0.806
     - _RoughnessScale: 0.41
-    - _ShadowStrength: 0
-    - _SpecularStrength: 0.6
+    - _ShadowStrength: 0.93
+    - _SpecularStrength: 0.58
     - _SurfaceLayout: 3
     - _TeamMaskSource: 1
     - _TeamStrength: 0
-    - _TextureContrast: 1
-    - _TextureSaturation: 0.9
+    - _TextureContrast: 1.09
+    - _TextureSaturation: 1.03
     m_Colors:
     - _BaseColor: {r: 1, g: 0.9666373, b: 0.8820755, a: 1}
     - _EmissionColor: {r: 1, g: 0.66, b: 0.2, a: 1}
-    - _FillColor: {r: 0.8509804, g: 0.72972524, b: 0.6, a: 1}
+    - _FillColor: {r: 0.48, g: 0.46, b: 0.72, a: 1}
+    - _ShadowTint: {r: 0.86, g: 0.84, b: 1, a: 1}
     - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

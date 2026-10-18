@@ -409,7 +409,7 @@ public class PlayerVisuals : NetworkBehaviour
     void OnSound(SfxCue cue, Vector3 position, int team) =>
         SoundManager.Instance?.PlayCue(cue, position, team);
 
-    void OnDashSound(float _) => OnSound(SfxCue.Dash, transform.position, playerTeam.Team);
+    void OnDashSound(float _, Vector3 direction) => OnSound(SfxCue.Dash, transform.position, playerTeam.Team);
 
     /// 지속 효과가 캐릭터에 붙는다 (활공 등). **어떤 능력인지는 모른다** — 라우터가
     /// 연출 id와 남은 시간만 준다.

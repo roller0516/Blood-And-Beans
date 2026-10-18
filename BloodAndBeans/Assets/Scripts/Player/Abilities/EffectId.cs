@@ -66,5 +66,11 @@ public enum EffectId
     TrackScent = 28,
     PotionPuddle = 29,
     Dizzy = 30,
+
+    /// 싱크대 물줄기·물방울. 비누 거품과 별도 프리팹으로 재생한다.
+    WashWater = 31,
+
+    /// 돌진 앞쪽의 공기저항과 옆으로 흘러가는 바람.
+    DashAir = 32,
 }
 
