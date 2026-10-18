@@ -438,7 +438,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 354678369
+  GlobalObjectIdHash: 247723342
   InScenePlacedSourceGlobalObjectIdHash: 0
   DeferredDespawnTick: 0
   Ownership: 1
@@ -511,8 +511,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlayerMove
   ShowTopMostFoldoutHeaderGroup: 1
-  speed: 20
-  turnDegreesPerSecond: 720
+  speed: 10
+  turnDegreesPerSecond: 360
   deniedSeconds: 0.8
 --- !u!114 &6026915820970784790
 MonoBehaviour:
@@ -547,8 +547,8 @@ MonoBehaviour:
   reach: 1.6
   knockback: 3
   spawnProtectionSeconds: 15
-  dashDistance: 14.4
-  dashSeconds: 0.18
+  dashDistance: 5
+  dashSeconds: 1
   recoil: 0.7
   recoilSeconds: 0.12
   knockdownAngle: 80
@@ -946,7 +946,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5297244377433534378, guid: d56b350ae2fd48741b9d1870cdbfc5e6, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 4278717458
+      value: 4294967295
       objectReference: {fileID: 0}
     - target: {fileID: 5297244377433534378, guid: d56b350ae2fd48741b9d1870cdbfc5e6, type: 3}
       propertyPath: m_TextStyleHashCode

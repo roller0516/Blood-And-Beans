@@ -25,6 +25,8 @@ public sealed class DashPresentation
     /// 예약된 대시 종료. `Cancel`이 재발동·비활성·파괴·디스폰마다 끊는다 — 안 끊으면 이전
     /// 재생의 콜백이 새 대시나 재사용된 컴포넌트의 포즈를 뒤늦게 건드린다.
     Tween endTween;
+    ParticleSystem air;
+    Quaternion airRotation;
 
     public DashPresentation(PlayerVisuals look, CinemachineImpulseSource impulse,
         NetworkObject netObject, Color hitFlash, Color spillFlash, float flashSeconds, float impactScale,
@@ -47,26 +49,36 @@ public sealed class DashPresentation
     /// 무엇에 맞았는지 알 수 없다.
     bool IsMine => netObject != null && netObject.IsLocalPlayer;
 
-    public void OnDashStarted(float seconds)
+    public void OnDashStarted(float seconds, Vector3 direction)
     {
         if (look != null && look.Model != null) look.Model.PlayDash();
+        StopAir();
+        if (look != null)
+        {
+            airRotation = direction.sqrMagnitude > 0.0001f
+                ? Quaternion.LookRotation(direction, Vector3.up) : look.transform.rotation;
+            air = EffectManager.PlayAttached(EffectId.DashAir, look.transform, 0f);
+            OrientAir();
+        }
 
         // 재발동이면 이전 종료 예약이 아직 살아 있다. 안 끊으면 그 콜백이 이번 돌진의
         // 포즈를 도중에 꺼 버린다.
         endTween?.Kill();
-        endTween = DOVirtual.DelayedCall(seconds, OnDashEnded);
+        endTween = DOVirtual.DelayedCall(seconds, OnDashEnded).OnUpdate(OrientAir);
     }
 
     /// 서버의 돌진 시간이 끝났다. 돌진 포즈를 회복 동작으로 넘긴다.
     void OnDashEnded()
     {
         endTween = null;
+        StopAir();
         if (look != null && look.Model != null) look.Model.EndDash();
     }
 
     /// 내가 맞혔다. 임팩트는 맞은 자리에 남기고, 흔들림은 내 화면에만 준다.
     public void OnHitLanded(Vector3 at, bool spilled)
     {
+        StopAir();
         SpawnImpact(at, spilled);
         if (IsMine) Shake(shakeOnLand);
     }
@@ -75,6 +87,7 @@ public sealed class DashPresentation
     /// 흔들림은 내 화면에만 준다.
     public void OnTookHit(Vector3 direction, bool spilled)
     {
+        StopAir();
         if (look != null)
         {
             look.FlashClient(spilled ? spillFlash : hitFlash, flashSeconds);
@@ -96,12 +109,27 @@ public sealed class DashPresentation
         if (impulse != null) impulse.GenerateImpulseWithForce(amount);
     }
 
+    // 캐릭터 회전은 보간되지만 공기막은 실제 돌진 방향을 유지한다.
+    void OrientAir()
+    {
+        if (air != null) air.transform.rotation = airRotation;
+    }
+
+    void StopAir()
+    {
+        if (air == null) return;
+        air.transform.SetParent(EffectManager.Instance != null ? EffectManager.Instance.transform : null, true);
+        EffectManager.Stop(air);
+        air = null;
+    }
+
     /// 재발동·비활성·파괴·디스폰에서 부른다. 예약된 종료를 끊고 포즈를 지금 정리한다.
     /// `EndDash`는 대시 상태가 아니면 스스로 아무것도 안 하므로 조건 없이 불러도 안전하다.
     public void Cancel()
     {
         endTween?.Kill();
         endTween = null;
+        StopAir();
         if (look != null && look.Model != null) look.Model.EndDash();
     }
 }
