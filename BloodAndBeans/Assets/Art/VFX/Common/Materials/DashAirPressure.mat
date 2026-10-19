@@ -22,13 +22,25 @@ Material:
   m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
-    m_TexEnvs: []
+    m_TexEnvs:
+    - _CausticTex:
+        m_Texture: {fileID: 2800000, guid: c08193e8b7e7a934482e7a49460b1ce8, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _WaveMask:
+        m_Texture: {fileID: 2800000, guid: cee941183f7ce0b4abf400b7a9dc2923, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Brightness: 5
     - _DistortionPixels: 2.5
-    - _FlowSpeed: 2
-    - _Opacity: 0.65
+    - _EdgeNoiseScale: 40
+    - _EdgeNoiseSpeed: 1.5
+    - _EdgeNoiseStrength: 1
+    - _FlowSpeed: 7
+    - _Opacity: 1.8
     m_Colors:
-    - _Tint: {r: 0.54999995, g: 0.9, b: 0.83, a: 1}
+    - _Tint: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
