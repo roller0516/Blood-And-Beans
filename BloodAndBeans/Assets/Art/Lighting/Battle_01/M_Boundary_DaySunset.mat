@@ -1,0 +1,49 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_Boundary_DaySunset
+  m_Shader: {fileID: 4800000, guid: f88185f1d668cb0439f20c201d073cd4, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords:
+  - _DOME_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs: []
+    m_Ints: []
+    m_Floats:
+    - _CloudCoverage: 0.68
+    - _CloudOpacity: 0.68
+    - _CloudScale: 5.5
+    - _Cull: 2
+    - _Dome: 1
+    - _Exposure: 1
+    - _Gradient: 0.65
+    - _Halo: 0.32
+    - _MoonSize: 0.055
+    - _Stars: 0
+    - _ZWrite: 1
+    m_Colors:
+    - _CloudLight: {r: 0.95, g: 0.72, b: 0.61, a: 1}
+    - _CloudShade: {r: 0.6, g: 0.46, b: 0.58, a: 1}
+    - _Ground: {r: 0.25, g: 0.16, b: 0.29, a: 1}
+    - _Horizon: {r: 0.7, g: 0.43, b: 0.42, a: 1}
+    - _MoonColor: {r: 1.1, g: 0.52, b: 0.2, a: 1}
+    - _MoonDirection: {r: -0.7, g: 0.12, b: 0.6, a: 0}
+    - _Zenith: {r: 0.22, g: 0.15, b: 0.36, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

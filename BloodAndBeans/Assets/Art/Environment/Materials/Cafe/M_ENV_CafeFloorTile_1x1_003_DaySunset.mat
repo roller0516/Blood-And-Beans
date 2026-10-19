@@ -1,0 +1,102 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: M_ENV_CafeFloorTile_1x1_003_DaySunset
+  m_Shader: {fileID: 4800000, guid: bb817d9ead51527429ee00ddfd3a1c86, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _BaseMap:
+        m_Texture: {fileID: 2800000, guid: 0948e1a5411fc5a4f956bac419b0b0be, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EmissionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalMap:
+        m_Texture: {fileID: 2800000, guid: b65a85cbe7fd4c847b92fbe2c3e55f46, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OcclusionMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SurfaceMap:
+        m_Texture: {fileID: 2800000, guid: 4f6584fd2ae0b0543a042c36ebb28bdf, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TeamMaskMap:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AOStrength: 0.65
+    - _AmbientStrength: 1
+    - _ContrastPivot: 0.18
+    - _DiffuseWrap: 0.2
+    - _EmissionIntensity: 0
+    - _EmissionMaskSource: 0
+    - _EmissionStrength: 0
+    - _FillDirectionality: 0.25
+    - _FillStrength: 0.18
+    - _Metallic: 0.228
+    - _NormalStrength: 2
+    - _PulseAmount: 0
+    - _PulseSpeed: 3.87
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RimPower: 3
+    - _RimStrength: 0.41
+    - _Roughness: 0.72
+    - _RoughnessScale: 1
+    - _ScreenAOStrength: 0.38
+    - _ShadowStrength: 0.76
+    - _SmoothnessMax: 0.34
+    - _SmoothnessMin: 0.22
+    - _SpecularStrength: 0.58
+    - _SurfaceLayout: 1
+    - _TeamMaskSource: 0
+    - _TeamStrength: 0
+    - _TextureContrast: 1.025
+    - _TextureSaturation: 1.02
+    m_Colors:
+    - _BaseColor: {r: 0.83, g: 0.86, b: 0.93, a: 1}
+    - _EmissionColor: {r: 1, g: 1, b: 1, a: 1}
+    - _FillColor: {r: 0.65, g: 0.57, b: 0.75, a: 1}
+    - _RimColor: {r: 0.837453, g: 0.7607843, b: 1, a: 1}
+    - _ShadowTint: {r: 0.94, g: 0.9, b: 1, a: 1}
+    - _TeamColor: {r: 1, g: 1, b: 1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
