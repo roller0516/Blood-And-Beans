@@ -57,18 +57,15 @@ public class SteamLobby : MonoBehaviour
     /// 호스트가 시작을 누르면 NGO가 모두에게 이 씬을 로드시킨다. Build Settings에 있어야 한다.
     [SerializeField] string gameScene = "SampleScene";
 
-    /// 방 밖에 있을 때의 씬 (타이틀·방 목록).
-    [SerializeField] string titleScene = "Title";
-
-    /// 방 안에 있을 때의 씬 (캐릭터 선택·준비). 매치가 끝나도 방에 남아 있으면 여기로 돌아온다.
-    [SerializeField] string roomScene = "CharacterSelect";
-
     /// 전투 씬 이름. 이 판의 게임 씬이 무엇인지 아는 유일한 자리다 —
     /// `NetworkAutoStart`가 "지금 그 씬에서 재생했는가"를 판단할 때 되읽는다.
+    /// 타이틀·캐릭터 선택 씬은 `GameSceneManager`가 쥔다 — 그쪽은 클라이언트가 넘긴다.
     public string GameScene => gameScene;
-    public string TitleScene => titleScene;
-    public string RoomScene => roomScene;
     public bool IsGameScene(string scene) => scene == gameScene;
+
+    /// 매치 연결이 끊겼다. 인자는 방에 남아 있는가. 어느 씬으로 돌아갈지는 클라이언트가 정한다
+    /// (`GameSceneManager`) — 이 어셈블리는 로딩 창 같은 UI를 모른다.
+    public event Action<bool> MatchLeft;
 
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
@@ -711,8 +708,7 @@ public class SteamLobby : MonoBehaviour
         RefreshMembers();
         Changed?.Invoke();
 
-        var back = InRoom ? roomScene : titleScene;
-        if (SceneManager.GetActiveScene().name != back) SceneManager.LoadScene(back);
+        MatchLeft?.Invoke(InRoom);
     }
 
     void Fail(string reason)

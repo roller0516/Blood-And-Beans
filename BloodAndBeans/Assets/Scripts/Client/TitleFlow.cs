@@ -1,92 +1,30 @@
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-/// 타이틀 씬과 캐릭터 선택 씬의 조립 지점. UIManager와 SteamLobby를 이어 Presenter를 만든다.
-/// 어느 화면을 열지는 Presenter가 지금 씬을 보고 정한다 (`TitlePresenter.EnableAsync`).
+/// 타이틀 씬의 조립 지점. 에셋 준비와 정리는 `GameSceneManager`가 하고, 여기는 무엇을 잡을지와
+/// 첫 화면을 여는 Presenter를 만드는 일만 한다.
 ///
-/// 이 클래스가 따로 있는 이유는 Presenter가 화면보다 오래 살아야 하기 때문이다. 예전에는
-/// 화면 클래스(`TitleScreen`)가 자기 Presenter를 만들었는데, 화면을 셋으로 쪼개면서
-/// "누가 Presenter를 소유하는가"에 답이 없어졌다. 씬 오브젝트인 여기가 소유한다.
-public sealed class TitleFlow : MonoBehaviour
+/// Presenter를 이 씬 오브젝트가 소유하는 이유는 화면보다 오래 살아야 하기 때문이다. 화면은
+/// 타이틀 메뉴와 방 목록 둘이고, 씬은 그 둘을 다 지난다.
+public sealed class TitleFlow : SceneFlow
 {
     [Header("표시")]
     [SerializeField] string gameTitle = "Blood & Beans";
 
     TitlePresenter presenter;
 
-    /// 캐릭터 선택 카드가 초상을 꺼낸다.
-    const ResourceManager.SpriteTables Sprites = ResourceManager.SpriteTables.Crews;
+    public override UniTask PrepareAsync(AssetScope scope, CancellationToken ct) =>
+        scope.ViewAsync<UITitleMenuScreen>(ct);
 
-    /// 불러오기를 시작했는가. 시작하지 않은 채 파괴되면 놓을 것도 없다.
-    bool acquired;
-
-    void Awake()
+    public override UniTask EnterAsync(CancellationToken ct)
     {
-        // 없으면 `Instance`가 만든다. 씬에 UIManager를 놓거나 잇지 않아도 된다.
-        if (UIManager.Instance == null)
-        {
-            CDebug.LogError($"{name}: {nameof(UIManager)}를 얻지 못했다. 화면을 열 수 없다.", this);
-            enabled = false;
-            return;
-        }
-
-        // 로비는 런처 씬에서 살아 넘어오는 영속 오브젝트라 Inspector로 이을 수 없다.
-        // 씬 로드 시 조립 지점에서 한 번만 찾는다.
-        var lobby = FindAnyObjectByType<SteamLobby>();
-        if (lobby == null)
-        {
-            CDebug.LogError($"{name}: {nameof(SteamLobby)}가 없다. 런처 씬을 거치지 않고 타이틀을 "
-                         + "직접 실행했다는 뜻이다.", this);
-            enabled = false;
-            return;
-        }
-
-        presenter = new TitlePresenter(UIManager.Instance, lobby, gameTitle, HideAllUI, QuitApplication);
-
-        // Awake에서 잡는다. 앞 씬이 씬을 넘기며 잡은 핸들보다 먼저 잡혀야 창이 끊기지 않는다.
-        loading = UIManager.Instance.BeginLoading();
-    }
-
-    /// 첫 화면이 다 뜰 때까지 덮는 로딩 창.
-    UIManager.LoadingHandle loading;
-
-    /// UIManager가 팀 수를 아는 시점(로비 준비 후)에 첫 화면을 연다.
-    /// 화면이 꺼내는 스프라이트를 먼저 불러 둔다. 화면 프리팹은 UIManager가 열 때 불러온다.
-    async UniTaskVoid Start()
-    {
-        if (presenter == null) return;
-        acquired = true;
-        await ResourceManager.Instance.PreloadSpritesAsync(Sprites, this.GetCancellationTokenOnDestroy());
-        await presenter.EnableAsync();
-        loading?.Dispose();
+        presenter = new TitlePresenter(UIManager.Instance, GameManager.Lobby, GameSceneManager.Instance,
+                                       gameTitle, QuitApplication);
+        return presenter.EnterAsync();
     }
 
     void OnDisable() => presenter?.Disable();
-
-    void OnDestroy()
-    {
-        // 준비 중에 씬이 내려가도 핸들은 놓는다. 남기면 창이 영영 안 닫힌다.
-        loading?.Dispose();
-        if (!acquired) return;
-        // 스택은 떠날 때(HideAllUI) 이미 비웠다. 남은 이 씬의 뷰를 놓는다.
-        var ui = UIManager.Instance;
-        if (ui != null) ui.UnloadUnused();
-        ResourceManager.Instance.ReleaseSprites(Sprites);
-    }
-
-    /// 매치에 접속되면 로비 UI는 물러난다.
-    ///
-    /// 루트 오브젝트를 끄지 않는다. UIManager는 게임매니저와 함께 살아남아 매치 씬에서도
-    /// 같은 오브젝트를 쓰므로, 여기서 끄면 매치 HUD가 꺼진 루트에 올라타 영영 안 보인다.
-    /// 스택만 비우고, 타이틀로 돌아오면 `TitlePresenter.Enable`이 첫 화면을 다시 연다.
-    void HideAllUI()
-    {
-        var ui = UIManager.Instance;
-        if (ui == null) return;
-
-        ui.PopAllPopups();
-        ui.ClearScreens();
-    }
 
     void QuitApplication()
     {

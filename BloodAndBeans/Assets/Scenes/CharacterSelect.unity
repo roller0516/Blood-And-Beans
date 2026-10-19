@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 403059967}
   - component: {fileID: 403059968}
   m_Layer: 0
-  m_Name: Title Flow
+  m_Name: Character Select Flow
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -160,10 +160,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 403059965}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 95c7d65e44e56914580a77d76ed5a849, type: 3}
+  m_Script: {fileID: 11500000, guid: 93fee9d3e268de94cbee63ee462f49b9, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: BB.Client::TitleFlow
-  gameTitle: Blood & Beans
+  m_EditorClassIdentifier: BB.Client::CharacterSelectFlow
+  stagePrefab: {fileID: 2064236069329382129, guid: ac1b47e6bf04d4a49869ff7db79cd70b, type: 3}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

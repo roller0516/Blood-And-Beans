@@ -48,10 +48,6 @@ public sealed class UICharacterSelectScreen : UIScreen
     [SerializeField] UICharacterCard cardPrefab;
     [SerializeField] RectTransform cardRoot;
 
-    /// 무대는 화면 프리팹의 자식이 될 수 없다. 캔버스 루트의 스케일이 자식에게 그대로
-    /// 내려가서 3D 모델까지 같이 줄어든다. 그래서 따로 찍어 씬에 세운다.
-    [SerializeField] CharacterStage stagePrefab;
-
     /// 이름표가 놓이는 판. 화면을 가득 채우고 피벗이 가운데라, 무대 카메라가 준 화면
     /// 좌표를 그대로 옮겨 놓을 수 있다.
     [SerializeField] RectTransform nameplateLayer;
@@ -137,8 +133,17 @@ public sealed class UICharacterSelectScreen : UIScreen
     /// 남이 집어 간 칸. 카드를 다시 칠할 때마다 필요해서 들고 있는다.
     IReadOnlyList<Claim> claims;
 
-    /// 찍어 세운 무대. 씬이 바뀌면 같이 사라지므로 열 때마다 있는지 본다.
+    /// 캐릭터 선택 씬의 무대. 화면은 씬을 넘어 사는 UI라 씬 오브젝트를 직렬화로 잡을 수
+    /// 없어서, 그 씬의 조립 지점(`CharacterSelectFlow`)이 세워서 넘긴다.
     CharacterStage stage;
+
+    /// 무대를 잇는다. 화면을 열 때마다 부른다 — 씬이 바뀌면 무대도 새 것이다.
+    public void SetStage(CharacterStage value)
+    {
+        stage = value;
+        if (stage != null) stage.SetActive(true);
+        RefreshScrollHint();
+    }
 
     /// 화면을 열 때 한 번. `taken`은 남이 이미 집어 간 카드들이고, 목업 2번처럼 카드
     /// 좌상단에 팀 색과 이름표가 붙는다 (기획서 9.1 중복 픽 금지).
@@ -349,10 +354,6 @@ public sealed class UICharacterSelectScreen : UIScreen
 
     public override void OnShow()
     {
-        // 씬이 바뀌면 무대가 함께 사라진다. 없을 때만 한 번 세운다 — 매 프레임이 아니다.
-        if (stage == null && stagePrefab != null) stage = Instantiate(stagePrefab);
-        if (stage != null) stage.SetActive(true);
-
         if (actions == null)
         {
             CDebug.LogError($"{name}: {nameof(InputActionAsset)}가 연결되지 않았다. "

@@ -222,6 +222,25 @@ public sealed class UIManager : MonoSingleton<UIManager>
         }
     }
 
+    /// 씬이 붙잡은 뷰와 그 횟수. 두 씬이 같은 뷰를 붙잡아도 둘 다 놓아야 풀린다 (`AssetScope.ViewAsync`).
+    readonly Dictionary<Type, int> pins = new();
+
+    public void Pin<T>() where T : UIView =>
+        pins[typeof(T)] = pins.TryGetValue(typeof(T), out var count) ? count + 1 : 1;
+
+    /// 풀어도 곧바로 내리지 않는다. 내리는 것은 `UnloadUnused`다.
+    public void Unpin<T>() where T : UIView
+    {
+        var type = typeof(T);
+        if (!pins.TryGetValue(type, out var count))
+        {
+            CDebug.LogError($"{name}: 붙잡지 않은 {type.Name}을 풀려 했다. 해제가 중복됐다.", this);
+            return;
+        }
+        if (count > 1) pins[type] = count - 1;
+        else pins.Remove(type);
+    }
+
     /// 뷰를 파괴하고 프리팹을 놓는다. 스택에 올라가 있으면 먼저 내린다. 다시 열면 다시 불러온다.
     public void Unload<T>() where T : UIView => Unload(typeof(T));
 
@@ -231,8 +250,10 @@ public sealed class UIManager : MonoSingleton<UIManager>
     {
         scratch.Clear();
         // 로딩 창은 놓지 않는다. 씬을 떠나는 바로 그 순간에도 떠 있어야 하는 창이다.
+        // 씬이 붙잡은 뷰(`Pin`)도 놓지 않는다 — 미리 불러 두고 아직 열지 않은 것이다.
         foreach (var pair in instanceByType)
-            if ((pair.Value == null || !pair.Value.IsOnStack) && pair.Key != typeof(UILoadingPopup))
+            if ((pair.Value == null || !pair.Value.IsOnStack)
+                && pair.Key != typeof(UILoadingPopup) && !pins.ContainsKey(pair.Key))
                 scratch.Add(pair.Key);
 
         for (var i = 0; i < scratch.Count; i++) Unload(scratch[i]);

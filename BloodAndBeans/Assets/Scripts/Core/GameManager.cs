@@ -38,6 +38,9 @@ public class GameManager : PersistentMonoSingleton<GameManager>
     public static MatchSeating Seating =>
         Instance != null && Instance.lobby != null ? Instance.lobby.Seating : null;
 
+    /// 방·세션. 씬을 넘기는 쪽(`GameSceneManager`)과 씬의 조립 지점이 이 통로로 꺼낸다.
+    public static SteamLobby Lobby => Instance != null ? Instance.lobby : null;
+
     /// 로비에서 고른 캐릭터 (기획서 9장). 좌석과 같은 이유로 여기서 통로만 연다 —
     /// 플레이어는 타이틀 씬에서 스폰되고 그때 이 값을 읽어 서버로 넘긴다.
     public static int SelectedCharacter =>

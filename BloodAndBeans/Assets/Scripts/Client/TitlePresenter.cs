@@ -1,78 +1,46 @@
 using System;
-using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using Unity.Netcode;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 
-/// 타이틀 UI의 화면 흐름과 SteamLobby 연동을 담당한다.
+/// 타이틀 씬의 화면 흐름(타이틀 메뉴 → 방 목록)과 SteamLobby 연동을 담당한다.
 /// View에는 표시할 값만 전달하고, 로비 상태 변경은 이 클래스 한 곳에서 구독한다.
 ///
+/// 방에 들어가면 캐릭터 선택 씬으로 넘어가고, 그 뒤는 `CharacterSelectPresenter`가 맡는다.
+///
 /// MonoBehaviour가 아닌 이유는 이 클래스에 Unity 생명주기가 필요 없기 때문이다. 화면
-/// 스택은 `UIManager`가, 로비 상태는 `SteamLobby`가 가진다. 여기 있는 것은 "지금 어느
-/// 화면이고 무엇을 그려야 하는가"뿐이다.
+/// 스택은 `UIManager`가, 로비 상태는 `SteamLobby`가, 씬 전환은 `GameSceneManager`가 가진다.
+/// 여기 있는 것은 "지금 어느 화면이고 무엇을 그려야 하는가"뿐이다.
 public sealed class TitlePresenter
 {
     readonly UIManager ui;
     readonly SteamLobby lobby;
+    readonly GameSceneManager scenes;
     readonly string gameTitle;
-    readonly Action onLocalClientConnected;
     readonly Action onQuit;
 
     int selectedRoom = NoRoom;
     bool active;
-    bool subscribedToNetwork;
 
     const int NoRoom = -1;
 
-    public TitlePresenter(UIManager ui, SteamLobby lobby, string gameTitle,
-                          Action onLocalClientConnected, Action onQuit)
+    public TitlePresenter(UIManager ui, SteamLobby lobby, GameSceneManager scenes, string gameTitle, Action onQuit)
     {
         this.ui = ui;
         this.lobby = lobby;
+        this.scenes = scenes;
         this.gameTitle = gameTitle;
-        this.onLocalClientConnected = onLocalClientConnected;
         this.onQuit = onQuit;
     }
 
-    public int TeamCount => lobby.TeamCount;
-
-    /// 타이틀 씬과 캐릭터 선택 씬이 같은 조립 지점(`TitleFlow`)을 쓴다. 무엇을 열지는
-    /// 지금 씬과 방 안인지가 정한다 — 둘이 어긋나면(방 밖인데 선택 씬 등) 맞는 씬으로 넘긴다.
-    ///
-    /// 첫 화면이 다 뜨면 끝난다. 조립 지점이 그때까지 로딩 창을 붙잡는다.
-    public async UniTask EnableAsync()
+    /// 첫 화면(타이틀 메뉴)을 연다. 화면이 다 뜨면 끝난다.
+    public async UniTask EnterAsync()
     {
         if (active) return;
 
         active = true;
         lobby.Changed += Render;
-        lobby.MatchStarting += OnMatchStarting;
-        SubscribeToNetwork();
 
-        var inRoomScene = SceneManager.GetActiveScene().name == lobby.RoomScene;
-        if (lobby.InRoom != inRoomScene) await LoadSceneAsync(lobby.InRoom ? lobby.RoomScene : lobby.TitleScene);
-        else if (inRoomScene) await OpenCharacterSelectAsync();
-        else await OpenTitleAsync();
-    }
-
-    async UniTask OpenTitleAsync()
-    {
         SoundManager.Instance.PlayBgm(Bgm.Title);
         await OpenScreenAsync<UITitleMenuScreen>();
-    }
-
-    /// 로딩 창을 띄운 채 씬을 넘긴다. 새 씬의 `TitleFlow`가 Awake에서 핸들을 하나 더
-    /// 잡으므로, 이 핸들이 풀려도 새 씬의 화면이 다 뜰 때까지 창이 이어진다.
-    ///
-    /// 이 씬의 화면은 스택에서 내린다. `UIManager`는 씬을 넘어 살아서, 두면 다음 씬의
-    /// 화면 밑에 앞 씬 화면이 깔린다.
-    async UniTask LoadSceneAsync(string scene)
-    {
-        using var loading = ui.BeginLoading();
-        ui.PopAllPopups();
-        ui.ClearScreens();
-        await SceneManager.LoadSceneAsync(scene).ToUniTask();
     }
 
     public void Disable()
@@ -81,32 +49,11 @@ public sealed class TitlePresenter
 
         active = false;
         lobby.Changed -= Render;
-        lobby.MatchStarting -= OnMatchStarting;
-
-        var manager = NetworkManager.Singleton;
-        if (manager != null && subscribedToNetwork)
-            manager.OnClientConnectedCallback -= HideWhenLocalClientConnects;
-        subscribedToNetwork = false;
-    }
-
-    void SubscribeToNetwork()
-    {
-        var manager = NetworkManager.Singleton;
-        if (manager == null || subscribedToNetwork) return;
-
-        manager.OnClientConnectedCallback += HideWhenLocalClientConnects;
-        subscribedToNetwork = true;
-    }
-
-    void HideWhenLocalClientConnects(ulong clientId)
-    {
-        var manager = NetworkManager.Singleton;
-        if (manager != null && clientId == manager.LocalClientId) onLocalClientConnected?.Invoke();
     }
 
     // --- 화면 이동 ---
-    // 타이틀 → 방 목록 → 대기실은 되돌아갈 수 있는 흐름이라 스택으로 쌓는다.
-    // "뒤로"와 "방 나가기"는 스택을 하나 내리는 것과 같다.
+    // 타이틀 → 방 목록은 되돌아갈 수 있는 흐름이라 스택으로 쌓는다.
+    // "뒤로"는 스택을 하나 내리는 것과 같다.
 
     public void OpenRooms() => OpenRoomsAsync().Forget();
 
@@ -150,7 +97,7 @@ public sealed class TitlePresenter
     /// 방 이름 입력 팝업이 생기기 전까지는 Steam 표시 이름을 재사용한다.
     public async void CreateRoom(int teamCount)
     {
-        if (await lobby.CreateRoomAsync(lobby.SuggestedRoomName, teamCount) && active) EnterRoom();
+        if (await lobby.CreateRoomAsync(lobby.SuggestedRoomName, teamCount) && active) scenes.GoToRoom();
     }
 
     public async void JoinRoom()
@@ -158,80 +105,7 @@ public sealed class TitlePresenter
         if (selectedRoom < 0 || selectedRoom >= lobby.Rooms.Count) return;
 
         var room = lobby.Rooms[selectedRoom];
-        if (await lobby.JoinRoomAsync(room) && active) EnterRoom();
-    }
-
-    /// 방에 들어가면 캐릭터 선택 씬으로 넘어간다. 대기실을 따로 거치지 않고 픽·준비·시작을
-    /// 한 화면에서 본다.
-    void EnterRoom() => LoadSceneAsync(lobby.RoomScene).Forget();
-
-    /// 캐릭터 선택 씬의 첫 화면. 화면 프리팹을 이어 두지 않았으면 예전 대기실로
-    /// 물러난다 — 여기서 멈추면 방에 들어가고도 아무것도 못 한다.
-    async UniTask OpenCharacterSelectAsync()
-    {
-        SoundManager.Instance.PlayBgm(Bgm.Lobby);
-        if (await OpenScreenAsync<UICharacterSelectScreen>() == null)
-        {
-            if (active) await OpenRoomAsync();
-            return;
-        }
-        Render();
-    }
-
-    /// 방장이 매치를 열었다. 손님은 이미 캐릭터를 고른 상태이므로 바로 붙는다.
-    void OnMatchStarting()
-    {
-        if (!active) return;
-        lobby.JoinStartedMatch();
-    }
-
-    async UniTask OpenRoomAsync()
-    {
-        var screen = await OpenScreenAsync<UIRoomScreen>();
-        if (screen == null) return;
-        screen.BuildTeams(lobby.TeamCount);
-        Render();
-    }
-
-    /// 카드를 눌렀다. 픽은 스팀 로비 멤버 데이터로 바로 나가 같은 방의 모두가 본다
-    /// (`SteamLobby.SelectCharacter`).
-    public void SelectCharacter(int index) => lobby.SelectCharacter(index);
-
-    /// 캐릭터 선택 화면 바닥의 큰 버튼. 방장에게는 「게임 시작」이고 나머지에게는
-    /// 「준비」다 (기획서 10.1). 글자와 잠금은 `UICharacterSelectScreen.SetLobby`가 그린다.
-    ///
-    /// 접속보다 픽이 먼저여야 한다. `PlayerCharacter.OnNetworkSpawn`이
-    /// `GameManager.SelectedCharacter`를 읽어 서버로 올리기 때문이다 — 픽은 이미
-    /// 로비에 들어가 있으므로 여기서는 순서를 걱정하지 않는다.
-    void StartOrReady()
-    {
-        if (!lobby.IsRoomHost) { lobby.ToggleReady(); return; }
-        if (lobby.CanStartMatch) { lobby.StartMatch(); return; }
-
-        // 방장의 시작 버튼은 잠그지 않는다. 눌렀는데 못 시작하면 이유를 팝업으로 알린다.
-        ShowMessageAsync(lobby.ReadyCount < lobby.ReadyTotal ? NotAllReadyMessage : TeamFullMessage).Forget();
-    }
-
-    const string NotAllReadyMessage = "모든 유저가 준비해야 게임을 시작할 수 있습니다.";
-    const string TeamFullMessage = "팀 정원을 확인해 주세요.";
-
-    async UniTaskVoid ShowMessageAsync(string text)
-    {
-        await ui.LoadAsync<UIMessagePopup>();
-        if (!active || ui.CurrentPopup is UIMessagePopup) return;
-        ui.PushPopup<UIMessagePopup>()?.Bind(text, ui.PopPopup);
-    }
-
-    public void SelectTeam(int team) => lobby.SelectTeam(team);
-
-    /// 방장의 「게임 시작」.
-    public void StartMatch() => lobby.StartMatch();
-
-    /// 방을 나가면 타이틀 씬으로 돌아간다. 곡은 타이틀 화면이 열면서 바꾼다.
-    public void LeaveRoom()
-    {
-        lobby.LeaveRoom();
-        LoadSceneAsync(lobby.TitleScene).Forget();
+        if (await lobby.JoinRoomAsync(room) && active) scenes.GoToRoom();
     }
 
     /// 종료는 화면이 아니라 애플리케이션의 일이라 바깥에서 받는다.
@@ -261,86 +135,14 @@ public sealed class TitlePresenter
             case UIRoomListScreen rooms:
                 rooms.Bind(RefreshRooms, CreateRoom, JoinRoom, BackToTitle, SelectRoom, lobby.MaxTeams);
                 break;
-            case UIRoomScreen room:
-                room.Bind(StartMatch, LeaveRoom, SelectTeam, lobby.ToggleReady);
-                break;
-
-            case UICharacterSelectScreen pick:
-                // 방의 누가 무엇을 골랐는지 보여 준다 (기획서 3.4). 최종 판정은 서버
-                // 한 곳이다 (`PlayerCharacter.PickRpc`, 기획서 9.3) — 이건 표시일 뿐이다.
-                // 다섯째 인자는 팀이다. 캐릭터 선택창의 팀 칸이 곧 팀 선택이라 로비의
-                // 현재 팀으로 열고, 누르면 `SelectTeam`이 로비 멤버 데이터로 써서
-                // 같은 방의 모두가 즉시 본다.
-                pick.Bind(
-                    Claims(),
-                    lobby.SelectedCharacter,
-                    lobby.SelectedTeam,
-                    lobby.SuggestedRoomName,
-                    "밤  /  탐색 스킬",
-                    "밤 액티브는 키보드 1로 쓴다 (기획서 9.2)",
-                    SelectCharacter, SelectTeam, StartOrReady, LeaveRoom);
-                break;
         }
-    }
-
-    /// 방에서 이미 집어 간 칸. 매 갱신마다 리스트를 새로 만들지 않도록 재사용한다.
-    readonly List<UICharacterSelectScreen.Claim> claims = new();
-
-    /// 카드에는 내 팀의 픽만 뜬다. 다른 팀의 픽은 보여 주지도 잠그지도 않는다 —
-    /// 기획서 9.1의 중복 픽 금지가 팀 안에서만이라서다.
-    IReadOnlyList<UICharacterSelectScreen.Claim> Claims()
-    {
-        claims.Clear();
-        var members = lobby.Members;
-        for (var i = 0; i < members.Count; i++)
-        {
-            var member = members[i];
-            if (member.IsSelf || member.Team != lobby.SelectedTeam
-                || !CharacterCatalog.IsValid(member.Character)) continue;
-
-            claims.Add(new UICharacterSelectScreen.Claim(
-                member.Character, member.Name, TeamColorOf(member.Team), true));
-        }
-        return claims;
-    }
-
-    /// 집어 간 사람의 팀 색. 카드 테두리가 이 색이라, 방의 모두가 어느 팀이 무엇을
-    /// 골랐는지 같은 색으로 본다.
-    ///
-    /// 팀을 아직 안 고른 사람(`TeamSeats.NoPreference`)은 팔레트 밖이라 패널 색으로 둔다.
-    static Color TeamColorOf(int team)
-    {
-        var palette = UITheme.TeamColors;
-        return team >= 0 && team < palette.Length ? TeamColors.Of(team) : UITheme.PanelDeep;
     }
 
     void Render()
     {
         if (!active) return;
 
-        switch (ui.CurrentScreen)
-        {
-            case UIRoomListScreen rooms:
-                rooms.Render(lobby.Status, lobby.Rooms, selectedRoom);
-                break;
-
-            case UIRoomScreen room:
-                var status = string.IsNullOrEmpty(lobby.Status)
-                    ? $"{lobby.Members.Count}/{lobby.RoomCapacity}명 · 팀당 {lobby.PlayersPerTeam}명"
-                    : lobby.Status;
-                room.Render(lobby.RoomName, status, lobby.Members, lobby.SelectedTeam,
-                            lobby.PlayersPerTeam, lobby.IsRoomHost, lobby.CanStartMatch,
-                            lobby.OccupancyOf, lobby.TeamHasRoom,
-                            lobby.SelfReady, lobby.ReadyCount, lobby.ReadyTotal);
-                break;
-
-            // 대기실이 곧 이 화면이다. 남의 픽과 준비 수는 스팀 로비 멤버 데이터가
-            // 바뀔 때마다 `SteamLobby.Changed`를 타고 여기로 온다.
-            case UICharacterSelectScreen pick:
-                pick.SetClaims(Claims());
-                pick.SetRoster(lobby.Members);
-                pick.SetLobby(lobby.IsRoomHost, lobby.SelfReady, lobby.ReadyCount, lobby.ReadyTotal);
-                break;
-        }
+        if (ui.CurrentScreen is UIRoomListScreen rooms)
+            rooms.Render(lobby.Status, lobby.Rooms, selectedRoom);
     }
 }
