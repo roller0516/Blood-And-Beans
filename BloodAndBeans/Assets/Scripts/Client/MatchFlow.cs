@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -7,7 +8,7 @@ using UnityEngine.InputSystem;
 ///
 /// 복제 상태를 가진 씬 오브젝트들은 Inspector로 잇는다. 전역 조회로 찾지 않는 이유는
 /// 이들이 이 씬에 같이 놓여 있어서 찾을 이유가 없기 때문이다.
-public sealed class MatchFlow : MonoBehaviour
+public sealed class MatchFlow : SceneFlow
 {
     [Header("복제 상태")]
     [SerializeField] GamePhase phase;
@@ -73,8 +74,16 @@ public sealed class MatchFlow : MonoBehaviour
     bool returnPopupOpen;
     float returnPopupUntil;
 
-    /// 첫 밤 시작 전 로딩 창. 떠 있을 때만 값이 있다.
-    UILoadingPopup loading;
+    /// 첫 밤 시작 전 로딩 창을 붙잡은 핸들. 떠 있을 때만 값이 있다.
+    UIManager.LoadingHandle loading;
+
+    /// 인원이 정해진 뒤의 로딩 문구. {0} 모인 인원, {1} 방 인원.
+    [Header("로딩")]
+    [SerializeField] string waitingFormat = "다른 플레이어를 기다리는 중… {0} / {1}";
+
+    /// 문구를 마지막으로 만든 인원. 값이 바뀔 때만 문자열을 만든다.
+    int shownJoined = -1;
+    int shownExpected = -1;
 
     /// 페이즈 경계 연출 창. 떠 있을 때만 값이 있다.
     UIPhaseCuePopup cue;
@@ -88,14 +97,11 @@ public sealed class MatchFlow : MonoBehaviour
     /// HUD·팝업이 재료 아이콘·가방·캐릭터 초상을 꺼낸다.
     const ResourceManager.SpriteTables Sprites = ResourceManager.SpriteTables.All;
 
-    /// 불러오기를 시작했는가. 시작하지 않은 채 파괴되면 놓을 것도 없다.
-    bool acquired;
-
     /// 몇 번째 밤·낮인지. 복제된 `Day`는 페이즈와 같은 틱에 바뀌어 이벤트 시점 값을 믿지 않고 직접 센다.
     int nightsEntered;
     int daysEntered;
 
-    /// 첫 밤은 로딩을 기다리는 사이에 시작될 수 있어 Start의 대기보다 먼저 구독한다.
+    /// 첫 밤은 로딩을 기다리는 사이에 시작될 수 있어 준비보다 먼저 구독한다.
     void Awake()
     {
         if (phase != null) phase.PhaseEntered += OnPhaseEntered;
@@ -108,56 +114,49 @@ public sealed class MatchFlow : MonoBehaviour
         else if (entered == Phase.Day) SoundManager.Instance.PlayBgm(Bgm.Day, daysEntered++);
     }
 
-    async UniTaskVoid Start()
+    /// 스프라이트가 먼저다. 뷰 프리팹은 만들어지는 순간 Awake에서 표를 꺼내므로
+    /// (`UIMatchHudScreen`의 가방 아이콘·메뉴표), 같이 기다리면 표가 비어 있는 채로 읽는다.
+    ///
+    /// 공통 연출(대시 히트·쏟김·상호작용 성공)도 여기서 같이 불러 둔다. 첫 대시가 터지는
+    /// 순간에야 불러오면 그 한 번만 늦게 보인다 — 캐릭터 전용 연출은 참가자가 그 캐릭터를
+    /// 고른 시점에 각자 준비한다(`PlayerVisuals.SpawnCharacterAsync`).
+    public override async UniTask PrepareAsync(AssetScope scope, CancellationToken ct)
     {
-        // 없으면 `Instance`가 만든다. 여기서 만들지 않으므로 씬 배선도 필요 없다.
-        var ui = UIManager.Instance;
-        if (ui == null)
-        {
-            CDebug.LogError($"{name}: {nameof(UIManager)}를 얻지 못했다. 매치 HUD를 열 수 없다.", this);
-            enabled = false;
-            return;
-        }
-
-        // HUD와 그 스프라이트를 먼저 불러 둔다. 그동안 Update가 팝업을 먼저 열지 않게 멈춰 둔다.
+        // 준비가 끝나기 전에 Update가 팝업을 먼저 열지 않게 멈춰 둔다 — `EnterAsync`가 다시 켠다.
+        // Awake에서 끄면 안 된다. 꺼진 컴포넌트는 Start가 불리지 않아 도착을 알리지 못한다.
         enabled = false;
-        acquired = true;
-        var token = this.GetCancellationTokenOnDestroy();
-
-        // 스프라이트가 먼저다. 뷰 프리팹은 만들어지는 순간 Awake에서 표를 꺼내므로
-        // (`UIMatchHudScreen`의 가방 아이콘·메뉴표), 같이 기다리면 표가 비어 있는 채로 읽는다.
-        //
-        // 공통 연출(대시 히트·쏟김·상호작용 성공)도 여기서 같이 불러 둔다. 첫 대시가 터지는
-        // 순간에야 불러오면 그 한 번만 늦게 보인다 — 캐릭터 전용 연출은 참가자가 그 캐릭터를
-        // 고른 시점에 각자 준비한다(`PlayerVisuals.SpawnCharacterAsync`).
-        await ResourceManager.Instance.PreloadSpritesAsync(Sprites, token);
+        await scope.SpritesAsync(Sprites, ct);
         await UniTask.WhenAll(
-            ui.LoadAsync<UIMatchHudScreen>(token),
-            ui.LoadAsync<UILoadingPopup>(token),
-            ui.LoadAsync<UIPhaseCuePopup>(token),
-            EffectManager.PrepareCommonAsync(token));
+            scope.ViewAsync<UIMatchHudScreen>(ct),
+            scope.ViewAsync<UIPhaseCuePopup>(ct),
+            scope.MatchEffectsAsync(ct));
+    }
+
+    public override UniTask EnterAsync(CancellationToken ct)
+    {
+        // 첫 밤 전 대기 창(`SyncLoadingPopup`)이 Update에서 돈다. HUD를 못 열어도 그건 돌아야 한다.
         enabled = true;
 
         if (phase == null)
         {
             CDebug.LogError($"{name}: {nameof(GamePhase)}가 연결되지 않았다. HUD가 빈 채로 뜬다.", this);
             enabled = false;
-            return;
+            return UniTask.CompletedTask;
         }
 
-        // Push가 아니라 Replace다. UIManager가 영속이라 타이틀의 화면이 스택에 그대로
-        // 남아 있고, 그 위에 얹으면 매치가 끝나고 돌아갈 때 그 화면이 되살아난다.
-        var screen = ui.ReplaceScreen<UIMatchHudScreen>();
+        // Push가 아니라 Replace다. 앞 씬의 화면이 스택에 깔려 있으면 매치가 끝나고 되살아난다.
+        var screen = UIManager.Instance.ReplaceScreen<UIMatchHudScreen>();
         if (screen == null)
         {
             enabled = false;
-            return;
+            return UniTask.CompletedTask;
         }
 
         hud = screen;
         presenter = new MatchHudPresenter(screen, phase, ledger, refreshInterval);
 
         BindCancel();
+        return UniTask.CompletedTask;
     }
 
     /// ESC를 설정 팝업에 잇는다. 애셋을 이어 두지 않았으면 팝업을 열 방법이 없다는 뜻이라
@@ -240,8 +239,8 @@ public sealed class MatchFlow : MonoBehaviour
         popup?.Bind(ui.PopPopup);
     }
 
-    /// 매치 씬이 내려갈 때 자기 화면과 팝업을 치운다. UIManager는 씬과 함께 죽지 않으므로
-    /// 여기서 치우지 않으면 타이틀로 돌아가서도 매치 HUD가 스택에 남는다.
+    /// 매치 씬이 내려갈 때 구독을 푼다. 화면·팝업·에셋 정리는 다음 씬으로 넘기는
+    /// `GameSceneManager`가 한다.
     void OnDestroy()
     {
         if (phase != null) phase.PhaseEntered -= OnPhaseEntered;
@@ -251,16 +250,9 @@ public sealed class MatchFlow : MonoBehaviour
         if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;
         if (recipeInteract != null) recipeInteract.started -= OnRecipeActivity;
 
-        if (!acquired) return;
-        ResourceManager.Instance.ReleaseSprites(Sprites);
-        EffectManager.EndMatch();
-
-        var ui = UIManager.Instance;
-        if (ui == null) return;
-
-        ui.PopAllPopups();
-        ui.ClearScreens();
-        ui.UnloadUnused();
+        // 기다리던 중에 씬이 내려가면 핸들이 남아 창이 영영 안 닫힌다.
+        loading?.Dispose();
+        loading = null;
     }
 
     void Update()
@@ -310,17 +302,21 @@ public sealed class MatchFlow : MonoBehaviour
         var waiting = phase == null || !phase.IsSpawned || !phase.Started;
         if (!waiting)
         {
-            if (loading == null) return;
-            if (ui.CurrentPopup == loading) ui.PopPopup();
+            loading?.Dispose();
             loading = null;
             return;
         }
 
-        if (loading == null) loading = ui.PushPopup<UILoadingPopup>();
-        if (loading == null) return;     // 아직 불러오는 중이면 다음 프레임에 다시 연다
+        loading ??= ui.BeginLoading();
 
         var spawned = phase != null && phase.IsSpawned;
-        loading.SetProgress(spawned ? phase.JoinedPlayers : 0, spawned ? phase.ExpectedPlayers : 0);
+        var joined = spawned ? phase.JoinedPlayers : 0;
+        var expected = spawned ? phase.ExpectedPlayers : 0;
+        if (joined == shownJoined && expected == shownExpected) return;
+        shownJoined = joined;
+        shownExpected = expected;
+        // 인원을 아직 모르면(시계가 복제되기 전) 창의 기본 문구다.
+        ui.SetLoadingMessage(expected > 0 ? string.Format(waitingFormat, joined, expected) : null);
     }
 
     /// 페이즈가 바뀌는 순간을 화면 한복판에서 알린다 — 밤 시작 카운트다운 · 낮 시작

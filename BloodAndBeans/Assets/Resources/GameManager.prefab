@@ -357,6 +357,7 @@ Transform:
   - {fileID: 2348279432182107851}
   - {fileID: 9076905288279117202}
   - {fileID: 5337074277035966245}
+  - {fileID: 4482359119579728749}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8710312067557501213
@@ -426,7 +427,6 @@ MonoBehaviour:
   steamTransport: {fileID: 0}
   localTransport: {fileID: 0}
   gameScene: Battle_01
-  titleScene: Title
   roomListLimit: 32
   roomNameFormat: "{0}\uC758 \uBC29"
 --- !u!114 &3191545989837230399
@@ -443,6 +443,52 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::NetworkAutoStart
   enableAutoStart: 0
   lobby: {fileID: 3687760559577981321}
+--- !u!1 &8889597590845322565
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4482359119579728749}
+  - component: {fileID: 7787840024398531879}
+  m_Layer: 0
+  m_Name: SceneManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4482359119579728749
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8889597590845322565}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2955370099576955331}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7787840024398531879
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8889597590845322565}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b39fac838a30de34999ab774c72e4e85, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: BB.Client::GameSceneManager
+  titleScene: Title
+  roomScene: CharacterSelect
 --- !u!1001 &2522986795237195998
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -494,6 +540,18 @@ PrefabInstance:
     - target: {fileID: 6842329423713176908, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.size
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.data[12].type
+      value: UIMessagePopup, BB.Client
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.data[12].prefab.m_AssetGUID
+      value: 3af96eac5c60287478eb1bc04c8a7898
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

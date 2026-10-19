@@ -19,6 +19,7 @@ Shader "BloodAndBean/Style/BipedSoft"
   _FillStrength("Shadow Fill Strength",Range(0,0.4))=0.4
   _ShadowStrength("Shadow Strength",Range(0,1))=0
   _AOStrength("AO Strength",Range(0,1))=0.5
+  _ScreenAOStrength("Screen Space AO Strength",Range(0,1))=0.6
   [Header(Art Direction)] _AmbientStrength("Environment Light Strength",Range(0,2))=1
   _ShadowTint("Indirect Shadow Tint",Color)=(1,1,1,1)
   _FillDirectionality("Fill Hemisphere Shaping",Range(0,1))=0
@@ -55,6 +56,7 @@ Shader "BloodAndBean/Style/BipedSoft"
    float _TeamMaskSource;
    float4 _ShadowTint;
    float _AmbientStrength,_FillDirectionality,_ContrastPivot;
+   float _ScreenAOStrength;
   CBUFFER_END
   struct Attributes {float4 positionOS:POSITION;float3 normalOS:NORMAL;float4 tangentOS:TANGENT;float2 uv:TEXCOORD0;float4 color:COLOR;};
   struct Varyings {float4 positionCS:SV_POSITION;float3 positionWS:TEXCOORD0;half3 normalWS:TEXCOORD1;half4 tangentWS:TEXCOORD2;float2 uv:TEXCOORD3;half fog:TEXCOORD4;half team:TEXCOORD5;float2 teamUV:TEXCOORD6;};
@@ -100,7 +102,7 @@ Shader "BloodAndBean/Style/BipedSoft"
     half3 indirect=max(max(0,SampleSH(n))*_AmbientStrength,_FillColor.rgb*_FillStrength*fillShape);
     half3 color=albedo*indirect*_ShadowTint.rgb*lerp(1,surface.b,_AOStrength);
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    color*=lerp(1,GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS)).indirectAmbientOcclusion,0.6);
+    color*=lerp(1,GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS)).indirectAmbientOcclusion,_ScreenAOStrength);
     #endif
     color+=Shade(GetMainLight(TransformWorldToShadowCoord(i.positionWS)),n,view,albedo,surface);
     InputData inputData=(InputData)0;inputData.positionWS=i.positionWS;inputData.normalizedScreenSpaceUV=GetNormalizedScreenSpaceUV(i.positionCS);
