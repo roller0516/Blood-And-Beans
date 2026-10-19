@@ -19,6 +19,11 @@ Shader "BloodAndBean/Style/BipedSoft"
   _FillStrength("Shadow Fill Strength",Range(0,0.4))=0.4
   _ShadowStrength("Shadow Strength",Range(0,1))=0
   _AOStrength("AO Strength",Range(0,1))=0.5
+  _ScreenAOStrength("Screen Space AO Strength",Range(0,1))=0.6
+  [Header(Art Direction)] _AmbientStrength("Environment Light Strength",Range(0,2))=1
+  _ShadowTint("Indirect Shadow Tint",Color)=(1,1,1,1)
+  _FillDirectionality("Fill Hemisphere Shaping",Range(0,1))=0
+  _ContrastPivot("Texture Contrast Pivot (Linear)",Range(0.05,0.5))=0.5
   [Header(Team Area)] _TeamColor("Team Color",Color)=(1,0.65,0.2,1)
   _TeamStrength("Team Color Strength",Range(0,1))=1
   [Enum(VertexColor,0,MaskMap,1,VertexColorTimesMask,2)] _TeamMaskSource("Team Area Source",Float)=0
@@ -49,6 +54,9 @@ Shader "BloodAndBean/Style/BipedSoft"
    float _NormalStrength,_RoughnessScale,_SpecularStrength,_DiffuseWrap;
    float _ShadowStrength,_AOStrength,_TeamStrength,_EmissionStrength,_EmissionMaskSource;
    float _TeamMaskSource;
+   float4 _ShadowTint;
+   float _AmbientStrength,_FillDirectionality,_ContrastPivot;
+   float _ScreenAOStrength;
   CBUFFER_END
   struct Attributes {float4 positionOS:POSITION;float3 normalOS:NORMAL;float4 tangentOS:TANGENT;float2 uv:TEXCOORD0;float4 color:COLOR;};
   struct Varyings {float4 positionCS:SV_POSITION;float3 positionWS:TEXCOORD0;half3 normalWS:TEXCOORD1;half4 tangentWS:TEXCOORD2;float2 uv:TEXCOORD3;half fog:TEXCOORD4;half team:TEXCOORD5;float2 teamUV:TEXCOORD6;};
@@ -88,11 +96,13 @@ Shader "BloodAndBean/Style/BipedSoft"
     half4 surface=SAMPLE_TEXTURE2D(_SurfaceMap,sampler_SurfaceMap,i.uv);
     if(_SurfaceLayout<0.5)surface.b=1; else if(_SurfaceLayout>1.5&&_SurfaceLayout<2.5)surface=half4(lerp(0.22,0.8,surface.b),1-surface.g,surface.r,0); else if(_SurfaceLayout>2.5&&_SurfaceLayout<3.5)surface=half4(lerp(0.22,0.8,_Metallic),_Roughness,1,0); else if(_SurfaceLayout>3.5)surface=half4(lerp(0.22,0.8,surface.r*_Metallic),1-surface.a,1,0);
     surface.b*=SAMPLE_TEXTURE2D(_OcclusionMap,sampler_OcclusionMap,i.uv).g;
-    half gray=dot(albedo,half3(0.2126,0.7152,0.0722));albedo=lerp(gray.xxx,albedo,_TextureSaturation);albedo=max(0,lerp(half3(0.5,0.5,0.5),albedo,_TextureContrast));
+    half gray=dot(albedo,half3(0.2126,0.7152,0.0722));albedo=lerp(gray.xxx,albedo,_TextureSaturation);albedo=max(0,(albedo-_ContrastPivot)*_TextureContrast+_ContrastPivot);
     half3 n=Normal(i),view=GetWorldSpaceNormalizeViewDir(i.positionWS);
-    half3 color=albedo*max(SampleSH(n),_FillColor.rgb*_FillStrength)*lerp(1,surface.b,_AOStrength);
+    half fillShape=lerp(1,lerp(0.3,1,saturate(n.y*0.5+0.5)),_FillDirectionality);
+    half3 indirect=max(max(0,SampleSH(n))*_AmbientStrength,_FillColor.rgb*_FillStrength*fillShape);
+    half3 color=albedo*indirect*_ShadowTint.rgb*lerp(1,surface.b,_AOStrength);
     #if defined(_SCREEN_SPACE_OCCLUSION)
-    color*=lerp(1,GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS)).indirectAmbientOcclusion,0.6);
+    color*=lerp(1,GetScreenSpaceAmbientOcclusion(GetNormalizedScreenSpaceUV(i.positionCS)).indirectAmbientOcclusion,_ScreenAOStrength);
     #endif
     color+=Shade(GetMainLight(TransformWorldToShadowCoord(i.positionWS)),n,view,albedo,surface);
     InputData inputData=(InputData)0;inputData.positionWS=i.positionWS;inputData.normalizedScreenSpaceUV=GetNormalizedScreenSpaceUV(i.positionCS);
