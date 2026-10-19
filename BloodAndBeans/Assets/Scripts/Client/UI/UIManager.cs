@@ -47,6 +47,9 @@ public sealed class UIManager : MonoSingleton<UIManager>
     [SerializeField] int popupBaseOrder = 500;
     [SerializeField] int orderStep = 10;
 
+    /// 로딩 창의 순서. 팝업 스택 밖에 있어 어떤 팝업보다도 위다.
+    [SerializeField] int loadingOrder = 1000;
+
     readonly Dictionary<Type, AssetReferenceGameObject> prefabByType = new();
 
     /// 불러 둔 뷰는 감췄다가 다시 쓴다. 화면을 오갈 때마다 새로 만들면 GC와 함께
@@ -227,8 +230,10 @@ public sealed class UIManager : MonoSingleton<UIManager>
     public void UnloadUnused()
     {
         scratch.Clear();
+        // 로딩 창은 놓지 않는다. 씬을 떠나는 바로 그 순간에도 떠 있어야 하는 창이다.
         foreach (var pair in instanceByType)
-            if (pair.Value == null || !pair.Value.IsOnStack) scratch.Add(pair.Key);
+            if ((pair.Value == null || !pair.Value.IsOnStack) && pair.Key != typeof(UILoadingPopup))
+                scratch.Add(pair.Key);
 
         for (var i = 0; i < scratch.Count; i++) Unload(scratch[i]);
     }
@@ -355,6 +360,71 @@ public sealed class UIManager : MonoSingleton<UIManager>
         while (popups.Count > 0) PopPopup();
     }
 
+    // --- 로딩 ---
+    // 팝업 스택에 올리지 않는다. `PopAllPopups`·`PopPopup`이 씬을 치우면서 로딩 창까지
+    // 내리면, 정작 다음 씬을 불러오는 동안 창이 사라진다.
+
+    /// 로딩 창을 붙잡는 표. `Dispose`하면 놓는다. 두 번 놓아도 한 번만 센다.
+    public sealed class LoadingHandle : IDisposable
+    {
+        UIManager owner;
+        internal LoadingHandle(UIManager owner) => this.owner = owner;
+
+        public void Dispose()
+        {
+            var o = owner;
+            owner = null;
+            if (o != null) o.EndLoading();
+        }
+    }
+
+    int loadingCount;
+    string loadingMessage;
+    UILoadingPopup loadingView;
+
+    /// 로딩 창을 띄운다. 핸들이 하나라도 남아 있으면 창은 떠 있다.
+    /// 씬을 넘길 때는 새 씬의 조립 지점이 Awake에서 하나를 더 잡으면, 앞 씬의 핸들이
+    /// 풀려도 새 씬 준비가 끝날 때까지 창이 이어진다.
+    public LoadingHandle BeginLoading(string message = null)
+    {
+        loadingCount++;
+        SetLoadingMessage(message);
+        ShowLoadingAsync().Forget();
+        return new LoadingHandle(this);
+    }
+
+    /// 떠 있는 로딩 창의 문구를 바꾼다. null이면 창의 기본 문구다.
+    public void SetLoadingMessage(string message)
+    {
+        loadingMessage = message;
+        if (loadingView != null) loadingView.SetMessage(message);
+    }
+
+    async UniTaskVoid ShowLoadingAsync()
+    {
+        await LoadAsync(typeof(UILoadingPopup));
+        // 불러오는 사이에 다 풀렸으면 띄우지 않는다.
+        if (loadingCount == 0 || !instanceByType.TryGetValue(typeof(UILoadingPopup), out var view) || view == null)
+            return;
+
+        loadingView = (UILoadingPopup)view;
+        loadingView.SetMessage(loadingMessage);
+        ShowAt(loadingView, loadingOrder);
+        ApplyInputGates();
+    }
+
+    void EndLoading()
+    {
+        if (loadingCount == 0 || --loadingCount > 0) return;
+
+        loadingMessage = null;
+        if (loadingView == null) return;
+        loadingView.HideInternal();
+        loadingView.SetVisible(false);
+        loadingView = null;
+        ApplyInputGates();
+    }
+
     // --- 조립 ---
 
     /// 불러 둔 뷰를 돌려준다. 아직이면 불러오기를 시작하고 null이다.
@@ -395,6 +465,11 @@ public sealed class UIManager : MonoSingleton<UIManager>
         {
             wants |= popups[i].WantsCursor;
             blocks |= popups[i].BlocksPlayerInput;
+        }
+        if (loadingView != null)
+        {
+            wants |= loadingView.WantsCursor;
+            blocks |= loadingView.BlocksPlayerInput;
         }
         if (!wants) wants = CurrentScreen == null || CurrentScreen.WantsCursor;
         if (!blocks) blocks = CurrentScreen != null && CurrentScreen.BlocksPlayerInput;

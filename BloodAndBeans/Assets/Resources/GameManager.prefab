@@ -495,6 +495,18 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.size
+      value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.data[12].type
+      value: UIMessagePopup, BB.Client
+      objectReference: {fileID: 0}
+    - target: {fileID: 6874001455485628477, guid: e3c52e10efe5f9446b1f66dd2cc9acd6, type: 3}
+      propertyPath: views.Array.data[12].prefab.m_AssetGUID
+      value: 3af96eac5c60287478eb1bc04c8a7898
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

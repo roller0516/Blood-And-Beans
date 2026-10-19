@@ -1,7 +1,8 @@
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-/// 타이틀 씬의 조립 지점. UIManager와 SteamLobby를 이어 Presenter를 만든다.
+/// 타이틀 씬과 캐릭터 선택 씬의 조립 지점. UIManager와 SteamLobby를 이어 Presenter를 만든다.
+/// 어느 화면을 열지는 Presenter가 지금 씬을 보고 정한다 (`TitlePresenter.EnableAsync`).
 ///
 /// 이 클래스가 따로 있는 이유는 Presenter가 화면보다 오래 살아야 하기 때문이다. 예전에는
 /// 화면 클래스(`TitleScreen`)가 자기 Presenter를 만들었는데, 화면을 셋으로 쪼개면서
@@ -41,7 +42,13 @@ public sealed class TitleFlow : MonoBehaviour
         }
 
         presenter = new TitlePresenter(UIManager.Instance, lobby, gameTitle, HideAllUI, QuitApplication);
+
+        // Awake에서 잡는다. 앞 씬이 씬을 넘기며 잡은 핸들보다 먼저 잡혀야 창이 끊기지 않는다.
+        loading = UIManager.Instance.BeginLoading();
     }
+
+    /// 첫 화면이 다 뜰 때까지 덮는 로딩 창.
+    UIManager.LoadingHandle loading;
 
     /// UIManager가 팀 수를 아는 시점(로비 준비 후)에 첫 화면을 연다.
     /// 화면이 꺼내는 스프라이트를 먼저 불러 둔다. 화면 프리팹은 UIManager가 열 때 불러온다.
@@ -50,13 +57,16 @@ public sealed class TitleFlow : MonoBehaviour
         if (presenter == null) return;
         acquired = true;
         await ResourceManager.Instance.PreloadSpritesAsync(Sprites, this.GetCancellationTokenOnDestroy());
-        presenter.Enable();
+        await presenter.EnableAsync();
+        loading?.Dispose();
     }
 
     void OnDisable() => presenter?.Disable();
 
     void OnDestroy()
     {
+        // 준비 중에 씬이 내려가도 핸들은 놓는다. 남기면 창이 영영 안 닫힌다.
+        loading?.Dispose();
         if (!acquired) return;
         // 스택은 떠날 때(HideAllUI) 이미 비웠다. 남은 이 씬의 뷰를 놓는다.
         var ui = UIManager.Instance;

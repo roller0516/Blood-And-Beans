@@ -331,7 +331,7 @@ public static class CharacterSelectSetup
                 new SteamLobby.RoomMember(2,"BEAN",0,false,false,true,2),
                 new SteamLobby.RoomMember(3,"MOCHA",1,false,false,true,4),
                 new SteamLobby.RoomMember(4,"LATTE",1,false,false,false,7)};
-            view.SetRoster(roster);view.SetLobby(true,false,false,3,4);
+            view.SetRoster(roster);view.SetLobby(true,false,3,4);
             foreach(var tr in screen.GetComponentsInChildren<Transform>(true))tr.gameObject.layer=5;
             Canvas.ForceUpdateCanvases();
             foreach(var group in screen.GetComponentsInChildren<UnityEngine.UI.LayoutGroup>(true))

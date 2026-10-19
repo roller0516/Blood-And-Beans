@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// 타이틀 UI의 화면 흐름과 SteamLobby 연동을 담당한다.
 /// View에는 표시할 값만 전달하고, 로비 상태 변경은 이 클래스 한 곳에서 구독한다.
@@ -36,7 +37,11 @@ public sealed class TitlePresenter
 
     public int TeamCount => lobby.TeamCount;
 
-    public void Enable()
+    /// 타이틀 씬과 캐릭터 선택 씬이 같은 조립 지점(`TitleFlow`)을 쓴다. 무엇을 열지는
+    /// 지금 씬과 방 안인지가 정한다 — 둘이 어긋나면(방 밖인데 선택 씬 등) 맞는 씬으로 넘긴다.
+    ///
+    /// 첫 화면이 다 뜨면 끝난다. 조립 지점이 그때까지 로딩 창을 붙잡는다.
+    public async UniTask EnableAsync()
     {
         if (active) return;
 
@@ -45,14 +50,29 @@ public sealed class TitlePresenter
         lobby.MatchStarting += OnMatchStarting;
         SubscribeToNetwork();
 
-        if (lobby.InRoom) EnterRoom();
-        else OpenTitle();
+        var inRoomScene = SceneManager.GetActiveScene().name == lobby.RoomScene;
+        if (lobby.InRoom != inRoomScene) await LoadSceneAsync(lobby.InRoom ? lobby.RoomScene : lobby.TitleScene);
+        else if (inRoomScene) await OpenCharacterSelectAsync();
+        else await OpenTitleAsync();
     }
 
-    void OpenTitle()
+    async UniTask OpenTitleAsync()
     {
         SoundManager.Instance.PlayBgm(Bgm.Title);
-        OpenScreenAsync<UITitleMenuScreen>().Forget();
+        await OpenScreenAsync<UITitleMenuScreen>();
+    }
+
+    /// 로딩 창을 띄운 채 씬을 넘긴다. 새 씬의 `TitleFlow`가 Awake에서 핸들을 하나 더
+    /// 잡으므로, 이 핸들이 풀려도 새 씬의 화면이 다 뜰 때까지 창이 이어진다.
+    ///
+    /// 이 씬의 화면은 스택에서 내린다. `UIManager`는 씬을 넘어 살아서, 두면 다음 씬의
+    /// 화면 밑에 앞 씬 화면이 깔린다.
+    async UniTask LoadSceneAsync(string scene)
+    {
+        using var loading = ui.BeginLoading();
+        ui.PopAllPopups();
+        ui.ClearScreens();
+        await SceneManager.LoadSceneAsync(scene).ToUniTask();
     }
 
     public void Disable()
@@ -141,19 +161,18 @@ public sealed class TitlePresenter
         if (await lobby.JoinRoomAsync(room) && active) EnterRoom();
     }
 
-    /// 방에 들어가면 곧바로 캐릭터 선택 화면이다. 대기실을 따로 거치지 않고 픽·준비·시작을
+    /// 방에 들어가면 캐릭터 선택 씬으로 넘어간다. 대기실을 따로 거치지 않고 픽·준비·시작을
     /// 한 화면에서 본다.
-    ///
-    /// 화면 프리팹을 이어 두지 않았으면 예전 대기실로 물러난다 — 여기서 멈추면 방에
-    /// 들어가고도 아무것도 못 한다.
-    void EnterRoom() => EnterRoomAsync().Forget();
+    void EnterRoom() => LoadSceneAsync(lobby.RoomScene).Forget();
 
-    async UniTaskVoid EnterRoomAsync()
+    /// 캐릭터 선택 씬의 첫 화면. 화면 프리팹을 이어 두지 않았으면 예전 대기실로
+    /// 물러난다 — 여기서 멈추면 방에 들어가고도 아무것도 못 한다.
+    async UniTask OpenCharacterSelectAsync()
     {
         SoundManager.Instance.PlayBgm(Bgm.Lobby);
         if (await OpenScreenAsync<UICharacterSelectScreen>() == null)
         {
-            if (active) OpenRoomAsync().Forget();
+            if (active) await OpenRoomAsync();
             return;
         }
         Render();
@@ -166,7 +185,7 @@ public sealed class TitlePresenter
         lobby.JoinStartedMatch();
     }
 
-    async UniTaskVoid OpenRoomAsync()
+    async UniTask OpenRoomAsync()
     {
         var screen = await OpenScreenAsync<UIRoomScreen>();
         if (screen == null) return;
@@ -186,8 +205,21 @@ public sealed class TitlePresenter
     /// 로비에 들어가 있으므로 여기서는 순서를 걱정하지 않는다.
     void StartOrReady()
     {
-        if (lobby.IsRoomHost) lobby.StartMatch();
-        else lobby.ToggleReady();
+        if (!lobby.IsRoomHost) { lobby.ToggleReady(); return; }
+        if (lobby.CanStartMatch) { lobby.StartMatch(); return; }
+
+        // 방장의 시작 버튼은 잠그지 않는다. 눌렀는데 못 시작하면 이유를 팝업으로 알린다.
+        ShowMessageAsync(lobby.ReadyCount < lobby.ReadyTotal ? NotAllReadyMessage : TeamFullMessage).Forget();
+    }
+
+    const string NotAllReadyMessage = "모든 유저가 준비해야 게임을 시작할 수 있습니다.";
+    const string TeamFullMessage = "팀 정원을 확인해 주세요.";
+
+    async UniTaskVoid ShowMessageAsync(string text)
+    {
+        await ui.LoadAsync<UIMessagePopup>();
+        if (!active || ui.CurrentPopup is UIMessagePopup) return;
+        ui.PushPopup<UIMessagePopup>()?.Bind(text, ui.PopPopup);
     }
 
     public void SelectTeam(int team) => lobby.SelectTeam(team);
@@ -195,12 +227,11 @@ public sealed class TitlePresenter
     /// 방장의 「게임 시작」.
     public void StartMatch() => lobby.StartMatch();
 
+    /// 방을 나가면 타이틀 씬으로 돌아간다. 곡은 타이틀 화면이 열면서 바꾼다.
     public void LeaveRoom()
     {
         lobby.LeaveRoom();
-        SoundManager.Instance.PlayBgm(Bgm.Title);
-        ui.PopScreen();
-        RefreshRooms();
+        LoadSceneAsync(lobby.TitleScene).Forget();
     }
 
     /// 종료는 화면이 아니라 애플리케이션의 일이라 바깥에서 받는다.
@@ -255,9 +286,8 @@ public sealed class TitlePresenter
     /// 방에서 이미 집어 간 칸. 매 갱신마다 리스트를 새로 만들지 않도록 재사용한다.
     readonly List<UICharacterSelectScreen.Claim> claims = new();
 
-    /// 방의 모두가 서로의 픽을 본다 — 누가 무엇을 골랐는지는 이름표로 뜬다.
-    /// 잠그는 것은 같은 팀의 픽뿐이다. 기획서 9.1의 중복 픽 금지가 팀 안에서만이라,
-    /// 다른 팀의 픽까지 막으면 고를 수 있는 칸이 팀 수만큼 줄어든다.
+    /// 카드에는 내 팀의 픽만 뜬다. 다른 팀의 픽은 보여 주지도 잠그지도 않는다 —
+    /// 기획서 9.1의 중복 픽 금지가 팀 안에서만이라서다.
     IReadOnlyList<UICharacterSelectScreen.Claim> Claims()
     {
         claims.Clear();
@@ -265,11 +295,11 @@ public sealed class TitlePresenter
         for (var i = 0; i < members.Count; i++)
         {
             var member = members[i];
-            if (member.IsSelf || !CharacterCatalog.IsValid(member.Character)) continue;
+            if (member.IsSelf || member.Team != lobby.SelectedTeam
+                || !CharacterCatalog.IsValid(member.Character)) continue;
 
             claims.Add(new UICharacterSelectScreen.Claim(
-                member.Character, member.Name, TeamColorOf(member.Team),
-                member.Team == lobby.SelectedTeam));
+                member.Character, member.Name, TeamColorOf(member.Team), true));
         }
         return claims;
     }
@@ -309,8 +339,7 @@ public sealed class TitlePresenter
             case UICharacterSelectScreen pick:
                 pick.SetClaims(Claims());
                 pick.SetRoster(lobby.Members);
-                pick.SetLobby(lobby.IsRoomHost, lobby.CanStartMatch, lobby.SelfReady,
-                              lobby.ReadyCount, lobby.ReadyTotal);
+                pick.SetLobby(lobby.IsRoomHost, lobby.SelfReady, lobby.ReadyCount, lobby.ReadyTotal);
                 break;
         }
     }

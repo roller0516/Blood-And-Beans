@@ -73,8 +73,16 @@ public sealed class MatchFlow : MonoBehaviour
     bool returnPopupOpen;
     float returnPopupUntil;
 
-    /// 첫 밤 시작 전 로딩 창. 떠 있을 때만 값이 있다.
-    UILoadingPopup loading;
+    /// 첫 밤 시작 전 로딩 창을 붙잡은 핸들. 떠 있을 때만 값이 있다.
+    UIManager.LoadingHandle loading;
+
+    /// 인원이 정해진 뒤의 로딩 문구. {0} 모인 인원, {1} 방 인원.
+    [Header("로딩")]
+    [SerializeField] string waitingFormat = "다른 플레이어를 기다리는 중… {0} / {1}";
+
+    /// 문구를 마지막으로 만든 인원. 값이 바뀔 때만 문자열을 만든다.
+    int shownJoined = -1;
+    int shownExpected = -1;
 
     /// 페이즈 경계 연출 창. 떠 있을 때만 값이 있다.
     UIPhaseCuePopup cue;
@@ -251,6 +259,10 @@ public sealed class MatchFlow : MonoBehaviour
         if (recipeMove != null) recipeMove.performed -= OnRecipeActivity;
         if (recipeInteract != null) recipeInteract.started -= OnRecipeActivity;
 
+        // 기다리던 중에 씬이 내려가면 핸들이 남아 창이 영영 안 닫힌다.
+        loading?.Dispose();
+        loading = null;
+
         if (!acquired) return;
         ResourceManager.Instance.ReleaseSprites(Sprites);
         EffectManager.EndMatch();
@@ -310,17 +322,21 @@ public sealed class MatchFlow : MonoBehaviour
         var waiting = phase == null || !phase.IsSpawned || !phase.Started;
         if (!waiting)
         {
-            if (loading == null) return;
-            if (ui.CurrentPopup == loading) ui.PopPopup();
+            loading?.Dispose();
             loading = null;
             return;
         }
 
-        if (loading == null) loading = ui.PushPopup<UILoadingPopup>();
-        if (loading == null) return;     // 아직 불러오는 중이면 다음 프레임에 다시 연다
+        loading ??= ui.BeginLoading();
 
         var spawned = phase != null && phase.IsSpawned;
-        loading.SetProgress(spawned ? phase.JoinedPlayers : 0, spawned ? phase.ExpectedPlayers : 0);
+        var joined = spawned ? phase.JoinedPlayers : 0;
+        var expected = spawned ? phase.ExpectedPlayers : 0;
+        if (joined == shownJoined && expected == shownExpected) return;
+        shownJoined = joined;
+        shownExpected = expected;
+        // 인원을 아직 모르면(시계가 복제되기 전) 창의 기본 문구다.
+        ui.SetLoadingMessage(expected > 0 ? string.Format(waitingFormat, joined, expected) : null);
     }
 
     /// 페이즈가 바뀌는 순간을 화면 한복판에서 알린다 — 밤 시작 카운트다운 · 낮 시작

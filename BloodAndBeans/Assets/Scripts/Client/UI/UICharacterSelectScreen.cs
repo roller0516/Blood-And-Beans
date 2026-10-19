@@ -19,16 +19,15 @@ using UnityEngine.UI;
 /// 판정하지 않는다 — 짝꿍이 무엇을 골랐는지는 복제 상태로만 알 수 있고, 두 클라이언트가
 /// 각자 판정하면 동시에 같은 것을 고른 순간 결과가 갈린다.
 ///
-/// 방에 들어가면 곧바로 이 화면이다 (`TitlePresenter.EnterRoom`). 준비 표시와 시작·준비
+/// 방에 들어가면 캐릭터 선택 씬으로 넘어가 이 화면이 뜬다 (`TitlePresenter.EnterRoom`). 준비 표시와 시작·준비
 /// 버튼도 여기 있고(`SetLobby`), 남의 픽은 스팀 로비 멤버 데이터를 타고 들어온다
 /// (`SetClaims`).
 public sealed class UICharacterSelectScreen : UIScreen
 {
     /// 이미 누가 집어 간 카드. 목업 2번의 카드 좌상단 라벨(팀 색 점 + "2팀 · 안개 등대")이다.
     ///
-    /// 방의 누구든 고르면 그 사실이 여기 실린다 — 누가 무엇을 골랐는지는 모두가 본다.
-    /// 다만 <see cref="Locked"/>은 같은 팀일 때만 참이다. 기획서 9.1의 중복 픽 금지는
-    /// 팀 안에서만이라, 다른 팀의 픽까지 잠그면 고를 수 있는 칸이 팀 수만큼 줄어든다.
+    /// 부르는 쪽(`TitlePresenter.Claims`)이 내 팀의 픽만 실어 보낸다. 기획서 9.1의
+    /// 중복 픽 금지는 팀 안에서만이라 다른 팀의 픽은 보이지도 잠기지도 않는다.
     public readonly struct Claim
     {
         public readonly int Character;
@@ -307,17 +306,14 @@ public sealed class UICharacterSelectScreen : UIScreen
     /// 대기실 상태 (기획서 10.1). 방을 만들면 바로 이 화면이라 준비 표시도 여기 붙는다.
     ///
     /// 방장은 시작 버튼을 쥐고 나머지는 준비를 누른다 — 둘이 같은 버튼 자리를 나눠 쓴다.
-    public void SetLobby(bool isHost, bool canStart, bool selfReady, int readyNow, int total)
+    public void SetLobby(bool isHost, bool selfReady, int readyNow, int total)
     {
         if (waitLabel != null) waitLabel.text = "준비한 크루";
         if (timer != null) timer.text = $"{readyNow}/{total}";
 
+        // 버튼은 잠그지 않는다. 방장이 못 시작하는 이유는 눌렀을 때 팝업이 알린다.
         if (confirmLabel != null)
             confirmLabel.text = isHost ? "게임 시작" : selfReady ? "준비 취소" : "준비";
-
-        // 방장은 아직 시작할 수 없는 이유(정원 초과·준비 미완)를 잠금으로 본다.
-        // 손님의 준비는 언제든 누를 수 있다.
-        confirmButton.SetInteractable(!isHost || canStart);
     }
 
     /// 지금 켜 둔 이름표 수. 카메라가 움직이는 동안 이만큼만 다시 놓는다.
