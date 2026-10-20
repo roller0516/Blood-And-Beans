@@ -26,6 +26,7 @@ public sealed class UIMatchResultPopup : UIPopup
         public TMP_Text Revenue;
         public RectTransform Bar;
         public Image BarImage;
+        public Image Portrait;
     }
 
     /// 일차별 매출 한 줄.
@@ -47,6 +48,7 @@ public sealed class UIMatchResultPopup : UIPopup
     [SerializeField] TMP_Text caption;
     [SerializeField] TMP_Text titleText;
     [SerializeField] TMP_Text totalText;
+    [SerializeField] string captionLabel = "최종 결과";
 
     [Header("순위")]
     [SerializeField] RankSlot[] rankSlots = Array.Empty<RankSlot>();
@@ -81,13 +83,14 @@ public sealed class UIMatchResultPopup : UIPopup
     ///
     /// `dailyRevenue`는 아직 복제되지 않는다. 비워 넘기면 그 칸이 "집계 없음"으로 뜬다.
     public void Bind(int lastDay, IReadOnlyList<int> revenueByTeam, int myTeam,
-                     IReadOnlyList<int> dailyRevenue, Action lobby, Action rematch)
+                     IReadOnlyList<int> dailyRevenue, Action lobby, Action rematch,
+                     IReadOnlyList<Sprite> teamPortraits = null)
     {
         var winners = FinalStandings.WinnersOf(revenueByTeam);
         var tie = FinalStandings.IsTie(revenueByTeam);
         var iWon = winners.Contains(myTeam);
 
-        Set(caption, $"DAY {lastDay:00} — FINAL SETTLEMENT");
+        Set(caption, captionLabel);
 
         if (tie && iWon)
         {
@@ -107,7 +110,7 @@ public sealed class UIMatchResultPopup : UIPopup
             ? revenueByTeam[myTeam] : 0;
         Set(totalText, $"{mine:N0}", win);
 
-        FillRanks(revenueByTeam, myTeam);
+        FillRanks(revenueByTeam, myTeam, teamPortraits);
         FillDays(dailyRevenue);
 
         UIButtons.Wire(lobbyButton, lobby);
@@ -119,7 +122,7 @@ public sealed class UIMatchResultPopup : UIPopup
         if (rematchButton != null) rematchButton.gameObject.SetActive(rematch != null);
     }
 
-    void FillRanks(IReadOnlyList<int> revenueByTeam, int myTeam)
+    void FillRanks(IReadOnlyList<int> revenueByTeam, int myTeam, IReadOnlyList<Sprite> teamPortraits)
     {
         // 매출 내림차순. 같은 값이면 팀 번호 순으로 둔다 — 공동 1위 판정은 이미
         // `FinalStandings`가 했고 여기서는 줄 세우기만 한다.
@@ -140,6 +143,12 @@ public sealed class UIMatchResultPopup : UIPopup
             slot.Root.SetActive(true);
 
             var team = order[i];
+            if (slot.Portrait != null)
+            {
+                var portrait = teamPortraits != null && team < teamPortraits.Count ? teamPortraits[team] : null;
+                slot.Portrait.sprite = portrait;
+                slot.Portrait.enabled = portrait != null;
+            }
             var value = revenueByTeam[team];
             var tint = team == myTeam ? myRankBar : otherRankBar;
 

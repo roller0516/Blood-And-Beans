@@ -52,6 +52,9 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     /// 칸 얼굴에 늘 떠 있는 등급. 툴팁은 마우스를 올려야 뜨므로, 다섯 칸을 훑어보며
     /// 무엇이 희귀한지 고르는 데는 쓸 수 없다 (기획서 6.5.5의 상자는 잠깐 열려 있다).
     [SerializeField] TMP_Text rarityBadge;
+    [SerializeField] TMP_Text itemCaption;
+    [SerializeField] string hiddenCaption = "공개 대기";
+    [SerializeField] string emptyCaption = "비었음";
 
     /// 등급 이름. 인덱스가 `IngredientRarity`다 — 색표와 같은 규칙이라 배열이 짧으면
     /// 그 등급은 빈 칸으로 남는다.
@@ -225,6 +228,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (blind != null) blind.SetActive(true);
         Set(blindIn, countdown);
         Set(nameLabel, HiddenLabel);
+        Set(itemCaption, hiddenCaption);
         Set(countLabel, string.Empty);
         Set(weightLabel, string.Empty);
         ClearRarity();
@@ -240,6 +244,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (blind != null) blind.SetActive(false);
         Set(blindIn, string.Empty);
         Set(nameLabel, name);
+        Set(itemCaption, name);
         Set(countLabel, count);
         Set(weightLabel, weight);
         SetRarity(rarity);
@@ -253,6 +258,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (blind != null) blind.SetActive(false);
         Set(blindIn, string.Empty);
         Set(nameLabel, string.Empty);
+        Set(itemCaption, emptyCaption);
         Set(countLabel, string.Empty);
         Set(weightLabel, string.Empty);
         ClearRarity();

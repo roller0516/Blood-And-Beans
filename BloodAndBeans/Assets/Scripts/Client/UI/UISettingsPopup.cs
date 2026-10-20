@@ -11,6 +11,9 @@ public sealed class UISettingsPopup : UIPopup
 {
     [SerializeField] UIVolumeSlider[] volumes;
     [SerializeField] Toggle fullscreen;
+    [SerializeField] Image fullscreenFace;
+    [SerializeField] Color fullscreenOn = new(.46f, .67f, .19f);
+    [SerializeField] Color fullscreenOff = new(.24f, .15f, .33f);
     [SerializeField] Button applyButton;
     [SerializeField] Button closeButton;
 
@@ -30,11 +33,28 @@ public sealed class UISettingsPopup : UIPopup
     /// 직렬화로 이을 수 없다.
     LookSensitivity look;
 
+    protected override void Awake()
+    {
+        base.Awake();
+        if (fullscreen != null) fullscreen.onValueChanged.AddListener(ShowFullscreen);
+    }
+
+    void OnDestroy()
+    {
+        if (fullscreen != null) fullscreen.onValueChanged.RemoveListener(ShowFullscreen);
+    }
+
+    void ShowFullscreen(bool on)
+    {
+        if (fullscreenFace != null) fullscreenFace.color = on ? fullscreenOn : fullscreenOff;
+    }
+
     public void Bind(Action close)
     {
         previousSelection = EventSystem.current?.currentSelectedGameObject;
         foreach (var volume in volumes) volume.Show();
         if (fullscreen != null) fullscreen.SetIsOnWithoutNotify(Screen.fullScreen);
+        if (fullscreen != null) ShowFullscreen(fullscreen.isOn);
         BindLook();
 
         UIButtons.Wire(closeButton, () => Close(close));

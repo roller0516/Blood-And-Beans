@@ -1,0 +1,25 @@
+{
+  "tool": "built-in image_gen.imagegen",
+  "date": "2026-10-21 KST",
+  "status": "saved production assets; final UI visual review paused by user",
+  "assets": [
+    {
+      "purpose": "Extract a UI-free final-results background from the approved final concept; used only by the final-results popup, never CharacterStage",
+      "reference": "C:\\Users\\eatyourmeat\\Desktop\\Blood_And_Beans\\Blood-And-Beans\\00__Docs\\02__Art\\02__UI\\luigi-pc-ui-v2\\light-ui-preview\\final.png",
+      "generated_source": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-ece2fcda-01ec-4493-a0b6-1a495a336e04.png",
+      "production": "BloodAndBeans/Assets/Art/UI/Sprites/Title/LuigiFinalBackdrop.png",
+      "transparent_background": false,
+      "prompt": "Use case: precise-object-edit. Production background plate extraction from the approved game final-results concept. Edit target: provided image. Remove ONLY all UI text, green accent lines around title, the full right-side translucent ranking board including all portraits, all names, ranks and numbers, and both bottom-right buttons. Reconstruct the naturally occluded cafe behind the removed right-side UI. Preserve the two happy 3D vampire and zombie characters celebrating on the left, their exact positions, proportions, poses and glowing floor ring. Preserve original 16:9 camera framing, purple night window/forest/mansion, warm cafe lights/candles, coffee tables and the small blue ghost customers wherever visible. Do not enlarge or reposition characters. Keep the left upper area above the characters clear of UI/text for actual Unity headings. Background illustration only. No UI, no letters, no digits, no logo, no watermark. Same high quality as reference, 1920x1080 or larger."
+    },
+    {
+      "purpose": "Six distinct customer-race portrait icons for forecast, retaining all actual game races",
+      "reference": "C:\\Users\\eatyourmeat\\Desktop\\Blood_And_Beans\\Blood-And-Beans\\00__Docs\\02__Art\\02__UI\\luigi-pc-ui-v2\\light-ui-preview\\settlement.png",
+      "generated_source": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-330c0d4a-bc0a-487b-b4be-3894494057d1.png",
+      "production": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiForecastPortraits.png",
+      "transparent_background": true,
+      "alpha_inspection": "RGBA 1536x1024; transparent gaps verified by reading alpha. No programmatic background removal or artwork repainting.",
+      "slicing": "Unity ISpriteEditorDataProvider with capability checks and ISpriteNameFileIdDataProvider. 3 columns x 2 rows, 512x512 source cells; alpha bounds >48; Forecast0 through Forecast5. Names mapped in actual Race order: Zombie, Vampire, Ghost, Skeleton, Werewolf, Witch.",
+      "prompt": "Create a production game UI portrait atlas on a truly transparent background, SIX individual cute monster customer bust icons, exactly arranged in 3 columns and 2 rows of equal cells, each centered with generous transparent padding. No UI panels, no lettering, no numbers, no badges, no frames, no shadows extending beyond the cell. Same polished cozy Blood & Beans ghost cafe aesthetic as attached reference, soft plush rounded 3D look, warm creamy highlights, charming simple expressive faces, crisp silhouette at 80 px size. Cell order: TOP LEFT friendly pale green zombie with tiny stitches; TOP CENTER chubby ivory vampire with burgundy collar and two tiny fangs; TOP RIGHT smiling white ghost with rounded sheet body; BOTTOM LEFT cute ivory skeleton skull with dark round eye sockets, recognizable skull; BOTTOM CENTER friendly fluffy brown werewolf puppy with pointed ears; BOTTOM RIGHT cute small witch wearing a dark purple pointed hat. Each portrait front-facing three-quarter body bust/head, individually isolated alpha, similar scale. Square-ish heads, no cut-off extremities, all six icons clearly separated."
+    }
+  ]
+}

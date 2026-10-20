@@ -528,10 +528,26 @@ public sealed class MatchFlow : SceneFlow
         // 한 번뿐이라 여기서 한 번 찾는다 — 주기 실행이 아니다 (AGENTS.md).
         var lobby = FindFirstObjectByType<SteamLobby>();
 
+        // 로비의 실제 픽 중 팀별 첫 크루를 대표 초상으로 쓴다. 픽이 없으면 빈 초상이다.
+        var portraits = new Sprite[board.TeamCount];
+        if (lobby != null)
+            foreach (var member in lobby.Members)
+                if (member.Team >= 0 && member.Team < portraits.Length && portraits[member.Team] == null &&
+                    CharacterCatalog.IsValid(member.Character))
+                    portraits[member.Team] = ResourceManager.Instance.CrewSprite(CharacterCatalog.All[member.Character].Id);
+
+        // 직접 실행한 매치에도 실제로 스폰된 픽이 있다. 로비에 없는 팀만 보충한다.
+        foreach (var pick in FindObjectsByType<PlayerCharacter>(FindObjectsInactive.Exclude))
+        {
+            if (!pick.IsSpawned || !pick.HasPick || !pick.TryGetComponent<PlayerTeam>(out var team)) continue;
+            if (team.Team >= 0 && team.Team < portraits.Length && portraits[team.Team] == null)
+                portraits[team.Team] = ResourceManager.Instance.CrewSprite(pick.Def.Id);
+        }
+
         // ponytail: "한 판 더"는 재시작 경로가 없어 넘기지 않는다. 팝업이 그 버튼을
         // 잠근다. 매치 재시작이 생기면 여기에 이어 준다.
         popup.Bind(phase.Day, revenue, PlayerTeam.Local(), null,
-                   lobby != null ? lobby.ReturnToRoom : (System.Action)null, null);
+                   lobby != null ? lobby.ReturnToRoom : (System.Action)null, null, portraits);
         resultPopupOpen = true;
     }
 

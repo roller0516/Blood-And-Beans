@@ -11,6 +11,10 @@ public sealed class UIPlayerNameplate : MonoBehaviour
     /// 팀 색이 본체다. 멀리서는 이 색 덩어리만 읽힌다.
     [SerializeField] UnityEngine.UI.Graphic background;
     [SerializeField] TMP_Text nameLabel;
+    [SerializeField] UnityEngine.UI.Graphic plate;
+    [SerializeField] GameObject selfArrow;
+    [SerializeField] Color selfTextColor = new(.74f, 1f, .49f);
+    [SerializeField] Color otherTextColor = Color.white;
 
     [Tooltip("닉네임이 없을 때(로비를 거치지 않은 개발용 시작) 쓰는 이름. {0}은 클라이언트 번호다.")]
     [SerializeField] string fallbackName = "P{0}";
@@ -49,6 +53,10 @@ public sealed class UIPlayerNameplate : MonoBehaviour
     void Render()
     {
         background.color = TeamColors.Of(team.Team);
+        if (plate != null) plate.enabled = !team.IsOwner;
+        if (selfArrow != null) selfArrow.SetActive(team.IsOwner);
+        background.enabled = !team.IsOwner;
+        nameLabel.color = team.IsOwner ? selfTextColor : otherTextColor;
         // 소유자 여부는 스폰 뒤에야 맞다. 스폰 때 오는 TeamChanged가 다시 그린다.
         var nickname = team.Nickname;
         nameLabel.text = team.IsOwner ? selfName

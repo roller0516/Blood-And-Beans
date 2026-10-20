@@ -3130,11 +3130,31 @@ PrefabInstance:
     - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -1324777578, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.a
+      value: 0.94
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.b
+      value: 0.3254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.g
+      value: 0.15294118
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.r
+      value: 0.23921569
+      objectReference: {fileID: 0}
     - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 1eb10b1ddc7c64b459256f69e2cc73ff, type: 2}
     - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
       value: 2.8
@@ -3570,10 +3590,34 @@ PrefabInstance:
       propertyPath: m_IgnoreLayout
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 3357876168679236841, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: radiusOverride
+      value: 30
+      objectReference: {fileID: 0}
     - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 1266101638, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.a
+      value: 0.985
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.b
+      value: 0.3254902
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.g
+      value: 0.15294118
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Color.r
+      value: 0.23921569
+      objectReference: {fileID: 0}
+    - target: {fileID: 3573214643361280434, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 47d00f2dbfe8f1149b1d51c0a4d250c5, type: 2}
     - target: {fileID: 8972932584781875504, guid: a7a793faf94fef74bb18287dc6061a5c, type: 3}
       propertyPath: m_Name
       value: LuigiSurface
@@ -3716,7 +3760,7 @@ PrefabInstance:
     - target: {fileID: 671246371114882803, guid: 0f7a17ddc27b59b4292c46b6e824f822, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: 1266101638, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 671246371114882803, guid: 0f7a17ddc27b59b4292c46b6e824f822, type: 3}
       propertyPath: m_Enabled
       value: 0

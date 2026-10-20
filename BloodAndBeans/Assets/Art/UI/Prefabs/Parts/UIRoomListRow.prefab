@@ -499,7 +499,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 2100000, guid: d2409023615645d42b38f7e3deed2f4b, type: 2}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
@@ -507,8 +507,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1929557383, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
-  m_Type: 1
+  m_Sprite: {fileID: 0}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 0
   m_FillMethod: 4
@@ -524,13 +524,13 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6604012141688474141}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 706567d2bcd2d7a45977ee39e566a666, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BB.Client::UIRoundImage
-  radiusOverride: 14
-  bottomBrightness: 0.73
+  radiusOverride: 18
+  bottomBrightness: 0.78
 --- !u!1 &6805836571884825506
 GameObject:
   m_ObjectHideFlags: 0
@@ -711,14 +711,18 @@ PrefabInstance:
     - target: {fileID: 5052773918277882622, guid: 14554e21d673e854d86eb938d9352998, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -1324777578, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 5052773918277882622, guid: 14554e21d673e854d86eb938d9352998, type: 3}
       propertyPath: m_Material
       value: 
-      objectReference: {fileID: 0}
+      objectReference: {fileID: 2100000, guid: 1eb10b1ddc7c64b459256f69e2cc73ff, type: 2}
     - target: {fileID: 5052773918277882622, guid: 14554e21d673e854d86eb938d9352998, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
       value: 2.8
+      objectReference: {fileID: 0}
+    - target: {fileID: 6417636372549076901, guid: 14554e21d673e854d86eb938d9352998, type: 3}
+      propertyPath: radiusOverride
+      value: 24
       objectReference: {fileID: 0}
     - target: {fileID: 6494847437745863466, guid: 14554e21d673e854d86eb938d9352998, type: 3}
       propertyPath: m_IgnoreLayout

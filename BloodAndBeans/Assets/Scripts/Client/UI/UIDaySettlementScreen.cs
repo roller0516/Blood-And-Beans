@@ -44,6 +44,7 @@ public sealed class UIDaySettlementScreen : UIScreen
     [SerializeField] RectTransform countdownFill;
     [SerializeField] UnityEngine.UI.Image countdownRing;
     [SerializeField] string countdownFormat = "{0}초";
+    [SerializeField] string dayHeadingFormat = "{0}일차 영업 정산";
 
     [Header("하루 정산")]
     [SerializeField] UISettlementLine salesLine;
@@ -69,6 +70,8 @@ public sealed class UIDaySettlementScreen : UIScreen
     [Header("예보")]
     /// `Race` 순서로 잇는다. 칸 색과 놓인 순서는 프리팹이 정한다.
     [SerializeField] LayoutElement[] raceSegments = Array.Empty<LayoutElement>();
+    [SerializeField] GameObject[] raceCards = Array.Empty<GameObject>();
+    [SerializeField] UnityEngine.UI.Image[] raceRatioFills = Array.Empty<UnityEngine.UI.Image>();
     [SerializeField] UIDayItemIcon[] popularIcons = Array.Empty<UIDayItemIcon>();
 
     /// 전환 페이즈가 시작될 때 한 번 부른다. 남은 시간만 계속 바뀌므로 `SetRemaining`으로
@@ -79,7 +82,7 @@ public sealed class UIDaySettlementScreen : UIScreen
                      IReadOnlyList<int> raceCounts,
                      IReadOnlyList<Sprite> popular)
     {
-        dayHeading.text = $"DAY {day:00} 정산";
+        dayHeading.text = string.Format(dayHeadingFormat, day);
 
         // 그날 매출이 그날 임대료에 닿았는가로만 판정한다 (기획서 3.2).
         var settled = rentPaid >= rentOwed;
@@ -132,6 +135,16 @@ public sealed class UIDaySettlementScreen : UIScreen
     /// 수가 아니라 구성비다 (기획서 5.6) — 칸 폭만 인원수에 비례하고 숫자는 적지 않는다.
     void FillForecast(IReadOnlyList<int> raceCounts, IReadOnlyList<Sprite> popular)
     {
+        var total = 0;
+        if (raceCounts != null)
+            for (var i = 0; i < raceCounts.Count; i++) total += Mathf.Max(0, raceCounts[i]);
+        for (var i = 0; i < raceCards.Length; i++)
+        {
+            var n = raceCounts != null && i < raceCounts.Count ? raceCounts[i] : 0;
+            raceCards[i].SetActive(n > 0);
+            if (i < raceRatioFills.Length && raceRatioFills[i] != null)
+                raceRatioFills[i].fillAmount = total > 0 ? n / (float)total : 0f;
+        }
         for (var i = 0; i < raceSegments.Length; i++)
         {
             var n = raceCounts != null && i < raceCounts.Count ? raceCounts[i] : 0;

@@ -144,7 +144,7 @@ Shader "BB/UI Rounded Rect"
                     float2 normalized = input.local / input.halfSize;
                     float upperSheen = pow(saturate(normalized.y * 0.5 + 0.5), 5.0);
                     float rimSheen = exp(-abs(distance + 0.13) * 13.0);
-                    color.rgb += _GlassHighlight * (upperSheen * 0.25 + rimSheen * 0.13);
+                    color.rgb += half3(0.60, 0.42, 0.85) * _GlassHighlight * (upperSheen * 0.25 + rimSheen * 0.13);
                     // 기본값은 기존 단색 면이다. 공용 프리셋만 얇은 선과 반투명 면을 켠다.
                     float border = saturate(0.5 + (distance + _BorderWidth) / max(pixel, 1e-5));
                     border *= step(1e-5, _BorderWidth);

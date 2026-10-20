@@ -16,6 +16,8 @@ Shader "BB/UI Bubble Fill"
     {
         [PerRendererData] _MainTex ("Sprite Texture", 2D) = "white" {}
         _Color ("Tint", Color) = (1,1,1,1)
+        _Rounded ("Rounded Order Panel", Range(0,1)) = 0
+        _Aspect ("Panel Aspect", Float) = 2.5
 
         // 출렁임. 진폭은 말풍선 높이 대비 비율, 파장 수는 가로 한 폭에 들어가는 물결 수다.
         _WaveAmplitude ("Wave Amplitude", Range(0, 0.1)) = 0.025
@@ -97,6 +99,8 @@ Shader "BB/UI Bubble Fill"
                 float _WaveAmplitude;
                 float _WaveCount;
                 float _WaveSpeed;
+                float _Rounded;
+                float _Aspect;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -127,6 +131,19 @@ Shader "BB/UI Bubble Fill"
                 float distance = level - input.fill.x;
                 float below = saturate(distance / max(fwidth(distance), 1e-5) + 0.5);
                 color.rgb = lerp(color.rgb, color.rgb * input.fillColor.rgb, below * input.fillColor.a);
+
+                // 같은 인내심 채움을 가로형 주문 패널에서도 유지한다. 기존 말풍선은 기본값 0.
+                if (_Rounded > 0.5)
+                {
+                    float2 p = (float2(input.fill.z, input.fill.x) - 0.5) * float2(_Aspect, 1.0);
+                    float2 q = abs(p) - float2(_Aspect * 0.5 - 0.24, 0.26);
+                    float edge = length(max(q, 0.0)) + min(max(q.x,q.y),0.0) - 0.24;
+                    float aa = max(fwidth(edge), 0.001);
+                    color.a *= 1.0 - smoothstep(-aa, aa, edge);
+                    float rim = 1.0 - smoothstep(0.012, 0.035, abs(edge));
+                    color.rgb = lerp(color.rgb, half3(0.72,0.57,0.84), rim * 0.55);
+                    color.rgb += pow(saturate(input.fill.x),5.0) * half3(0.07,0.04,0.09);
+                }
 
                 #ifdef UNITY_UI_CLIP_RECT
                 float2 inside = step(_ClipRect.xy, input.clipPosition.xy)

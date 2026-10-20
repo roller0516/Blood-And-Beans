@@ -13,7 +13,7 @@ public static class PreviewLuigiNightState
         var ui=UIManager.Instance.CurrentScreen as UIMatchHudScreen;
         if(ui==null)throw new InvalidOperationException("Load existing UIMatchHudScreen first");
         bool buried=state=="buried",full=state=="full",cooldown=state=="cooldown";
-        if(!new[]{"normal","buried","full","cooldown"}.Contains(state))throw new ArgumentException(state);
+        if(!new[]{"normal","buried","full","cooldown","long-prompt"}.Contains(state))throw new ArgumentException(state);
         ui.Render(new MatchHudModel{
             IsDay=false,Portrait=ResourceManager.Instance.CrewSprite(CharacterCatalog.All[0].Id),
             Day="1일차",PhaseName="야간 탐색",Timer="01:37",Team="팀 1",TeamColor=TeamColors.Of(0),
@@ -21,7 +21,7 @@ public static class PreviewLuigiNightState
             BagWeight=buried?"귀환 지점에서 빈 가방 재지급":full?"23.0 / 10 KG":"4.5 / 10 KG",
             BagRatio=buried?0:full?2.3f:.45f,BagBand=full?6:0,BagBuried=buried,
             ShowDash=true,DashKey="SPACE",DashRatio=cooldown?.75f:0,DashTime=cooldown?"6":"",
-            Prompt="[F] 가방 회수"});
+            Prompt=state=="long-prompt"?"[F] Tier 1 · 길게 눌러 열기":"[F] 가방 회수"});
         foreach(var slot in ui.GetComponentsInChildren<UISkillSlot>(true)){
             var isDash=slot.name.Contains("Dash");slot.SetLabel(isDash?"대시":CharacterCatalog.All[0].NightName);
             if(!isDash){slot.SetIcon(AssetDatabase.LoadAssetAtPath<Sprite>("Assets/Art/UI/Sprites/SkillIcon/Skill_Vampire_Night_BatSwarm.png"));slot.SetKey("Q");slot.SetCooldown(cooldown?.65f:0);slot.SetCount(cooldown?"8":"");}

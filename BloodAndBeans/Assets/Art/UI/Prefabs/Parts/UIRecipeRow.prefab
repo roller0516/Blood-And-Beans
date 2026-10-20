@@ -750,9 +750,13 @@ PrefabInstance:
       value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4429024249196662347, guid: 6d86ccfb52bd39545a77b60bd226fa76, type: 3}
-      propertyPath: m_Material
+      propertyPath: m_Sprite
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 4429024249196662347, guid: 6d86ccfb52bd39545a77b60bd226fa76, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 47d00f2dbfe8f1149b1d51c0a4d250c5, type: 2}
     - target: {fileID: 4429024249196662347, guid: 6d86ccfb52bd39545a77b60bd226fa76, type: 3}
       propertyPath: m_PixelsPerUnitMultiplier
       value: 2.8
@@ -938,7 +942,7 @@ PrefabInstance:
     - target: {fileID: 5466212747077135257, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -129633152806393217, guid: 82096f12f424fbe40a72040675d8925a, type: 2}
+      objectReference: {fileID: 2100000, guid: 6ec77fda0d2a5564e881476aeaddd564, type: 2}
     - target: {fileID: 5466212747077135257, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_TextWrappingMode
       value: 0
@@ -970,7 +974,7 @@ PrefabInstance:
     - target: {fileID: 5587303486533029217, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -129633152806393217, guid: 82096f12f424fbe40a72040675d8925a, type: 2}
+      objectReference: {fileID: 2100000, guid: 6ec77fda0d2a5564e881476aeaddd564, type: 2}
     - target: {fileID: 5587303486533029217, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278785577
@@ -1054,7 +1058,7 @@ PrefabInstance:
     - target: {fileID: 7712196710133463135, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_sharedMaterial
       value: 
-      objectReference: {fileID: -129633152806393217, guid: 82096f12f424fbe40a72040675d8925a, type: 2}
+      objectReference: {fileID: 2100000, guid: 6ec77fda0d2a5564e881476aeaddd564, type: 2}
     - target: {fileID: 7712196710133463135, guid: 765766f6529bf5b4a942e7f57bc5f351, type: 3}
       propertyPath: m_fontColor32.rgba
       value: 4278785577

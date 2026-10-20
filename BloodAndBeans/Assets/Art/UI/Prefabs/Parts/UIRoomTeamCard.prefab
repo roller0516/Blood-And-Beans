@@ -926,6 +926,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7227532995301734056, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
+      propertyPath: radiusOverride
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 7735990807157187682, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: readyStatus
       value: 
@@ -1065,11 +1069,15 @@ PrefabInstance:
     - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -1324777578, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 1eb10b1ddc7c64b459256f69e2cc73ff, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
@@ -1446,6 +1454,10 @@ PrefabInstance:
       propertyPath: m_Enabled
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7227532995301734056, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
+      propertyPath: radiusOverride
+      value: 24
+      objectReference: {fileID: 0}
     - target: {fileID: 7735990807157187682, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: readyStatus
       value: 
@@ -1585,11 +1597,15 @@ PrefabInstance:
     - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -1324777578, guid: f61efb03b3492b0429917a8638bccd12, type: 3}
+      objectReference: {fileID: 0}
     - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
       propertyPath: m_Enabled
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 8881753411875906547, guid: e8b75561875278e45a570b8d3ecf4751, type: 3}
+      propertyPath: m_Material
+      value: 
+      objectReference: {fileID: 2100000, guid: 1eb10b1ddc7c64b459256f69e2cc73ff, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
