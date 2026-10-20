@@ -20,6 +20,8 @@ public sealed class UIRoomScreen : UIScreen
 
     /// 방장이 아닌 사람의 버튼. 방장은 시작 버튼을 쥐므로 이건 감춘다 (기획서 10.1).
     [SerializeField] Button readyButton;
+    [SerializeField] string readyActionLabel = "준비 완료";
+    [SerializeField] string cancelReadyActionLabel = "준비 취소";
     [SerializeField] TMP_Text readyCount;
 
     [SerializeField] Button leaveButton;
@@ -124,7 +126,7 @@ public sealed class UIRoomScreen : UIScreen
         {
             readyButton.gameObject.SetActive(!isHost);
             var label = readyButton.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = selfReady ? "준비 취소" : "준비";
+            if (label != null) label.text = selfReady ? cancelReadyActionLabel : readyActionLabel;
         }
 
         // 방장은 누구를 기다리는지, 손님은 몇 명이 남았는지 같은 숫자를 본다.

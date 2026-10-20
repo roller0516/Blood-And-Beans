@@ -10,6 +10,7 @@ public sealed class UIStandingRow : MonoBehaviour
     [SerializeField] TMP_Text total;
     /// 시계 HUD 변형에서만 쓴다. 정산 행은 기존 색과 배선을 그대로 사용한다.
     [SerializeField] UnityEngine.UI.Image background;
+    [SerializeField] bool preserveBackgroundArtwork;
     [SerializeField] Color[] teamColors = System.Array.Empty<Color>();
     [SerializeField] string ownTeamName;
     [SerializeField] string[] teamNames = System.Array.Empty<string>();
@@ -28,7 +29,7 @@ public sealed class UIStandingRow : MonoBehaviour
         rank.color = mine ? mineRank : otherRank;
         if (background != null && team >= 0 && team < teamColors.Length)
         {
-            background.color = teamColors[team];
+            background.color = preserveBackgroundArtwork ? Color.white : teamColors[team];
             badge.color = teamColors[team];
         }
     }

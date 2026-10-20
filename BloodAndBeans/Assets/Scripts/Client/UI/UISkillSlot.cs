@@ -14,6 +14,7 @@ public sealed class UISkillSlot : MonoBehaviour
     [SerializeField] TMP_Text count;
     /// 원 아래의 키.
     [SerializeField] TMP_Text key;
+    [SerializeField] TMP_Text caption;
     /// 쿨타임 동안 아이콘을 흐리게 해 남은 초가 읽히게 한다.
     [SerializeField, Range(0f, 1f)] float coolingIconAlpha = .35f;
     [SerializeField] Color ringColor = new(1f, 1f, 1f, .95f);
@@ -41,6 +42,11 @@ public sealed class UISkillSlot : MonoBehaviour
     public void SetKey(string text)
     {
         if (key.text != text) key.text = text;
+    }
+
+    public void SetLabel(string text)
+    {
+        if (caption != null && caption.text != text) caption.text = text;
     }
 
     public void SetCount(string text)

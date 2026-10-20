@@ -126,7 +126,8 @@ public class UIRoundImage : BaseMeshEffect
     protected override void OnValidate()
     {
         base.OnValidate();
-        if (graphic == null) return;
+        // 비활성 상태는 스프라이트의 알파/9-slice를 쓰겠다는 선택이다. 재질을 덮어쓰지 않는다.
+        if (!enabled || graphic == null) return;
 
         var rounded = UITheme.Config.RoundedMaterial;
         if (rounded == null)

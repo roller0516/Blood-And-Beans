@@ -46,6 +46,8 @@ public sealed class UIDaySkillSlot : MonoBehaviour
         if (slot.SetCooldown(ratio) && readySound != null && readySound.clip != null) readySound.Play();
         if (Time.unscaledTime < refreshAt) return;
         refreshAt = Time.unscaledTime + .1f;
+        slot.SetLabel(character.HasPick ? director.Phase.Current == Phase.Day
+            ? character.Def.DayName : character.Def.NightName : string.Empty);
         slot.SetCount(character.HasPick && remaining > 0f ? Mathf.CeilToInt(remaining).ToString() : string.Empty);
         slot.SetKey(character.HasPick && input != null ? input.SkillBinding : string.Empty);
     }

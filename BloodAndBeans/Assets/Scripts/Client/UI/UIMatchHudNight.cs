@@ -28,6 +28,10 @@ public sealed class UIMatchHudNight : MonoBehaviour
     [SerializeField] RectTransform nightBagSummaryRoot;
     [SerializeField] TMP_Text nightBagSummary;
     [SerializeField] bool showNightBagCapacityDetails;
+    [SerializeField] bool compactBagCapacity;
+    [SerializeField] string compactCapacityFormat = "{0:0}%";
+    [SerializeField] string absentCapacityText = "—";
+    [SerializeField] Image playerPortrait;
     [SerializeField] RectTransform bagFill;
 
     /// 가방을 묻어 두면 게이지와 글자가 이 색으로 바뀐다. 묻힌 동안에는 담기가 전부
@@ -99,6 +103,11 @@ public sealed class UIMatchHudNight : MonoBehaviour
 
     public void Render(in MatchHudModel model)
     {
+        if (playerPortrait != null)
+        {
+            playerPortrait.sprite = model.Portrait;
+            playerPortrait.enabled = model.Portrait != null;
+        }
         UIMatchHudScreen.SetText(dayText, model.Day);
         UIMatchHudScreen.SetText(phaseText, model.PhaseName);
         UIMatchHudScreen.SetText(timerText, compactNightClock && model.Timer != null ? model.Timer.Split('.')[0] : model.Timer);
@@ -106,7 +115,10 @@ public sealed class UIMatchHudNight : MonoBehaviour
 
         UIMatchHudScreen.SetGroup(nightBagDock, model.ShowBag);
         UIMatchHudScreen.SetGroup(nightBagSummaryRoot, model.ShowBag);
-        UIMatchHudScreen.SetText(nightBagSummary, model.BagWeight);
+        var capacity = compactBagCapacity
+            ? model.BagBuried ? absentCapacityText : string.Format(compactCapacityFormat, model.BagRatio * 100f)
+            : model.BagPercent;
+        UIMatchHudScreen.SetText(nightBagSummary, compactBagCapacity ? capacity : model.BagWeight);
         UIMatchHudScreen.SetGroup(bagPercentText, model.ShowBag && showNightBagCapacityDetails);
         UIMatchHudScreen.SetGroup(bagWeightText, model.ShowBag);
         UIMatchHudScreen.SetGroup(bagIcon, model.ShowBag);
@@ -116,8 +128,8 @@ public sealed class UIMatchHudNight : MonoBehaviour
         UIMatchHudScreen.SetGroup(bagFill, model.ShowBag && showNightBagCapacityDetails);
         if (!model.ShowBag) return;
 
-        UIMatchHudScreen.SetText(bagPercentText, model.BagPercent);
-        UIMatchHudScreen.SetText(bagWeightText, model.BagWeight);
+        UIMatchHudScreen.SetText(bagPercentText, capacity);
+        UIMatchHudScreen.SetText(bagWeightText, compactBagCapacity && model.BagBuried ? model.BagPercent : model.BagWeight);
         bagFill.localScale = new Vector3(Mathf.Clamp01(model.BagRatio), 1f, 1f);
 
         // 묻어 둔 동안에는 적재량이 의미가 없다. 게이지를 비우고 색으로 알린다.

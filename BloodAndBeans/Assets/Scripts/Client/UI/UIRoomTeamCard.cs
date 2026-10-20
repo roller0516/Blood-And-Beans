@@ -9,11 +9,15 @@ public sealed class UIRoomTeamCard : MonoBehaviour
     [SerializeField] UnityEngine.UI.Image teamPlate;
     [SerializeField] UICrewRosterCard[] seats;
     [SerializeField] GameObject selectedFrame;
+    [SerializeField] TMP_Text teamNumber;
+    [SerializeField] UnityEngine.UI.Image teamAccent;
 
     public void Render(int team, bool selected, IReadOnlyList<SteamLobby.RoomMember> members)
     {
         heading.SetText("팀 {0}", team + 1);
         teamPlate.color = TeamColors.Of(team);
+        if (teamNumber != null) teamNumber.SetText("{0}", team + 1);
+        if (teamAccent != null) teamAccent.color = TeamColors.Of(team);
         selectedFrame.SetActive(selected);
         var seat = 0;
         for (var i = 0; i < members.Count && seat < seats.Length; i++)

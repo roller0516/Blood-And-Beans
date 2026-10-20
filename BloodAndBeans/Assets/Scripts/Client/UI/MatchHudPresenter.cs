@@ -86,11 +86,15 @@ public sealed class MatchHudPresenter
 
         RefreshLocalPlayer();
         var team = PlayerTeam.Local();
+        if (character == null && cachedPlayer != null) character = cachedPlayer.GetComponent<PlayerCharacter>();
+        model.Portrait = character != null && character.HasPick
+            ? ResourceManager.Instance.CrewSprite(character.Def.Id) : null;
 
         model.Day = $"{phase.Day}일차";
         model.PhaseName = phase.Finished ? "종료" : PhaseLabel(phase.Current);
         model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining, phase.Current == Phase.Day);
         model.Team = DisplayNames.Team(team);
+        model.TeamColor = team >= 0 ? TeamColors.Of(team) : Color.clear;
 
         // 호스트는 자기 자신이 서버라 잴 왕복이 없다.
         var net = phase.NetworkManager;
@@ -173,7 +177,7 @@ public sealed class MatchHudPresenter
         // 건네기는 중앙이 아니라 양쪽 머리 위에 뜬다 (기획서 5.7.4) — `Handoff`가 그린다.
         if (controller != null && controller.Target is PlayerCarry) prompt = string.Empty;
 
-        model.Prompt = !string.IsNullOrEmpty(prompt) ? $"[F] {prompt}"
+        model.Prompt = !string.IsNullOrEmpty(prompt) ? UIMatchHudScreen.InteractionKeyPrefix + prompt
             : controller != null && controller.Denied ? "안 됨"
             : null;
         return model;

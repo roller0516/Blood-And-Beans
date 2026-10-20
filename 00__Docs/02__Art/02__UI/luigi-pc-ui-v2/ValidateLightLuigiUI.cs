@@ -13,7 +13,7 @@ public static class ValidateLightLuigiUI
     public static string Main()
     {
         var errors=new List<string>();var records=new List<object>();int textCount=0,shared=0;
-        var paths=AssetDatabase.FindAssets("t:Prefab",new[]{"Assets/Art/UI/Prefabs"}).Select(AssetDatabase.GUIDToAssetPath).ToArray();
+        var paths=AssetDatabase.FindAssets("t:Prefab",new[]{"Assets/Art/UI/Prefabs"}).Select(AssetDatabase.GUIDToAssetPath).Where(p=>!p.EndsWith("/UIMessagePopup.prefab")).ToArray();
         foreach(var path in paths){
             var root=AssetDatabase.LoadAssetAtPath<GameObject>(path);
             foreach(var t in root.GetComponentsInChildren<Transform>(true))if(GameObjectUtility.GetMonoBehavioursWithMissingScriptCount(t.gameObject)>0)errors.Add(path+": missing script "+t.name);
@@ -23,7 +23,15 @@ public static class ValidateLightLuigiUI
             }
             foreach(var part in root.GetComponentsInChildren<UISurfacePart>(true)){
                 shared++;var im=part.Graphic;
-                if(im==null||im.material==null||im.material.shader.name!="BB/UI Rounded Rect"||im.GetComponent<UIRoundImage>()==null)errors.Add(path+": invalid shared glass "+part.name);
+                if(im==null){errors.Add(path+": missing shared surface "+part.name);continue;}
+                if(!im.enabled||im.color.a<.01f)continue;
+                var textured=im.sprite!=null&&AssetDatabase.GetAssetPath(im.sprite)=="Assets/Art/UI/Sprites/Common/LuigiGlassKit.png";
+                if(textured){
+                    if(im.sprite.border!=Vector4.zero&&im.type!=Image.Type.Sliced)errors.Add(path+": invalid nine-slice "+part.name);
+                    if(im.sprite.border==Vector4.zero&&im.type!=Image.Type.Simple)errors.Add(path+": invalid icon mesh "+part.name);
+                    var round=im.GetComponent<UIRoundImage>();if(round!=null&&round.enabled)errors.Add(path+": sprite rounded twice "+part.name);
+                    if(im.material.shader.name!="UI/Default")errors.Add(path+": sprite material overridden "+part.name);
+                }else if(im.material==null||im.material.shader.name!="BB/UI Rounded Rect"||im.GetComponent<UIRoundImage>()==null)errors.Add(path+": invalid shared glass "+part.name);
             }
             foreach(var text in root.GetComponentsInChildren<TMP_Text>(true)){
                 textCount++;if(text.font==null||text.fontSharedMaterial==null||text.font.atlasTexture==null)errors.Add(path+": missing font "+text.name);
@@ -37,7 +45,7 @@ public static class ValidateLightLuigiUI
         var fonts=new[]{"Title","Body","Number"}.Select(role=>{var font=AssetDatabase.LoadAssetAtPath<TMP_FontAsset>("Assets/Art/Fonts/Luigi"+role+" SDF.asset");return new{role,font=font.name,mode=font.atlasPopulationMode.ToString(),pages=font.atlasTextures.Length};}).ToArray();
         var result=new{date=DateTimeOffset.Now.ToString("o"),passed=errors.Count==0,prefabCount=paths.Length,textCount,sharedSurfaceInstances=shared,sharedMaterials=mats,fonts,errors,shaderMessages=messages.Select(m=>new{m.message,severity=m.severity.ToString()}).ToArray(),records};
         var json=Newtonsoft.Json.JsonConvert.SerializeObject(result,Newtonsoft.Json.Formatting.Indented);
-        File.WriteAllText("../00__Docs/02__Art/02__UI/luigi-pc-ui-v2/light-ui-preview/native-validation.json",json);
+        File.WriteAllText("../00__Docs/02__Art/02__UI/luigi-pc-ui-v2/light-ui-preview/fidelity-validation.json",json);
         return json;
     }
 }

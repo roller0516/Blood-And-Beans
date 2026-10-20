@@ -19,6 +19,8 @@ public sealed class UITeamSlot : MonoBehaviour
     [SerializeField] TMP_Text label;
     /// 팀 색 띠와 별개인 내 선택 표시. 공용 선택선 프리셋을 프리팹에서 잇는다.
     [SerializeField] GameObject selection;
+    [SerializeField] Color idleLabel = Color.white;
+    [SerializeField] Color selectedLabel = new(.15f, .075f, .23f);
 
     Color teamColor = Color.white;
 
@@ -36,5 +38,6 @@ public sealed class UITeamSlot : MonoBehaviour
         if (background != null)
             background.color = on ? teamColor : Color.Lerp(teamColor, UITheme.Panel, DimAmount);
         if (selection != null) selection.SetActive(on);
+        if (label != null) label.color = on ? selectedLabel : idleLabel;
     }
 }

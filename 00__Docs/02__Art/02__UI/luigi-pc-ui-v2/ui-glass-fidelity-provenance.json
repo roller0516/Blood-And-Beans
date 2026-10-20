@@ -1,0 +1,39 @@
+{
+  "date": "2026-10-19",
+  "direction": "Canonical portable light-ui-preview night/shared concept; improve fidelity of existing Unity prefabs without baking UI text or changing gameplay camera/world props.",
+  "tool": "image_gen.imagegen (built-in)",
+  "alphaVerified": true,
+  "sources": [
+    {
+      "output": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiGlassKit.png",
+      "original": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-d3c57cf9-bf7c-4d0d-9fce-af03057e066e.png",
+      "size": [
+        1536,
+        1024
+      ],
+      "transparent_background": true,
+      "references": [
+        "light-ui-preview/shared.png",
+        "light-ui-preview/night.png"
+      ],
+      "prompt": "Edit the supplied reference UI sheet into a PRODUCTION-READY EMPTY UI SPRITE ATLAS for this exact Blood & Beans purple ghost cafe game UI. Match the supplied polished reference literally: gently convex softly reflective deep-plum glass surfaces, tiny lavender bevels, inner specular edge, soft diffuse lavender halo outside, subtle upper-left reflection and darker lower edge. NOT flat vector rectangles, NOT dull flat colors, NOT ornate brass or parchment. This image is the actual exported game assets, not a mockup. Genuine transparent RGBA background, no checkerboard, no scene, no captions, NO TEXT or numbers anywhere, no characters, no watermark. Strictly 4 columns x 3 rows, twelve equal cells on a landscape 3:2 canvas. Each isolated asset centered inside its own cell with at least 28px clear transparent separation, no overlap, no guides. Row1 cells left to right: (1) empty plum-glass rounded rectangular panel, broad clean central face with delicate violet light on edges, (2) neutral plum rounded pill button with reflective top edge, (3) bright pastel-lime convex rounded pill button and delicate green glow exactly like selected button in reference, (4) violet-hover rounded pill button softly glowing with brighter lavender edge. Row2 left to right: (5) empty upright plum rounded character card frame, no portrait or text, (6) same upright card with lime selection rim and plum-green translucent inner face, (7) circular skill button with deep transparent plum center, thin pearl-lavender round edge, soft cyan inner light, NO ICON inside, (8) small lavender full-moon orb medallion with fine soft craters, no face. Row3 left to right: (9) small warm brown cute 3D backpack icon, exactly the softly rounded satchel/backpack with two straps, flap and small button on lower-right of reference night HUD, front three-quarter camera, compact silhouette no dangling ornaments, (10) blank pearl-white beveled rectangular keyboard keycap with rounded corners and plum lower shadow, no glyph, (11) empty compact horizontal plum nameplate pill, (12) empty subtle plum recessed horizontal progress-bar track. Keep all frame face interiors empty and usable for separately rendered text. Large panel central region should be calm uniform enough for nine-slice stretching, preserve the fine dimensional rim, not a generic CSS panel. Skill circle and moon centered on true round silhouettes. All sprites need clean antialiased transparency including restrained soft halo, well-separated assets. This is an extraction/reconstruction of the EXACT supplied UI style, not a new stylistic interpretation.",
+      "productionNotes": "Generated cells required manually observed, irregular SpriteRects; not blind equal-grid slicing. Genuine alpha range 0..254 verified. Sprite Editor capability checks, stable SpriteIDs and nine-slice borders. No raster painting or chroma-key reconstruction."
+    },
+    {
+      "output": "BloodAndBeans/Assets/Art/UI/Sprites/Common/LuigiBagStates.png",
+      "original": "C:/Users/eatyourmeat/.codex/generated_images/01a10512-bacc-73b3-92af-9276117f039a/exec-7e409340-2338-411d-b47c-e7c3fd373503.png",
+      "size": [
+        2172,
+        724
+      ],
+      "transparent_background": true,
+      "references": [
+        "Generated LuigiGlassKit.png (backpack in lower left)",
+        "Previous LuigiBagStates.png (state layout only)"
+      ],
+      "prompt": "Create an actual transparent production sprite strip with THREE STATES of the SAME small warm brown rounded leather BACKPACK from the LOWER LEFT of reference image 1. Match that backpack exactly: dark warm chestnut leather, flap with one small round button, front pouch, two top shoulder straps, gentle 3D rounded stylized game render, soft top-left lighting. NOT a cloth sack: reference 2 is only the three-state layout example to replace. All three backpacks should be the same size, camera, material, and silhouette, in exactly three equal horizontal cells of one wide landscape image. Center each in its own third, leave 30px transparent clear margins around each. Left closed backpack with flap shut; middle SAME backpack with top flap lifted enough to show a small dark open mouth, front pouch unchanged; right SAME backpack lying flat on its side without contents for a missing/dropped state. NO text, NO labels, NO arrows, NO UI panel, NO ground, NO cast shadow rectangle. Genuine RGBA transparent background. Crisp readable small icon shapes; keep compact and understated, no ornate accessories. The only elements are the three backpack state sprites, isolated, separated, with clean antialiased alpha.",
+      "productionNotes": "Existing texture GUID and LuigiBagClosed/LuigiBagOpen/LuigiBagBuried SpriteIDs retained. 2D UI pictures, not realtime meshes. Alpha range 0..255 verified."
+    }
+  ],
+  "rendering": "All names, values, state labels, selection, progress and input stay native uGUI/TMP. Existing GUIDs and data/input wiring preserved. Actual 3D CharacterStage and gameplay cameras unchanged."
+}

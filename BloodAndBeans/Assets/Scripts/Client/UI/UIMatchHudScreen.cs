@@ -11,6 +11,7 @@ using UnityEngine;
 /// 예전에는 코드로 세웠지만, 그러면 자리·색·글꼴을 기획자가 손댈 수 없었다.
 public sealed class UIMatchHudScreen : UIScreen
 {
+    internal const string InteractionKeyPrefix = "[F] ";
     [Header("페이즈별 루트")]
     [SerializeField] UIMatchHudDay day;
     [SerializeField] UIMatchHudNight night;
@@ -37,6 +38,7 @@ public sealed class UIMatchHudScreen : UIScreen
 
     [Header("오른쪽 위")]
     [SerializeField] TMP_Text teamText;
+    [SerializeField] UnityEngine.UI.Image teamMarker;
 
     /// 낮·밤 헤더와 따로 둔다. 헤더는 페이즈마다 꺼지지만 핑은 늘 보여야 한다.
     [SerializeField] TMP_Text pingText;
@@ -44,6 +46,7 @@ public sealed class UIMatchHudScreen : UIScreen
     [Header("상호작용 안내")]
     [SerializeField] RectTransform promptBox;
     [SerializeField] TMP_Text promptText;
+    [SerializeField] RectTransform promptKey;
 
     /// 건네기 프롬프트가 발밑에서 뜨는 높이(m). 이름표(1.5m)보다 위다.
     [SerializeField, Min(0f)] float handoffHeight = 2f;
@@ -128,12 +131,17 @@ public sealed class UIMatchHudScreen : UIScreen
         else night.Render(model);
 
         SetText(teamText, model.Team);
+        SetGroup(teamMarker, model.TeamColor.a > 0f);
+        if (teamMarker != null) teamMarker.color = model.TeamColor;
         SetText(pingText, model.Ping);
         SetText(label, model.Details);
 
         var hasPrompt = !string.IsNullOrEmpty(model.Prompt);
         SetGroup(promptBox, hasPrompt);
-        if (hasPrompt) SetText(promptText, model.Prompt);
+        var hasKey = hasPrompt && model.Prompt.StartsWith(InteractionKeyPrefix, System.StringComparison.Ordinal);
+        SetGroup(promptKey, hasKey);
+        if (hasPrompt) SetText(promptText, hasKey && promptKey != null
+            ? model.Prompt.Substring(InteractionKeyPrefix.Length) : model.Prompt);
 
         SetGroup(dashSlot, model.ShowDash);
         if (model.ShowDash)
@@ -178,6 +186,11 @@ public sealed class UIMatchHudScreen : UIScreen
             {
                 handoffBoxes[i] = Instantiate(promptBox, worldMarkers);
                 handoffTexts[i] = handoffBoxes[i].GetComponentInChildren<TMP_Text>(true);
+                if (promptKey != null)
+                {
+                    var clonedKey = handoffBoxes[i].Find(promptKey.name);
+                    if (clonedKey != null) clonedKey.gameObject.SetActive(false);
+                }
             }
         }
 
@@ -244,9 +257,11 @@ public struct MatchHudModel
         public bool Mine;
     }
     public string Day;          // "2일차"
+    public UnityEngine.Sprite Portrait;
     public string PhaseName;    // "야간 탐색"
     public string Timer;        // "02:46"
     public string Team;         // "Team 0"
+    public Color TeamColor;
     public string Ping;         // "핑 42ms" / "호스트"
     public string Revenue;      // "팀 매출  2,840G"
     public int? TeamRevenue;    // 숫자와 고정 라벨을 따로 배치하는 밤 매출판.

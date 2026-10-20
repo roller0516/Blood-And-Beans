@@ -29,6 +29,7 @@ Shader "BB/UI Rounded Rect"
         _BorderWidth ("Border Width / Radius", Range(0,0.3)) = 0
         _FillAlpha ("Interior Opacity", Range(0,1)) = 1
         _BorderTintInfluence ("Border Vertex Tint", Range(0,1)) = 0
+        _GlassHighlight ("Glass Surface Highlight", Range(0,1)) = 0
 
         // uGUI 마스크(Mask/RectMask2D)가 쓰는 값. UI 셰이더가 이걸 갖고 있지 않으면
         // 마스크 안에서 잘리지 않고 삐져나온다. `StencilMaterial`이 이 프로퍼티들을 채운
@@ -110,6 +111,7 @@ Shader "BB/UI Rounded Rect"
                 float _BorderWidth;
                 float _FillAlpha;
                 float _BorderTintInfluence;
+                float _GlassHighlight;
             CBUFFER_END
 
             Varyings vert(Attributes input)
@@ -138,6 +140,11 @@ Shader "BB/UI Rounded Rect"
                     // 화면 픽셀 하나가 이 좌표계에서 얼마인지를 미분으로 얻는다. 캔버스
                     // 배율이나 반지름이 바뀌어도 테두리가 늘 한 픽셀만 부드럽다.
                     float pixel = fwidth(distance);
+                    // 유리 프리셋만 윗면 반사와 가장자리 명암을 더한다. 기본 재질은 그대로다.
+                    float2 normalized = input.local / input.halfSize;
+                    float upperSheen = pow(saturate(normalized.y * 0.5 + 0.5), 5.0);
+                    float rimSheen = exp(-abs(distance + 0.13) * 13.0);
+                    color.rgb += _GlassHighlight * (upperSheen * 0.25 + rimSheen * 0.13);
                     // 기본값은 기존 단색 면이다. 공용 프리셋만 얇은 선과 반투명 면을 켠다.
                     float border = saturate(0.5 + (distance + _BorderWidth) / max(pixel, 1e-5));
                     border *= step(1e-5, _BorderWidth);

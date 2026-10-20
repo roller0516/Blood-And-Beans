@@ -1,4 +1,41 @@
-## 2026-10-19 — 승인된 가벼운 시안의 Unity 적용
+## 2026-10-20 — 방 대기실과 실제 서체 재수정
+
+이전 결과의 큰 바깥 패널·중첩 슬롯·폰트가 승인된 `light-ui-preview/room.png`와 달라 기존 `UIRoomScreen`부터 다시 대조했다. 갤러리의 시안 이미지는 변경하지 않았다. 화면별 배치 재수정은 이번에 방 대기실을 대상으로 했고, 제목·본문 폰트 연결은 기존 UI 프리팹 전체에 적용했다. 다른 화면의 미술 배치까지 시안과 일치했다고 보고하는 것은 아니다.
+
+- `UIRoomScreen.prefab/Panel`: 큰 전체 프레임을 숨기고 중앙 2×2 팀 카드, 좌상단 제목·안내, 우상단 준비 인원, 양쪽 하단 액션으로 배치했다. `UIRoomTeamCard`와 `UICrewRosterCard`의 GUID와 중첩 프리팹 연결을 유지했다. 팀 카드의 두 초상 아래 이름과 준비/대기 상태를 분리했다. 상태 표시의 원본은 기존 공용 `UICrewRosterCard.prefab` 안에 한 번만 두고 방 카드에서 활성화한다.
+- `UIRoomTeamCard.cs`: 기존 팀 이름·선택·참가자 렌더링에 팀 번호와 색 띠 참조를 추가했다. `UICrewRosterCard.cs`: 선택적인 준비 상태 텍스트/배경 참조와 색·문구를 직렬화했다. 기존 작은 참가자 카드에서는 이 상태 행을 숨긴다. `UIRoomScreen.cs`의 준비 액션 문구도 직렬화했으며 기존 `Bind`·로비 콜백·시작 가능 조건은 유지한다.
+- `Assets/Art/Fonts/LuigiLettering SDF.asset`: 공식 원본 ONE Mobile POP으로 만든 실제 TMP 서체다. 제목과 본문은 같은 정적 2048 아틀라스 1장/790자와 두 재질을 공유한다. 추가 이름은 원본 TTF가 연결된 1024 Dynamic 폴백으로 처리하고 Clear Dynamic Data On Build=true다. 기존 Lilita One 숫자 아틀라스는 유지하되 한글 폴백을 새 서체로 연결했다. 생성 시안의 글자와 동일한 원본 폰트를 찾아낸 것은 아니다.
+- `UIRoundedRect.shader`: 기본값 0인 유리 하이라이트 옵션만 추가했다. 방 전용 공유 재질은 얇은 연보라 한 겹의 선과 낮은 반사광을 사용한다. 기존 다른 재질의 기본 동작은 유지한다.
+- `Title/LuigiRoomBackdrop.png`: 승인된 방 시안에서 UI와 카드 캐릭터를 제거해 만든 배경 전용 그림이다. 화면 전체를 이미지로 덮어 구현한 것이 아니며 텍스트·초상·상태·입력은 개별 Unity UI다. AspectRatioFitter로 원본 비율을 유지한다. CharacterStage의 3D 배경·모델은 수정하지 않았다. 출처와 전체 프롬프트는 `ui-room-lettering-provenance.json`, 폰트 고지는 `Assets/Art/Fonts/ONE-Mobile-POP-NOTICE.txt`에 있다.
+
+실행 확인: 저장된 실제 프리팹과 통제된 8명 명단으로 방 화면을 1920×1080, 2560×1080, 1600×1200에서 캡처했다. 방·방 목록·설정에서 TMP 잘림이 없었다. 공용 준비 표시를 정리한 뒤 1920×1080 결과가 동일한 것도 확인했다. 신규 게임 스크립트 컴파일 오류는 없으며 과거 도구 Refresh 타임아웃 로그는 남아 있다. 실제 Steam 방 생성·다중 PC 통신 확인이나 모든 화면의 최종 미술 검수는 이번 기록에 포함하지 않는다. `UIRoomScreen`은 기존 대기실/폴백 화면이며 기본 캐릭터 선택 흐름을 새로 끼워 넣지 않았다.
+
+실제 캡처: `light-ui-preview/native-captures/room-lettering-final.png`, `room-lettering-wide.png`, `room-lettering-43.png`. 재현 도구 `RefineLuigiRoom.cs`의 실행 순서는 Main → PromoteFonts → ShareStatusPart다. 과거 전체 리스킨 스크립트를 일괄 실행하지 않는다.
+
+사용 스킬: bb-art-direction, unity-cli, ui-ugui, optimize-text-mesh-pro, unity-architecture, sprite-editor, imagegen. Ponytail과 engineering 플러그인은 제공되지 않아 기존과 같이 파일 검색·Unity 컴파일·실행 화면으로 확인했다.
+
+## 2026-10-19 — 단순화한 외형의 시안 대응 보정
+
+사용자 피드백: 이전의 단색 둥근 판은 시안보다 지나치게 간소화됐다. 기준 이미지는 canonical portable HTML의 light 시안이며, 특히 `light-ui-preview/night.png`와 `shared.png`의 유리 표면·반사광·입체 키캡·원형 스킬·작은 갈색 배낭을 실제 부품으로 구현한다. 아래의 이전 단색 셰이더 적용 절을 현재 외형으로 간주하지 않는다. 시안 HTML/PNG는 변경하지 않았다.
+
+- `Assets/Art/UI/Sprites/Common/LuigiGlassKit.png`: 반사광과 부드러운 알파 발광을 가진 공용 유리 패널·버튼·카드·키캡·원형·달·게이지. 배경과 문자를 합친 화면 이미지가 아닌 12개 독립 Sprite다. 확장 부품은 9-slice이며 UI/Default 재질을 공유한다. 기존 `LuigiCommon.spriteatlasv2`에 추가했고 Standalone BC7 / 2048 / 회전·타이트 패킹·밉맵 없음 설정을 유지했다. 메모리·드로콜 개선치를 측정한 것은 아니다.
+- `LuigiBagStates.png`: 기존 에셋 GUID와 3개 Sprite ID를 보존하고 닫힘/열림/내려놓은 그림을 시안의 작은 갈색 배낭으로 교체했다. HUD의 두 상태 참조는 서로 다른 Sprite다. 이 그림은 입체적으로 보이는 2D UI 에셋이며 월드 배낭 모델을 수정한 것이 아니다.
+- `UISurfacePart` 계열과 기존 카드·행·슬롯·화면의 Sprite/재질/겹침 순서를 수정했다. 새 화면 프리팹은 없다. `UIRoundImage.OnValidate`는 비활성 컴포넌트가 새 Sprite의 기본 재질을 다시 둥근 판 재질로 덮어쓰지 않게 했다. 고유 주문 말풍선/쿨타임/판정 게이지 셰이더는 유지한다.
+- 밤 `UIMatchHudScreen`: 좌상단 실제 선택 캐릭터 초상과 매출, 중앙 달 배지·날짜·시계, 우상단 실제 팀 색 점, 좌하단 스킬 원형·키캡·실제 스킬 이름, 우하단 배낭·퍼센트·가로 게이지로 구성했다. 기존 가방 미소지 X/도움말과 획득 연출 앵커는 보존했다. 상호작용 F 키캡과 진행 게이지는 별도 Graphic이며 실제 값으로 갱신된다.
+- 설정 `UIVolumeSlider`/`UISettingsPopup`: 반투명 행, 입력 칸, 원형 손잡이, 우측 전체 화면 체크와 기존 적용 버튼을 수정했다. 슬라이더→숫자 37, 직접 입력 42→0.42 갱신을 실행 확인했고 Apply 전 영구 오디오/디스플레이 설정은 쓰지 않았다.
+- 팀·캐릭터 선택: 선택 프레임이 이름을 덮던 순서를 수정하고 하단 이름 강조와 선택/비선택 글자 대비를 분리했다. `UITeamSlot`은 기존 팀 색 띠와 선택 상태를 사용한다. CharacterStage의 실제 3D 배경·카메라·모델은 이번 보정에서 수정하지 않았다.
+- 낮 순위 행·시계, 제조 카드, 방 목록·준비/입장 버튼, 정산 등도 기존 공용 파츠를 통해 동일한 유리 표면을 사용한다. 실제 규칙, 로비, 네트워크 흐름을 변경하지 않았다. 버튼의 hover/focus/press는 공유 Sprite 또는 ColorTint로 표시하며 기존 클릭 콜백을 유지한다.
+- 서체는 기존 Ssurround / DoHyeon / LilitaOne이며 UI 전용 `.mat` 프리셋의 흰 면·짧은 보라 음영·약한 베벨만 조정했다. 폰트 원본 내부의 기본 Material은 원래 값으로 복원했다. 이름·숫자는 이미지에 굽지 않는다.
+
+기록: `ui-glass-fidelity-provenance.json`, `light-ui-preview/fidelity-validation.json`, `prefab-fidelity-before.json`/`prefab-fidelity-after.json`, `runtime-state-checks.json`의 `fidelity-` 항목. 저장 자산 검사 대상은 기존 53개이며 새로 들어온 `UIMessagePopup`은 직접 수정하지 않았다. 전후 54개 전체 인벤토리의 GUID가 같고 신규 화면 프리팹은 없다. 실행 캡처는 `native-captures/fidelity-*.png`다. HUD 캡처는 저장된 실제 UI와 샘플 값을 이전 Unity 카메라 캡처 위에서 표시한 결과이며 새 네트워크 매치 실행 기록이 아니다. 갤러리의 생성 배경과 실제 게임 배경의 미술 차이까지 픽셀 단위로 동일하게 만든 결과로 보고하지 않는다.
+
+제작 스크립트 `ApplyLuigiGlassFidelity.cs`는 작업 이력이다. 과거 authoring 스크립트와 함께 일괄 재실행하지 않는다. 런타임에서 UI를 새로 생성하는 구조가 아니며 저장된 기존 프리팹과 현재 데이터 바인딩을 사용한다.
+
+최종 저장 검사: 53개 프리팹 / 공유 Surface 148개 / TMP 382개, 끊어진 참조·누락 폰트·이중 라운드 적용 오류 0. 전후 전체 54개 GUID 불일치 0. 실행 입력 11건의 해당 최종 상태에서 텍스트 overflow 0(밤 일반·230% 과적·미소지·쿨타임, 밤 4:3/울트라와이드, 낮·루팅·캐릭터 선택·설정·정산). 앞서 발견한 미소지 도움말 i와 밤 캡션 영역 초과는 수정 후 다시 확인했다. 33개 기존 버튼의 표시 타깃을 공용 Sprite로 연결했고 방 목록 새로고침 버튼에서 pointerEnter→HoverButton, pointerExit→GlassButton 복귀를 확인했다. 마지막 Console cursor 3050→3095 구간의 새 Error 0 / compilationFailed=false. 이는 샘플 UI 동작 확인이며 미술의 픽셀 일치 판정이나 전체 멀티플레이·Player 성능 검증을 뜻하지 않는다. Unity는 원래처럼 정지 상태로, Game View는 기존 선택으로 돌려 두었으며 캡처 임시 자산은 삭제했다.
+
+사용 스킬: bb-art-direction, unity-cli, unity-architecture, ui-ugui, sprite-editor, optimize-text-mesh-pro, imagegen. Ponytail/engineering 스킬은 제공되지 않아 사용하지 않았다.
+
+## 이전 적용 — 승인된 가벼운 시안의 Unity 적용
 
 기준은 `light-ui-preview/`의 보라색 경량 시안입니다. 기존의 황동·종이·가죽 외형을 이 방향으로 수정했습니다. 이 절 아래의 이전 제작 기록과 구분합니다. 갤러리 HTML의 승인 시안 이미지를 이번 작업으로 교체하지는 않았습니다.
 
