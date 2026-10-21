@@ -62,7 +62,7 @@ public sealed class SteamLobbyBackend : ILobbyBackend
         {
             // 스팀이 꺼져 있거나 로그인되지 않은 상태다. 게임을 죽일 이유는 없고, 방 흐름만
             // 잠근 채 로컬 테스트 경로를 남겨 둔다.
-            LastError = $"스팀에 연결하지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.SteamConnectFailed, e.Message);
         }
     }
 
@@ -131,7 +131,7 @@ public sealed class SteamLobbyBackend : ILobbyBackend
         // 막지만, 손님이 어디로 접속할지를 이벤트 값 하나만 믿고 정하지는 않는다.
         if (server.Value != current.Value.Owner.Id)
         {
-            LastError = "방장이 아닌 곳에서 시작 신호가 왔다. 접속하지 않는다.";
+            LastError = L10n.Get(TextKey.Lobby.StartSignalNotHost);
             Changed?.Invoke();
             return;
         }
@@ -145,7 +145,7 @@ public sealed class SteamLobbyBackend : ILobbyBackend
     {
         if (!Ready)
         {
-            LastError = "스팀이 준비되지 않았다.";
+            LastError = L10n.Get(TextKey.Lobby.SteamNotReady);
             return null;
         }
 
@@ -159,7 +159,7 @@ public sealed class SteamLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"방 목록을 받지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.ListFailed, e.Message);
             return null;
         }
 
@@ -196,7 +196,7 @@ public sealed class SteamLobbyBackend : ILobbyBackend
     {
         if (!Ready)
         {
-            LastError = "스팀이 준비되지 않았다.";
+            LastError = L10n.Get(TextKey.Lobby.SteamNotReady);
             return false;
         }
 
@@ -207,13 +207,13 @@ public sealed class SteamLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"방을 만들지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.CreateFailedWith, e.Message);
             return false;
         }
 
         if (!created.HasValue)
         {
-            LastError = "방을 만들지 못했다.";
+            LastError = L10n.Get(TextKey.Lobby.CreateFailed);
             return false;
         }
 
@@ -235,14 +235,14 @@ public sealed class SteamLobbyBackend : ILobbyBackend
     {
         if (!Ready)
         {
-            LastError = "스팀이 준비되지 않았다.";
+            LastError = L10n.Get(TextKey.Lobby.SteamNotReady);
             return false;
         }
 
         var index = handles.FindIndex(lobby => lobby.Id.Value == room.Id);
         if (index < 0)
         {
-            LastError = "방 목록이 낡았다. 새로 고친 뒤 다시 시도한다.";
+            LastError = L10n.Get(TextKey.Lobby.ListStale);
             return false;
         }
 
@@ -253,13 +253,13 @@ public sealed class SteamLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"방에 들어가지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.JoinFailedWith, e.Message);
             return false;
         }
 
         if (entered != RoomEnter.Success)
         {
-            LastError = $"방에 들어가지 못했다: {entered}";
+            LastError = L10n.Format(TextKey.Lobby.JoinFailedWith, entered);
             return false;
         }
 

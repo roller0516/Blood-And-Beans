@@ -69,7 +69,7 @@ public class PlayerCarry : NetworkBehaviour, IItemHolder, IInteractable
     public bool CanPromptClient(in InteractionContext ctx) => !Reserved && !ctx.Reserved && (!ctx.Held.Empty || !View.Empty);
 
     /// 둘 다 들고 있으면 맞바꾸고, 한쪽만 들고 있으면 건넨다 (기획서 5.7.4).
-    public string PromptFor(in InteractionContext ctx) => ctx.Held.Empty ? "받기" : View.Empty ? "건네기" : "맞바꾸기";
+    public string PromptFor(in InteractionContext ctx) => L10n.Get(ctx.Held.Empty ? TextKey.Prompt.Receive : View.Empty ? TextKey.Prompt.Give : TextKey.Prompt.Swap);
     void OnTeamChanged(int team) => ownerTeam = team;
 
     [Rpc(SendTo.Server)]

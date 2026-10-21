@@ -35,11 +35,19 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     public event System.Action Washed;
     public int OccupyingTeam => occupyingTeam.Value;
     public bool Hot => NetworkManager != null && IsSpawned && NetworkManager.ServerTime.Time < hotUntil.Value;
-    public string Prompt => $"{FacilityName} · {(Busy ? "사용 중" : Hot ? "달아오름" : kind == FacilityKind.Sink ? "F 홀드 세척" : "F 사용")}";
-    string FacilityName => kind switch { 
-        FacilityKind.Coffee => "커피 머신", FacilityKind.Oven => "오븐",
-        FacilityKind.Sink => "개수대", FacilityKind.Beans => "원두함", 
-        _ => "빵함" };
+    public string Prompt => L10n.Format(TextKey.Prompt.FacilityLine, FacilityName,
+        L10n.Get(Busy ? TextKey.Prompt.FacilityBusy
+            : Hot ? TextKey.Prompt.FacilityHot
+            : kind == FacilityKind.Sink ? TextKey.Prompt.FacilityWash
+            : TextKey.Prompt.FacilityUse));
+    string FacilityName => L10n.Get(kind switch
+    {
+        FacilityKind.Coffee => TextKey.Facility.Coffee,
+        FacilityKind.Oven => TextKey.Facility.Oven,
+        FacilityKind.Sink => TextKey.Facility.Sink,
+        FacilityKind.Beans => TextKey.Facility.Beans,
+        _ => TextKey.Facility.Bread,
+    });
     void Awake()
     {
         surface = GetComponent<Collider>();
@@ -83,7 +91,7 @@ public sealed class SharedFacility : NetworkBehaviour, IInteractable
     /// 손에 더러운 그릇을 든 채 개수대가 아닌 설비 앞에 서면 「세척 필요」로 안내한다 —
     /// 이 설비를 못 쓰는 이유가 손 상태라는 것을 알려 주는 예외다.
     public string PromptFor(in InteractionContext ctx) =>
-        ctx.Held.Dirty && !Busy && kind != FacilityKind.Sink ? "세척 필요" : Prompt;
+        ctx.Held.Dirty && !Busy && kind != FacilityKind.Sink ? L10n.Get(TextKey.Prompt.NeedsWash) : Prompt;
     public bool Near(ulong clientId)
     {
         var player = Station.PlayerOf(clientId);

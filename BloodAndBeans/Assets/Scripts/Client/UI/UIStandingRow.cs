@@ -12,7 +12,8 @@ public sealed class UIStandingRow : MonoBehaviour
     [SerializeField] UnityEngine.UI.Image background;
     [SerializeField] bool preserveBackgroundArtwork;
     [SerializeField] Color[] teamColors = System.Array.Empty<Color>();
-    [SerializeField] string ownTeamName;
+    /// 켜면 내 팀 줄을 팀 이름 대신 「우리」로 그린다. 시계 HUD 변형만 켠다 — 정산 행은 이름 그대로다.
+    [SerializeField] bool showOwnTeamAsUs;
     [SerializeField] string[] teamNames = System.Array.Empty<string>();
     [SerializeField] Color mineBadge = new(0.36f, 0.78f, 0.66f);
     [SerializeField] Color mineRank = new(0.07f, 0.05f, 0.03f);
@@ -23,7 +24,7 @@ public sealed class UIStandingRow : MonoBehaviour
     {
         rank.text = place.ToString();
         if (team >= 0 && team < teamNames.Length && !string.IsNullOrEmpty(teamNames[team])) name = teamNames[team];
-        cafe.text = mine && !string.IsNullOrEmpty(ownTeamName) ? ownTeamName : name;
+        cafe.text = mine && showOwnTeamAsUs ? L10n.Get(TextKey.Settlement.OurTeam) : name;
         total.text = revenue.ToString("N0");
         badge.color = mine ? mineBadge : otherBadge;
         rank.color = mine ? mineRank : otherRank;

@@ -26,24 +26,15 @@ public static class BalanceValidation
 
         // 열거자 순서에 정렬된 표. 기대 길이를 열거자에서 뽑으므로 열거자가 늘면 함께 따라온다.
         Expect(problems, nameof(d.GemScale), d.GemScale.Length, Count<Gem>(), "Gem 순서");
-        Expect(problems, nameof(d.GemNames), d.GemNames.Length, Count<Gem>(), "Gem 순서");
-        Expect(problems, nameof(d.GemEffects), d.GemEffects.Length, Count<Gem>(), "Gem 순서");
         Expect(problems, nameof(d.GemItems), d.GemItems.Length, Count<Gem>(), "Gem 순서");
-        Expect(problems, nameof(d.RaceNames), d.RaceNames.Length, Count<Race>(), "Race 순서");
         Expect(problems, nameof(d.GaugeMultiplier), d.GaugeMultiplier.Length, Count<Gauge>(), "Gauge 순서");
-
-        // MenuId와 Ingredient는 None = -1을 갖는다. 표는 0부터라 그만큼 짧다.
-        Expect(problems, nameof(d.MenuNames), d.MenuNames.Length, Count<MenuId>() - 1, "MenuId 순서, None 제외");
 
         // 재료 표는 숲·상비 재료까지만이다. 보석(10~15)은 UpgradePart 값을 빌려 쓴다.
         var forestItems = (int)Ingredient.BreadBase + 1;
-        Expect(problems, nameof(d.IngredientNames), d.IngredientNames.Length, forestItems, "Ingredient 0~9");
         Expect(problems, nameof(d.IngredientWeight), d.IngredientWeight.Length, forestItems, "Ingredient 0~9");
 
         // 스킬 표는 [0]이 None이라 열거자 길이와 같다.
         Expect(problems, nameof(d.DaySkillCooldown), d.DaySkillCooldown.Length, Count<DaySkill>(), "DaySkill 순서");
-        Expect(problems, nameof(d.DaySkillNames), d.DaySkillNames.Length, Count<DaySkill>(), "DaySkill 순서");
-        Expect(problems, nameof(d.DaySkillEffects), d.DaySkillEffects.Length, Count<DaySkill>(), "DaySkill 순서");
         Expect(problems, nameof(d.NightSkillCooldown), d.NightSkillCooldown.Length, Count<NightSkill>(), "NightSkill 순서");
         Expect(problems, nameof(d.DaySkillOfNight), d.DaySkillOfNight.Length, Count<NightSkill>(), "NightSkill 순서");
 
@@ -78,13 +69,6 @@ public static class BalanceValidation
 
         // 엑셀에서 **중간** 행을 지우면 길이는 그대로고 그 칸만 기본값으로 남는다
         // (임포터가 키로 찍어 넣으므로). 길이 검사로는 안 잡히는 쪽이라 따로 본다.
-        NoNulls(problems, nameof(d.GemNames), d.GemNames);
-        NoNulls(problems, nameof(d.GemEffects), d.GemEffects);
-        NoNulls(problems, nameof(d.RaceNames), d.RaceNames);
-        NoNulls(problems, nameof(d.MenuNames), d.MenuNames);
-        NoNulls(problems, nameof(d.IngredientNames), d.IngredientNames);
-        NoNulls(problems, nameof(d.DaySkillNames), d.DaySkillNames);
-        NoNulls(problems, nameof(d.DaySkillEffects), d.DaySkillEffects);
         NoCharacterHoles(problems, d);
 
         // [0]은 None이라 0이 맞고, 나머지가 0이면 그 스킬이 무한 연타가 된다.
@@ -133,19 +117,10 @@ public static class BalanceValidation
         if (p < 0 || p > 1) problems.Add($"{name}: 확률 {p}가 0~1 밖이다.");
     }
 
-    /// `null`은 임포터가 그 칸을 채우지 않았다는 뜻이다. 빈 문자열은 의도된 값일 수 있어
-    /// (`DaySkillEffects[0]`이 None이다) 문제로 세지 않는다.
-    static void NoNulls(List<string> problems, string name, string[] table)
-    {
-        for (var i = 0; i < table.Length; i++)
-            if (table[i] == null)
-                problems.Add($"{name}[{i}]: 비어 있다. 엑셀에 그 행이 없다.");
-    }
-
     static void NoCharacterHoles(List<string> problems, BalanceData d)
     {
         for (var i = 0; i < d.Characters.Length; i++)
-            if (d.Characters[i].Name == null)
+            if (!System.Enum.IsDefined(typeof(CharacterId), d.Characters[i].Id))
                 problems.Add($"{nameof(d.Characters)}[{i}]: 비어 있다. 엑셀에 픽 번호 {i} 행이 없다.");
     }
 
@@ -162,7 +137,7 @@ public static class BalanceValidation
         var seen = new HashSet<NightSkill>();
         foreach (var c in d.Characters)
             if (!seen.Add(c.Night))
-                problems.Add($"{nameof(d.Characters)}: 밤 액티브 {c.Night}가 둘 이상에 배정됐다 ({c.Name}).");
+                problems.Add($"{nameof(d.Characters)}: 밤 액티브 {c.Night}가 둘 이상에 배정됐다 ({c.Id}).");
     }
 
     /// 구역 배분은 퍼센트라 100이어야 한다 (기획서 6.3.1).

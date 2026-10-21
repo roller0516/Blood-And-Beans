@@ -127,7 +127,7 @@ public class CharacterCheatGroup : DevConsoleGroup
 
             // 캐릭터 이름이 먼저다. 스킬명만으로는 어느 캐릭터를 거는지 알 수 없다.
             // 낮 효과까지 붙이는 것은 「활공」과 「지름길」이 둘 다 이동 스킬이기 때문이다.
-            var label = $"{all[i].Name} — {all[i].DayName} / {all[i].NightName} — {all[i].DayEffect}";
+            var label = $"{DisplayNames.Of(all[i].Id)} — {DisplayNames.Of(all[i].Day)} / {DisplayNames.Of(all[i].Night)} — {DisplayNames.EffectOf(all[i].Day)}";
 
             menu.AddItem(new GUIContent(label), pc.Index == index,
                          () => Apply(clientId, index));
@@ -169,7 +169,7 @@ public class CharacterCheatGroup : DevConsoleGroup
         if (!pc.HasPick) return $"#{clientId} · {teamText} · 없음  ▾";
 
         var def = pc.Def;
-        var night = NightSkills.Exists(def.Night) ? def.NightName : "밤 없음";
-        return $"#{clientId} · {teamText} · {def.Name} · {def.DayName} / {night}  ▾";
+        var night = NightSkills.Exists(def.Night) ? DisplayNames.Of(def.Night) : "밤 없음";
+        return $"#{clientId} · {teamText} · {DisplayNames.Of(def.Id)} · {DisplayNames.Of(def.Day)} / {night}  ▾";
     }
 }

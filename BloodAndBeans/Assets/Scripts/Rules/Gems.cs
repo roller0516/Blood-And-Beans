@@ -22,8 +22,6 @@ public static class Gems
     static Ingredient[] Items => Balance.Current.GemItems;
 
     public static Ingredient ItemOf(Gem gem) => Items[(int)gem];
-    public static string NameOf(Gem gem) => Balance.Current.GemNames[(int)gem];
-    public static string EffectOf(Gem gem) => Balance.Current.GemEffects[(int)gem];
 
     public static bool TryOf(Ingredient item, out Gem gem)
     {

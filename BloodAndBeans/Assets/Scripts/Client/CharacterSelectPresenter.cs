@@ -83,11 +83,8 @@ public sealed class CharacterSelectPresenter
         if (lobby.CanStartMatch) { lobby.StartMatch(); return; }
 
         // 방장의 시작 버튼은 잠그지 않는다. 눌렀는데 못 시작하면 이유를 팝업으로 알린다.
-        ShowMessageAsync(lobby.ReadyCount < lobby.ReadyTotal ? NotAllReadyMessage : TeamFullMessage).Forget();
+        ShowMessageAsync(L10n.Get(lobby.ReadyCount < lobby.ReadyTotal ? TextKey.Select.NotAllReady : TextKey.Select.TeamFull)).Forget();
     }
-
-    const string NotAllReadyMessage = "모든 유저가 준비해야 게임을 시작할 수 있습니다.";
-    const string TeamFullMessage = "팀 정원을 확인해 주세요.";
 
     async UniTaskVoid ShowMessageAsync(string text)
     {
@@ -138,8 +135,8 @@ public sealed class CharacterSelectPresenter
                     lobby.SelectedCharacter,
                     lobby.SelectedTeam,
                     lobby.SuggestedRoomName,
-                    "밤  /  탐색 스킬",
-                    "밤 액티브는 키보드 1로 쓴다 (기획서 9.2)",
+                    L10n.Get(TextKey.Select.SkillHeader),
+                    L10n.Get(TextKey.Select.NightActiveHint),
                     SelectCharacter, SelectTeam, StartOrReady, LeaveRoom);
                 break;
         }
@@ -183,7 +180,7 @@ public sealed class CharacterSelectPresenter
         {
             case UIRoomScreen room:
                 var status = string.IsNullOrEmpty(lobby.Status)
-                    ? $"{lobby.Members.Count}/{lobby.RoomCapacity}명 · 팀당 {lobby.PlayersPerTeam}명"
+                    ? L10n.Format(TextKey.Room.Status, lobby.Members.Count, lobby.RoomCapacity, lobby.PlayersPerTeam)
                     : lobby.Status;
                 room.Render(lobby.RoomName, status, lobby.Members, lobby.SelectedTeam,
                             lobby.PlayersPerTeam, lobby.IsRoomHost, lobby.CanStartMatch,

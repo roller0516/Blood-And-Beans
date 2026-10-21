@@ -208,7 +208,7 @@ public sealed class UICharacterSelectScreen : UIScreen
             var index = i;
             var card = Instantiate(cardPrefab, cardRoot);
             card.name = $"Card{i}";
-            card.Bind(all[i].Name, ResourceManager.Instance.CrewSprite(all[i].Id),
+            card.Bind(DisplayNames.Of(all[i].Id), ResourceManager.Instance.CrewSprite(all[i].Id),
                       () => Select(index, true));
             cards.Add(card);
         }
@@ -313,12 +313,12 @@ public sealed class UICharacterSelectScreen : UIScreen
     /// 방장은 시작 버튼을 쥐고 나머지는 준비를 누른다 — 둘이 같은 버튼 자리를 나눠 쓴다.
     public void SetLobby(bool isHost, bool selfReady, int readyNow, int total)
     {
-        if (waitLabel != null) waitLabel.text = "준비한 크루";
+        if (waitLabel != null) waitLabel.text = L10n.Get(TextKey.Select.CrewReady);
         if (timer != null) timer.text = $"{readyNow}/{total}";
 
         // 버튼은 잠그지 않는다. 방장이 못 시작하는 이유는 눌렀을 때 팝업이 알린다.
         if (confirmLabel != null)
-            confirmLabel.text = isHost ? "게임 시작" : selfReady ? "준비 취소" : "준비";
+            confirmLabel.text = L10n.Get(isHost ? TextKey.Select.StartGame : selfReady ? TextKey.Select.CancelReady : TextKey.Select.Ready);
     }
 
     /// 지금 켜 둔 이름표 수. 카메라가 움직이는 동안 이만큼만 다시 놓는다.
@@ -414,7 +414,7 @@ public sealed class UICharacterSelectScreen : UIScreen
     void RefreshScrollHint()
     {
         if (scrollHintLabel == null) return;
-        scrollHintLabel.text = stage != null && stage.ScrollMode ? "스크롤 켬" : "스크롤 끔";
+        scrollHintLabel.text = stage != null && stage.ScrollMode ? L10n.Get(TextKey.Select.ScrollOn) : L10n.Get(TextKey.Select.ScrollOff);
     }
 
     void OnTogglePanel(InputAction.CallbackContext _) => TogglePanel();
@@ -489,12 +489,13 @@ public sealed class UICharacterSelectScreen : UIScreen
         selected = index;
         RefreshSelection();
 
-        Set(selectedName, all[index].Name);
-        Set(selectedStageName, all[index].Name);
-        Set(dayName, all[index].DayName);
-        Set(dayEffect, all[index].DayEffect);
-        Set(nightName, all[index].NightName);
-        Set(nightEffect, all[index].NightEffect);
+        var def = all[index];
+        Set(selectedName, DisplayNames.Of(def.Id));
+        Set(selectedStageName, DisplayNames.Of(def.Id));
+        Set(dayName, DisplayNames.Of(def.Day));
+        Set(dayEffect, DisplayNames.EffectOf(def.Day));
+        Set(nightName, DisplayNames.Of(def.Night));
+        Set(nightEffect, DisplayNames.EffectOf(def.Night));
 
         if (notify) onPick?.Invoke(index);
     }
@@ -525,7 +526,7 @@ public sealed class UICharacterSelectScreen : UIScreen
             if (teamSlots[i] == null) continue;
             var index = i;
             var color = TeamColors.Of(i);
-            teamSlots[i].Bind($"팀 {i + 1}", color, () => SelectColor(index, true));
+            teamSlots[i].Bind(L10n.Format(TextKey.Select.TeamSlot, i + 1), color, () => SelectColor(index, true));
         }
     }
 

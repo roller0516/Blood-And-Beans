@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// 보석 6종의 배수·재료·이름·효과 (기획서 8.2). 지속 턴 수와 드롭 확률은 여기가 아니다 —
+/// 보석 6종의 배수·재료 (기획서 8.2). 이름과 효과 문구는 Localization 표에 있다. 지속 턴 수와 드롭 확률은 여기가 아니다 —
 /// 턴은 공통 수치, 확률은 밤 표에 있다 (6.5.2).
 [CreateAssetMenu(menuName = "Blood & Beans/데이터 표/보석", fileName = nameof(GemDataTable))]
 public sealed class GemDataTable : DataTableAsset
@@ -16,8 +16,6 @@ public sealed class GemDataTable : DataTableAsset
 
         /// 이 보석으로 세는 재료. 열거자 값이 연속이 아니라 캐스팅으로 대신할 수 없다.
         public Ingredient Item;
-        public string Name;
-        public string Effect;
     }
 
     [SerializeField] List<Row> rows = new();
@@ -28,8 +26,6 @@ public sealed class GemDataTable : DataTableAsset
     // 고칠 곳은 엑셀 하나뿐이어야 한다. 순서는 `Gem` 열거자와 같다.
 
     [System.NonSerialized] public float[] Scale = System.Array.Empty<float>();
-    [System.NonSerialized] public string[] Names = System.Array.Empty<string>();
-    [System.NonSerialized] public string[] Effects = System.Array.Empty<string>();
 
     /// `Gem`을 재료로 바꾸는 표. 열거자 값이 연속이 아니라(WindGem=10 ... TeaGem=15)
     /// 캐스팅으로 대신할 수 없다.
@@ -51,8 +47,6 @@ public sealed class GemDataTable : DataTableAsset
 
         var scale = new float[size];
         var items = new Ingredient[size];
-        var names = new string[size];
-        var effects = new string[size];
 
         foreach (var row in rows)
         {
@@ -60,21 +54,15 @@ public sealed class GemDataTable : DataTableAsset
             if (i < 0 || i >= size) continue;
             scale[i] = row.Scale;
             items[i] = row.Item;
-            names[i] = row.Name;
-            effects[i] = row.Effect;
         }
 
         Scale = scale;
         Items = items;
-        Names = names;
-        Effects = effects;
     }
 
     public override void WriteTo(BalanceData d, List<string> problems)
     {
         d.GemScale = Scale;
-        d.GemNames = Names;
-        d.GemEffects = Effects;
         d.GemItems = Items;
     }
 }

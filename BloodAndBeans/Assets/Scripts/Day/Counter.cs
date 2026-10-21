@@ -7,7 +7,7 @@ public class Counter : NetworkBehaviour, IInteractable, IItemHolder
     [SerializeField] float reach = 2.5f;
     Cafe cafe;
     Collider surface;
-    public string Prompt => "서빙대 · F로 서빙";
+    public string Prompt => L10n.Get(TextKey.Prompt.Serve);
     public event System.Action ContentsChanged { add { } remove { } }
     public int SlotCount => 0;
     public int HighlightSlot => -1;

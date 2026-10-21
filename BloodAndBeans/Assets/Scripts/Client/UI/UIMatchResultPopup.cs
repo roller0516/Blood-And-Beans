@@ -48,7 +48,6 @@ public sealed class UIMatchResultPopup : UIPopup
     [SerializeField] TMP_Text caption;
     [SerializeField] TMP_Text titleText;
     [SerializeField] TMP_Text totalText;
-    [SerializeField] string captionLabel = "최종 결과";
 
     [Header("순위")]
     [SerializeField] RankSlot[] rankSlots = Array.Empty<RankSlot>();
@@ -90,20 +89,20 @@ public sealed class UIMatchResultPopup : UIPopup
         var tie = FinalStandings.IsTie(revenueByTeam);
         var iWon = winners.Contains(myTeam);
 
-        Set(caption, captionLabel);
+        Set(caption, L10n.Get(TextKey.Result.Caption));
 
         if (tie && iWon)
         {
-            Set(titleText, "무승부", draw);
+            Set(titleText, L10n.Get(TextKey.Result.Draw), draw);
         }
         else if (iWon)
         {
-            Set(titleText, $"{myTeam + 1}팀 승리", win);
+            Set(titleText, L10n.Format(TextKey.Result.TeamWin, myTeam + 1), win);
         }
         else
         {
             var first = winners.Count > 0 ? winners[0] : -1;
-            Set(titleText, first >= 0 ? $"{first + 1}팀 승리" : "판 종료", lose);
+            Set(titleText, first >= 0 ? L10n.Format(TextKey.Result.TeamWin, first + 1) : L10n.Get(TextKey.Result.MatchEnded), lose);
         }
 
         var mine = revenueByTeam != null && myTeam >= 0 && myTeam < revenueByTeam.Count
@@ -164,7 +163,7 @@ public sealed class UIMatchResultPopup : UIPopup
     void FillDays(IReadOnlyList<int> daily)
     {
         var has = daily != null && daily.Count > 0;
-        Set(dailyNote, has ? string.Empty : "일차별 매출은 아직 집계되지 않는다");
+        Set(dailyNote, has ? string.Empty : L10n.Get(TextKey.Result.NoDailySales));
 
         var top = 1;
         if (has) for (var i = 0; i < daily.Count; i++) top = Mathf.Max(top, daily[i]);

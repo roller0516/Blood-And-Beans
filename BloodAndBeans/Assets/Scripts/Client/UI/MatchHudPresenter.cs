@@ -90,8 +90,8 @@ public sealed class MatchHudPresenter
         model.Portrait = character != null && character.HasPick
             ? ResourceManager.Instance.CrewSprite(character.Def.Id) : null;
 
-        model.Day = $"{phase.Day}일차";
-        model.PhaseName = phase.Finished ? "종료" : PhaseLabel(phase.Current);
+        model.Day = L10n.Format(TextKey.Hud.Day, phase.Day);
+        model.PhaseName = phase.Finished ? L10n.Get(TextKey.Hud.Finished) : PhaseLabel(phase.Current);
         model.Timer = phase.Finished ? "--:--" : Clock(phase.Remaining, phase.Current == Phase.Day);
         model.Team = DisplayNames.Team(team);
         model.TeamColor = team >= 0 ? TeamColors.Of(team) : Color.clear;
@@ -99,8 +99,8 @@ public sealed class MatchHudPresenter
         // 호스트는 자기 자신이 서버라 잴 왕복이 없다.
         var net = phase.NetworkManager;
         model.Ping = net.IsServer
-            ? "호스트"
-            : $"핑 {net.NetworkConfig.NetworkTransport.GetCurrentRtt(NetworkManager.ServerClientId)}ms";
+            ? L10n.Get(TextKey.Hud.Host)
+            : L10n.Format(TextKey.Hud.Ping, net.NetworkConfig.NetworkTransport.GetCurrentRtt(NetworkManager.ServerClientId));
 
         if (director == null) director = MatchDirector.Instance;
         var cafe = director != null ? director.CafeOf(team) : null;
@@ -109,8 +109,8 @@ public sealed class MatchHudPresenter
         // 칸은 늘 비어 있었고, 그래서 낮 순위가 한 번도 그려지지 않았다.
         var board = cafe != null ? cafe.Board : null;
         model.Revenue = board != null && team >= 0
-            ? $"팀 매출  {board.RevenueOf(team):N0}G"
-            : "팀 매출  --";
+            ? L10n.Format(TextKey.Hud.TeamRevenue, board.RevenueOf(team))
+            : L10n.Get(TextKey.Hud.TeamRevenueNone);
         model.TeamRevenue = board != null && team >= 0 ? board.RevenueOf(team) : null;
 
         if (phase.Current == Phase.Night && inventory != null)
@@ -123,8 +123,8 @@ public sealed class MatchHudPresenter
                 // 게이지 색이 구간마다 바뀐다 (기획서 6.7). 표는 `LoadBands`에 있고
                 // 화면은 인덱스만 받는다 — 어느 색인지는 표현의 몫이다.
                 model.BagBand = LoadBands.BandOf(inventory.LoadRatio);
-                model.BagPercent = $"가방 용량  {inventory.LoadRatio * 100f:0}%"
-                    + $"   속도 {(controller != null ? controller.SpeedScale : 1f) * 100f:0}%";
+                model.BagPercent = L10n.Format(TextKey.Hud.BagCapacity, inventory.LoadRatio * 100f,
+                    (controller != null ? controller.SpeedScale : 1f) * 100f);
                 model.BagWeight = $"{inventory.Carried:0.0} / {inventory.Capacity:0.0} KG";
             }
             else
@@ -133,8 +133,8 @@ public sealed class MatchHudPresenter
                 model.BagBuried = true;
                 model.BagRatio = 0f;
                 model.BagBand = 0;
-                model.BagPercent = "가방 없음";
-                model.BagWeight = "귀환 지점에서 빈 가방 재지급";
+                model.BagPercent = L10n.Get(TextKey.Hud.BagNone);
+                model.BagWeight = L10n.Get(TextKey.Hud.BagReissue);
             }
         }
 
@@ -150,7 +150,7 @@ public sealed class MatchHudPresenter
         if (model.IsDay) RefreshMate(team);
         if (model.IsDay && cafe != null)
         {
-            model.Revenue = $"오늘 매출 {cafe.DaySales:N0} / {cafe.DayBill:N0}G";
+            model.Revenue = L10n.Format(TextKey.Hud.TodaySales, cafe.DaySales, cafe.DayBill);
             model.RentMet = cafe.DayBill > 0 && cafe.DaySales >= cafe.DayBill;
             model.DaySales = cafe.DaySales;
             model.DayBill = cafe.DayBill;
@@ -178,7 +178,7 @@ public sealed class MatchHudPresenter
         if (controller != null && controller.Target is PlayerCarry) prompt = string.Empty;
 
         model.Prompt = !string.IsNullOrEmpty(prompt) ? UIMatchHudScreen.InteractionKeyPrefix + prompt
-            : controller != null && controller.Denied ? "안 됨"
+            : controller != null && controller.Denied ? L10n.Get(TextKey.Hud.Denied)
             : null;
         return model;
     }
@@ -190,17 +190,17 @@ public sealed class MatchHudPresenter
         if (abilities == null && cachedPlayer != null) abilities = cachedPlayer.GetComponent<PlayerAbilities>();
         if (character != null && character.HasPick && phase.Current != Phase.Transition)
         {
-            var skillName = phase.Current == Phase.Day ? character.Def.DayName : character.Def.NightName;
+            var skillName = phase.Current == Phase.Day ? DisplayNames.Of(character.Def.Day) : DisplayNames.Of(character.Def.Night);
             var left = abilities != null ? abilities.CooldownRemaining : 0f;
             text.AppendLine($"[1] {skillName} · {left:0.0}s");
         }
 
         if (phase.Current == Phase.Transition && ledger != null)
         {
-            text.AppendLine("내일의 손님");
+            text.AppendLine(L10n.Get(TextKey.Hud.TomorrowCustomers));
             for (var race = 0; race < ledger.RaceCounts.Length; race++)
                 if (ledger.RaceCounts[race] > 0) text.AppendLine($"{DisplayNames.Of((Race)race)} x{ledger.RaceCounts[race]}");
-            text.AppendLine($"인기 재료: {string.Join(", ", ledger.PopularShown)}");
+            text.AppendLine(L10n.Format(TextKey.Hud.PopularIngredients, string.Join(", ", ledger.PopularShown)));
         }
         else if (phase.Current == Phase.Day && board != null)
         {
@@ -218,8 +218,8 @@ public sealed class MatchHudPresenter
         if (phase.Current == Phase.Day)
         {
             RefreshMate(team);
-            if (carry != null) text.AppendLine($"손 · {carry.View.Label}");
-            if (mate != null) text.AppendLine($"팀원 · {mate.View.Label}");
+            if (carry != null) text.AppendLine(L10n.Format(TextKey.Hud.HandItem, carry.View.Label));
+            if (mate != null) text.AppendLine(L10n.Format(TextKey.Hud.MateItem, mate.View.Label));
         }
 
         // 식기 개수는 패널로 세지 않는다 (기획서 5.7.1). 선반과 쌓인 더미를 보면 끝난다 (5.7.3).
@@ -242,7 +242,7 @@ public sealed class MatchHudPresenter
         model.DashKey = input != null ? input.DashBinding : string.Empty;
         if (dash.BlockedByLoad)
         {
-            model.DashTime = "과적";
+            model.DashTime = L10n.Get(TextKey.Hud.DashOverload);
             model.DashRatio = 1f;
             return;
         }
@@ -399,7 +399,7 @@ public sealed class MatchHudPresenter
             if (meters != returnLabelMeters)
             {
                 returnLabelMeters = meters;
-                returnLabel = $"귀환 · {meters}m";
+                returnLabel = L10n.Format(TextKey.Hud.ReturnMarker, meters);
             }
             marker.Label = returnLabel;
             return marker;
@@ -416,9 +416,9 @@ public sealed class MatchHudPresenter
 
     static string PhaseLabel(Phase p) => p switch
     {
-        Phase.Night => "야간 탐색",
-        Phase.Transition => "전환",
-        _ => "주간 영업",
+        Phase.Night => L10n.Get(TextKey.Hud.PhaseNight),
+        Phase.Transition => L10n.Get(TextKey.Hud.PhaseTransition),
+        _ => L10n.Get(TextKey.Hud.PhaseDay),
     };
 
     /// 개봉 게이지 진행도(0~1). 화면 가운데 막대로 그리는 것은 `UIMatchHudScreen`의 일이고,

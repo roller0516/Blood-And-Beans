@@ -53,16 +53,6 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     /// 무엇이 희귀한지 고르는 데는 쓸 수 없다 (기획서 6.5.5의 상자는 잠깐 열려 있다).
     [SerializeField] TMP_Text rarityBadge;
     [SerializeField] TMP_Text itemCaption;
-    [SerializeField] string hiddenCaption = "공개 대기";
-    [SerializeField] string emptyCaption = "비었음";
-
-    /// 등급 이름. 인덱스가 `IngredientRarity`다 — 색표와 같은 규칙이라 배열이 짧으면
-    /// 그 등급은 빈 칸으로 남는다.
-    ///
-    /// 테두리 색만으로는 등급이 읽히지 않는다. 2px 링은 `IngredientRarity`가 두 값뿐이라
-    /// 흔한 쪽과 바닥색의 차이가 작고, 무엇보다 "색이 이 뜻"이라는 것을 화면 어디서도
-    /// 알려 주지 않는다. 글자는 그 자체로 읽힌다.
-    [SerializeField] string[] rarityNames = { "일반", "희귀" };
 
     [Header("색")]
     [SerializeField] Color blindColor = new(0.16f, 0.17f, 0.2f, 0.95f);
@@ -228,7 +218,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (blind != null) blind.SetActive(true);
         Set(blindIn, countdown);
         Set(nameLabel, HiddenLabel);
-        Set(itemCaption, hiddenCaption);
+        Set(itemCaption, L10n.Get(TextKey.BoxLoot.SlotHidden));
         Set(countLabel, string.Empty);
         Set(weightLabel, string.Empty);
         ClearRarity();
@@ -258,7 +248,7 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
         if (blind != null) blind.SetActive(false);
         Set(blindIn, string.Empty);
         Set(nameLabel, string.Empty);
-        Set(itemCaption, emptyCaption);
+        Set(itemCaption, L10n.Get(TextKey.BoxLoot.SlotEmpty));
         Set(countLabel, string.Empty);
         Set(weightLabel, string.Empty);
         ClearRarity();
@@ -353,11 +343,20 @@ public sealed class UIBoxLootSlot : MonoBehaviour,
     /// 같은 것을 가리켜야 링만 보이는 상황에서도 그 색이 무슨 뜻이었는지 이어진다.
     void SetRarity(IngredientRarity rarity)
     {
-        var index = (int)rarity;
-        var label = index < rarityNames.Length ? rarityNames[index] : string.Empty;
+        var label = RarityName(rarity);
         Paint(rarityBadge, label, rarityTextColor);
         Paint(rarityLabel, label, rarityTextColor);
     }
+
+    /// 등급 이름. 테두리 색만으로는 등급이 읽히지 않는다 — 2px 링은 `IngredientRarity`가
+    /// 두 값뿐이라 흔한 쪽과 바닥색의 차이가 작고, "색이 이 뜻"이라는 것을 화면 어디서도
+    /// 알려 주지 않는다. 글자는 그 자체로 읽힌다.
+    static string RarityName(IngredientRarity rarity) => rarity switch
+    {
+        IngredientRarity.Common => L10n.Get(TextKey.BoxLoot.RarityCommon),
+        IngredientRarity.Rare => L10n.Get(TextKey.BoxLoot.RarityRare),
+        _ => string.Empty,
+    };
 
     /// 등급 글자를 비운다. 가려진 칸과 비워진 칸에는 알려 줄 등급이 없다.
     void ClearRarity()

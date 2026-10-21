@@ -19,7 +19,7 @@ public sealed class DishRack : NetworkBehaviour, IInteractable, IItemHolder
     public override void OnNetworkSpawn() { if (cafe?.Dishes != null) cafe.Dishes.CleanChanged += OnClean; OnClean(); }
     public override void OnNetworkDespawn() { if (cafe?.Dishes != null) cafe.Dishes.CleanChanged -= OnClean; }
     void OnClean() => ContentsChanged?.Invoke();
-    public string Prompt => plate ? "접시 · F로 가져가기" : "잔 · F로 가져가기";
+    public string Prompt => L10n.Get(plate ? TextKey.Prompt.TakePlate : TextKey.Prompt.TakeCup);
     void Awake() { cafe = Cafe.Of(this); surface = GetComponentInChildren<Collider>(true); }
     public void BeginInteractionClient() => TakeRpc();
     public void EndInteractionClient() { }

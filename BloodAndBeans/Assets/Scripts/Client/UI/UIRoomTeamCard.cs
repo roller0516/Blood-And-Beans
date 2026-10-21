@@ -14,7 +14,7 @@ public sealed class UIRoomTeamCard : MonoBehaviour
 
     public void Render(int team, bool selected, IReadOnlyList<SteamLobby.RoomMember> members)
     {
-        heading.SetText("팀 {0}", team + 1);
+        heading.text = L10n.Format(TextKey.Room.Team, team + 1);
         teamPlate.color = TeamColors.Of(team);
         if (teamNumber != null) teamNumber.SetText("{0}", team + 1);
         if (teamAccent != null) teamAccent.color = TeamColors.Of(team);

@@ -1,0 +1,313 @@
+﻿Key,Shared Comments,Korean(ko)
+Hud.Day,HUD 상단 일차 표시. {0}=일차,{0}일차
+Hud.Finished,HUD 페이즈 이름 — 판이 끝난 뒤,종료
+Hud.Host,HUD 핑 칸 — 내가 호스트일 때,호스트
+Hud.Ping,HUD 핑 칸. {0}=왕복 시간(ms),핑 {0}ms
+Hud.TeamRevenueNone,HUD 매출 칸 — 팀이 없을 때,팀 매출  --
+Hud.TeamRevenue,HUD 매출 칸. {0}=팀 매출,팀 매출  {0:N0}G
+Hud.BagCapacity,"밤 HUD 가방 칸. {0}=적재율(%), {1}=이동 속도(%)",가방 용량  {0:0}%   속도 {1:0}%
+Hud.BagNone,밤 HUD 가방 칸 — 가방을 묻어 둔 동안,가방 없음
+Hud.BagReissue,밤 HUD 가방 칸 — 가방을 묻어 둔 동안의 안내,귀환 지점에서 빈 가방 재지급
+Hud.TodaySales,"낮 HUD 매출 칸. {0}=오늘 매출, {1}=임대료",오늘 매출 {0:N0} / {1:N0}G
+Hud.Denied,상호작용이 거부됐을 때 중앙 프롬프트,안 됨
+Hud.TomorrowCustomers,전환 구간 HUD 상세 제목,내일의 손님
+Hud.PopularIngredients,전환 구간 HUD 상세. {0}=재료 목록,인기 재료: {0}
+Hud.HandItem,낮 HUD 상세 — 내 손에 든 것,손 · {0}
+Hud.MateItem,낮 HUD 상세 — 팀원 손에 든 것,팀원 · {0}
+Hud.DashOverload,대시 칸 — 무게로 대시가 막혔을 때,과적
+Hud.ReturnMarker,귀환 지시기. {0}=남은 거리(m),귀환 · {0}m
+Hud.PhaseNight,HUD 페이즈 이름,야간 탐색
+Hud.PhaseTransition,HUD 페이즈 이름,전환
+Hud.PhaseDay,HUD 페이즈 이름,주간 영업
+Select.NotAllReady,방장이 시작을 눌렀는데 준비가 덜 됐을 때 팝업,모든 유저가 준비해야 게임을 시작할 수 있습니다.
+Select.TeamFull,방장이 시작을 눌렀는데 팀 정원이 안 맞을 때 팝업,팀 정원을 확인해 주세요.
+Select.SkillHeader,캐릭터 선택창 스킬 설명 머리말,밤  /  탐색 스킬
+Select.NightActiveHint,"캐릭터 선택창 스킬 설명 안내 — 기획서 참조가 문구에 섞여 있음, 확정 시 정리",밤 액티브는 키보드 1로 쓴다 (기획서 9.2)
+Select.CrewReady,캐릭터 선택창 준비 인원 라벨,준비한 크루
+Select.StartGame,방장 버튼,게임 시작
+Select.CancelReady,참가자 버튼 — 이미 준비한 상태,준비 취소
+Select.Ready,참가자 버튼,준비
+Select.ScrollOn,캐릭터 스테이지 스크롤 시안 비교 힌트,스크롤 켬
+Select.ScrollOff,캐릭터 스테이지 스크롤 시안 비교 힌트,스크롤 끔
+Select.TeamSlot,캐릭터 선택창 팀 칸. {0}=팀 번호(1부터),팀 {0}
+Select.RosterWaiting,참가자 카드 — 아직 아무도 없는 자리,참가 대기
+Select.RosterReady,참가자 카드 상태,준비 완료
+Select.RosterNotReady,참가자 카드 상태,준비 중
+Room.Status,"방 상태 줄. {0}=현재 인원, {1}=정원, {2}=팀당 인원",{0}/{1}명 · 팀당 {2}명
+Room.Team,방 화면 팀 칸 제목. {0}=팀 번호(1부터),팀 {0}
+Loading.WaitingPlayers,"로딩 문구. {0}=모인 인원, {1}=방 인원",다른 플레이어를 기다리는 중… {0} / {1}
+Loading.Default,로딩 팝업 기본 문구,불러오는 중…
+BoxLoot.BagBuried,루팅 창 제목 — 가방을 묻어 둔 상태,가방을 묻어 뒀다 — 담을 수 없다
+BoxLoot.SlotSummary,"루팅 창 제목. {0}=칸 수, {1}=남은 개수",슬롯 {0} · 남은 것 {1}
+BoxLoot.Revealing,루팅 창 공개 진행. {0}=가려진 칸 수,{0}칸 공개 중…
+BoxLoot.AllRevealed,루팅 창 공개 진행 — 다 열린 뒤,전부 공개됨
+BoxLoot.SlotHidden,상자 칸 캡션 — 아직 가려진 칸,공개 대기
+BoxLoot.SlotEmpty,상자 칸 캡션 — 비어 있는 칸,비었음
+BoxLoot.RarityCommon,재료 등급 이름,일반
+BoxLoot.RarityRare,재료 등급 이름,희귀
+Gauge.Baking,완성 게이지 — 오븐 조리 중,굽는 중
+Gauge.Brewing,완성 게이지 — 커피 머신 조리 중,추출 중
+Gauge.Target,완성 게이지 — 내가 멈출 게이지. {0}=남은 초,F · {0:0.0}초
+Gauge.Waiting,완성 게이지 — 다른 게이지가 먼저일 때. {0}=남은 초,대기 · {0:0.0}초
+Settlement.Countdown,정산 화면 다음 일차까지 남은 초,{0}초
+Settlement.DayHeading,정산 화면 제목. {0}=일차,{0}일차 영업 정산
+Settlement.Paid,정산 화면 임대료 결과,완납
+Settlement.Unpaid,정산 화면 임대료 결과,미납
+Settlement.MissStreak,정산 화면 연속 미납 일수,{0}일
+Settlement.OurTeam,정산 화면 순위표에서 내 팀 이름,우리
+Hud.Stocked,재료 배지 — 무한 공급 재료의 개수 자리,상비
+Making.InProgress,제작 카드 이름 — 조립 중,만드는 중
+Making.Trash,제작 카드 이름 — 못 쓰는 조합,쓰레기
+Making.Burnt,제작 카드 상태,탄 것
+Making.Servable,제작 카드 상태,서빙 가능
+Making.CompletesWhenCooked,제작 카드 상태,조리하면 완성
+Making.AddMore,제작 카드 상태,재료를 더 넣는다
+Making.PourOut,제작 카드 상태 — 쓰레기를 비우는 키 안내,B로 쏟는다
+PhaseCue.Ready,밤 시작 카운트다운 뒤 문구,READY
+PhaseCue.Go,밤 시작 문구,GO!
+PhaseCue.Closing,낮 마감 문구,마감!
+Result.Caption,매치 결과 팝업 머리말,최종 결과
+Result.Draw,매치 결과 팝업 제목,무승부
+Result.TeamWin,매치 결과 팝업 제목. {0}=팀 번호(1부터),{0}팀 승리
+Result.MatchEnded,매치 결과 팝업 제목 — 승자 정보가 없을 때,판 종료
+Result.NoDailySales,매치 결과 팝업 하단 안내,일차별 매출은 아직 집계되지 않는다
+Return.SuccessTitle,귀환 결과 팝업 제목,귀환 성공
+Return.SuccessLine,귀환 결과 팝업 설명 줄,소지한 아이템 100% 귀환
+Return.SuccessWithLostBag,"귀환 성공 상세. {0}=반입, {1}=소실",재료 {0}개 반입 · 회수하지 못한 가방에서 {1}개 소실
+Return.SuccessKept,귀환 성공 상세. {0}=반입,재료 {0}개를 팀 재고로 넘겼다
+Return.SuccessNone,귀환 성공 상세,가져온 재료가 없다
+Return.PartialTitle,귀환 결과 팝업 제목 — 제때 못 돌아옴,귀환 실패
+Return.PartialLine,귀환 실패 설명 줄. {0}=소실 비율(설정값),소지한 아이템 {0}% 소실 · 미회수 가방 전량 소실
+Return.PartialDetail,"귀환 실패 상세. {0}=소실, {1}=반입",소환 위치 밖에서 밤이 끝났다 · {0}개 소실 / {1}개 반입
+Return.LostTitle,귀환 결과 팝업 제목 — 묻어 둔 가방을 못 찾음,가방 분실
+Return.LostLine,가방 분실 설명 줄,획득 아이템 100% 소실
+Return.LostBagWithCount,가방 분실 상세. {0}=소실,묻어 둔 가방을 회수하지 못했다 · {0}개 소실
+Return.LostBag,가방 분실 상세,묻어 둔 가방을 회수하지 못했다
+Room.ReadyAction,방 화면 참가자 버튼 — 준비 누르기,준비 완료
+Room.CancelReadyAction,방 화면 참가자 버튼 — 준비 풀기,준비 취소
+Room.TeamOccupancy,"방 화면 팀 버튼 글자. {0}=내 팀 표식, {1}=팀 번호, {2}=현재 인원, {3}=팀당 인원",{0}팀 {1}  {2}/{3}
+Room.TeamUnset,방 화면 멤버 줄 — 팀을 아직 안 고른 사람,미정
+Room.HostTag,방 화면 멤버 줄 뒤에 붙는 표식, (방장)
+Room.ReadyTag,방 화면 멤버 줄 뒤에 붙는 표식, · 준비
+Room.WaitTag,방 화면 멤버 줄 뒤에 붙는 표식, · 대기
+Room.ReadyCount,"방 화면 준비 인원. {0}=준비한 수, {1}=전체",준비 {0}/{1}
+RoomList.TeamCount,방 만들기 팀 수 라벨. {0}=팀 수,{0}팀
+Recipe.GemTurns,보석 줄 남은 턴,{0}턴
+Recipe.GemTurnsRefreshed,보석 줄 — 갱신된 보석의 남은 턴,{0}턴으로 갱신
+Prompt.Serve,서빙대 앞 프롬프트,서빙대 · F로 서빙
+Prompt.TakePlate,식기 선반 앞 프롬프트 — 접시,접시 · F로 가져가기
+Prompt.TakeCup,식기 선반 앞 프롬프트 — 잔,잔 · F로 가져가기
+Prompt.ShelfFinish,재료 선반 앞 프롬프트. {0}=재료 이름,{0} · F 홀드로 마무리
+Prompt.ShelfOpen,재료 선반 앞 프롬프트 — 재료가 여럿일 때,수집 재료 · F로 열기/닫기
+Prompt.ShelfTitle,재료 선반 창 제목,수집 재료
+Prompt.ShelfHint,재료 선반 창 안내,완성품에 추가할 재료 선택 · F로 닫기
+Prompt.PrepEmpty,보관대 앞 프롬프트 — 비어 있을 때,보관대 · F로 내려놓기
+Prompt.PrepCount,보관대 앞 프롬프트. {0}=놓인 개수,보관대 · {0}개 · F로 놓기/가져가기
+Prompt.FacilityLine,"설비 앞 프롬프트. {0}=설비 이름, {1}=상태·조작 안내",{0} · {1}
+Prompt.FacilityBusy,설비 상태,사용 중
+Prompt.FacilityHot,설비 상태 — 불씨 효과 직후,달아오름
+Prompt.FacilityWash,개수대 조작 안내,F 홀드 세척
+Prompt.FacilityUse,설비 조작 안내,F 사용
+Prompt.NeedsWash,더러운 그릇을 든 채 설비 앞에 섰을 때,세척 필요
+Prompt.BagRetrieve,묻어 둔 가방 — 우리 팀 것,가방 회수 (길게)
+Prompt.BagBurn,묻어 둔 가방 — 다른 팀 것,가방 소각 (길게)
+Prompt.BoxLooting,상자 앞 프롬프트 — 열려 있을 때. {0}=등급,Tier {0} · 루팅 중
+Prompt.BoxOpen,상자 앞 프롬프트. {0}=등급,Tier {0} · 길게 눌러 열기
+Prompt.BoxGridHint,루팅 창 안내,이동 · 대시 · 피격 시 창이 닫히고 개봉부터 다시
+Prompt.Receive,팀원 앞 프롬프트 — 내 손이 비었을 때,받기
+Prompt.Give,팀원 앞 프롬프트 — 팀원 손이 비었을 때,건네기
+Prompt.Swap,팀원 앞 프롬프트 — 둘 다 들었을 때,맞바꾸기
+Facility.Coffee,설비 이름,커피 머신
+Facility.Oven,설비 이름,오븐
+Facility.Sink,설비 이름,개수대
+Facility.Beans,설비 이름,원두함
+Facility.Bread,설비 이름,빵함
+Carry.Unknown,손에 든 완성품이 메뉴 표에 없을 때,정체불명
+Carry.Burnt,탄 완성품. {0}=이름,{0} (탄 것)
+Carry.DirtyPlate,손에 든 식기,더러운 접시
+Carry.DirtyCup,손에 든 식기,더러운 잔
+Carry.CleanPlate,손에 든 식기,깨끗한 접시
+Carry.CleanCup,손에 든 식기,깨끗한 잔
+Carry.Empty,아무것도 안 들었을 때,빈손
+Carry.Assembled,"조립 중인 것. {0}=재료, {1}=개수",{0} 조립 · 재료 {1}개
+Lobby.RoomFull,정원이 차서 접속을 거절할 때 클라이언트에 보이는 사유,고른 팀도 다른 팀도 자리가 없다.
+Lobby.RoomName,방 이름 기본값. {0}=내 표시 이름,{0}의 방
+Lobby.LeaveBeforeSwitch,방 안에서 플랫폼을 바꾸려 할 때,방을 나간 뒤에 플랫폼을 바꾼다.
+Lobby.ListLoading,방 목록 상태,방 목록을 받는 중…
+Lobby.NoRooms,방 목록이 비었을 때,방이 없다.
+Lobby.Creating,방 만들기 상태,방을 만드는 중…
+Lobby.HostUnknown,방 입장 오류,방의 호스트를 알 수 없다.
+Lobby.Joining,방 입장 상태,방에 들어가는 중…
+Lobby.HostOnlyStart,시작 오류,방장만 시작할 수 있다.
+Lobby.CheckReadyAndTeams,시작 오류 — 준비 또는 팀 정원 미충족,모든 참가자의 준비와 팀 정원을 확인해 주세요.
+Lobby.DataNotLoaded,시작 오류 — 이 PC의 데이터 표가 비어 있을 때,데이터 표가 실리지 않았다. 콘솔의 DataManager 오류를 확인해 주세요.
+Lobby.SceneLoadFailed,시작 오류. {0}=상태 코드,게임 씬을 불러오지 못했다: {0}
+Lobby.NoNetworkManager,접속 오류 — 개발자용,NetworkManager가 씬에 없다.
+Lobby.NoTransport,접속 오류 — 개발자용,쓸 수 있는 트랜스포트가 없다.
+Lobby.HostStartFailed,접속 오류,호스트를 시작하지 못했다.
+Lobby.ClientStartFailed,접속 오류,접속을 시작하지 못했다.
+Lobby.UnknownFailure,사유가 비어 있을 때의 오류,알 수 없는 이유로 실패했다.
+Lobby.NotReady,로비를 쓸 수 없을 때,로비가 준비되지 않았다.
+Lobby.DataMismatch,접속 거절 사유 — 호스트와 데이터 표가 다름,데이터 표가 호스트와 다르다. 같은 빌드로 다시 접속한다.
+Lobby.HostDataNotLoaded,접속 거절 사유 — 호스트의 데이터 표가 비어 있음,호스트의 데이터 표가 실리지 않았다. 호스트 콘솔의 DataManager 오류를 확인한다.
+Lobby.EditorName,로컬 로비에서 에디터 창의 표시 이름. {0}=창 번호,에디터 {0}
+Lobby.LocalFolderCreateFailed,로컬 로비 오류. {0}=시스템 메시지,로컬 로비 폴더를 만들지 못했다: {0}
+Lobby.LocalWriteFailed,로컬 로비 오류. {0}=시스템 메시지,로컬 로비 기록을 쓰지 못했다: {0}
+Lobby.LocalReadFailed,로컬 로비 오류. {0}=시스템 메시지,로컬 로비 폴더를 읽지 못했다: {0}
+Lobby.RoomGone,방 입장 오류,방이 사라졌다.
+Lobby.RoomFullNow,방 입장 오류,방이 가득 찼다.
+Lobby.SteamConnectFailed,스팀 오류. {0}=시스템 메시지,스팀에 연결하지 못했다: {0}
+Lobby.StartSignalNotHost,스팀 오류 — 개발자용,방장이 아닌 곳에서 시작 신호가 왔다. 접속하지 않는다.
+Lobby.SteamNotReady,스팀 오류,스팀이 준비되지 않았다.
+Lobby.ListFailed,스팀 오류. {0}=시스템 메시지,방 목록을 받지 못했다: {0}
+Lobby.CreateFailedWith,스팀 오류. {0}=시스템 메시지,방을 만들지 못했다: {0}
+Lobby.CreateFailed,스팀 오류,방을 만들지 못했다.
+Lobby.ListStale,스팀 오류,방 목록이 낡았다. 새로 고친 뒤 다시 시도한다.
+Lobby.JoinFailedWith,스팀 오류. {0}=시스템 메시지 또는 결과 코드,방에 들어가지 못했다: {0}
+Ingredient.None,재료 이름 — 재료가 없을 때(기호라 번역하지 않는다),—
+Ingredient.Milk,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,우유
+Ingredient.Cream,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,크림
+Ingredient.Chocolate,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,초콜렛
+Ingredient.Almond,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,아몬드
+Ingredient.Berry,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,베리
+Ingredient.Ice,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,얼음
+Ingredient.BloodBean,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,블러드 빈
+Ingredient.UpgradePart,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,업그레이드 재료
+Ingredient.Bean,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,원두
+Ingredient.BreadBase,재료 이름 (기획서 7.1). 키는 Ingredient 열거자 이름,빵 베이스
+Race.Zombie,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,좀비
+Race.Vampire,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,뱀파이어
+Race.Ghost,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,유령
+Race.Skeleton,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,해골
+Race.Werewolf,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,늑대인간
+Race.Witch,손님 종족 이름 (기획서 5.5). 키는 Race 열거자 이름,마녀
+Menu.None,메뉴 이름 — 메뉴가 없을 때(기호라 번역하지 않는다),—
+Menu.HotAmericano,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,핫 아메리카노
+Menu.IcedAmericano,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,아이스 아메리카노
+Menu.CafeLatte,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,카페라떼
+Menu.Einspanner,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,아인슈페너
+Menu.CafeMocha,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,카페모카
+Menu.IcedLatte,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,아이스라떼
+Menu.ChocoBrownie,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,초코 브라우니
+Menu.AlmondCookie,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,아몬드 쿠키
+Menu.CreamCake,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,크림 케이크
+Menu.BerryTart,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,베리 타르트
+Menu.IcedMocha,메뉴 이름 (기획서 7.2). 키는 MenuId 열거자 이름,아이스모카
+Gem.Ember,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,불씨
+Gem.Ember.Effect,보석 효과 문구 (기획서 8.2),조리 시간 -30%
+Gem.Scales,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,저울
+Gem.Scales.Effect,보석 효과 문구 (기획서 8.2),Perfect 폭 +40%
+Gem.Wind,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,바람
+Gem.Wind.Effect,보석 효과 문구 (기획서 8.2),이동 속도 +12%
+Gem.Foam,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,거품
+Gem.Foam.Effect,보석 효과 문구 (기획서 8.2),세척 시간 -35%
+Gem.Engraving,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,각인
+Gem.Engraving.Effect,보석 효과 문구 (기획서 8.2),액티브 쿨타임 -25%
+Gem.Tea,보석 이름 (기획서 8.2). 키는 Gem 열거자 이름,찻잎
+Gem.Tea.Effect,보석 효과 문구 (기획서 8.2),손님 인내심 +20%
+DaySkill.None,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,없음
+DaySkill.Ignite,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,불붙이기
+DaySkill.Ignite.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,쓰고 있는 설비의 남은 조리 시간을 줄인다. 놓은 뒤 설비가 잠깐 달아오른다 (쿨 15초)
+DaySkill.Glide,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,활공
+DaySkill.Glide.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,3초 동안 이동속도가 크게 오른다 (쿨 22초)
+DaySkill.Refine,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,정제
+DaySkill.Refine.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,다음 한 잔의 완성 게이지가 Perfect로 확정된다 (쿨 18초)
+DaySkill.Shortcut,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,지름길
+DaySkill.Shortcut.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,2.5초 동안 다른 캐릭터를 통과한다 (쿨 14초)
+DaySkill.Swallow,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,삼키기
+DaySkill.Swallow.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,들고 있는 더러운 식기의 세척을 70% 진행시킨다 (쿨 22초)
+DaySkill.CoffinDrop,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,관 떨어뜨리기
+DaySkill.CoffinDrop.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)
+DaySkill.Bite,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,물기
+DaySkill.Bite.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,붙어 있는 적을 물어 좀비걸음으로 만든다. 부딪힌 사람에게 옮는다 (쿨 18초)
+DaySkill.Howl,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,하울링
+DaySkill.Howl.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,주변의 다른 팀은 도망치고 같은 팀은 빨라진다 (쿨 20초)
+DaySkill.FrogCurse,낮 액티브 이름 (기획서 9.1.2). 키는 DaySkill 열거자 이름,개구리 저주
+DaySkill.FrogCurse.Effect,낮 액티브 효과 문구 (기획서 9.1.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,맞은 적은 2.5초 동안 아무것도 집거나 쓸 수 없다 (쿨 18초)
+NightSkill.None,밤 액티브 이름 (기획서 9.2). 키는 NightSkill 열거자 이름 — 현재 캐릭터가 쓰는 것만 있다,없음
+NightSkill.BatSwarm,밤 액티브 이름 (기획서 9.2). 키는 NightSkill 열거자 이름 — 현재 캐릭터가 쓰는 것만 있다,박쥐 떼
+NightSkill.BatSwarm.Effect,밤 액티브 효과 문구 (기획서 9.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)
+NightSkill.ArmThrow,밤 액티브 이름 (기획서 9.2). 키는 NightSkill 열거자 이름 — 현재 캐릭터가 쓰는 것만 있다,팔 던지기
+NightSkill.ArmThrow.Effect,밤 액티브 효과 문구 (기획서 9.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,맞은 적은 1.5초 동안 움직일 수 없다 (쿨 16초)
+NightSkill.Track,밤 액티브 이름 (기획서 9.2). 키는 NightSkill 열거자 이름 — 현재 캐릭터가 쓰는 것만 있다,추적
+NightSkill.Track.Effect,밤 액티브 효과 문구 (기획서 9.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,주변의 숨겨진 가방 쪽으로 냄새 줄기가 흐른다 (쿨 14초)
+NightSkill.SlipperyPotion,밤 액티브 이름 (기획서 9.2). 키는 NightSkill 열거자 이름 — 현재 캐릭터가 쓰는 것만 있다,미끄러운 물약
+NightSkill.SlipperyPotion.Effect,밤 액티브 효과 문구 (기획서 9.2). 쿨타임 수치가 문구에 들어 있다 — 수치를 바꾸면 같이 고친다,웅덩이에 들어온 적이 미끄러져 넘어진다 (쿨 20초)
+Character.Vampire,캐릭터 이름 (기획서 9.1.1). 키는 CharacterId 열거자 이름,뱀파이어
+Character.Zombie,캐릭터 이름 (기획서 9.1.1). 키는 CharacterId 열거자 이름,좀비
+Character.Werewolf,캐릭터 이름 (기획서 9.1.1). 키는 CharacterId 열거자 이름,늑대인간
+Character.Witch,캐릭터 이름 (기획서 9.1.1). 키는 CharacterId 열거자 이름,마녀
+Names.TeamPending,팀 표기 — 아직 팀이 없을 때,팀 배정 대기
+Names.Team,팀 표기. {0}=팀 번호(1부터),{0}팀
+Names.GemItem,보석 재료 이름. {0}=보석 이름,{0} 보석
+Select.CardSelected,프리팹 글자: Parts/UICharacterCard.prefab › SelectedBadge › SelectedMark,선택
+Select.ReadyMark,프리팹 글자: Parts/UICharacterNameplate.prefab › ReadyMark,준비
+Gauge.TimingTitle,프리팹 글자: Parts/UICompletionGauge.prefab › TimingTitle,완성 타이밍
+Common.InfoPanel,프리팹 글자: Parts/UIKeyHint.prefab › Label,정보 패널
+Settlement.CardTitle,프리팹 글자: Parts/UISettlementCard.prefab › Title (자리 표시자 — 부모 프리팹이 덮어쓴다),제목
+Settlement.LineLabel,프리팹 글자: Parts/UISettlementLine.prefab › Label (자리 표시자 — 부모 프리팹이 덮어쓴다),항목
+Settings.VolumeAll,프리팹 글자: Parts/UIVolumeSlider.prefab › Label (자리 표시자 — 부모 프리팹이 덮어쓴다),전체 음량
+BoxLoot.LootHeading,프리팹 글자: Popup/UIBoxLootPopup.prefab › Stage › Panel › LootHeadingPlate › LootHeading,발견한 물품
+BoxLoot.MaterialHeading,프리팹 글자: Popup/UIBoxLootPopup.prefab › Stage › Panel › MaterialHeading,재료 상자
+Result.FinalRanking,프리팹 글자: Popup/UIMatchResultPopup.prefab › Stage › FinalRanking › Caption,최종 순위
+Result.ToLobby,프리팹 글자: Popup/UIMatchResultPopup.prefab › Stage › Lobby › Label2,로비로
+Result.Rematch,프리팹 글자: Popup/UIMatchResultPopup.prefab › Stage › Rematch › Label,다시 시작
+Result.FinalHeading,프리팹 글자: Popup/UIMatchResultPopup.prefab › Stage › FinalHeading,최종 결과
+Common.Ok,프리팹 글자: Popup/UIMessagePopup.prefab › Panel › OkButton › Text (Legacy),확인
+Settings.Title,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › RedSpine › Title,설정
+Settings.Bgm,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Volumes › VolumeBgm › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),배경음
+Settings.Sfx,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Volumes › VolumeSfx › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),효과음
+Settings.MouseSens,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Volumes › LookRow › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),마우스 감도
+Settings.Fullscreen,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Volumes › Fullscreen › Label,전체 화면
+Settings.SensHint,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Volumes › Fullscreen › AvailabilityHint,감도는 카메라 사용 시 표시
+Settings.ApplyClose,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › Apply › Text (Legacy),적용하고 닫기
+Settings.Close,프리팹 글자: Popup/UISettingsPopup.prefab › Panel › CloseHint › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),닫기
+Select.Title,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › Caption,크루 선택
+Select.Day,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › PanelWrap › Detail › DayGroup › DayCaption,낮
+Select.Night,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › PanelWrap › Detail › NightGroup › PhaseLabel,밤
+Select.TeamCaption,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › PanelWrap › Detail › TeamCaption,함께할 팀
+Common.Back,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › Back › BackLabel,뒤로
+Common.Tagline,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › StageHeading,"커피는 함께, 밤은 대담하게."
+Select.Subheading,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › StageSubheading,캐릭터와 팀을 고른 뒤 준비해 주세요.
+Select.CrewSelected,프리팹 글자: Screen/UICharacterSelectScreen.prefab › Stage › SelectedCrewCaptionPlate › Caption,선택한 크루
+Settlement.SummaryTitle,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › SummaryCard › Title (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),오늘의 매출
+Settlement.Sales,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › SummaryCard › Sales › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),오늘 매출
+Settlement.Rent,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › SummaryCard › Rent › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),오늘 임대료
+Settlement.Payment,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › SummaryCard › Payment › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),납부
+Settlement.Streak,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › SummaryCard › Streak › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),연속 미납
+Settlement.StandingsTitle,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › StandingsCard › Title (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),순위 — 누적 매출
+Settlement.UpgradeTitle,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › UpgradeCard › Title (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),자동 보석 적용
+Settlement.UpgradeNone,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › UpgradeCard › Note,적용 중인 보석 없음
+Settlement.ForecastTitle,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › ForecastCard › Title (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),내일의 손님 예보
+Settlement.ForecastCaption,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › ForecastCard › Caption,손님 구성비 — 수는 알려주지 않는다
+Settlement.Popular,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › ForecastCard › Popular › Label,인기 재료
+Settlement.RaceLegend,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › ForecastCard › RaceLegend,좀비 · 유령 · 해골 · 늑대 · 뱀파이어 · 마녀
+Race.Wolf,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › Cards › ForecastCard › RaceCards › Race4 › Name (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),늑대
+Settlement.AutoContinue,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › AutoContinueCaption,자동 진행
+Settlement.NextNight,프리팹 글자: Screen/UIDaySettlementScreen.prefab › Stage › NextNightCaption,다음 밤을 준비합니다…
+Hud.Bag,프리팹 글자: Screen/UIMatchHudScreen.prefab › NightRoot › ApprovedBagDock › BagLabel,가방
+Hud.RevenueCaption,프리팹 글자: Screen/UIMatchHudScreen.prefab › NightRoot › TopLeft › RevenueCaption,팀 매출
+Hud.LoadCaption,프리팹 글자: Screen/UIMatchHudScreen.prefab › NightRoot › TopLeft › ApprovedBagSummary › Caption,적재량
+Hud.BagRespawnHint,프리팹 글자: Screen/UIMatchHudScreen.prefab › NightRoot › BagIcon › BagInfo › BagReissueHint › Text,소환 위치로 돌아가면 가방이 재생성된다
+Hud.DayClock,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › DayHeader › ClockBadge › DayLabel,일차 · 카페 운영
+Hud.Rent,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › DayHeader › SalesBlock › Label,임대료
+Hud.RentMet,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › DayHeader › SalesBlock › RentMet › Label,목표 달성
+Hud.RecipeHint,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › RecipeHint › Label (중첩 프리팹의 글자를 이 프리팹이 덮어쓴 것),조합식
+Hud.RecipeBook,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › RecipeTab › Caption,조합법
+Hud.RecipeCoffee,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › RecipeWrap › RecipePanel › ScrollView › Viewport › RecipeColumns › CoffeeColumn › Category,커피 · 7
+Hud.RecipeDessert,프리팹 글자: Screen/UIMatchHudScreen.prefab › DayRoot › RecipeWrap › RecipePanel › ScrollView › Viewport › RecipeColumns › DessertColumn › Category,디저트 · 4
+RoomList.Refresh,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › Actions › 새로고침 › Label,새로고침
+RoomList.Create,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › Actions › 방 만들기 › Label,방 만들기
+RoomList.Join,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › Actions › 들어가기 › Label,들어가기
+Common.CrewHeading,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomDetails › Heading,함께할 크루
+RoomList.TeamHelp,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomDetails › Help,2 – 4팀 선택 가능
+RoomList.TeamsCaption,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomDetails › TeamsCaption,팀 수
+RoomList.ListLabel,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomClipboard › Label,방 목록
+RoomList.EmptyTitle,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomClipboard › EmptyState › Title,표시할 방이 없습니다
+RoomList.EmptyHint,프리팹 글자: Screen/UIRoomListScreen.prefab › Panel › RoomClipboard › EmptyState › Hint,새로고침하거나 새 카페를 열어 주세요
+Room.StartGame,프리팹 글자: Screen/UIRoomScreen.prefab › Panel › Actions › 게임 시작 › Label,게임 시작
+Room.Leave,프리팹 글자: Screen/UIRoomScreen.prefab › Panel › Actions › 방 나가기 › Label,뒤로
+Title.Start,프리팹 글자: Screen/UITitleMenuScreen.prefab › ArtFrame › layout › btn_gamestart › Text (TMP),게임시작
+Title.Settings,프리팹 글자: Screen/UITitleMenuScreen.prefab › ArtFrame › layout › btn_setting › Text (TMP),설정
+Title.Quit,프리팹 글자: Screen/UITitleMenuScreen.prefab › ArtFrame › layout › btn_shutdown › Text (TMP),게임 종료
+Hud.DashCaption,프리팹 글자: Screen/UIMatchHudScreen.prefab › CommonRoot › BottomLeft › DashSlot › SkillCaption (코드가 대입하지 않는 고정 글자),대시

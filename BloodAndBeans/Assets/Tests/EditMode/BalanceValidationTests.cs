@@ -42,7 +42,7 @@ public class BalanceValidationTests
     {
         // 엑셀에서 **중간** 행을 지운 모양. 길이는 그대로고 그 칸만 기본값으로 남는다.
         var data = new BalanceData();
-        data.DaySkillNames[3] = null;
+        data.Characters[1] = default;
 
         Assert.IsNotEmpty(BalanceValidation.Problems(data), "중간에 빈 칸을 잡지 못했다");
     }

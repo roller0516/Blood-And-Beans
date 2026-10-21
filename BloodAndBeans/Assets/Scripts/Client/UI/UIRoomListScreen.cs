@@ -18,7 +18,6 @@ public sealed class UIRoomListScreen : UIScreen
     [Header("선택한 방 정보")]
     [SerializeField] TMP_Text selectedRoomName;
     [SerializeField] TMP_Text selectedRoomOccupancy;
-    [SerializeField] string noRoomSelected;
     [SerializeField] string occupancyFormat = "{0}/{1}";
     [SerializeField] GameObject emptyState;
     [SerializeField] GameObject occupancyIcon;
@@ -73,7 +72,7 @@ public sealed class UIRoomListScreen : UIScreen
 
     void RefreshTeamCountLabel()
     {
-        if (teamCountLabel != null) teamCountLabel.text = $"{SelectedTeamCount}팀";
+        if (teamCountLabel != null) teamCountLabel.text = L10n.Format(TextKey.RoomList.TeamCount, SelectedTeamCount);
         UIExtentions.SetInteractable(teamCountMinus, SelectedTeamCount > MinTeams);
         UIExtentions.SetInteractable(teamCountPlus, SelectedTeamCount < maxTeamsUi);
     }
@@ -115,7 +114,7 @@ public sealed class UIRoomListScreen : UIScreen
         var hasSelection = selectedRoom >= 0 && selectedRoom < rooms.Count;
         if (occupancyIcon != null) occupancyIcon.SetActive(hasSelection);
         if (selectedRoomName != null)
-            selectedRoomName.text = hasSelection ? rooms[selectedRoom].Name : noRoomSelected;
+            selectedRoomName.text = hasSelection ? rooms[selectedRoom].Name : L10n.Get(TextKey.RoomList.NoSelection);
         if (selectedRoomOccupancy != null)
             selectedRoomOccupancy.text = hasSelection
                 ? string.Format(occupancyFormat, rooms[selectedRoom].Members, rooms[selectedRoom].Capacity)

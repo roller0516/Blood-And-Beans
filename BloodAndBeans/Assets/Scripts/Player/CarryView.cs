@@ -95,7 +95,6 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
 
     /// 표시용 이름. 재료·메뉴의 한글 이름표가 아직 없어서 enum 이름을 그대로 쓴다 —
     /// HUD의 인기 재료 표시와 같은 방식이다.
-    /// ponytail: 한글 이름표는 localization 작업이다. 생기면 이 한 곳만 고치면 된다.
     public string Label
     {
         get
@@ -104,12 +103,14 @@ public struct CarryView : INetworkSerializable, IEquatable<CarryView>
             {
                 // 메뉴 표에 없는 조합도 완성품이 된다 (`Menus.Match`가 None을 돌려준다).
                 // 그것을 "빈손"으로 그리면 들고 있는 것이 화면에서 사라진다.
-                var name = Menu == MenuId.None ? "정체불명" : Menu.ToString();
-                return Burnt ? $"{name} (탄 것)" : name;
+                var name = Menu == MenuId.None ? L10n.Get(TextKey.Carry.Unknown) : Menu.ToString();
+                return Burnt ? L10n.Format(TextKey.Carry.Burnt, name) : name;
             }
-            if (HasDish && Ingredient == Ingredient.None) return $"{(Dirty ? "더러운" : "깨끗한")} {(DishIsPlate ? "접시" : "잔")}";
-            if (Ingredient == Ingredient.None) return "빈손";
-            if (Assembled) return $"{Ingredient} 조립 · 재료 {Count}개";
+            if (HasDish && Ingredient == Ingredient.None) return L10n.Get(Dirty
+                ? DishIsPlate ? TextKey.Carry.DirtyPlate : TextKey.Carry.DirtyCup
+                : DishIsPlate ? TextKey.Carry.CleanPlate : TextKey.Carry.CleanCup);
+            if (Ingredient == Ingredient.None) return L10n.Get(TextKey.Carry.Empty);
+            if (Assembled) return L10n.Format(TextKey.Carry.Assembled, Ingredient, Count);
             return Count > 1 ? $"{Ingredient} ×{Count}" : Ingredient.ToString();
         }
     }

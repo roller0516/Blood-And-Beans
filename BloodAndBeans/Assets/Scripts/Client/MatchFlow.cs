@@ -77,10 +77,6 @@ public sealed class MatchFlow : SceneFlow
     /// 첫 밤 시작 전 로딩 창을 붙잡은 핸들. 떠 있을 때만 값이 있다.
     UIManager.LoadingHandle loading;
 
-    /// 인원이 정해진 뒤의 로딩 문구. {0} 모인 인원, {1} 방 인원.
-    [Header("로딩")]
-    [SerializeField] string waitingFormat = "다른 플레이어를 기다리는 중… {0} / {1}";
-
     /// 문구를 마지막으로 만든 인원. 값이 바뀔 때만 문자열을 만든다.
     int shownJoined = -1;
     int shownExpected = -1;
@@ -316,7 +312,7 @@ public sealed class MatchFlow : SceneFlow
         shownJoined = joined;
         shownExpected = expected;
         // 인원을 아직 모르면(시계가 복제되기 전) 창의 기본 문구다.
-        ui.SetLoadingMessage(expected > 0 ? string.Format(waitingFormat, joined, expected) : null);
+        ui.SetLoadingMessage(expected > 0 ? L10n.Format(TextKey.Loading.WaitingPlayers, joined, expected) : null);
     }
 
     /// 페이즈가 바뀌는 순간을 화면 한복판에서 알린다 — 밤 시작 카운트다운 · 낮 시작
@@ -455,7 +451,7 @@ public sealed class MatchFlow : SceneFlow
         if (board != null)
             for (var t = 0; t < board.TeamCount; t++)
                 standings.Add(new UIDaySettlementScreen.StandingRow(
-                    t == team ? "우리" : DisplayNames.Team(t), board.RevenueOf(t), t == team));
+                    t == team ? L10n.Get(TextKey.Settlement.OurTeam) : DisplayNames.Team(t), board.RevenueOf(t), t == team));
         standings.Sort((a, b) => b.Total.CompareTo(a.Total));
 
         // 예보. 종족별 인원수와 인기 재료만 온다 (기획서 5.6.3). 화면은 인원수를 구성비로만 그린다.
@@ -492,7 +488,7 @@ public sealed class MatchFlow : SceneFlow
             if (turns <= 0) continue;
             rows.Add(new UIDaySettlementScreen.GemRow(
                 sprites.IngredientSprite(Gems.ItemOf(gem)),
-                Gems.NameOf(gem), Gems.EffectOf(gem), turns, cafe.GemRefreshed(gem)));
+                DisplayNames.Of(gem), DisplayNames.EffectOf(gem), turns, cafe.GemRefreshed(gem)));
         }
         return rows;
     }

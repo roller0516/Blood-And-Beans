@@ -20,8 +20,6 @@ public sealed class UIRoomScreen : UIScreen
 
     /// 방장이 아닌 사람의 버튼. 방장은 시작 버튼을 쥐므로 이건 감춘다 (기획서 10.1).
     [SerializeField] Button readyButton;
-    [SerializeField] string readyActionLabel = "준비 완료";
-    [SerializeField] string cancelReadyActionLabel = "준비 취소";
     [SerializeField] TMP_Text readyCount;
 
     [SerializeField] Button leaveButton;
@@ -80,7 +78,7 @@ public sealed class UIRoomScreen : UIScreen
             if (teamCards[team] != null)
                 teamCards[team].Render(team, mine, members);
             else if (teamLabels[team] != null)
-                teamLabels[team].text = $"{marker}팀 {team + 1}  {occupancyOf(team)}/{playersPerTeam}";
+                teamLabels[team].text = L10n.Format(TextKey.Room.TeamOccupancy, marker, team + 1, occupancyOf(team), playersPerTeam);
             UIExtentions.SetInteractable(teamButtons[team], !mine && teamHasRoom(team));
         }
 
@@ -95,13 +93,13 @@ public sealed class UIRoomScreen : UIScreen
                 if (i >= spawnedMembers.Count) spawnedMembers.Add(Instantiate(memberRowPrefab, memberRows));
 
                 var member = members[i];
-                var team = member.Team >= 0 ? $"팀 {member.Team + 1}" : "미정";
-                var host = member.IsHost ? " (방장)" : string.Empty;
+                var team = member.Team >= 0 ? L10n.Format(TextKey.Room.Team, member.Team + 1) : L10n.Get(TextKey.Room.TeamUnset);
+                var host = member.IsHost ? L10n.Get(TextKey.Room.HostTag) : string.Empty;
                 var self = member.IsSelf ? " <-" : string.Empty;
 
                 // 방장은 준비 개념이 없으므로 표시하지 않는다. 남은 사람만 준비 여부가 뜬다.
                 var ready = member.IsHost ? string.Empty
-                          : member.IsReady ? " · 준비" : " · 대기";
+                          : L10n.Get(member.IsReady ? TextKey.Room.ReadyTag : TextKey.Room.WaitTag);
 
                 var row = spawnedMembers[i];
                 row.gameObject.SetActive(true);
@@ -126,10 +124,10 @@ public sealed class UIRoomScreen : UIScreen
         {
             readyButton.gameObject.SetActive(!isHost);
             var label = readyButton.GetComponentInChildren<TMP_Text>();
-            if (label != null) label.text = selfReady ? cancelReadyActionLabel : readyActionLabel;
+            if (label != null) label.text = L10n.Get(selfReady ? TextKey.Room.CancelReadyAction : TextKey.Room.ReadyAction);
         }
 
         // 방장은 누구를 기다리는지, 손님은 몇 명이 남았는지 같은 숫자를 본다.
-        if (readyCount != null) readyCount.text = $"준비 {readyNow}/{readyTotal}";
+        if (readyCount != null) readyCount.text = L10n.Format(TextKey.Room.ReadyCount, readyNow, readyTotal);
     }
 }

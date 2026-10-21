@@ -9,11 +9,8 @@ public sealed class UICrewRosterCard : MonoBehaviour
     [SerializeField] TMP_Text playerName;
     [SerializeField] GameObject readyMark;
     [SerializeField] GameObject selfMark;
-    [SerializeField] string waitingLabel = "참가 대기";
     [SerializeField] TMP_Text readyStatus;
     [SerializeField] UnityEngine.UI.Image readyStatusBackground;
-    [SerializeField] string readyLabel = "준비 완료";
-    [SerializeField] string notReadyLabel = "준비 중";
     [SerializeField] Color readyStatusColor = new(.66f, .98f, .42f);
     [SerializeField] Color waitingStatusColor = new(.28f, .17f, .40f, .9f);
     [SerializeField] Color readyTextColor = new(.10f, .18f, .10f);
@@ -21,8 +18,9 @@ public sealed class UICrewRosterCard : MonoBehaviour
 
     public void RenderEmpty()
     {
-        Render(waitingLabel, null, UITheme.PanelDeep, false, false);
-        if (readyStatus != null) readyStatus.text = waitingLabel;
+        var waiting = L10n.Get(TextKey.Select.RosterWaiting);
+        Render(waiting, null, UITheme.PanelDeep, false, false);
+        if (readyStatus != null) readyStatus.text = waiting;
     }
 
     public void Render(string nickname, Sprite icon, Color teamColor, bool ready, bool self)
@@ -35,7 +33,7 @@ public sealed class UICrewRosterCard : MonoBehaviour
         selfMark.SetActive(self);
         if (readyStatus != null)
         {
-            readyStatus.text = ready ? readyLabel : notReadyLabel;
+            readyStatus.text = L10n.Get(ready ? TextKey.Select.RosterReady : TextKey.Select.RosterNotReady);
             readyStatus.color = ready ? readyTextColor : waitingTextColor;
         }
         if (readyStatusBackground != null)

@@ -171,9 +171,9 @@ public sealed class UIBoxLootPopup : UIPopup
         var hidden = Mathf.Max(0, slotCount - revealed);
         Set(tierLabel, source.GridTitle);
         Set(title, !HasBag
-            ? "가방을 묻어 뒀다 — 담을 수 없다"
-            : $"슬롯 {slotCount} · 남은 것 {remaining}");
-        Set(revealValue, hidden > 0 ? $"{hidden}칸 공개 중…" : "전부 공개됨");
+            ? L10n.Get(TextKey.BoxLoot.BagBuried)
+            : L10n.Format(TextKey.BoxLoot.SlotSummary, slotCount, remaining));
+        Set(revealValue, hidden > 0 ? L10n.Format(TextKey.BoxLoot.Revealing, hidden) : L10n.Get(TextKey.BoxLoot.AllRevealed));
 
         // 개인 인벤토리는 없고 무게만 있다 (기획서 6.5.6).
         if (bag != null)

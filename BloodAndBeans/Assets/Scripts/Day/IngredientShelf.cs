@@ -14,9 +14,11 @@ public class IngredientShelf : NetworkBehaviour, IInteractable, IItemHolder, ILo
     public bool GridOpen { get; private set; }
     public float Reach => reach;
     public bool LocalPlayerNear => Station.LocalPlayerNear(surface, transform, reach);
-    public string Prompt => offer.Length == 1 ? $"{DisplayNames.Of(offer[0])} · F 홀드로 마무리" : "수집 재료 · F로 열기/닫기";
-    public string GridTitle => "수집 재료";
-    public string GridHint => "완성품에 추가할 재료 선택 · F로 닫기";
+    public string Prompt => offer.Length == 1
+        ? L10n.Format(TextKey.Prompt.ShelfFinish, DisplayNames.Of(offer[0]))
+        : L10n.Get(TextKey.Prompt.ShelfOpen);
+    public string GridTitle => L10n.Get(TextKey.Prompt.ShelfTitle);
+    public string GridHint => L10n.Get(TextKey.Prompt.ShelfHint);
     public int SlotCount => offer.Length;
     public int RevealedCount => SlotCount;
     public int HighlightSlot => -1;

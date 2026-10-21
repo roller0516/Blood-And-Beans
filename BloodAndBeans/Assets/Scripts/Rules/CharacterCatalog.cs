@@ -151,41 +151,24 @@ public static class DaySkills
     /// 표 밖의 값은 기본값으로 떨어뜨린다. 데이터가 짧아도 예외를 던지지 않는다.
     static T Pick<T>(T[] table, int index, T fallback) =>
         index >= 0 && index < table.Length ? table[index] : fallback;
-
-    public static string NameOf(DaySkill s) =>
-        Pick(Balance.Current.DaySkillNames, (int)s, "없음");
-
-    public static string EffectOf(DaySkill s) =>
-        Pick(Balance.Current.DaySkillEffects, (int)s, string.Empty);
 }
 
 /// 캐릭터 한 종의 정의 (기획서 9장).
 ///
-/// 캐릭터 하나 = 몬스터 컨셉 + 낮 액티브 1 + 밤 액티브 1 (9.1). 두 스킬을 같은 모양으로
-/// 드는 이유는 화면이 둘을 같은 자리에 이름과 한 줄 설명으로 그리기 때문이다.
+/// 캐릭터 하나 = 몬스터 컨셉 + 낮 액티브 1 + 밤 액티브 1 (9.1). 이름과 한 줄 설명은 여기 없다 —
+/// `DisplayNames`가 `Id`·`Day`·`Night`로 Localization 표에서 꺼낸다.
 public readonly struct CharacterDef
 {
-    public readonly string Name;
-    public readonly string DayName;
-    public readonly string DayEffect;
-    public readonly string NightName;
-    public readonly string NightEffect;
-
     /// 외형 키. 모델·초상 표가 읽는다.
     public readonly CharacterId Id;
     public readonly DaySkill Day;
     public readonly NightSkill Night;
 
-    public CharacterDef(string name, CharacterId id, NightSkill night, string nightName, string nightEffect)
+    public CharacterDef(CharacterId id, NightSkill night)
     {
-        Name = name;
         Id = id;
         Night = night;
         Day = DaySkills.Of(night);   // 9.1.1: 낮 액티브는 밤 액티브의 짝으로 정해진다
-        DayName = DaySkills.NameOf(Day);
-        DayEffect = DaySkills.EffectOf(Day);
-        NightName = nightName;
-        NightEffect = nightEffect;
     }
 }
 
@@ -203,8 +186,7 @@ public static class CharacterCatalog
         var rows = data.Characters;
         var outp = new CharacterDef[rows.Length];
         for (var i = 0; i < rows.Length; i++)
-            outp[i] = new CharacterDef(
-                rows[i].Name, rows[i].Id, rows[i].Night, rows[i].NightName, rows[i].NightEffect);
+            outp[i] = new CharacterDef(rows[i].Id, rows[i].Night);
         return outp;
     }
 

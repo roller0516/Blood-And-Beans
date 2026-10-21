@@ -108,7 +108,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 
     public float Reach => reach;
 
-    public string Prompt => Opened ? $"Tier {Tier} · 루팅 중" : $"Tier {Tier} · 길게 눌러 열기";
+    public string Prompt => L10n.Format(Opened ? TextKey.Prompt.BoxLooting : TextKey.Prompt.BoxOpen, Tier);
 
     public void BeginInteractionClient()
     {
@@ -596,7 +596,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     public string GridTitle => $"TIER {Tier}";
 
     /// 이 창은 서버가 세션을 닫을 때 닫힌다 (기획서 6.5.5). 클라이언트가 못 닫는다.
-    public string GridHint => "이동 · 대시 · 피격 시 창이 닫히고 개봉부터 다시";
+    public string GridHint => L10n.Get(TextKey.Prompt.BoxGridHint);
 
     /// 접속 직후 한 번. 이 클라이언트에는 아직 세션이 없으므로 닫힌 상태가 간다.
     public void SendStateToClientServer(ulong clientId, int team)

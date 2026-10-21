@@ -27,7 +27,6 @@ public class MatchSeating
     readonly int playersPerTeam;
 
     /// 정원이 차서 접속을 거절할 때 클라이언트에게 보내는 사유.
-    readonly string roomFullMessage;
 
     /// 접속 승인에서 잡아 둔 좌석. 플레이어가 스폰될 때 이 값을 그대로 쓴다. 승인 시점에
     /// 자리를 잡지 않으면 두 클라이언트가 같은 마지막 자리를 동시에 통과할 수 있다.
@@ -53,11 +52,10 @@ public class MatchSeating
     /// 승인 콜백이 남아 죽은 좌석표를 계속 부른다.
     NetworkManager subscribed;
 
-    public MatchSeating(int teams, int maxTeams, int playersPerTeam, string roomFullMessage)
+    public MatchSeating(int teams, int maxTeams, int playersPerTeam)
     {
         this.maxTeams = Mathf.Max(1, maxTeams);
         this.playersPerTeam = Mathf.Max(1, playersPerTeam);
-        this.roomFullMessage = roomFullMessage;
 
         ApplyTeamCount(Mathf.Clamp(teams, 1, this.maxTeams));
     }
@@ -169,9 +167,6 @@ public class MatchSeating
     }
 
     /// 호스트와 표가 다르면 코인 예고와 서버 정산이 어긋난다 (남은 작업 설계 1단계).
-    const string DataMismatchMessage = "데이터 표가 호스트와 다르다. 같은 빌드로 다시 접속한다.";
-    const string DataNotLoadedMessage = "호스트의 데이터 표가 실리지 않았다. 호스트 콘솔의 DataManager 오류를 확인한다.";
-
     static bool SameData(byte[] payload) =>
         payload != null && payload.Length >= sizeof(int) * 3 &&
         BitConverter.ToInt32(payload, sizeof(int) * 2) == DataManager.ContentHash;
@@ -207,7 +202,8 @@ public class MatchSeating
         {
             response.Approved = false;
             response.CreatePlayerObject = false;
-            response.Reason = DataManager.ContentHash == 0 ? DataNotLoadedMessage : DataMismatchMessage;
+            // ponytail: 호스트 로케일로 푼 문구를 그대로 보낸다. 로케일이 둘 이상이 되면 키를 보내고 클라이언트가 푼다.
+            response.Reason = L10n.Get(DataManager.ContentHash == 0 ? TextKey.Lobby.HostDataNotLoaded : TextKey.Lobby.DataMismatch);
             return;
         }
 
@@ -218,7 +214,7 @@ public class MatchSeating
         {
             response.Approved = false;
             response.CreatePlayerObject = false;
-            response.Reason = roomFullMessage;
+            response.Reason = L10n.Get(TextKey.Lobby.RoomFull);
             return;
         }
 

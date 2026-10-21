@@ -84,7 +84,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"로컬 로비 폴더를 만들지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.LocalFolderCreateFailed, e.Message);
             return;
         }
 
@@ -100,7 +100,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         // 겹치지 않으므로 겹치는 것은 이름뿐이고, 개발용이라 그대로 둔다.
         Read();
         self.slot = FirstFreeSlot();
-        self.name = $"에디터 {self.slot}";
+        self.name = L10n.Format(TextKey.Lobby.EditorName, self.slot);
 
         Write();
         LastError = string.Empty;
@@ -154,7 +154,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"로컬 로비 기록을 쓰지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.LocalWriteFailed, e.Message);
         }
     }
 
@@ -169,7 +169,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         }
         catch (Exception e)
         {
-            LastError = $"로컬 로비 폴더를 읽지 못했다: {e.Message}";
+            LastError = L10n.Format(TextKey.Lobby.LocalReadFailed, e.Message);
             return;
         }
 
@@ -295,7 +295,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         var host = Find(room.HostId);
         if (host == null || host.roomId != host.id || host.live)
         {
-            LastError = "방이 사라졌다.";
+            LastError = L10n.Get(TextKey.Lobby.RoomGone);
             return UniTask.FromResult(false);
         }
 
@@ -303,7 +303,7 @@ public sealed class LocalLobbyBackend : ILobbyBackend
         // 승인(`MatchSeating`)이 하고, 이건 들어가 보나 마나인 경우를 먼저 걸러 낸다.
         if (MemberCount(host.id) >= host.capacity)
         {
-            LastError = "방이 가득 찼다.";
+            LastError = L10n.Get(TextKey.Lobby.RoomFullNow);
             return UniTask.FromResult(false);
         }
 

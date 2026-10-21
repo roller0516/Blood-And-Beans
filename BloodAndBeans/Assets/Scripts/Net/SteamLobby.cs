@@ -40,9 +40,6 @@ public class SteamLobby : MonoBehaviour
     /// 한 팀에 앉힐 수 있는 인원. 방 정원(팀 수 × 이 값)의 출처이기도 하다.
     [SerializeField, Min(1)] int playersPerTeam = 2;
 
-    /// 정원이 차서 접속을 거절할 때 클라이언트에게 보내는 사유.
-    [SerializeField] string roomFullMessage = "고른 팀도 다른 팀도 자리가 없다.";
-
     [Header("연결")]
     /// 스팀 트랜스포트. `NetworkManager` 프리팹에 함께 있어 Inspector로는 이을 수 없고,
     /// 매니저가 선 뒤에 한 번만 푼다 (`ResolveTransports`). 같은 프리팹에 두는 구성이라면
@@ -69,9 +66,6 @@ public class SteamLobby : MonoBehaviour
 
     [Header("방 목록")]
     [SerializeField, Min(1)] int roomListLimit = 32;
-
-    /// 방 이름 기본값. {0}에 로비 표시 이름이 들어간다.
-    [SerializeField] string roomNameFormat = "{0}의 방";
 
     readonly List<LobbyRoom> rooms = new();
     readonly List<RoomMember> members = new();
@@ -204,7 +198,7 @@ public class SteamLobby : MonoBehaviour
 
     /// 방 이름 기본값. 입력 필드가 생기면 이 값을 초기값으로 쓴다.
     public string SuggestedRoomName =>
-        string.Format(roomNameFormat, backend != null ? backend.SelfName : string.Empty);
+        L10n.Format(TextKey.Lobby.RoomName, backend != null ? backend.SelfName : string.Empty);
 
     /// 대기실에서 그 팀을 고른 사람 수. 서버가 아니라 로비가 답하는 값이라 참고용이고,
     /// 최종 판정은 접속 승인이 한다.
@@ -228,7 +222,7 @@ public class SteamLobby : MonoBehaviour
     /// 실제 접속 승인이 서로 다른 팀 수를 기준으로 계산된다.
     void ReconfigureSeating(int teamCount)
     {
-        Seating = new MatchSeating(Mathf.Clamp(teamCount, 1, maxTeams), maxTeams, playersPerTeam, roomFullMessage);
+        Seating = new MatchSeating(Mathf.Clamp(teamCount, 1, maxTeams), maxTeams, playersPerTeam);
         occupancy = new int[Mathf.Max(1, TeamCount)];
     }
 
@@ -243,7 +237,7 @@ public class SteamLobby : MonoBehaviour
         var manager = NetworkManager.Singleton;
         if (InRoom || (manager != null && manager.IsListening))
         {
-            Fail("방을 나간 뒤에 플랫폼을 바꾼다.");
+            Fail(L10n.Get(TextKey.Lobby.LeaveBeforeSwitch));
             return false;
         }
 
@@ -374,7 +368,7 @@ public class SteamLobby : MonoBehaviour
     {
         if (!Guard()) return;
 
-        Status = "방 목록을 받는 중…";
+        Status = L10n.Get(TextKey.Lobby.ListLoading);
         Changed?.Invoke();
 
         var found = await backend.ListRoomsAsync(roomListLimit);
@@ -389,7 +383,7 @@ public class SteamLobby : MonoBehaviour
         rooms.Clear();
         rooms.AddRange(found);
 
-        Status = rooms.Count > 0 ? string.Empty : "방이 없다.";
+        Status = rooms.Count > 0 ? string.Empty : L10n.Get(TextKey.Lobby.NoRooms);
         Changed?.Invoke();
     }
 
@@ -407,7 +401,7 @@ public class SteamLobby : MonoBehaviour
 
         ReconfigureSeating(teamCount);
 
-        Status = "방을 만드는 중…";
+        Status = L10n.Get(TextKey.Lobby.Creating);
         Changed?.Invoke();
 
         var created = await backend.CreateRoomAsync(roomName, RoomCapacity, TeamCount);
@@ -430,11 +424,11 @@ public class SteamLobby : MonoBehaviour
 
         if (room.HostId == 0)
         {
-            Fail("방의 호스트를 알 수 없다.");
+            Fail(L10n.Get(TextKey.Lobby.HostUnknown));
             return false;
         }
 
-        Status = "방에 들어가는 중…";
+        Status = L10n.Get(TextKey.Lobby.Joining);
         Changed?.Invoke();
 
         var entered = await backend.JoinRoomAsync(room);
@@ -581,12 +575,12 @@ public class SteamLobby : MonoBehaviour
         if (!Guard() || !InRoom) return false;
         if (!IsRoomHost)
         {
-            Fail("방장만 시작할 수 있다.");
+            Fail(L10n.Get(TextKey.Lobby.HostOnlyStart));
             return false;
         }
 
-        if (!CanStartMatch) { Fail("모든 참가자의 준비와 팀 정원을 확인해 주세요."); return false; }
-        if (!Balance.Loaded) { Fail("데이터 표가 실리지 않았다. 콘솔의 DataManager 오류를 확인해 주세요."); return false; }
+        if (!CanStartMatch) { Fail(L10n.Get(TextKey.Lobby.CheckReadyAndTeams)); return false; }
+        if (!Balance.Loaded) { Fail(L10n.Get(TextKey.Lobby.DataNotLoaded)); return false; }
         backend.CloseRoom();
         Seating.ExpectPlayers(members.Count);
 
@@ -619,7 +613,7 @@ public class SteamLobby : MonoBehaviour
         if (manager == null || !manager.IsServer) yield break;
 
         var status = manager.SceneManager.LoadScene(gameScene, LoadSceneMode.Single);
-        if (status != SceneEventProgressStatus.Started) Fail($"게임 씬을 불러오지 못했다: {status}");
+        if (status != SceneEventProgressStatus.Started) Fail(L10n.Format(TextKey.Lobby.SceneLoadFailed, status));
     }
 
     /// 방장이 매치를 열었다. 붙을 곳이 방장인지는 백엔드가 이미 확인했다.
@@ -661,7 +655,7 @@ public class SteamLobby : MonoBehaviour
         var manager = NetworkManager.Singleton;
         if (manager == null)
         {
-            Fail("NetworkManager가 씬에 없다.");
+            Fail(L10n.Get(TextKey.Lobby.NoNetworkManager));
             return false;
         }
 
@@ -675,7 +669,7 @@ public class SteamLobby : MonoBehaviour
         var transport = useSteam ? steamTransport : localTransport;
         if (transport == null)
         {
-            Fail("쓸 수 있는 트랜스포트가 없다.");
+            Fail(L10n.Get(TextKey.Lobby.NoTransport));
             return false;
         }
 
@@ -683,7 +677,7 @@ public class SteamLobby : MonoBehaviour
         if (useSteam) steamTransport.TargetSteamId = targetSteamId;
 
         var started = host ? manager.StartHost() : manager.StartClient();
-        if (!started) Fail(host ? "호스트를 시작하지 못했다." : "접속을 시작하지 못했다.");
+        if (!started) Fail(L10n.Get(host ? TextKey.Lobby.HostStartFailed : TextKey.Lobby.ClientStartFailed));
         return started;
     }
 
@@ -713,7 +707,7 @@ public class SteamLobby : MonoBehaviour
 
     void Fail(string reason)
     {
-        Status = string.IsNullOrEmpty(reason) ? "알 수 없는 이유로 실패했다." : reason;
+        Status = string.IsNullOrEmpty(reason) ? L10n.Get(TextKey.Lobby.UnknownFailure) : reason;
 
         Changed?.Invoke();
     }
@@ -725,7 +719,7 @@ public class SteamLobby : MonoBehaviour
         if (string.IsNullOrEmpty(Status))
             Status = backend != null && !string.IsNullOrEmpty(backend.LastError)
                 ? backend.LastError
-                : "로비가 준비되지 않았다.";
+                : L10n.Get(TextKey.Lobby.NotReady);
 
         WriteSelf();
         RefreshMembers();

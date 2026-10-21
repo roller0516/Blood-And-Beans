@@ -31,7 +31,6 @@ public sealed class EconomyDataTable : DataTableAsset
 
         /// `Bean|Milk|Ice`. 쉼표를 쓰면 엑셀이 따옴표를 붙인다.
         public string Parts;
-        public string Name;
     }
 
     [System.Serializable]
@@ -67,9 +66,6 @@ public sealed class EconomyDataTable : DataTableAsset
 
     /// 기본가와 조합 (기획서 7.2). 조합법 표시와 판매 정산이 같은 표를 쓴다.
     [System.NonSerialized] public MenuDef[] MenuTable = System.Array.Empty<MenuDef>();
-
-    /// 7.2 메뉴 표의 한글 표기. `MenuId` 열거자 순서와 같아야 한다.
-    [System.NonSerialized] public string[] MenuNames = System.Array.Empty<string>();
 
     /// 순서는 `Gauge` 열거자와 같다: Perfect·Good·Miss·Burnt (기획서 5.2).
     [System.NonSerialized] public float[] GaugeMultiplier = System.Array.Empty<float>();
@@ -129,15 +125,12 @@ public sealed class EconomyDataTable : DataTableAsset
         if (menus.Count > 0)
         {
             var defs = new MenuDef[menus.Count];
-            var names = new string[MaxOf(menus, m => (int)m.Menu + 1)];
             for (var i = 0; i < menus.Count; i++)
             {
                 var row = menus[i];
                 defs[i] = new MenuDef(row.Menu, row.BasePrice, ParseParts(row.Parts));
-                if ((int)row.Menu >= 0 && (int)row.Menu < names.Length) names[(int)row.Menu] = row.Name;
             }
             MenuTable = defs;
-            MenuNames = names;
         }
 
         if (gauges.Count > 0)
@@ -179,7 +172,6 @@ public sealed class EconomyDataTable : DataTableAsset
         d.PenaltyVisionLoss = PenaltyVisionLoss;
         d.PenaltyOpenLoss = PenaltyOpenLoss;
         d.Menus = MenuTable;
-        d.MenuNames = MenuNames;
         d.GaugeMultiplier = GaugeMultiplier;
     }
 }

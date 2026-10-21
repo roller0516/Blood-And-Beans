@@ -51,7 +51,7 @@ public sealed class UIIngredientBadge : MonoBehaviour
         if (ledger == null) ledger = director.GetComponent<TransitionLedger>();
         var item = shelf != null ? shelf.SlotItem(0) : facility != null ? SharedFacility.Gives(facility.Kind) : Ingredient.BreadBase;
         var count = shelf != null ? shelf.SlotCountAt(0) : -1;
-        icon.Render(ResourceManager.Instance.IngredientSprite(item), count < 0 ? "상비" : count.ToString(), count != 0,
+        icon.Render(ResourceManager.Instance.IngredientSprite(item), count < 0 ? L10n.Get(TextKey.Hud.Stocked) : count.ToString(), count != 0,
             ledger != null && System.Array.IndexOf(ledger.PopularShown, item) >= 0, item == Ingredient.BloodBean);
     }
 }

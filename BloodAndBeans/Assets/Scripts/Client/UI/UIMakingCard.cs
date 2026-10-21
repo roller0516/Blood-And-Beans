@@ -68,7 +68,7 @@ public sealed class UIMakingCard : MonoBehaviour
         menuIcon.sprite = icon;
         menuBadge.SetActive(icon != null);
 
-        nameText.text = state switch { State.Ready => DisplayNames.Of(menu), State.Making => "만드는 중", _ => "쓰레기" };
+        nameText.text = state switch { State.Ready => DisplayNames.Of(menu), State.Making => L10n.Get(TextKey.Making.InProgress), _ => L10n.Get(TextKey.Making.Trash) };
         statusText.text = StatusOf(state, view);
 
         EnsureSlots(count);
@@ -85,10 +85,10 @@ public sealed class UIMakingCard : MonoBehaviour
     // ponytail: 상태 문구는 기획서 5.7.3에 「한 줄짜리 상태 문구」로만 있다. 확정되면 여기만 고친다.
     static string StatusOf(State state, in CarryView view) => state switch
     {
-        State.Ready when view.Burnt => "탄 것",
-        State.Ready => view.IsProduct ? "서빙 가능" : "조리하면 완성",
-        State.Making => "재료를 더 넣는다",
-        _ => "B로 쏟는다",
+        State.Ready when view.Burnt => L10n.Get(TextKey.Making.Burnt),
+        State.Ready => L10n.Get(view.IsProduct ? TextKey.Making.Servable : TextKey.Making.CompletesWhenCooked),
+        State.Making => L10n.Get(TextKey.Making.AddMore),
+        _ => L10n.Get(TextKey.Making.PourOut),
     };
 
     /// 빈 칸은 그리지 않는다 — 깔아 둔 칸 수가 약속으로 읽힌다 (5.7.3). 들어간 수만큼만 늘린다.

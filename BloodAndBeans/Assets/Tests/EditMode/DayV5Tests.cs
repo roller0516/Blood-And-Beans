@@ -92,10 +92,9 @@ public class DayV5Tests
         var ids = new System.Collections.Generic.HashSet<CharacterId>();
         foreach (var c in CharacterCatalog.All)
         {
-            Assert.IsTrue(nights.Add(c.Night), c.Name);
-            Assert.IsTrue(ids.Add(c.Id), c.Name);
+            Assert.IsTrue(nights.Add(c.Night), c.Id.ToString());
+            Assert.IsTrue(ids.Add(c.Id), c.Id.ToString());
             Assert.AreEqual(DaySkills.Of(c.Night), c.Day);
-            Assert.AreEqual(DaySkills.NameOf(c.Day), c.DayName);
         }
     }
 

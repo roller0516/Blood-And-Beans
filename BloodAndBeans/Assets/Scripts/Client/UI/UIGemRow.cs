@@ -14,6 +14,6 @@ public sealed class UIGemRow : MonoBehaviour
         icon.Render(sprite, remaining);
         title.text = string.Format(titleFormat, name, effect);
         // 기획서 4.1: 갱신된 보석은 「3턴으로 갱신」으로 표기한다.
-        turns.text = refreshed ? $"{remaining}턴으로 갱신" : $"{remaining}턴";
+        turns.text = L10n.Format(refreshed ? TextKey.Recipe.GemTurnsRefreshed : TextKey.Recipe.GemTurns, remaining);
     }
 }

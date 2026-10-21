@@ -73,8 +73,8 @@ public class BuriedBag : NetworkBehaviour, IInteractable
     public float Reach => reach;
 
     public string Prompt => PlayerTeam.Local() == ownerTeam.Value
-        ? "가방 회수 (길게)"
-        : "가방 소각 (길게)";
+        ? L10n.Get(TextKey.Prompt.BagRetrieve)
+        : L10n.Get(TextKey.Prompt.BagBurn);
 
     void Awake()
     {

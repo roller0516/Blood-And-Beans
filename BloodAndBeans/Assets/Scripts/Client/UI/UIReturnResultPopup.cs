@@ -71,27 +71,27 @@ public sealed class UIReturnResultPopup : UIPopup
         switch (outcome)
         {
             case ReturnOutcome.Returned:
-                Set(titleText, "귀환 성공", success);
-                Set(lineText, "소지한 아이템 100% 귀환", success);
+                Set(titleText, L10n.Get(TextKey.Return.SuccessTitle), success);
+                Set(lineText, L10n.Get(TextKey.Return.SuccessLine), success);
                 Set(detailText, lost > 0
-                    ? $"재료 {kept}개 반입 · 회수하지 못한 가방에서 {lost}개 소실"
+                    ? L10n.Format(TextKey.Return.SuccessWithLostBag, kept, lost)
                     : kept > 0
-                    ? $"재료 {kept}개를 팀 재고로 넘겼다"
-                    : "가져온 재료가 없다");
+                    ? L10n.Format(TextKey.Return.SuccessKept, kept)
+                    : L10n.Get(TextKey.Return.SuccessNone));
                 break;
 
             case ReturnOutcome.PartialLoss:
-                Set(titleText, "귀환 실패", warning);
-                Set(lineText, $"소지한 아이템 {lossPercent}% 소실 · 미회수 가방 전량 소실", warning);
-                Set(detailText, $"소환 위치 밖에서 밤이 끝났다 · {lost}개 소실 / {kept}개 반입");
+                Set(titleText, L10n.Get(TextKey.Return.PartialTitle), warning);
+                Set(lineText, L10n.Format(TextKey.Return.PartialLine, lossPercent), warning);
+                Set(detailText, L10n.Format(TextKey.Return.PartialDetail, lost, kept));
                 break;
 
             default:
-                Set(titleText, "가방 분실", failure);
-                Set(lineText, "획득 아이템 100% 소실", failure);
+                Set(titleText, L10n.Get(TextKey.Return.LostTitle), failure);
+                Set(lineText, L10n.Get(TextKey.Return.LostLine), failure);
                 Set(detailText, lost > 0
-                    ? $"묻어 둔 가방을 회수하지 못했다 · {lost}개 소실"
-                    : "묻어 둔 가방을 회수하지 못했다");
+                    ? L10n.Format(TextKey.Return.LostBagWithCount, lost)
+                    : L10n.Get(TextKey.Return.LostBag));
                 break;
         }
     }

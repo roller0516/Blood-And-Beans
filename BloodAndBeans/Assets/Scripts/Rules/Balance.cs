@@ -86,12 +86,6 @@ public sealed class BalanceData
 
     /// 순서는 `Gem` 열거자와 같다: 불씨·저울·바람·거품·각인·찻잎.
     public float[] GemScale = { 0.70f, 1.40f, 1.12f, 0.65f, 0.75f, 1.20f };
-    public string[] GemNames = { "불씨", "저울", "바람", "거품", "각인", "찻잎" };
-    public string[] GemEffects =
-    {
-        "조리 시간 -30%", "Perfect 폭 +40%", "이동 속도 +12%",
-        "세척 시간 -35%", "액티브 쿨타임 -25%", "손님 인내심 +20%",
-    };
 
     /// `Gem`을 재료로 바꾸는 표. 열거자 값이 연속이 아니라(WindGem=10 ... TeaGem=15)
     /// 캐스팅으로 대신할 수 없다.
@@ -112,13 +106,6 @@ public sealed class BalanceData
     /// 무게. 순서는 `Ingredient` 열거자 0~9와 같다. 보석 전부가 `UpgradePart` 값을 쓴다.
     public float[] IngredientWeight = { 1.0f, 1.0f, 1.0f, 1.0f, 1.0f, 0.5f, 3.0f, 3.0f, 1.2f, 1.0f };
 
-    /// 7.1 재료 표의 한글 표기. 열거자 순서와 같아야 한다.
-    public string[] IngredientNames =
-    {
-        "우유", "크림", "초콜렛", "아몬드", "베리", "얼음",
-        "블러드 빈", "업그레이드 재료", "원두", "빵 베이스",
-    };
-
     // --- races.csv (기획서 5.5) ---
 
     /// 등장 분포: 좀비 30% · 늑대인간 10% · 나머지 15%씩. 5%가 한 칸이다.
@@ -131,9 +118,6 @@ public sealed class BalanceData
         (Race.Zombie, 6), (Race.Ghost, 3), (Race.Skeleton, 3),
         (Race.Werewolf, 2), (Race.Vampire, 3), (Race.Witch, 3),
     };
-
-    /// 5.5 손님 종족 표. `Race` 열거자 순서와 같아야 한다.
-    public string[] RaceNames = { "좀비", "뱀파이어", "유령", "해골", "늑대인간", "마녀" };
 
     // --- forecast.csv (기획서 5.5 · 5.6.1) ---
 
@@ -164,13 +148,6 @@ public sealed class BalanceData
         new(MenuId.AlmondCookie, 17, Ingredient.BreadBase, Ingredient.Almond),
         new(MenuId.CreamCake, 21, Ingredient.BreadBase, Ingredient.Cream),
         new(MenuId.BerryTart, 23, Ingredient.BreadBase, Ingredient.Berry),
-    };
-
-    /// 7.2 메뉴 표의 한글 표기. `MenuId` 열거자 순서와 같아야 한다.
-    public string[] MenuNames =
-    {
-        "핫 아메리카노", "아이스 아메리카노", "카페라떼", "아인슈페너", "카페모카", "아이스라떼",
-        "초코 브라우니", "아몬드 쿠키", "크림 케이크", "베리 타르트", "아이스모카",
     };
 
     // --- saleprice.csv (기획서 5.2 · 5.6.2 · 1.4 · 7.2) ---
@@ -300,31 +277,16 @@ public sealed class BalanceData
     public float PotionFallSeconds = 0.8f;
     public float PotionImmuneSeconds = 2f;
 
-    public string[] DaySkillNames = { "없음", "불붙이기", "활공", "정제", "지름길", "삼키기", "관 떨어뜨리기", "물기", "하울링", "개구리 저주" };
-    public string[] DaySkillEffects =
-    {
-        "",
-        "쓰고 있는 설비의 남은 조리 시간을 줄인다. 놓은 뒤 설비가 잠깐 달아오른다 (쿨 15초)",
-        "3초 동안 이동속도가 크게 오른다 (쿨 22초)",
-        "다음 한 잔의 완성 게이지가 Perfect로 확정된다 (쿨 18초)",
-        "2.5초 동안 다른 캐릭터를 통과한다 (쿨 14초)",
-        "들고 있는 더러운 식기의 세척을 70% 진행시킨다 (쿨 22초)",
-        "지정한 자리에 관이 떨어져 4초 동안 길을 막는다 (쿨 16초)",
-        "붙어 있는 적을 물어 좀비걸음으로 만든다. 부딪힌 사람에게 옮는다 (쿨 18초)",
-        "주변의 다른 팀은 도망치고 같은 팀은 빨라진다 (쿨 20초)",
-        "맞은 적은 2.5초 동안 아무것도 집거나 쓸 수 없다 (쿨 18초)",
-    };
-
     // --- characters.csv (기획서 9.1.1) ---
 
     /// 배열 인덱스가 곧 픽 번호다. 낮 액티브는 밤 액티브의 짝으로 정해지므로(9.1.1)
     /// 여기 적지 않는다.
-    public (string Name, CharacterId Id, NightSkill Night, string NightName, string NightEffect)[] Characters =
+    public (CharacterId Id, NightSkill Night)[] Characters =
     {
-        ("뱀파이어", CharacterId.Vampire,  NightSkill.BatSwarm,       "박쥐 떼",       "맞은 적의 시야가 3초 동안 코앞으로 좁아진다 (쿨 18초)"),
-        ("좀비",     CharacterId.Zombie,   NightSkill.ArmThrow,       "팔 던지기",     "맞은 적은 1.5초 동안 움직일 수 없다 (쿨 16초)"),
-        ("늑대인간", CharacterId.Werewolf, NightSkill.Track,          "추적",          "주변의 숨겨진 가방 쪽으로 냄새 줄기가 흐른다 (쿨 14초)"),
-        ("마녀",     CharacterId.Witch,    NightSkill.SlipperyPotion, "미끄러운 물약", "웅덩이에 들어온 적이 미끄러져 넘어진다 (쿨 20초)"),
+        (CharacterId.Vampire,  NightSkill.BatSwarm),
+        (CharacterId.Zombie,   NightSkill.ArmThrow),
+        (CharacterId.Werewolf, NightSkill.Track),
+        (CharacterId.Witch,    NightSkill.SlipperyPotion),
     };
 
     /// 9.1.1: 낮 액티브는 밤 액티브의 짝이다. 순서는 `NightSkill` 열거자와 같다.

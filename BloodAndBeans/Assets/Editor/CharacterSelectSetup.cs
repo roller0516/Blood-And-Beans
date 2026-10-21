@@ -453,13 +453,13 @@ public sealed class CharacterVisualConfigEditor : Editor
         {
             var model = CharacterSelectSetup.ResolveEditorAsset(config.ReferenceFor(character.Id));
             if (model == null || model.GetComponent<CharacterModel>() == null)
-                throw new InvalidOperationException(character.Name + ": Model과 루트 CharacterModel을 연결하세요.");
+                throw new InvalidOperationException(character.Id + ": Model과 루트 CharacterModel을 연결하세요.");
             if (model.GetComponentInChildren<Collider>(true) != null || model.GetComponentInChildren<Rigidbody>(true) != null)
-                throw new InvalidOperationException(character.Name + ": 충돌체와 Rigidbody는 외형이 아니라 Player에 두세요.");
+                throw new InvalidOperationException(character.Id + ": 충돌체와 Rigidbody는 외형이 아니라 Player에 두세요.");
             foreach (var animator in model.GetComponentsInChildren<Animator>(true))
-                if (animator.applyRootMotion) throw new InvalidOperationException(character.Name + ": Apply Root Motion을 끄세요.");
+                if (animator.applyRootMotion) throw new InvalidOperationException(character.Id + ": Apply Root Motion을 끄세요.");
             if (ResourceManager.Instance.CrewSprite(character.Id) == null)
-                throw new InvalidOperationException(character.Name + ": 초상이 CharacterSelect 아틀라스에 없습니다.");
+                throw new InvalidOperationException(character.Id + ": 초상이 CharacterSelect 아틀라스에 없습니다.");
         }
         CDebug.Log("캐릭터 모델·초상 연결 확인 완료");
     }

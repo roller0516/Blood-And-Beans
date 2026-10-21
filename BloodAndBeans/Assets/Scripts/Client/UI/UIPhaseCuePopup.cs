@@ -16,11 +16,6 @@ public sealed class UIPhaseCuePopup : UIPopup
     [SerializeField] DG.Tweening.DOTweenAnimation[] beatAnimations =
         System.Array.Empty<DG.Tweening.DOTweenAnimation>();
 
-    [Header("문구")]
-    [SerializeField] string readyText = "READY";
-    [SerializeField] string goText = "GO!";
-    [SerializeField] string closingText = "마감!";
-
     /// 지금 화면에 있는 글자. 같은 글자를 다시 넘겨도 연출을 처음부터 다시 돌리지 않는다 —
     /// `MatchFlow`가 매 프레임 부르므로 이 검사가 없으면 연출이 영원히 첫 프레임에 머문다.
     string shown;
@@ -48,19 +43,19 @@ public sealed class UIPhaseCuePopup : UIPopup
     public void ShowReady()
     {
         SetBlocking(false);
-        Set(readyText);
+        Set(L10n.Get(TextKey.PhaseCue.Ready));
     }
 
     public void ShowGo()
     {
         SetBlocking(false);
-        Set(goText);
+        Set(L10n.Get(TextKey.PhaseCue.Go));
     }
 
     public void ShowClosing()
     {
         SetBlocking(false);
-        Set(closingText);
+        Set(L10n.Get(TextKey.PhaseCue.Closing));
     }
 
     public override void OnHide()

@@ -13,14 +13,11 @@ public sealed class CharacterDataTable : DataTableAsset
     {
         /// 픽 번호. 배열 인덱스가 되므로 0부터 빈 칸 없이 센다.
         public int Index;
-        public string Name;
 
         /// 외형 키. 모델·초상 표가 읽는다.
         public CharacterId VisualId;
 
         [Column("nightSkill")] public NightSkill Night;
-        public string NightName;
-        public string NightEffect;
     }
 
     [System.Serializable]
@@ -28,8 +25,6 @@ public sealed class CharacterDataTable : DataTableAsset
     {
         [Column("daySkill")] public DaySkill Skill;
         public float Cooldown;
-        public string Name;
-        public string Effect;
     }
 
     [System.Serializable]
@@ -57,13 +52,11 @@ public sealed class CharacterDataTable : DataTableAsset
 
     /// 배열 인덱스가 곧 픽 번호다 (기획서 9.1.1). 낮 액티브는 밤 액티브의 짝이라 여기 없다.
     [System.NonSerialized]
-    public (string Name, CharacterId Id, NightSkill Night, string NightName, string NightEffect)[] CharacterTable =
-        System.Array.Empty<(string, CharacterId, NightSkill, string, string)>();
+    public (CharacterId Id, NightSkill Night)[] CharacterTable =
+        System.Array.Empty<(CharacterId, NightSkill)>();
 
     /// 낮 액티브 쿨타임 (9.1.3 표). 순서는 `DaySkill` 열거자와 같고 [0]은 None이다.
     [System.NonSerialized] public float[] DaySkillCooldown = System.Array.Empty<float>();
-    [System.NonSerialized] public string[] DaySkillNames = System.Array.Empty<string>();
-    [System.NonSerialized] public string[] DaySkillEffects = System.Array.Empty<string>();
 
     /// 밤 액티브 쿨타임 (9.2 표). 순서는 `NightSkill` 열거자와 같고 [0]은 None이다.
     [System.NonSerialized] public float[] NightSkillCooldown = System.Array.Empty<float>();
@@ -92,11 +85,11 @@ public sealed class CharacterDataTable : DataTableAsset
             var size = 0;
             foreach (var row in characters) if (row.Index + 1 > size) size = row.Index + 1;
 
-            var rows = new (string Name, CharacterId Id, NightSkill Night, string NightName, string NightEffect)[size];
+            var rows = new (CharacterId Id, NightSkill Night)[size];
             foreach (var row in characters)
             {
                 if (row.Index < 0 || row.Index >= size) continue;
-                rows[row.Index] = (row.Name, row.VisualId, row.Night, row.NightName, row.NightEffect);
+                rows[row.Index] = (row.VisualId, row.Night);
             }
             CharacterTable = rows;
         }
@@ -107,19 +100,13 @@ public sealed class CharacterDataTable : DataTableAsset
             foreach (var row in daySkills) if ((int)row.Skill + 1 > size) size = (int)row.Skill + 1;
 
             var cooldown = new float[size];
-            var names = new string[size];
-            var effects = new string[size];
             foreach (var row in daySkills)
             {
                 var i = (int)row.Skill;
                 if (i < 0 || i >= size) continue;
                 cooldown[i] = row.Cooldown;
-                names[i] = row.Name;
-                effects[i] = row.Effect;
             }
             DaySkillCooldown = cooldown;
-            DaySkillNames = names;
-            DaySkillEffects = effects;
         }
 
         if (nightSkills.Count > 0)
@@ -145,8 +132,6 @@ public sealed class CharacterDataTable : DataTableAsset
     {
         d.Characters = CharacterTable;
         d.DaySkillCooldown = DaySkillCooldown;
-        d.DaySkillNames = DaySkillNames;
-        d.DaySkillEffects = DaySkillEffects;
         d.NightSkillCooldown = NightSkillCooldown;
         d.DaySkillOfNight = DaySkillOfNight;
     }

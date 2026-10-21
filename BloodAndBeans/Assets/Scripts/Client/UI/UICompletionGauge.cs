@@ -48,7 +48,7 @@ public sealed class UICompletionGauge : MonoBehaviour
             progress.gameObject.SetActive(cooking);
             progress.fillAmount = gauge.Station.CookProgress;
         }
-        if (cooking) { label.text = gauge.Station is Oven ? "굽는 중" : "추출 중"; lastTenths = -1; soundingSweep = -1; return; }
+        if (cooking) { label.text = L10n.Get(gauge.Station is Oven ? TextKey.Gauge.Baking : TextKey.Gauge.Brewing); lastTenths = -1; soundingSweep = -1; return; }
         var sweep = gauge.Sweep;
         if (soundingGauge == gauge && soundingSweep >= 0 && sweep > soundingSweep)
             SoundManager.Instance?.PlayCue(SfxCue.GaugeTick, gauge.Station.FacilityPosition, gauge.TeamId);
@@ -62,7 +62,7 @@ public sealed class UICompletionGauge : MonoBehaviour
         var tenths = Mathf.CeilToInt(gauge.Remaining * 10f);
         if (tenths == lastTenths && target == lastTarget) return;
         lastTenths = tenths; lastTarget = target;
-        label.text = $"{(target ? "F · " : "대기 · ")}{tenths * 0.1f:0.0}초";
+        label.text = L10n.Format(target ? TextKey.Gauge.Target : TextKey.Gauge.Waiting, tenths * 0.1f);
     }
     /// 내가 조작 중인 설비(굽는 중 포함)가 먼저, 없으면 F가 멈출 게이지다. 후보는 캐시된 광장 게이지뿐이다.
     static CompletionGauge Pick()

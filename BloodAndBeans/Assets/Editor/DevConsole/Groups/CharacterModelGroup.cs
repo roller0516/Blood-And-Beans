@@ -57,7 +57,7 @@ public class CharacterModelGroup : DevConsoleGroup
             var isPlaceholder = reference != null && !string.IsNullOrEmpty(placeholderGuid)
                 && reference.AssetGUID == placeholderGuid;
 
-            var status = Row(list, $"{all[i].Name} ({all[i].Id})", Check(prefab, isPlaceholder, out var ok));
+            var status = Row(list, $"{DisplayNames.Of(all[i].Id)} ({all[i].Id})", Check(prefab, isPlaceholder, out var ok));
             status.EnableInClassList("warn", !ok);
 
             var buttons = ButtonRow(list);

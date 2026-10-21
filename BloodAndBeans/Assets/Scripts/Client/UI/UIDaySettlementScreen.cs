@@ -43,8 +43,6 @@ public sealed class UIDaySettlementScreen : UIScreen
     [SerializeField] TMP_Text countdown;
     [SerializeField] RectTransform countdownFill;
     [SerializeField] UnityEngine.UI.Image countdownRing;
-    [SerializeField] string countdownFormat = "{0}초";
-    [SerializeField] string dayHeadingFormat = "{0}일차 영업 정산";
 
     [Header("하루 정산")]
     [SerializeField] UISettlementLine salesLine;
@@ -82,14 +80,14 @@ public sealed class UIDaySettlementScreen : UIScreen
                      IReadOnlyList<int> raceCounts,
                      IReadOnlyList<Sprite> popular)
     {
-        dayHeading.text = string.Format(dayHeadingFormat, day);
+        dayHeading.text = L10n.Format(TextKey.Settlement.DayHeading, day);
 
         // 그날 매출이 그날 임대료에 닿았는가로만 판정한다 (기획서 3.2).
         var settled = rentPaid >= rentOwed;
         salesLine.Render(sales.ToString("N0"), salesTint);
         rentLine.Render(rentOwed.ToString("N0"), rentTint);
-        paymentLine.Render(settled ? "완납" : "미납", settled ? paidTint : unpaidTint);
-        streakLine.Render($"{missStreak}일", missStreak > 0 ? missedStreakTint : clearStreakTint);
+        paymentLine.Render(L10n.Get(settled ? TextKey.Settlement.Paid : TextKey.Settlement.Unpaid), settled ? paidTint : unpaidTint);
+        streakLine.Render(L10n.Format(TextKey.Settlement.MissStreak, missStreak), missStreak > 0 ? missedStreakTint : clearStreakTint);
 
         FillStandings(standings);
         FillGems(gems);
@@ -99,7 +97,7 @@ public sealed class UIDaySettlementScreen : UIScreen
     /// 남은 시간. 전환은 10초라 초 단위로 충분하다 (기획서 4장).
     public void SetRemaining(float seconds, float total)
     {
-        countdown.text = string.Format(countdownFormat, Mathf.CeilToInt(Mathf.Max(seconds, 0f)));
+        countdown.text = L10n.Format(TextKey.Settlement.Countdown, Mathf.CeilToInt(Mathf.Max(seconds, 0f)));
         var ratio = total > 0f ? Mathf.Clamp01(seconds / total) : 0f;
         if (countdownRing != null && !Mathf.Approximately(countdownRing.fillAmount, ratio))
             countdownRing.fillAmount = ratio;

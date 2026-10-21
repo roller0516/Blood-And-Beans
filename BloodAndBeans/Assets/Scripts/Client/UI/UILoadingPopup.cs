@@ -9,9 +9,6 @@ public sealed class UILoadingPopup : UIPopup
 {
     [SerializeField] TMP_Text statusText;
 
-    /// 부르는 쪽이 문구를 주지 않았을 때.
-    [SerializeField] string loadingText = "불러오는 중…";
-
     /// 불러오는 동안에는 조작할 것이 없다.
     public override bool BlocksPlayerInput => true;
     public override bool WantsCursor => false;
@@ -25,7 +22,7 @@ public sealed class UILoadingPopup : UIPopup
     /// null이면 기본 문구. 같은 문구면 다시 대입하지 않는다 — 매 프레임 불려도 메시 재생성이 없다.
     internal void SetMessage(string message)
     {
-        var text = message ?? loadingText;
+        var text = message ?? L10n.Get(TextKey.Loading.Default);
         if (statusText.text != text) statusText.text = text;
     }
 }
