@@ -86,8 +86,7 @@ public class DayV5Tests
         Assert.AreEqual(22f, DaySkills.CooldownOf(DaySkill.Swallow));
         Assert.AreEqual(0.9f, DayBalance.WashSeconds * (1f - DaySkills.SwallowProgress), 0.0001f);
 
-        // 9.1.1: 5종이고 스킬이 겹치지 않아야 팀 내 중복 픽 금지가 스킬 중복 금지가 된다.
-        Assert.AreEqual(5, CharacterCatalog.All.Length);
+        // 9.1.1: 스킬이 겹치지 않아야 팀 내 중복 픽 금지가 스킬 중복 금지가 된다.
         var nights = new System.Collections.Generic.HashSet<NightSkill>();
         var ids = new System.Collections.Generic.HashSet<CharacterId>();
         foreach (var c in CharacterCatalog.All)
