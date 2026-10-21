@@ -34,7 +34,7 @@ public class GamePhase : NetworkBehaviour
     public int JoinedPlayers => joinedPlayers.Value;
     public int ExpectedPlayers => expectedPlayers.Value;
 
-    /// 씬 로드를 마친 클라이언트. 서버 전용이다.
+    /// 에셋 준비까지 마치고 `ReadyRpc`를 보낸 클라이언트. 서버 전용이다.
     readonly System.Collections.Generic.HashSet<ulong> loadedClients = new();
     double startDeadline;
     public float Remaining =>
@@ -93,21 +93,24 @@ public class GamePhase : NetworkBehaviour
         startDeadline = NetworkManager.ServerTime.Time + startTimeoutSeconds;
 
         loadedClients.Clear();
-        if (IsHost) loadedClients.Add(NetworkManager.LocalClientId);
-        NetworkManager.SceneManager.OnSceneEvent += OnSceneEventServer;
         NetworkManager.OnClientDisconnectCallback += OnClientLeftServer;
         TryStartServer();
     }
 
-    /// 씬 동기화를 마친 손님을 센다. 늦게 붙는 손님은 `SynchronizeComplete`, 씬 로드 때 이미
-    /// 붙어 있던 손님은 `LoadComplete`로 온다.
-    void OnSceneEventServer(SceneEvent e)
+    /// 클라이언트가 첫 화면까지 열었다고 알린다 (`MatchFlow.EnterAsync`).
+    ///
+    /// 씬 로드 이벤트(`LoadComplete`)로 세지 않는다. 그건 Unity 씬이 떴을 때 오고, 에셋 준비는 그 뒤에
+    /// 시작해서 느린 PC는 로딩 창 뒤에서 첫 밤 카운트다운을 놓친다. 호스트도 같은 길로 센다.
+    /// `SendTo.Server`는 아무나 부를 수 있지만 센 대상은 `SenderClientId`뿐이라 남을 대신 올릴 수 없다.
+    [Rpc(SendTo.Server)]
+    public void ReadyRpc(RpcParams p = default)
     {
         if (started.Value) return;
-        if (e.SceneEventType != SceneEventType.SynchronizeComplete
-            && e.SceneEventType != SceneEventType.LoadComplete) return;
 
-        loadedClients.Add(e.ClientId);
+        var sender = p.Receive.SenderClientId;
+        if (!NetworkManager.ConnectedClients.ContainsKey(sender)) return;
+
+        loadedClients.Add(sender);
         TryStartServer();
     }
 
@@ -174,7 +177,6 @@ public class GamePhase : NetworkBehaviour
         phase.OnValueChanged -= OnPhaseReplicated;
         started.OnValueChanged -= OnStartedReplicated;
         if (!IsServer || NetworkManager == null) return;
-        if (NetworkManager.SceneManager != null) NetworkManager.SceneManager.OnSceneEvent -= OnSceneEventServer;
         NetworkManager.OnClientDisconnectCallback -= OnClientLeftServer;
     }
 

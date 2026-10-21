@@ -88,6 +88,11 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
     /// 알아야 한다.
     readonly NetworkVariable<Vector3> netPosition = new();
 
+    /// 누군가 이 상자의 루팅 세션을 열어 둔 동안 true. 뚜껑 연출이 전원에게 같은 상태로
+    /// 보이려면 세션 소유자만 아는 `localOpened`로는 안 되고 모두가 읽는 값이 필요하다.
+    /// 세션은 서버에만 있으므로 세션이 바뀌는 자리에서 `SyncLidServer`가 갱신한다.
+    readonly NetworkVariable<bool> netLidOpen = new();
+
     // --- 복제된 표시용 상태. 이 클라이언트의 세션 하나만 담는다 ---
     int[] localItems = System.Array.Empty<int>();
     int[] localCounts = System.Array.Empty<int>();
@@ -105,6 +110,9 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
 
     /// 이 클라이언트의 루팅 세션이 열려 있는가. 창을 여닫는 유일한 기준이다.
     public bool Opened => localOpened;
+
+    /// 누구든 이 상자를 열어 두었는가. 뚜껑 연출 전용이다 — 창을 여닫는 기준은 `Opened`다.
+    public bool LidOpen => netLidOpen.Value;
 
     public float Reach => reach;
 
@@ -245,6 +253,7 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
             OpenedAt = temporary ? now - revealInterval * stacks.Count : revealClock,
             Mover = MoverOf(clientId),
         };
+        SyncLidServer();
         SendSessionStateServer(clientId);
     }
 
@@ -426,8 +435,12 @@ public class ItemBox : NetworkBehaviour, IInteractable, ILootGrid
         if (!IsServer) return;
         CancelCast(clientId);
         if (!sessions.Remove(clientId)) return;
+        SyncLidServer();
         SendSessionStateServer(clientId);                     // 닫힘을 알린다
     }
+
+    /// 뚜껑은 세션이 하나라도 남아 있는 동안 열려 있다. 같은 값이면 복제되지 않는다.
+    void SyncLidServer() => netLidOpen.Value = sessions.Count > 0;
 
     /// 대시로 방해받았다 (기획서 6.6). 두 문단이 서로 다른 국면을 다룬다 — 섞지 않는다.
     ///

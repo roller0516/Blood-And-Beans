@@ -72,5 +72,8 @@ public enum EffectId
 
     /// 돌진 앞쪽의 공기저항과 옆으로 흘러가는 바람.
     DashAir = 32,
+
+    /// 걷기·달리기 주기에 좌우 발에서 한 번씩 피어나는 작은 먼지.
+    FootstepDust = 33,
 }
 

@@ -277,6 +277,7 @@ public class PlayerVisuals : NetworkBehaviour
         if (request == spawnRequest)
         {
             handModel = Model;
+            if (handModel != null) handModel.Footstep += OnFootstep;
             PlaceHand();
             RefreshBag();
             shownGait = GaitNow();   // 모델을 새로 세운 것이지 무게가 늘어난 것이 아니다
@@ -286,6 +287,12 @@ public class PlayerVisuals : NetworkBehaviour
     }
 
     void OnTeamChanged(int team) => Apply(team);
+
+    void OnFootstep(Vector3 at)
+    {
+        if (!IsSpawned || playerTeam.IsTeleporting) return;
+        EffectManager.Play(EffectId.FootstepDust, at);
+    }
 
     void Apply(int team) => Tint(TeamColors.Of(team));
 
@@ -450,6 +457,7 @@ public class PlayerVisuals : NetworkBehaviour
     void DetachHand()
     {
         spawnRequest++;
+        if (handModel != null) handModel.Footstep -= OnFootstep;
         handModel = null;
         PlaceHand();
     }

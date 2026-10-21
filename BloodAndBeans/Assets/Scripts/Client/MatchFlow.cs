@@ -145,14 +145,25 @@ public sealed class MatchFlow : SceneFlow
         if (screen == null)
         {
             enabled = false;
-            return UniTask.CompletedTask;
+        }
+        else
+        {
+            hud = screen;
+            presenter = new MatchHudPresenter(screen, phase, ledger, refreshInterval);
+            BindCancel();
         }
 
-        hud = screen;
-        presenter = new MatchHudPresenter(screen, phase, ledger, refreshInterval);
-
-        BindCancel();
+        // HUD를 못 열었어도 알린다. 안 알리면 서버가 한도(60초)까지 모두를 붙잡는다.
+        ReportReadyAsync(ct).Forget();
         return UniTask.CompletedTask;
+    }
+
+    /// 에셋 준비와 첫 화면이 끝났음을 서버에 알린다. 서버가 전원이 모였다고 보면 같은 시각에 첫 밤이 열린다.
+    /// 시계(`GamePhase`)가 클라이언트에 스폰되기 전에는 RPC를 보낼 수 없어 기다린다.
+    async UniTaskVoid ReportReadyAsync(CancellationToken ct)
+    {
+        await UniTask.WaitUntil(() => phase.IsSpawned, cancellationToken: ct);
+        phase.ReadyRpc();
     }
 
     /// ESC를 설정 팝업에 잇는다. 애셋을 이어 두지 않았으면 팝업을 열 방법이 없다는 뜻이라

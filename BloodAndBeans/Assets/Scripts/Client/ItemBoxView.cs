@@ -25,6 +25,11 @@ public class ItemBoxView : MonoBehaviour
     /// 비워 두면 형태는 바꾸지 않고 머티리얼만 간다.
     [SerializeField] Mesh[] tierMeshes = new Mesh[3];
 
+    /// 1~3등급 뚜껑 모델. 순서가 곧 등급이고 `body`의 자식이라 정규화한 크기를 그대로 따른다.
+    /// 닫힌 자세는 `tierMeshes`와 같다. 비워 두면 뚜껑 연출 없이 닫힌 본체만 간다 — 쏟아진 더미처럼
+    /// 열릴 필요 없는 상자.
+    [SerializeField] ChestModel[] tierModels = new ChestModel[3];
+
     /// 3등급 발광 아웃라인. 없으면 발광 없이 동작한다 — 임시 더미처럼 필요 없는 상자가 있다.
     [SerializeField] Renderer glow;
 
@@ -82,7 +87,6 @@ public class ItemBoxView : MonoBehaviour
         if (box == null || body == null) return;
 
         var cleared = box.Cleared;
-        body.enabled = cleared;
 
         // 등급은 매 밤 리롤된다 (기획서 6.3). 바뀐 밤에만 머티리얼을 갈아 끼운다 —
         // 매 프레임 대입하면 SRP 배칭이 깨지고 인스턴스 머티리얼이 새로 생긴다.
@@ -92,7 +96,13 @@ public class ItemBoxView : MonoBehaviour
             appliedTier = tier;
             var index = tier - 1;
             if (index >= 0 && index < tierMaterials.Length && tierMaterials[index] != null)
+            {
                 body.sharedMaterial = tierMaterials[index];
+                if (index < tierModels.Length && tierModels[index] != null)
+                    tierModels[index].SetMaterial(tierMaterials[index]);
+            }
+            for (var i = 0; i < tierModels.Length; i++)
+                if (i != index && tierModels[i] != null) tierModels[i].gameObject.SetActive(false);
             if (bodyMesh != null && index >= 0 && index < tierMeshes.Length && tierMeshes[index] != null)
             {
                 bodyMesh.sharedMesh = tierMeshes[index];
@@ -109,7 +119,29 @@ public class ItemBoxView : MonoBehaviour
             }
         }
 
+        var lidShown = SyncLid(tier, cleared);
+        body.enabled = cleared && !lidShown;
+
         // 발광은 안개와 무관하다 (기획서 6.5.2). 위치만 알려 주고 내용은 알려 주지 않는다.
         if (glow != null) glow.enabled = tier >= glowFromTier;
+    }
+
+    /// 뚜껑이 움직이는 동안은 닫힌 본체 대신 애니메이션 모델을 보인다. 두 모델의 닫힌 자세가
+    /// 같아서 바꿔 끼워도 티가 안 난다. 열림은 서버가 복제한 값(`ItemBox.LidOpen`)만 읽는다 —
+    /// 누가 열었든 모두의 화면에서 같은 상태다. 모델을 보였으면 true.
+    bool SyncLid(int tier, bool cleared)
+    {
+        var index = tier - 1;
+        var model = index >= 0 && index < tierModels.Length ? tierModels[index] : null;
+        if (model == null) return false;
+
+        // 닫는 모션이 끝나 가라앉을 때까지 켜 둔다. 열림 신호가 꺼지는 순간 끄면 뚜껑이 뚝 닫힌다.
+        var show = box.LidOpen || !model.Settled;
+        model.gameObject.SetActive(show);
+        if (!show) return false;
+
+        model.SetOpen(box.LidOpen);
+        model.SetVisible(cleared);
+        return true;
     }
 }

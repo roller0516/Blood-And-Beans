@@ -42,6 +42,7 @@ public sealed class CharacterModel : MonoBehaviour
     static readonly int WalkHash = Animator.StringToHash("Walk");
     static readonly int MoveHeavyHash = Animator.StringToHash("MoveHeavy");
     static readonly int ZombieWalkHash = Animator.StringToHash("ZombieWalk");
+    const string IdleClipName = "PC_rig|Idle";
 
     public enum Gait { Run, Walk, Heavy, Zombie }
 
@@ -66,6 +67,13 @@ public sealed class CharacterModel : MonoBehaviour
     [SerializeField, Min(0f)] float crossFadeSeconds = 0.08f;
     [Tooltip("이동 블렌드(0~1)가 이 값을 넘으면 움직이는 것으로 본다. 「안 됨」을 상체로 할지, 서서 하던 몸짓을 끊을지 가른다.")]
     [SerializeField, Range(0f, 1f)] float movingBlend = 0.2f;
+
+    [Header("발걸음 먼지")]
+    [SerializeField] Transform leftFoot;
+    [SerializeField] Transform rightFoot;
+
+    public event System.Action<Vector3> Footstep;
+    readonly List<AnimatorClipInfo> footstepClips = new();
 
     [Header("손 소켓")]
     [Tooltip("잔을 쥐는 자리. 뜨거운·아이스 커피와 식기 없는 재료가 여기 붙는다.")]
@@ -104,6 +112,8 @@ public sealed class CharacterModel : MonoBehaviour
         upperLayer = animator.GetLayerIndex(UpperLayerName);
         if (upperLayer < 0)
             CDebug.LogError($"{name}: 컨트롤러에 '{UpperLayerName}' 레이어가 없다. 걸으며 하는 「안 됨」이 재생되지 않는다.", this);
+        if (leftFoot == null || rightFoot == null)
+            CDebug.LogError($"{name}: 발걸음 먼지의 발 본이 연결되지 않았다.", this);
     }
 
     void OnEnable() => lastPosition = transform.position;
@@ -133,6 +143,36 @@ public sealed class CharacterModel : MonoBehaviour
         var state = BaseState();
         if (IsGait(state) ? state != gaitHash : moving && StopsWhenMoving(state))
             animator.CrossFadeInFixedTime(gaitHash, crossFadeSeconds);
+    }
+
+    /// Animator 오브젝트의 이벤트 수신기가 착지 프레임에 호출한다. 0은 왼발, 1은 오른발이다.
+    public void EmitFootstep(AnimationEvent animationEvent)
+    {
+        if (!isActiveAndEnabled || !moving || Footstep == null) return;
+        var transitioning = animator.IsInTransition(0);
+        var state = transitioning ? animator.GetNextAnimatorStateInfo(0) : animator.GetCurrentAnimatorStateInfo(0);
+        if (!IsGait(state.shortNameHash) || animationEvent.animatorStateInfo.fullPathHash != state.fullPathHash) return;
+
+        // 방향 블렌드의 여러 클립이 동시에 발걸음을 보내도 가장 크게 보이는 이동 클립만 받는다.
+        if (transitioning) animator.GetNextAnimatorClipInfo(0, footstepClips);
+        else animator.GetCurrentAnimatorClipInfo(0, footstepClips);
+        AnimationClip dominant = null;
+        var weight = 0f;
+        foreach (var info in footstepClips)
+        {
+            if (info.clip.name == IdleClipName || info.weight <= weight) continue;
+            dominant = info.clip;
+            weight = info.weight;
+        }
+        if (animationEvent.animatorClipInfo.clip != dominant) return;
+
+        var foot = animationEvent.intParameter switch { 0 => leftFoot, 1 => rightFoot, _ => null };
+        if (foot == null)
+        {
+            CDebug.LogError($"{name}: 발걸음 이벤트의 발 번호 또는 발 본 연결이 올바르지 않다.", this);
+            return;
+        }
+        Footstep.Invoke(foot.position);
     }
 
     int gaitHash = RunHash;
